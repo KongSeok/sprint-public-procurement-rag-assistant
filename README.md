@@ -1,1 +1,1 @@
-# TP-2-team-3-
+# sprint-public-procurement-rag-assistant
