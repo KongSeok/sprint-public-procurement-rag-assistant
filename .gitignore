@@ -1,0 +1,59 @@
+.DS_Store
+
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials*.json
+service-account*.json
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.venv/
+venv/
+dist/
+build/
+*.egg-info/
+
+# Restricted source data and derived text
+data/
+private/
+**/data_list.csv
+*.hwp
+*.hwpx
+*.pdf
+!reports/public/
+!reports/public/*.pdf
+artifacts/
+evaluation/private/
+*.jsonl
+!evaluation/templates/*.example.jsonl
+*extracted*.txt
+*corpus*.txt
+environment.txt
+
+# Retrieval stores and caches
+vector_store/
+vectorstore/
+chroma/
+faiss/
+*.faiss
+*.index
+*.sqlite
+*.sqlite3
+.cache/
+cache/
+
+# Notebook/runtime output
+.ipynb_checkpoints/
+mlruns/
+wandb/
+
+# Local reports may be generated here; commit only reviewed, redacted exports.
+reports/private/

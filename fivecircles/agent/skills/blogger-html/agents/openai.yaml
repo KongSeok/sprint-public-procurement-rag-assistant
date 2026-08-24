@@ -1,0 +1,4 @@
+interface:
+  display_name: "Blogger HTML"
+  short_description: "Convert posts into Blogger-safe responsive HTML."
+  default_prompt: "Convert this draft into Blogger-safe HTML with responsive tables, wrapped code blocks, and image insertion slots."

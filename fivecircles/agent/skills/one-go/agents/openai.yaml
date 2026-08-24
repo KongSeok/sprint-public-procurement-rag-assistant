@@ -1,0 +1,4 @@
+interface:
+  display_name: "One Go"
+  short_description: "Plan, execute, test, smoke, close."
+  default_prompt: "Use one-go to finish the next project batch end to end, including tests and final smoke/browser checks."
