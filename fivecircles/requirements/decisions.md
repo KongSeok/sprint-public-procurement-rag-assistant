@@ -53,3 +53,13 @@
 - Chosen: HWP는 격리된 Python 3.11 환경의 `pyhwp`/`hwp5txt`를 1차 후보로 쓰고, 페이지·표 fidelity가 부족하면 HWP5→HTML/ODT→PDF→`pdfplumber` 경로를 검증한다. 로컬 LibreOffice의 HWP97 필터는 HWP5 직접 파서로 사용하지 않는다.
 - PDF: `pypdf` 페이지 텍스트를 최소 기준선으로 쓰고 문서별 격리 process timeout을 적용한다. 무텍스트·스캔 문서는 `ocr_may_be_required`로 실패시키며, 표·bbox 보존은 `pdfplumber` 보강 대상으로 둔다.
 - Gate: 실제 private snapshot에서 96 HWP와 4 PDF를 전수 실행하기 전에는 파서 선정을 확정 상태로 승격하지 않는다.
+
+## D-009 — 공통 평가 계약과 성공 조건 동결
+
+- Date: 2026-08-24
+- Status: ACTIVE_CONTRACT_PRIVATE_GOLD_PENDING
+- Chosen: API와 GCP-local 스택은 동일한 요청·응답 Schema, corpus/evaluation/scoring hash와 4대 task 평가 계약을 사용한다. dev는 task별 10건, held-out은 task별 5건을 최소로 한다.
+- Frozen gates: Recall@1/3/5/10, 검색·답변·인용·기권 품질, error rate, API USD 20, 비용/GPU 측정 coverage의 operator·값·stack scope를 `evaluation/config/metrics.json`에 고정한다.
+- Unknown safety: 표준 비사실 기권문, gold reason 일치, `safe_abstention=true`, dev 1인/held-out 2인 검토를 모두 충족해야 성공으로 집계한다.
+- Fairness: 비교는 통과한 API 1건과 GCP-local 1건만 허용하며 corpus, evaluation, scoring-config hash와 case/task 수가 일치해야 한다. 외부 Schema 참조는 로컬 registry로만 해석한다.
+- Pending: 실제 private corpus로 dev 40건과 held-out 20건을 작성·교차검토·봉인하는 작업은 원문 materialization 뒤에 수행한다.

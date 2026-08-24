@@ -1,0 +1,87 @@
+{
+  "schema_version": "1.0",
+  "k_values": [1, 3, 5, 10],
+  "minimum_cases": {
+    "dev": {
+      "single_doc": 10,
+      "multi_doc_compare": 10,
+      "follow_up": 10,
+      "unknown": 10
+    },
+    "heldout": {
+      "single_doc": 5,
+      "multi_doc_compare": 5,
+      "follow_up": 5,
+      "unknown": 5
+    }
+  },
+  "thresholds": {
+    "metrics.retrieval.document_recall_at_5": {
+      "operator": ">=",
+      "value": 0.9
+    },
+    "metrics.retrieval.all_required_docs_recalled_at_10": {
+      "operator": ">=",
+      "value": 0.8
+    },
+    "metrics.answer.key_point_coverage": {
+      "operator": ">=",
+      "value": 0.8
+    },
+    "metrics.answer.citation_validity": {
+      "operator": ">=",
+      "value": 0.95
+    },
+    "metrics.answer.gold_citation_precision": {
+      "operator": ">=",
+      "value": 0.95
+    },
+    "metrics.answer.faithfulness": {
+      "operator": ">=",
+      "value": 0.9
+    },
+    "metrics.answer.follow_up_success": {
+      "operator": ">=",
+      "value": 0.8
+    },
+    "metrics.answer.judgment_coverage": {
+      "operator": ">=",
+      "value": 1.0
+    },
+    "metrics.abstention.recall": {
+      "operator": ">=",
+      "value": 0.8
+    },
+    "metrics.abstention.safe_abstention_rate": {
+      "operator": ">=",
+      "value": 1.0
+    },
+    "metrics.abstention.false_answer_rate": {
+      "operator": "<=",
+      "value": 0.2
+    },
+    "metrics.operations.response_contract_error_rate": {
+      "operator": "<=",
+      "value": 0.0
+    },
+    "metrics.operations.runtime_error_rate": {
+      "operator": "<=",
+      "value": 0.0
+    },
+    "metrics.operations.total_cost_usd": {
+      "operator": "<=",
+      "value": 20.0,
+      "applies_to": ["api"]
+    },
+    "metrics.operations.api_cost_coverage": {
+      "operator": ">=",
+      "value": 1.0,
+      "applies_to": ["api"]
+    },
+    "metrics.operations.local_gpu_usage_coverage": {
+      "operator": ">=",
+      "value": 1.0,
+      "applies_to": ["gcp_local"]
+    }
+  }
+}

@@ -43,3 +43,17 @@ This file summarizes recent updates so other agents can continue without re‑di
 ### Terminal boundary
 - 구현은 완료됐지만 실제 private 100건과 `hwp5txt`가 로컬에 없어 전수 추출·fidelity QA는 `BLOCKED_REAL_CORPUS`다.
 - 공개 계약 작업인 Batch 2는 이 차단과 독립적으로 진행한다.
+
+## Addendum (2026-08-24) - Batch 2 shared evaluation contract
+
+### Delivered
+- 두 실행 스택이 공유하는 요청·응답, eval case, run record Schema와 오프라인 registry를 구현했다.
+- 4대 task 누수·hash·지표·CLI와 안전 기권, scope, frozen gate, API↔GCP 비교를 fail-closed로 구현했다.
+
+### Verification
+- 평가 31개와 전체 53개 테스트가 malformed shape, 누수, gate 약화, 안전하지 않은 기권, 조작 보고서를 포함해 통과했다.
+- 오프라인 `$ref`, compile, 합성 CLI와 저장소 safety 검사를 통과했다.
+
+### Terminal boundary
+- 공개 계약·도구·합성 검증은 완료했다.
+- 실제 40/20 gold 작성·봉인은 private corpus를 기다리는 `BLOCKED_PRIVATE_GOLD`다.

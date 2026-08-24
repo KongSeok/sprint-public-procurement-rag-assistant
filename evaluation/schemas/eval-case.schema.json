@@ -1,0 +1,267 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://midprojectrag.local/schemas/eval-case.schema.json",
+  "title": "MidProjectRAG private evaluation case",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "case_id",
+    "group_id",
+    "split",
+    "task_type",
+    "question",
+    "history",
+    "document_scope",
+    "conversation",
+    "gold",
+    "difficulty",
+    "tags",
+    "source_manifest_sha256",
+    "review"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "case_id": {
+      "type": "string",
+      "pattern": "^(dev|heldout)-(single|multi|followup|unknown)-[0-9]{3}$"
+    },
+    "group_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "split": {"enum": ["dev", "heldout"]},
+    "task_type": {
+      "enum": ["single_doc", "multi_doc_compare", "follow_up", "unknown"]
+    },
+    "question": {"type": "string", "minLength": 1, "maxLength": 4000},
+    "history": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {"$ref": "#/$defs/historyTurn"}
+    },
+    "document_scope": {"$ref": "#/$defs/documentScope"},
+    "conversation": {
+      "oneOf": [
+        {"type": "null"},
+        {"$ref": "#/$defs/conversation"}
+      ]
+    },
+    "gold": {"$ref": "#/$defs/gold"},
+    "difficulty": {"enum": ["easy", "medium", "hard"]},
+    "tags": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true
+    },
+    "source_manifest_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "review": {"$ref": "#/$defs/review"}
+  },
+  "$defs": {
+    "documentId": {
+      "type": "string",
+      "pattern": "^doc_[0-9a-f]{24}$"
+    },
+    "blockId": {
+      "type": "string",
+      "pattern": "^block_[0-9a-f]{24}$"
+    },
+    "historyTurn": {
+      "type": "object",
+      "required": ["turn_id", "role", "content"],
+      "properties": {
+        "turn_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+        },
+        "role": {"enum": ["user", "assistant"]},
+        "content": {"type": "string", "minLength": 1, "maxLength": 12000},
+        "cited_doc_ids": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/documentId"},
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "documentScope": {
+      "type": "object",
+      "required": ["mode", "doc_ids"],
+      "properties": {
+        "mode": {"enum": ["all", "explicit"]},
+        "doc_ids": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {"$ref": "#/$defs/documentId"},
+          "uniqueItems": true
+        }
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"mode": {"const": "all"}}},
+          "then": {"properties": {"doc_ids": {"maxItems": 0}}}
+        },
+        {
+          "if": {"properties": {"mode": {"const": "explicit"}}},
+          "then": {"properties": {"doc_ids": {"minItems": 1}}}
+        }
+      ],
+      "additionalProperties": false
+    },
+    "conversation": {
+      "type": "object",
+      "required": ["conversation_id", "turn_index", "depends_on_turn_ids"],
+      "properties": {
+        "conversation_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+        },
+        "turn_index": {"type": "integer", "minimum": 1},
+        "depends_on_turn_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+          },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "keyPoint": {
+      "type": "object",
+      "required": ["point_id", "text"],
+      "properties": {
+        "point_id": {
+          "type": "string",
+          "pattern": "^kp_[A-Za-z0-9._:-]{1,64}$"
+        },
+        "text": {"type": "string", "minLength": 1, "maxLength": 2000}
+      },
+      "additionalProperties": false
+    },
+    "evidenceRef": {
+      "type": "object",
+      "required": ["doc_id", "source_block_id", "locator_hash"],
+      "properties": {
+        "doc_id": {"$ref": "#/$defs/documentId"},
+        "source_block_id": {"$ref": "#/$defs/blockId"},
+        "locator_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "gold": {
+      "type": "object",
+      "required": [
+        "decision",
+        "reference_answer",
+        "required_key_points",
+        "required_doc_ids",
+        "evidence_refs",
+        "comparison_axes",
+        "abstain_reason"
+      ],
+      "properties": {
+        "decision": {"enum": ["answer", "abstain"]},
+        "reference_answer": {"type": ["string", "null"], "maxLength": 12000},
+        "required_key_points": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/keyPoint"}
+        },
+        "required_doc_ids": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/documentId"},
+          "uniqueItems": true
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/evidenceRef"}
+        },
+        "comparison_axes": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true
+        },
+        "abstain_reason": {
+          "type": ["string", "null"],
+          "enum": [null, "insufficient_evidence", "out_of_scope", "ambiguous"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "review": {
+      "type": "object",
+      "required": ["author", "reviewer", "status"],
+      "properties": {
+        "author": {"type": "string", "minLength": 1, "maxLength": 128},
+        "reviewer": {"type": "string", "minLength": 1, "maxLength": 128},
+        "status": {"enum": ["draft", "approved"]}
+      },
+      "additionalProperties": false
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"task_type": {"const": "multi_doc_compare"}}},
+      "then": {
+        "properties": {
+          "gold": {
+            "properties": {
+              "decision": {"const": "answer"},
+              "required_doc_ids": {"minItems": 2},
+              "comparison_axes": {"minItems": 1}
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {"properties": {"task_type": {"const": "follow_up"}}},
+      "then": {
+        "properties": {
+          "history": {"minItems": 1},
+          "conversation": {"$ref": "#/$defs/conversation"},
+          "gold": {"properties": {"decision": {"const": "answer"}}}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"task_type": {"const": "single_doc"}}},
+      "then": {
+        "properties": {
+          "gold": {
+            "properties": {
+              "decision": {"const": "answer"},
+              "required_doc_ids": {"minItems": 1}
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {"properties": {"task_type": {"const": "unknown"}}},
+      "then": {
+        "properties": {
+          "gold": {
+            "properties": {
+              "decision": {"const": "abstain"},
+              "reference_answer": {"type": "null"},
+              "required_key_points": {"maxItems": 0},
+              "required_doc_ids": {"maxItems": 0},
+              "evidence_refs": {"maxItems": 0},
+              "comparison_axes": {"maxItems": 0},
+              "abstain_reason": {"type": "string"}
+            }
+          }
+        }
+      }
+    }
+  ],
+  "additionalProperties": false
+}

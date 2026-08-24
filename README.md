@@ -63,6 +63,27 @@ PYTHONPATH=src python -m midprojectrag verify \
 HWP 추출에는 격리 환경의 `hwp5txt`가 필요합니다. 의존성이 없거나 원문 해시가
 manifest와 달라지면 문서를 누락하지 않고 `failed` 상태와 비식별 오류 코드로 남깁니다.
 
+## 공통 평가 계약
+
+Batch 2는 두 스택이 공유하는 요청·응답 JSON Schema와 단일 문서·다중 문서·후속 질문·기권
+평가 계약을 제공합니다. 실제 질문·정답·실행 기록은 Git 밖에 두고, 저장소에는 스키마와 합성
+예제만 둡니다.
+
+```bash
+PYTHONPATH=src python -m midprojectrag.evaluation validate \
+  --dev evaluation/templates/dev.example.jsonl \
+  --held-out evaluation/templates/heldout.example.jsonl \
+  --minimum-per-task 1
+
+PYTHONPATH=src python -m midprojectrag.evaluation score \
+  --cases evaluation/private/dev.jsonl \
+  --runs artifacts/evaluation/api-dev-runs.jsonl \
+  --config evaluation/config/metrics.json
+```
+
+실제 평가의 기본 하한은 dev 40문항과 held-out 20문항이며, scoring config와 hard gate가 없거나
+약화되면 평가가 실패합니다. 자세한 계약과 리뷰 기준은 `evaluation/README.md`를 따릅니다.
+
 개발 환경에서는 프로젝트를 설치하거나 `src` 경로를 명시해 테스트합니다.
 
 ```bash

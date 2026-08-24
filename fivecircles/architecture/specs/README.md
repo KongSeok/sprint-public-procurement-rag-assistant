@@ -23,13 +23,13 @@ Do not duplicate or reinterpret that order in specification files.
 - `system-overview.md`: RAG component boundaries and A/B stack architecture.
 - `source-data-contract.md`: source, normalization, manifest, extraction and provenance contract.
 - `data-model.md`: corpus, document, source block, chunk, citation and run semantics.
-- `api-contract.md`: **planned in Batch 2** common request/response contract entrypoint.
-- `evaluation-contract.md`: **planned in Batch 2** evaluation split, metrics and A/B fairness rules.
+- `api-contract.md`: **active from Batch 2** common request/response contract entrypoint.
+- `evaluation-contract.md`: **active from Batch 2** evaluation split, metrics and A/B fairness rules.
 - `security.md`: restricted data, secret, PII and model egress controls.
 - `git.md`: repository tracking and pre-publication safety rules.
 - `implementation-rules.md`: preventive implementation invariants.
 - `docker.md`: optional container/runtime boundary; not a product requirement.
-- `performance.md`: **planned in Batch 2** latency, cost and resource measurement contract.
+- `performance.md`: **active from Batch 2** latency, cost and resource measurement contract.
 - `frontend.md`: **not active yet** demo UI contract when a frontend batch is activated.
 - `buisiness-workflow.md`: **not active yet** consultant-facing workflow (legacy spelling retained for stable path).
 

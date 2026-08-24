@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://midprojectrag.local/schemas/rag-request.schema.json",
+  "title": "MidProjectRAG query request",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "request_id",
+    "question",
+    "history",
+    "document_scope",
+    "options"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "request_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "question": {"type": "string", "minLength": 1, "maxLength": 4000},
+    "history": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {"$ref": "#/$defs/historyTurn"}
+    },
+    "document_scope": {"$ref": "#/$defs/documentScope"},
+    "options": {"$ref": "#/$defs/options"}
+  },
+  "$defs": {
+    "documentId": {
+      "type": "string",
+      "pattern": "^doc_[0-9a-f]{24}$"
+    },
+    "historyTurn": {
+      "type": "object",
+      "required": ["turn_id", "role", "content"],
+      "properties": {
+        "turn_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+        },
+        "role": {"enum": ["user", "assistant"]},
+        "content": {"type": "string", "minLength": 1, "maxLength": 12000},
+        "cited_doc_ids": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/documentId"},
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "documentScope": {
+      "type": "object",
+      "required": ["mode", "doc_ids"],
+      "properties": {
+        "mode": {"enum": ["all", "explicit"]},
+        "doc_ids": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {"$ref": "#/$defs/documentId"},
+          "uniqueItems": true
+        }
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"mode": {"const": "all"}}},
+          "then": {"properties": {"doc_ids": {"maxItems": 0}}}
+        },
+        {
+          "if": {"properties": {"mode": {"const": "explicit"}}},
+          "then": {"properties": {"doc_ids": {"minItems": 1}}}
+        }
+      ],
+      "additionalProperties": false
+    },
+    "options": {
+      "type": "object",
+      "required": ["max_citations"],
+      "properties": {
+        "max_citations": {"type": "integer", "minimum": 1, "maximum": 20}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

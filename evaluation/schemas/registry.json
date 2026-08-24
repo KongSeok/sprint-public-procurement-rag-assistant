@@ -1,0 +1,9 @@
+{
+  "schema_version": "1.0",
+  "resources": {
+    "https://midprojectrag.local/schemas/rag-request.schema.json": "../../contracts/rag-request.schema.json",
+    "https://midprojectrag.local/schemas/rag-response.schema.json": "../../contracts/rag-response.schema.json",
+    "https://midprojectrag.local/schemas/eval-case.schema.json": "eval-case.schema.json",
+    "https://midprojectrag.local/schemas/run-record.schema.json": "run-record.schema.json"
+  }
+}

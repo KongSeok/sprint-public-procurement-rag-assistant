@@ -1,0 +1,191 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://midprojectrag.local/schemas/rag-response.schema.json",
+  "title": "MidProjectRAG query response",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "request_id",
+    "status",
+    "answer",
+    "citations",
+    "abstention",
+    "error",
+    "trace_id"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "request_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "status": {"enum": ["answered", "abstained", "error"]},
+    "answer": {"type": "string", "maxLength": 30000},
+    "citations": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {"$ref": "#/$defs/citation"}
+    },
+    "abstention": {
+      "oneOf": [
+        {"type": "null"},
+        {"$ref": "#/$defs/abstention"}
+      ]
+    },
+    "error": {
+      "oneOf": [
+        {"type": "null"},
+        {"$ref": "#/$defs/error"}
+      ]
+    },
+    "trace_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    }
+  },
+  "$defs": {
+    "documentId": {
+      "type": "string",
+      "pattern": "^doc_[0-9a-f]{24}$"
+    },
+    "blockId": {
+      "type": "string",
+      "pattern": "^block_[0-9a-f]{24}$"
+    },
+    "citation": {
+      "type": "object",
+      "required": ["doc_id", "chunk_id", "source_block_ids", "locator"],
+      "properties": {
+        "doc_id": {"$ref": "#/$defs/documentId"},
+        "chunk_id": {
+          "type": "string",
+          "pattern": "^chunk_[0-9a-f]{24}$"
+        },
+        "source_block_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/blockId"},
+          "uniqueItems": true
+        },
+        "locator": {"$ref": "#/$defs/locator"}
+      },
+      "additionalProperties": false
+    },
+    "locator": {
+      "type": "object",
+      "required": ["section_path", "page_start", "page_end"],
+      "properties": {
+        "section_path": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1}
+        },
+        "page_start": {"type": ["integer", "null"], "minimum": 1},
+        "page_end": {"type": ["integer", "null"], "minimum": 1}
+      },
+      "additionalProperties": false
+    },
+    "abstention": {
+      "type": "object",
+      "required": ["reason", "detail"],
+      "properties": {
+        "reason": {
+          "enum": ["insufficient_evidence", "out_of_scope", "ambiguous"]
+        },
+        "detail": {"type": "string", "minLength": 1, "maxLength": 2000}
+      },
+      "additionalProperties": false
+    },
+    "error": {
+      "type": "object",
+      "required": ["code", "message"],
+      "properties": {
+        "code": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        },
+        "message": {"type": "string", "minLength": 1, "maxLength": 2000}
+      },
+      "additionalProperties": false
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"status": {"const": "answered"}}},
+      "then": {
+        "properties": {
+          "answer": {"minLength": 1},
+          "citations": {"minItems": 1},
+          "abstention": {"type": "null"},
+          "error": {"type": "null"}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"status": {"const": "abstained"}}},
+      "then": {
+        "properties": {
+          "answer": {
+            "enum": [
+              "제공된 문서에서 답변 근거를 찾지 못했습니다.",
+              "질문이 제공된 문서 범위를 벗어납니다.",
+              "질문이 모호하여 답변하려면 추가 정보가 필요합니다."
+            ]
+          },
+          "citations": {"maxItems": 0},
+          "abstention": {"$ref": "#/$defs/abstention"},
+          "error": {"type": "null"}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {"const": "abstained"},
+          "abstention": {
+            "type": "object",
+            "required": ["reason"],
+            "properties": {"reason": {"const": "insufficient_evidence"}}
+          }
+        }
+      },
+      "then": {"properties": {"answer": {"const": "제공된 문서에서 답변 근거를 찾지 못했습니다."}}}
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {"const": "abstained"},
+          "abstention": {
+            "type": "object",
+            "required": ["reason"],
+            "properties": {"reason": {"const": "out_of_scope"}}
+          }
+        }
+      },
+      "then": {"properties": {"answer": {"const": "질문이 제공된 문서 범위를 벗어납니다."}}}
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {"const": "abstained"},
+          "abstention": {
+            "type": "object",
+            "required": ["reason"],
+            "properties": {"reason": {"const": "ambiguous"}}
+          }
+        }
+      },
+      "then": {"properties": {"answer": {"const": "질문이 모호하여 답변하려면 추가 정보가 필요합니다."}}}
+    },
+    {
+      "if": {"properties": {"status": {"const": "error"}}},
+      "then": {
+        "properties": {
+          "citations": {"maxItems": 0},
+          "abstention": {"type": "null"},
+          "error": {"$ref": "#/$defs/error"}
+        }
+      }
+    }
+  ],
+  "additionalProperties": false
+}

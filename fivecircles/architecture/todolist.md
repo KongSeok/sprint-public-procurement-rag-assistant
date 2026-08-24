@@ -41,13 +41,16 @@
 
 ## Batch 2 — 평가 세트와 공통 계약 선확정
 
-상태: PENDING
+상태: BLOCKED_PRIVATE_GOLD (공개 계약·평가 도구·합성 검증 완료, 실제 60문항 작성 대기)
 
-- [ ] 단일 문서, 다중 문서 비교, 후속 질문, 미지 질문/기권 평가 스키마를 구현한다.
-- [ ] dev/held-out 분리와 group 단위 누수 방지 규칙을 구현한다.
-- [ ] API와 GCP 로컬 스택이 공유할 요청·응답 JSON Schema를 구현한다.
-- [ ] 검색·생성·인용·기권·latency·비용 지표 설정과 평가 CLI를 구현한다.
-- 검증: 스키마·참조 무결성·split 누수·응답 불변식 테스트 통과.
+- [x] 단일 문서, 다중 문서 비교, 후속 질문, 미지 질문/기권 평가 스키마를 구현한다.
+- [x] dev/held-out 분리와 group·질문·문서쌍·conversation 단위 누수 방지 규칙을 구현한다.
+- [x] API와 GCP 로컬 스택이 공유할 요청·응답 JSON Schema와 오프라인 registry를 구현한다.
+- [x] 검색·생성·인용·기권·latency·비용 지표 설정과 `validate/score/compare` CLI를 구현한다.
+- [x] 평가 task floor·hard gate·explicit scope·안전 기권·A/B hash/shape 검사를 fail-closed로 고정한다.
+- [ ] private corpus 근거로 dev 40문항과 held-out 20문항을 작성하고 2인 교차검토한다. **Blocker:** Batch 1 private 원문 materialization 대기.
+- [ ] held-out 파일과 질문 순서를 hash로 봉인하고 실제 source block·locator hash 무결성을 검증한다.
+- 검증: 평가 테스트 31개, 오프라인 Schema 참조, split 누수, 응답·실행 기록 불변식 통과.
 
 ## Batch 3 — 시나리오 B API naive 기준선
 

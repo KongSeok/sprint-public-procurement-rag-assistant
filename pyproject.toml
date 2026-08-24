@@ -18,6 +18,7 @@ pdf-fidelity = [
 
 [project.scripts]
 midprojectrag = "midprojectrag.cli:main"
+midprojectrag-eval = "midprojectrag.evaluation:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
