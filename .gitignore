@@ -24,6 +24,7 @@ build/
 # Restricted source data and derived text
 data/
 private/
+resources/data_midP.zip
 **/data_list.csv
 *.hwp
 *.hwpx

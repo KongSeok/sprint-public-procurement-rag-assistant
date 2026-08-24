@@ -57,3 +57,14 @@ This file summarizes recent updates so other agents can continue without re‑di
 ### Terminal boundary
 - 공개 계약·도구·합성 검증은 완료했다.
 - 실제 40/20 gold 작성·봉인은 private corpus를 기다리는 `BLOCKED_PRIVATE_GOLD`다.
+
+## Addendum (2026-08-24) - Real corpus materialization and daily brief
+
+### Backend
+- 실제 100/100 조인과 HWP 96·PDF 4 전수 추출을 완료하고 PDF Pipe deadlock·HWP fallback을 보강했다.
+
+### Documentation
+- 당일/익일/전체 약 35% 위치를 팀 공유 HTML로 정리했다. (ref: `work/2026-08-24-daily-summary.html`)
+
+### Tests
+- 전체 58/58, 최종 `require-extracted` 100/100, compile, safety 317파일을 통과했다.

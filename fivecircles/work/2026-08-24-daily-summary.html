@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>2026-08-24 MidProjectRAG 작업 요약</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #172033;
+      --muted: #667085;
+      --line: #dce3ee;
+      --paper: #ffffff;
+      --canvas: #f3f6fb;
+      --navy: #19375f;
+      --blue: #2f6fed;
+      --blue-soft: #eaf1ff;
+      --green: #157f5b;
+      --green-soft: #e8f7f1;
+      --amber: #a96008;
+      --amber-soft: #fff4dc;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--canvas);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+        "Noto Sans KR", "Segoe UI", sans-serif;
+      line-height: 1.65;
+    }
+
+    main {
+      width: min(1040px, calc(100% - 32px));
+      margin: 40px auto;
+    }
+
+    .hero,
+    .card,
+    .status {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: 0 10px 30px rgba(25, 55, 95, 0.07);
+    }
+
+    .hero {
+      padding: 34px;
+      background: linear-gradient(135deg, #ffffff 45%, #eaf1ff 100%);
+    }
+
+    .eyebrow {
+      margin: 0 0 7px;
+      color: var(--blue);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      color: var(--navy);
+      font-size: clamp(27px, 4vw, 42px);
+      line-height: 1.22;
+      letter-spacing: -0.035em;
+    }
+
+    .lead {
+      max-width: 760px;
+      margin: 15px 0 25px;
+      color: #41506a;
+      font-size: 17px;
+    }
+
+    .progress-row {
+      display: grid;
+      grid-template-columns: 115px 1fr;
+      gap: 18px;
+      align-items: center;
+    }
+
+    .progress-value {
+      color: var(--blue);
+      font-size: 36px;
+      font-weight: 850;
+      line-height: 1;
+    }
+
+    .progress-copy {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .bar {
+      height: 10px;
+      margin-bottom: 7px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #dfe7f3;
+    }
+
+    .bar > span {
+      display: block;
+      width: 35%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #2f6fed, #59a4ff);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .card { padding: 24px; }
+
+    .card h2,
+    .status h2 {
+      margin: 0 0 14px;
+      color: var(--navy);
+      font-size: 20px;
+      letter-spacing: -0.02em;
+    }
+
+    .label {
+      display: inline-flex;
+      margin-bottom: 12px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .done { color: var(--green); background: var(--green-soft); }
+    .next { color: var(--blue); background: var(--blue-soft); }
+    .later { color: var(--amber); background: var(--amber-soft); }
+
+    ul { margin: 0; padding-left: 20px; }
+    li + li { margin-top: 10px; }
+    li::marker { color: var(--blue); }
+
+    strong { color: #223c62; }
+
+    .status {
+      margin-top: 16px;
+      padding: 26px;
+    }
+
+    .timeline {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      margin: 18px 0 24px;
+    }
+
+    .step {
+      min-height: 82px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fafcff;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .step b {
+      display: block;
+      margin-bottom: 3px;
+      color: var(--ink);
+      font-size: 13px;
+    }
+
+    .step.complete { border-color: #a8ddc9; background: var(--green-soft); }
+    .step.current { border-color: #9dbcfb; background: var(--blue-soft); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th, td {
+      padding: 12px 10px;
+      border-top: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th { width: 22%; color: var(--navy); }
+
+    .note {
+      margin: 18px 0 0;
+      padding: 13px 15px;
+      border-left: 4px solid var(--blue);
+      border-radius: 6px;
+      background: #f7faff;
+      color: #4b5d76;
+      font-size: 13px;
+    }
+
+    footer {
+      padding: 18px 4px 0;
+      color: var(--muted);
+      text-align: right;
+      font-size: 12px;
+    }
+
+    @media (max-width: 780px) {
+      main { margin: 18px auto; }
+      .hero { padding: 25px; }
+      .grid { grid-template-columns: 1fr; }
+      .timeline { grid-template-columns: 1fr 1fr; }
+      .progress-row { grid-template-columns: 88px 1fr; }
+      .progress-value { font-size: 30px; }
+      th { width: 76px; white-space: nowrap; }
+    }
+
+    @media print {
+      body { background: white; }
+      main { width: 100%; margin: 0; }
+      .hero, .card, .status { box-shadow: none; break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="hero">
+      <p class="eyebrow">Daily Project Brief · 2026-08-24</p>
+      <h1>MidProjectRAG 작업 요약</h1>
+      <p class="lead">
+        운영·보안·공통 프레임워크를 세우고, 실제 RAG 기준선을 만들기 직전까지 왔다.
+        지금은 “설계가 끝난 프로젝트”에서 “측정 가능한 제품”으로 넘어가는 경계다.
+      </p>
+      <div class="progress-row" aria-label="전체 프로젝트 추정 진척도 35퍼센트">
+        <div class="progress-value">35%</div>
+        <div>
+          <div class="bar"><span></span></div>
+          <div class="progress-copy">전체 약 30~35% · 3주 일정 중 1주차 기반 작업 후반부</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid" aria-label="일정 요약">
+      <article class="card">
+        <span class="label done">오늘</span>
+        <h2>기반과 기준선 설계</h2>
+        <ul>
+          <li><strong>운영 정리:</strong> 새 프로젝트 기준, 문서 권위, 보안 원칙, 3주 배치 로드맵을 확정했다.</li>
+          <li><strong>RAG 기준선:</strong> naive Dense RAG 우선, 평가에서 확인된 실패만 개선한다는 원칙과 4대 시나리오를 고정했다.</li>
+          <li><strong>데이터 프레임워크:</strong> CSV↔원문 100/100 조인과 HWP 96건·PDF 4건 전수 추출·무결성 검증을 완료했다.</li>
+          <li><strong>평가 프레임워크:</strong> API/GCP 공통 계약, dev/held-out 분리, 검색·인용·기권·지연·비용 지표를 구현했다.</li>
+        </ul>
+      </article>
+
+      <article class="card">
+        <span class="label next">내일</span>
+        <h2>환경 마감과 Baseline 착수</h2>
+        <ul>
+          <li><strong>환경설정 마무리:</strong> HWP 파서 의존성과 재현 명령을 고정하고 표·페이지 fidelity를 표본 QA한다.</li>
+          <li><strong>GitHub 운영 프로토콜:</strong> 브랜치·커밋·PR·교차 리뷰·머지·비공개 데이터 차단 규칙을 팀 기준으로 정리한다.</li>
+          <li><strong>RAG 구현:</strong> 단순 청킹→임베딩→Dense top-k→근거 인용 답변·대화 문맥·안전 기권을 연결한다.</li>
+          <li><strong>성능 검증:</strong> 실제 corpus 기반 dev 문항부터 작성하고 retrieval·citation·latency·cost 기준선을 측정한다.</li>
+        </ul>
+      </article>
+
+      <article class="card">
+        <span class="label later">내일 이후</span>
+        <h2>근거 기반 개선과 비교</h2>
+        <ul>
+          <li>구조적 청킹→메타데이터 라우팅→top-k 순으로 한 요소씩 ablation한다.</li>
+          <li>MMR·reranking은 중복 또는 순위 문제가 실제 평가에서 확인될 때만 실험한다.</li>
+          <li>OpenAI API와 GCP L4 로컬 HF 스택을 같은 corpus·평가 계약으로 비교한다.</li>
+          <li>마지막 주에 재현성, 안전검사, GitHub·보고서·발표 자료를 동결한다.</li>
+        </ul>
+      </article>
+    </section>
+
+    <section class="status">
+      <h2>전체 프로젝트에서의 현재 위치</h2>
+      <div class="timeline" aria-label="프로젝트 단계">
+        <div class="step complete"><b>1. 운영·범위</b>완료</div>
+        <div class="step current"><b>2. 데이터·평가</b>전수 추출 완료·gold 작성 대기</div>
+        <div class="step"><b>3. API Baseline</b>다음 착수</div>
+        <div class="step"><b>4. 개선·GCP 비교</b>평가 후 진행</div>
+        <div class="step"><b>5. 통합·제출</b>마지막 주</div>
+      </div>
+
+      <table>
+        <tbody>
+          <tr>
+            <th>Batch 0</th>
+            <td>운영·범위·보안·권위 체계 완료</td>
+          </tr>
+          <tr>
+            <th>Batch 1</th>
+            <td>실제 100/100 조인과 HWP 96건·PDF 4건 전수 추출 완료, fidelity 표본 QA만 남음</td>
+          </tr>
+          <tr>
+            <th>Batch 2</th>
+            <td>공통 평가 계약과 도구 완료, 실제 private 평가 문항 작성 대기</td>
+          </tr>
+          <tr>
+            <th>Batch 3</th>
+            <td>API naive Dense RAG 기준선 구현이 바로 다음 핵심 작업</td>
+          </tr>
+          <tr>
+            <th>Batch 4~6</th>
+            <td>근거 기반 검색 개선, GCP 비교, 통합 검증·제출 순으로 진행</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p class="note">
+        35%는 단순 체크박스 개수가 아니라 위험도와 작업량을 반영한 계획 추정치다.
+        핵심 설계 리스크는 크게 줄었지만, 실제 RAG 구현·측정·A/B 비교가 남아 있어 아직 중반 이전으로 본다.
+      </p>
+    </section>
+
+    <footer>MidProjectRAG · Team working summary</footer>
+  </main>
+</body>
+</html>

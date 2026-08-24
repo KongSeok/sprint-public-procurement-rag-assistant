@@ -12,6 +12,10 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+hwp = [
+  "pyhwp==0.1b15",
+  "six>=1.17,<2",
+]
 pdf-fidelity = [
   "pdfplumber>=0.11,<0.12",
 ]

@@ -1,6 +1,6 @@
 # Batch 2 Closeout — Shared RAG Evaluation Contract
 
-상태: BLOCKED_PRIVATE_GOLD
+상태: READY_PRIVATE_GOLD
 
 날짜: 2026-08-24
 
@@ -33,10 +33,10 @@
 - 합성 dev/held-out validation 및 40-case API↔GCP-local score/compare smoke 통과
 - `compileall`, `git diff --check`, 저장소 safety 검사를 통합 커밋 직전에 통과했다.
 
-## 차단 항목
+## 다음 실행 항목
 
-- 실제 private source blocks가 아직 materialize되지 않아 source-backed 질문을 작성할 수 없음
-- 따라서 dev 40문항, held-out 20문항의 작성·교차검토·봉인과 실제 locator 검증은 미실행
+- 실제 source blocks가 materialize되어 dev 40문항과 held-out 20문항 작성이 가능하다.
+- 질문 작성 후 2인 교차검토·held-out 순서 봉인·locator hash 검증이 필요하다.
 
-공개 계약과 도구 구현은 완료됐다. 다음 상태 변경은 private corpus 확보 후 실제 gold set을 만들고
-validation seal을 남겼을 때만 수행한다.
+공개 계약과 도구 구현은 완료됐다. 다음 상태 변경은 실제 gold set을 만들고 validation seal을
+남겼을 때 수행한다.

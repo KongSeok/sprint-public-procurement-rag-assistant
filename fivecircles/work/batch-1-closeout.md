@@ -1,6 +1,6 @@
 # Batch 1 Closeout — Private Corpus Ingestion
 
-상태: BLOCKED_REAL_CORPUS
+상태: IN_PROGRESS_FIDELITY_QA
 날짜: 2026-08-24
 
 ## 구현 완료
@@ -8,6 +8,8 @@
 - `Copy of ` 1회 제거 + Unicode NFC 기반 CSV↔원문 exact join
 - 원문 SHA-256, snapshot ID, parser/version, 상태·경고를 보존하는 private manifest
 - `pypdf` PDF 페이지 adapter와 `hwp5txt` HWP 문단 adapter
+- 대용량 PDF Pipe 결과를 수신 후 worker를 종료하는 deadlock 방지
+- HWP XML 변환 실패 시 격리 pyhwp binary-model 텍스트 fallback
 - stable source block, content hash, source locator, PII 유형별 개수
 - `manifest`, `extract`, `verify` CLI와 원자적 JSON/JSONL 쓰기
 - data root 밖 path traversal·symlink, 원문 hash drift, 잘못된 doc ID의 fail-closed 처리
@@ -15,7 +17,7 @@
 
 ## 검증
 
-- 표준 라이브러리 `unittest`: 22개 통과 — 합성 HWP, 무텍스트 PDF, join collision, metadata snapshot, source hash drift, malformed manifest, forged provenance, symlink/path traversal, 계약/CLI 검증
+- 표준 라이브러리 `unittest`: ingest 27개 통과 — 대용량 PDF 결과와 HWP fallback·오류 분류 회귀 포함
 - `compileall`: 별도 `/tmp` pycache를 사용해 통과
 - JSON Schema 문법 검사 통과
 - HWP subprocess와 PDF 격리 process에 문서별 timeout 적용
@@ -24,13 +26,13 @@
 ## 외부 실사
 
 - 지정 corpus 인벤토리: metadata CSV 100행, 원문 100건(HWP 96, PDF 4), 정규화 후 파일명 100/100 대응
-- 원격 HWP 표본 1건: OLE CFB 기반 HWP5 v5.1 계열; 전체 96건을 대표한다고 간주하지 않음
+- private snapshot: 실제 CSV↔원문 100/100 조인, HWP 96건 `partial`, PDF 4건 `ok`, 실패 0건
+- 최종 `require-extracted` 검증: 문서·블록·입력 hash·provenance 오류 0건
 - 로컬 LibreOffice HWP 필터는 구형 HWP97용이므로 HWP5 직접 추출기에서 제외
 
-## 차단 항목
+## 남은 항목
 
-- private 원문 100건이 로컬 Git 밖 데이터 디렉터리에 아직 materialize되지 않음
-- 격리 Python 3.11 환경에 `pyhwp`/`hwp5txt`가 아직 설치·고정되지 않음
-- 따라서 실제 100/100 manifest, HWP 페이지·표 fidelity, 4 PDF 전체 추출과 수동 QA는 미실행
+- HWP 페이지·표와 PDF 표·bbox fidelity를 대표 표본으로 QA한다.
+- baseline에는 현재 stable paragraph/page block을 사용하고, QA가 입증할 때만 고비용 fallback을 추가한다.
 
-이 차단은 Batch 2의 공개 평가 계약·합성 검증과 독립적이므로 다음 배치로 진행한다.
+실제 source blocks가 준비되어 Batch 2 private gold 작성을 시작할 수 있다.

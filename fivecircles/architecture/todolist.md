@@ -28,27 +28,30 @@
 
 ## Batch 1 — HWP/PDF 수집·변환 리스크 해소
 
-상태: BLOCKED_REAL_CORPUS (코드·합성 검증 완료, private 100건 전수 실행 대기)
+상태: IN_PROGRESS_FIDELITY_QA (100건 전수 추출·무결성 검증 완료)
 
 - [x] HWP5 표본 헤더와 로컬 parser 후보를 실사하고 HWP/PDF adapter의 명시적 실패 상태를 구현한다.
 - [x] `Copy of ` 한 번 제거와 Unicode NFC 정규화 기반 CSV↔원문 exact join을 구현·합성 검증한다.
 - [x] 해시·파서 버전·추출 상태·경고를 담는 manifest 계약과 `manifest/extract/verify` CLI를 구현한다.
 - [x] CSV `텍스트`는 해시·길이만 manifest에 남기고 검색 본문으로 사용하지 않는다.
 - [x] PDF 페이지와 HWP 문단의 stable source block 및 provenance를 생성한다.
-- [ ] private snapshot을 로컬 Git 밖에 materialize하고 CSV↔원문 100/100 조인과 96 HWP·4 PDF 전수 추출을 실행한다. **Blocker:** 원문 미수집 및 `hwp5txt` 미설치.
+- [x] private snapshot을 로컬 Git 밖에 materialize하고 CSV↔원문 100/100 조인과 96 HWP·4 PDF 재고를 검증한다.
+- [x] 대용량 PDF worker IPC 순서 문제를 회귀 테스트와 함께 수정하고 PDF 4건을 재추출한다.
+- [x] HWP 실패 2건을 비식별 진단하고 원문 바이너리 텍스트 fallback으로 복구한다.
+- [x] HWP 96건·PDF 4건 전수 추출 manifest를 `require-extracted`로 재검증한다.
 - [ ] HWP 페이지·표 및 PDF 표·bbox fidelity를 표본 QA하고 필요 시 결정된 fallback을 구현한다.
 - 검증: manifest/schema 테스트, 실패 문서 누락 0건, PII 포함 로그 0건.
 
 ## Batch 2 — 평가 세트와 공통 계약 선확정
 
-상태: BLOCKED_PRIVATE_GOLD (공개 계약·평가 도구·합성 검증 완료, 실제 60문항 작성 대기)
+상태: READY_PRIVATE_GOLD (공개 계약·평가 도구·합성 검증 완료, 실제 60문항 작성 가능)
 
 - [x] 단일 문서, 다중 문서 비교, 후속 질문, 미지 질문/기권 평가 스키마를 구현한다.
 - [x] dev/held-out 분리와 group·질문·문서쌍·conversation 단위 누수 방지 규칙을 구현한다.
 - [x] API와 GCP 로컬 스택이 공유할 요청·응답 JSON Schema와 오프라인 registry를 구현한다.
 - [x] 검색·생성·인용·기권·latency·비용 지표 설정과 `validate/score/compare` CLI를 구현한다.
 - [x] 평가 task floor·hard gate·explicit scope·안전 기권·A/B hash/shape 검사를 fail-closed로 고정한다.
-- [ ] private corpus 근거로 dev 40문항과 held-out 20문항을 작성하고 2인 교차검토한다. **Blocker:** Batch 1 private 원문 materialization 대기.
+- [ ] private corpus 근거로 dev 40문항과 held-out 20문항을 작성하고 2인 교차검토한다.
 - [ ] held-out 파일과 질문 순서를 hash로 봉인하고 실제 source block·locator hash 무결성을 검증한다.
 - 검증: 평가 테스트 31개, 오프라인 Schema 참조, split 누수, 응답·실행 기록 불변식 통과.
 

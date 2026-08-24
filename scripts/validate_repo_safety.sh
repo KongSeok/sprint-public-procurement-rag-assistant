@@ -25,7 +25,7 @@ for file in "${FILES[@]}"; do
   case "$file" in
     .env.example|*/.env.example|reports/public/*.pdf|evaluation/templates/*.example.jsonl)
       ;;
-    data/*|*/data/*|private/*|*/private/*|artifacts/*|*/artifacts/*|evaluation/private/*|*/evaluation/private/*|vector_store/*|*/vector_store/*|vectorstore/*|*/vectorstore/*|chroma/*|*/chroma/*|faiss/*|*/faiss/*|.env|.env.*|*/.env|*/.env.*|*.pem|*.key|*.hwp|*.hwpx|*.pdf|*.jsonl|*/data_list.csv|*extracted*.txt|*corpus*.txt|*/environment.txt)
+    data/*|*/data/*|private/*|*/private/*|resources/data_midP.zip|artifacts/*|*/artifacts/*|evaluation/private/*|*/evaluation/private/*|vector_store/*|*/vector_store/*|vectorstore/*|*/vectorstore/*|chroma/*|*/chroma/*|faiss/*|*/faiss/*|.env|.env.*|*/.env|*/.env.*|*.pem|*.key|*.hwp|*.hwpx|*.pdf|*.jsonl|*/data_list.csv|*extracted*.txt|*corpus*.txt|*/environment.txt)
       failed=1
       forbidden_path_count=$((forbidden_path_count + 1))
       ;;

@@ -5,6 +5,7 @@ import multiprocessing
 import re
 import shutil
 import subprocess
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable
@@ -181,24 +182,21 @@ def _extract_pdf(path: Path, entry: dict[str, Any], timeout_seconds: int) -> Ext
             error_code="pdf_worker_launch_failed",
         )
     sender.close()
-    process.join(timeout_seconds)
-    if process.is_alive():
-        process.terminate()
-        process.join()
-        receiver.close()
-        process.close()
-        return ExtractionResult(
-            status="failed",
-            extractor="pypdf",
-            extractor_version="unknown",
-            blocks=[],
-            error_code="pdf_extract_timeout",
-        )
-
+    received_result = False
     try:
-        if not receiver.poll(1):
-            raise EOFError
-        result = receiver.recv()
+        if receiver.poll(timeout_seconds):
+            result = receiver.recv()
+            received_result = True
+        else:
+            result = ExtractionResult(
+                status="failed",
+                extractor="pypdf",
+                extractor_version="unknown",
+                blocks=[],
+                error_code=(
+                    "pdf_extract_timeout" if process.is_alive() else "pdf_worker_failed"
+                ),
+            )
     except (EOFError, OSError):
         result = ExtractionResult(
             status="failed",
@@ -209,6 +207,11 @@ def _extract_pdf(path: Path, entry: dict[str, Any], timeout_seconds: int) -> Ext
         )
     finally:
         receiver.close()
+        if received_result:
+            process.join(1)
+        if process.is_alive():
+            process.terminate()
+        process.join()
         process.close()
     return result
 
@@ -228,15 +231,101 @@ def _hwp5txt_version(command: str) -> str:
     return output[0][:80] if output else "unknown"
 
 
+def _extract_hwp_binary_model(
+    path: Path,
+    entry: dict[str, Any],
+    timeout_seconds: int,
+    primary_error_code: str,
+) -> ExtractionResult:
+    try:
+        version = importlib.metadata.version("pyhwp")
+    except importlib.metadata.PackageNotFoundError:
+        return ExtractionResult(
+            status="failed",
+            extractor="pyhwp-binmodel",
+            extractor_version="unavailable",
+            blocks=[],
+            error_code=(
+                "hwp_extractor_unavailable"
+                if primary_error_code == "hwp_extractor_unavailable"
+                else "hwp_fallback_unavailable"
+            ),
+        )
+
+    try:
+        completed = subprocess.run(
+            [sys.executable, "-m", "midprojectrag.ingest.hwp_binary_text", str(path)],
+            capture_output=True,
+            text=True,
+            timeout=timeout_seconds,
+            check=False,
+        )
+    except subprocess.TimeoutExpired:
+        return ExtractionResult(
+            status="failed",
+            extractor="pyhwp-binmodel",
+            extractor_version=version,
+            blocks=[],
+            error_code="hwp_fallback_timeout",
+        )
+    except OSError:
+        return ExtractionResult(
+            status="failed",
+            extractor="pyhwp-binmodel",
+            extractor_version=version,
+            blocks=[],
+            error_code=primary_error_code,
+        )
+
+    paragraphs = [value.strip() for value in re.split(r"\n\s*\n", completed.stdout) if value.strip()]
+    if completed.returncode != 0 or not paragraphs:
+        fallback_errors = {
+            3: "hwp_no_text",
+            4: "hwp_fallback_unavailable",
+            5: "hwp_fallback_parse_failed",
+        }
+        return ExtractionResult(
+            status="failed",
+            extractor="pyhwp-binmodel",
+            extractor_version=version,
+            blocks=[],
+            error_code=fallback_errors.get(completed.returncode, "hwp_fallback_failed"),
+        )
+
+    blocks = [
+        _block(
+            doc_id=entry["doc_id"],
+            sequence=sequence,
+            block_type="paragraph",
+            text=text,
+            extractor="pyhwp-binmodel",
+            extractor_version=version,
+            page_start=None,
+            page_end=None,
+            source_locator=f"paragraph:{sequence + 1}",
+        )
+        for sequence, text in enumerate(paragraphs)
+    ]
+    return ExtractionResult(
+        status="partial",
+        extractor="pyhwp-binmodel",
+        extractor_version=version,
+        blocks=blocks,
+        warnings=(
+            "hwp_binary_model_fallback",
+            "hwp_page_table_provenance_unavailable",
+        ),
+    )
+
+
 def _extract_hwp(path: Path, entry: dict[str, Any], timeout_seconds: int) -> ExtractionResult:
     command = shutil.which("hwp5txt")
     if command is None:
-        return ExtractionResult(
-            status="failed",
-            extractor="hwp5txt",
-            extractor_version="unavailable",
-            blocks=[],
-            error_code="hwp_extractor_unavailable",
+        return _extract_hwp_binary_model(
+            path,
+            entry,
+            timeout_seconds,
+            "hwp_extractor_unavailable",
         )
 
     version = _hwp5txt_version(command)
@@ -266,22 +355,20 @@ def _extract_hwp(path: Path, entry: dict[str, Any], timeout_seconds: int) -> Ext
         )
 
     if completed.returncode != 0:
-        return ExtractionResult(
-            status="failed",
-            extractor="hwp5txt",
-            extractor_version=version,
-            blocks=[],
-            error_code="hwp_parse_failed",
+        return _extract_hwp_binary_model(
+            path,
+            entry,
+            timeout_seconds,
+            "hwp_parse_failed",
         )
 
     paragraphs = [value.strip() for value in re.split(r"\n\s*\n", completed.stdout) if value.strip()]
     if not paragraphs:
-        return ExtractionResult(
-            status="failed",
-            extractor="hwp5txt",
-            extractor_version=version,
-            blocks=[],
-            error_code="hwp_no_text",
+        return _extract_hwp_binary_model(
+            path,
+            entry,
+            timeout_seconds,
+            "hwp_no_text",
         )
 
     blocks = [

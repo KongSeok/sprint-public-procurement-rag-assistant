@@ -44,6 +44,14 @@ OpenAI API 기반 스택과 GCP L4 기반 로컬 Hugging Face 스택을 동일�
 Batch 1은 private 데이터 디렉터리 안에서만 manifest와 추출 산출물을 만들며,
 표준 출력에는 집계 상태와 오류 코드만 기록합니다.
 
+HWP까지 처리하는 격리 환경은 다음처럼 준비합니다.
+
+```bash
+python3 -m venv .venv
+.venv/bin/python -m pip install -e '.[hwp]'
+source .venv/bin/activate
+```
+
 ```bash
 PYTHONPATH=src python -m midprojectrag manifest \
   --data-dir /secure/corpus
@@ -60,8 +68,10 @@ PYTHONPATH=src python -m midprojectrag verify \
   --require-extracted
 ```
 
-HWP 추출에는 격리 환경의 `hwp5txt`가 필요합니다. 의존성이 없거나 원문 해시가
-manifest와 달라지면 문서를 누락하지 않고 `failed` 상태와 비식별 오류 코드로 남깁니다.
+HWP는 먼저 `hwp5txt`로 처리하고, XML 변환 단계만 실패하면 같은 원문의 pyhwp 바이너리
+텍스트 레코드 fallback을 격리 subprocess에서 실행합니다. fallback 결과도 페이지·표 위치를
+보존하지 못하므로 `partial`과 명시적 경고로 남습니다. 의존성이 없거나 원문 해시가
+manifest와 달라지면 문서를 누락하지 않고 `failed` 상태와 비식별 오류 코드로 기록합니다.
 
 ## 공통 평가 계약
 
