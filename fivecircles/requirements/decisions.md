@@ -44,3 +44,12 @@
 
 - Date: 2026-08-24
 - Chosen: PM·데이터·Retrieval·Generation을 완전한 사일로로 고정하지 않는다. 배치마다 주 담당자와 교차 검토자를 명시하고 모든 팀원이 전체 파이프라인을 이해한다.
+
+## D-008 — HWP/PDF 추출기 기준
+
+- Date: 2026-08-24
+- Status: PROVISIONAL_UNTIL_FULL_CORPUS_RUN
+- Observed: 원격 HWP 표본 1건은 OLE CFB 기반 HWP5 v5.1 계열이며 표본 헤더상 암호화·DRM 징후가 없었다. 이 관찰을 96건 전체에 일반화하지 않는다.
+- Chosen: HWP는 격리된 Python 3.11 환경의 `pyhwp`/`hwp5txt`를 1차 후보로 쓰고, 페이지·표 fidelity가 부족하면 HWP5→HTML/ODT→PDF→`pdfplumber` 경로를 검증한다. 로컬 LibreOffice의 HWP97 필터는 HWP5 직접 파서로 사용하지 않는다.
+- PDF: `pypdf` 페이지 텍스트를 최소 기준선으로 쓰고 문서별 격리 process timeout을 적용한다. 무텍스트·스캔 문서는 `ocr_may_be_required`로 실패시키며, 표·bbox 보존은 `pdfplumber` 보강 대상으로 둔다.
+- Gate: 실제 private snapshot에서 96 HWP와 4 PDF를 전수 실행하기 전에는 파서 선정을 확정 상태로 승격하지 않는다.

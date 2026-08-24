@@ -28,13 +28,15 @@
 
 ## Batch 1 — HWP/PDF 수집·변환 리스크 해소
 
-상태: PENDING
+상태: BLOCKED_REAL_CORPUS (코드·합성 검증 완료, private 100건 전수 실행 대기)
 
-- [ ] 96 HWP와 4 PDF의 표본 파싱을 검증하고 추출기 fallback을 정한다.
-- [ ] `Copy of ` 제거와 Unicode NFC 정규화로 CSV↔원문을 100/100 조인한다.
-- [ ] 해시·파서 버전·추출 상태·경고를 담는 manifest 계약과 생성 CLI를 구현한다.
-- [ ] CSV `텍스트`는 잘린 미리보기로만 취급하고 원문 검색 본문으로 사용하지 않는다.
-- [ ] 섹션·표·페이지/문단 위치를 보존한 source block을 생성한다.
+- [x] HWP5 표본 헤더와 로컬 parser 후보를 실사하고 HWP/PDF adapter의 명시적 실패 상태를 구현한다.
+- [x] `Copy of ` 한 번 제거와 Unicode NFC 정규화 기반 CSV↔원문 exact join을 구현·합성 검증한다.
+- [x] 해시·파서 버전·추출 상태·경고를 담는 manifest 계약과 `manifest/extract/verify` CLI를 구현한다.
+- [x] CSV `텍스트`는 해시·길이만 manifest에 남기고 검색 본문으로 사용하지 않는다.
+- [x] PDF 페이지와 HWP 문단의 stable source block 및 provenance를 생성한다.
+- [ ] private snapshot을 로컬 Git 밖에 materialize하고 CSV↔원문 100/100 조인과 96 HWP·4 PDF 전수 추출을 실행한다. **Blocker:** 원문 미수집 및 `hwp5txt` 미설치.
+- [ ] HWP 페이지·표 및 PDF 표·bbox fidelity를 표본 QA하고 필요 시 결정된 fallback을 구현한다.
 - 검증: manifest/schema 테스트, 실패 문서 누락 0건, PII 포함 로그 0건.
 
 ## Batch 2 — 평가 세트와 공통 계약 선확정

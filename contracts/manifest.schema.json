@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://midprojectrag.local/schemas/manifest-entry.schema.json",
+  "title": "Private corpus manifest entry",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "snapshot_id",
+    "doc_id",
+    "source_relpath",
+    "source_filename",
+    "normalized_filename",
+    "extension",
+    "mime_type",
+    "size_bytes",
+    "sha256",
+    "csv_row_number",
+    "metadata",
+    "extractor",
+    "extractor_version",
+    "input_hash",
+    "status",
+    "error_code",
+    "warnings",
+    "page_count",
+    "block_count",
+    "text_chars",
+    "output_relpath",
+    "index_eligible",
+    "pii_counts",
+    "created_at"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "snapshot_id": {"type": "string", "pattern": "^snapshot_[0-9a-f]{24}$"},
+    "doc_id": {"type": "string", "pattern": "^doc_[0-9a-f]{24}$"},
+    "source_relpath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+"
+    },
+    "source_filename": {"type": "string", "minLength": 1},
+    "normalized_filename": {"type": "string", "minLength": 1},
+    "extension": {"enum": [".hwp", ".hwpx", ".pdf"]},
+    "mime_type": {"type": "string", "minLength": 1},
+    "size_bytes": {"type": "integer", "minimum": 0},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "csv_row_number": {"type": "integer", "minimum": 2},
+    "metadata": {"type": "object"},
+    "extractor": {"type": ["string", "null"]},
+    "extractor_version": {"type": ["string", "null"]},
+    "input_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "status": {"enum": ["pending", "ok", "partial", "failed"]},
+    "error_code": {"type": ["string", "null"]},
+    "warnings": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "page_count": {"type": ["integer", "null"], "minimum": 0},
+    "block_count": {"type": "integer", "minimum": 0},
+    "text_chars": {"type": "integer", "minimum": 0},
+    "output_relpath": {
+      "type": ["string", "null"],
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+"
+    },
+    "index_eligible": {"type": "boolean"},
+    "pii_counts": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}},
+    "created_at": {"type": "string", "format": "date-time"},
+    "extracted_at": {"type": "string", "format": "date-time"}
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"status": {"const": "pending"}},
+        "required": ["status"]
+      },
+      "then": {
+        "properties": {
+          "extractor": {"type": "null"},
+          "extractor_version": {"type": "null"},
+          "error_code": {"type": "null"},
+          "block_count": {"const": 0},
+          "text_chars": {"const": 0},
+          "output_relpath": {"type": "null"},
+          "index_eligible": {"const": false}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"status": {"enum": ["ok", "partial"]}},
+        "required": ["status"]
+      },
+      "then": {
+        "required": ["extracted_at"],
+        "properties": {
+          "extractor": {"type": "string", "minLength": 1},
+          "extractor_version": {"type": "string", "minLength": 1},
+          "error_code": {"type": "null"},
+          "block_count": {"type": "integer", "minimum": 1},
+          "text_chars": {"type": "integer", "minimum": 1},
+          "output_relpath": {"type": "string", "minLength": 1},
+          "index_eligible": {"const": true}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"status": {"const": "failed"}},
+        "required": ["status"]
+      },
+      "then": {
+        "required": ["extracted_at"],
+        "properties": {
+          "extractor": {"type": "string", "minLength": 1},
+          "extractor_version": {"type": "string", "minLength": 1},
+          "error_code": {"type": "string", "minLength": 1},
+          "block_count": {"const": 0},
+          "text_chars": {"const": 0},
+          "output_relpath": {"type": "null"},
+          "index_eligible": {"const": false}
+        }
+      }
+    }
+  ],
+  "additionalProperties": false
+}

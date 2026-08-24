@@ -28,3 +28,18 @@ This file summarizes recent updates so other agents can continue without re‑di
 ### Operation initialization
 - Batch 0 종료 후 authority → requirements/decisions → specs → policies → work/update → todo 순서로 운영 문서를 다시 읽었다.
 - 현재 역할을 배치 순차 구현·통합 담당으로 고정하고 다음 작업을 Batch 1 → Batch 2로 설정했다.
+
+## Addendum (2026-08-24) - Batch 1 ingestion implementation
+
+### Delivered
+- private data root 안에서 동작하는 `manifest → extract → verify` CLI와 manifest/source-block 계약을 구현했다.
+- exact filename join, source hash drift, path/symlink escape, parser 부재, 무텍스트 PDF를 모두 명시적 상태로 기록한다.
+- CSV 텍스트 미리보기는 길이·hash만 보존하고 검색 source block에는 넣지 않는다.
+
+### Verification
+- 합성 HWP/PDF, join collision, metadata snapshot, hash drift, malformed contract, forged provenance, symlink/path traversal, schema, CLI 테스트 22개를 통과했다.
+- private 절대경로·본문·PII가 stdout에 나오지 않는 회귀 테스트를 포함했다.
+
+### Terminal boundary
+- 구현은 완료됐지만 실제 private 100건과 `hwp5txt`가 로컬에 없어 전수 추출·fidelity QA는 `BLOCKED_REAL_CORPUS`다.
+- 공개 계약 작업인 Batch 2는 이 차단과 독립적으로 진행한다.

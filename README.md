@@ -38,3 +38,34 @@ OpenAI API 기반 스택과 GCP L4 기반 로컬 Hugging Face 스택을 동일�
 ```bash
 ./scripts/validate_repo_safety.sh
 ```
+
+## 현재 구현된 로컬 수집 CLI
+
+Batch 1은 private 데이터 디렉터리 안에서만 manifest와 추출 산출물을 만들며,
+표준 출력에는 집계 상태와 오류 코드만 기록합니다.
+
+```bash
+PYTHONPATH=src python -m midprojectrag manifest \
+  --data-dir /secure/corpus
+
+PYTHONPATH=src python -m midprojectrag extract \
+  --data-dir /secure/corpus \
+  --manifest /secure/corpus/private/manifest.jsonl \
+  --output-dir /secure/corpus/private/blocks \
+  --output-manifest /secure/corpus/private/manifest.extracted.jsonl
+
+PYTHONPATH=src python -m midprojectrag verify \
+  --manifest /secure/corpus/private/manifest.extracted.jsonl \
+  --blocks-dir /secure/corpus/private/blocks \
+  --require-extracted
+```
+
+HWP 추출에는 격리 환경의 `hwp5txt`가 필요합니다. 의존성이 없거나 원문 해시가
+manifest와 달라지면 문서를 누락하지 않고 `failed` 상태와 비식별 오류 코드로 남깁니다.
+
+개발 환경에서는 프로젝트를 설치하거나 `src` 경로를 명시해 테스트합니다.
+
+```bash
+python -m pip install -e .
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src python -m unittest discover -s tests -v
+```

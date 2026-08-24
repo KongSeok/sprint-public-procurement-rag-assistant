@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://midprojectrag.local/schemas/source-block.schema.json",
+  "title": "Stable source block",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "block_id",
+    "doc_id",
+    "sequence",
+    "block_type",
+    "section_path",
+    "page_start",
+    "page_end",
+    "bbox",
+    "text",
+    "content_sha256",
+    "extractor",
+    "extractor_version",
+    "source_locator"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "block_id": {"type": "string", "pattern": "^block_[0-9a-f]{24}$"},
+    "doc_id": {"type": "string", "pattern": "^doc_[0-9a-f]{24}$"},
+    "sequence": {"type": "integer", "minimum": 0},
+    "block_type": {"enum": ["heading", "paragraph", "table", "page_text"]},
+    "section_path": {"type": "array", "items": {"type": "string"}},
+    "page_start": {"type": ["integer", "null"], "minimum": 1},
+    "page_end": {"type": ["integer", "null"], "minimum": 1},
+    "bbox": {
+      "oneOf": [
+        {"type": "null"},
+        {"type": "array", "items": {"type": "number"}, "minItems": 4, "maxItems": 4}
+      ]
+    },
+    "text": {"type": "string", "minLength": 1},
+    "content_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "extractor": {"type": "string", "minLength": 1},
+    "extractor_version": {"type": "string", "minLength": 1},
+    "source_locator": {"type": "string", "minLength": 1}
+  },
+  "additionalProperties": false
+}

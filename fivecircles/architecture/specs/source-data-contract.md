@@ -4,6 +4,8 @@
 
 The runtime receives a private path through `MIDPROJECTRAG_DATA_DIR` or `--data-dir`.
 The repository never assumes an absolute user path and never downloads corpus data as an import side effect.
+Inputs and generated artifacts must resolve beneath that data root. Path traversal and
+symlinks escaping it are rejected before any external file is read or written.
 
 Expected logical inputs:
 
@@ -14,12 +16,14 @@ Expected logical inputs:
 
 `normalized_filename` is produced by:
 
-1. taking the basename only
+1. trimming surrounding whitespace without discarding any directory component
 2. removing one leading `Copy of `
 3. applying Unicode NFC normalization
 4. preserving the extension for exact matching
 
 The join must report missing, extra, duplicate and collision entries. It must not use fuzzy matching silently.
+CSV values containing a directory component therefore do not silently match a raw file
+that merely shares the same basename.
 
 ## 3. Private Manifest
 
@@ -38,6 +42,9 @@ One JSON object per source document with at least:
 - creation timestamp
 
 Manifest rows are never dropped because extraction failed.
+The extractor recomputes each source SHA-256 before parsing and marks hash drift as a
+failure. CLI stdout contains aggregate counts and error codes only; private paths,
+filenames, text and matched PII values remain in ignored artifacts.
 
 ## 4. Source Blocks
 
