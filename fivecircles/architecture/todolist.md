@@ -60,9 +60,10 @@
 상태: PENDING
 
 - [ ] 단순 청킹 + `text-embedding-3-small` + Dense top-k 기준선을 구현한다.
+- [ ] 임베딩·인덱스 생성 후 팀원 사전 데이터 리뷰와 manifest·추출 결과·인덱스 메타데이터를 교차확인하고 차이와 조치 결과를 기록한다.
 - [ ] `gpt-5-mini` 또는 `gpt-5-nano`로 인용·대화 문맥·기권을 포함한 응답을 생성한다.
 - [ ] 캐시·비용 원장·20달러 hard stop을 구현한다.
-- 검증: 4대 시나리오 smoke test와 dev 기준선 리포트 생성.
+- 검증: 팀원 리뷰 교차확인 미해결 0건, 4대 시나리오 smoke test와 dev 기준선 리포트 생성.
 
 ## Batch 4 — 검색 개선과 절제된 ablation
 
