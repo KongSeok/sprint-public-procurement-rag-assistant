@@ -103,7 +103,9 @@ def _verify_command(args: argparse.Namespace) -> int:
         expected_documents=args.expected_documents,
         expected_hwp=args.expected_hwp,
         expected_pdf=args.expected_pdf,
-        require_extracted=args.require_extracted,
+        require_extracted=args.require_extracted or args.require_primary_hwp,
+        require_primary_hwp=args.require_primary_hwp,
+        expected_rhwp_sha256=args.rhwp_sha256,
         max_failed=args.max_failed,
     )
     if args.report:
@@ -153,6 +155,15 @@ def build_parser() -> argparse.ArgumentParser:
     verify.add_argument("--expected-hwp", type=_positive_int, default=96)
     verify.add_argument("--expected-pdf", type=_positive_int, default=4)
     verify.add_argument("--require-extracted", action="store_true")
+    verify.add_argument(
+        "--require-primary-hwp",
+        action="store_true",
+        help="require every HWP/HWPX to be ok under pinned rhwp and verify block files",
+    )
+    verify.add_argument(
+        "--rhwp-sha256",
+        help="allowlisted rhwp executable SHA-256 required by --require-primary-hwp",
+    )
     verify.add_argument("--max-failed", type=_positive_int, default=0)
     verify.set_defaults(handler=_verify_command)
     return parser

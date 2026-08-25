@@ -47,12 +47,17 @@
 
 ## D-008 — HWP/PDF 추출기 기준
 
-- Date: 2026-08-24
-- Status: PROVISIONAL_UNTIL_FULL_CORPUS_RUN
-- Observed: 원격 HWP 표본 1건은 OLE CFB 기반 HWP5 v5.1 계열이며 표본 헤더상 암호화·DRM 징후가 없었다. 이 관찰을 96건 전체에 일반화하지 않는다.
-- Chosen: HWP는 격리된 Python 3.11 환경의 `pyhwp`/`hwp5txt`를 1차 후보로 쓰고, 페이지·표 fidelity가 부족하면 HWP5→HTML/ODT→PDF→`pdfplumber` 경로를 검증한다. 로컬 LibreOffice의 HWP97 필터는 HWP5 직접 파서로 사용하지 않는다.
+- Date: 2026-08-25
+- Status: ACTIVE_RHWP_PRIMARY_WITH_FALLBACK
+- Observed: 체크섬을 검증한 `rhwp v0.8.4` macOS ARM64 바이너리로 HWP 96건을 전수 점검한 결과 페이지 텍스트와 표 추출 모두 성공 96건·실패 0건이었다. 페이지 텍스트는 총 7,076,421자로 기존 `hwp5txt`/binary-model 결과 2,168,048자의 약 3.26배였고, 표 11,183개·병합셀 66,929개·중첩표 셀 571개가 구조적으로 검출됐다.
+- Chosen: HWP/HWPX는 고정 버전 `rhwp`의 `export-text --json`과 `export-tables --json`을 주 추출기로 사용한다. 페이지별 텍스트와 병합셀 표 구조를 별도 canonical source block으로 보존하고, bbox가 필요한 표본은 `export-render-tree`, 시각 검증은 SVG 또는 한컴 PDF를 사용한다.
+- Retrieval policy: 페이지 본문은 `primary`, 표 구조 block은 `structured_auxiliary`로 분리한다. naive 기준선은 primary만 임베딩하며, 표 구조 lane은 별도 실험 전까지 같은 ranking pool에 중복 투입하지 않는다.
+- Reproducibility: production gate는 명시적 절대경로, `rhwp v0.8.4`, 실행 바이너리 SHA-256, adapter version이 모두 일치해야 통과한다. 페이지 절단/누락, 표 `cellCount` 불일치와 span 겹침은 실패-폐쇄형으로 처리한다.
+- Fallback: `rhwp` 실행·파싱이 실패한 HWP5만 `hwp5txt` → 격리 `pyhwp` binary-model 순서로 복구한다. HWP를 PDF로 먼저 일괄 변환하지 않으며 PDF 변환은 특수문서 검증·fallback에 한정한다. 별도 `hwp-mcp`는 운영 추출 의존성이 아니다.
+- Caveat: `export-tables`의 논리 표와 render-tree bbox는 별도 출력이라 자동 조인율을 검증해야 한다. `rhwp` 페이지 번호는 내부 출력끼리는 일치하지만 한컴 조판 페이지와 항상 같다고 가정하지 않는다.
 - PDF: `pypdf` 페이지 텍스트를 최소 기준선으로 쓰고 문서별 격리 process timeout을 적용한다. 무텍스트·스캔 문서는 `ocr_may_be_required`로 실패시키며, 표·bbox 보존은 `pdfplumber` 보강 대상으로 둔다.
-- Gate: 실제 private snapshot에서 96 HWP와 4 PDF를 전수 실행하기 전에는 파서 선정을 확정 상태로 승격하지 않는다.
+- Verified: 고정 실행 identity로 100건을 두 번 재추출해 각각 `ok=100`, `partial=0`, `failed=0`이었고 strict primary gate를 통과했다. 20,569개 source block과 문서별 metadata 산출은 반복 실행 간 byte-for-byte 동일했으며 실제 manifest 100행과 block 20,569행이 JSON Schema 오류 0건이었다.
+- Gate: parser/manifest 전환은 완료했다. Batch 1 전체 fidelity gate는 팀원 데이터 탐색 리뷰 교차확인에 더해 5건 표본 page/table↔bbox 및 한컴 페이지 QA까지 통과해야 닫는다.
 
 ## D-009 — 공통 평가 계약과 성공 조건 동결
 

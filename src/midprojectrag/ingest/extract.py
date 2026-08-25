@@ -6,11 +6,12 @@ import re
 import shutil
 import subprocess
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any, Callable
 
 from midprojectrag.ingest.common import (
+    canonical_json,
     read_jsonl,
     require_within,
     sha256_file,
@@ -18,6 +19,11 @@ from midprojectrag.ingest.common import (
     utc_now,
     write_json,
     write_jsonl,
+)
+from midprojectrag.ingest.rhwp_adapter import (
+    extract_rhwp,
+    resolve_rhwp_command,
+    table_text,
 )
 
 
@@ -50,10 +56,17 @@ def _block(
     page_start: int | None,
     page_end: int | None,
     source_locator: str,
+    retrieval_role: str = "primary",
+    table_structure: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     content_sha256 = sha256_text(text)
-    block_id = "block_" + sha256_text(f"{doc_id}:{sequence}:{content_sha256}")[:24]
-    return {
+    id_material = f"{doc_id}:{sequence}:{content_sha256}:{retrieval_role}"
+    structure_sha256 = None
+    if table_structure is not None:
+        structure_sha256 = sha256_text(canonical_json(table_structure))
+        id_material = f"{id_material}:{structure_sha256}"
+    block_id = "block_" + sha256_text(id_material)[:24]
+    block = {
         "schema_version": "1.0",
         "block_id": block_id,
         "doc_id": doc_id,
@@ -68,7 +81,12 @@ def _block(
         "extractor": extractor,
         "extractor_version": extractor_version,
         "source_locator": source_locator,
+        "retrieval_role": retrieval_role,
     }
+    if table_structure is not None:
+        block["table_structure"] = table_structure
+        block["structure_sha256"] = structure_sha256
+    return block
 
 
 def _extract_pdf_in_process(path: Path, entry: dict[str, Any]) -> ExtractionResult:
@@ -318,7 +336,11 @@ def _extract_hwp_binary_model(
     )
 
 
-def _extract_hwp(path: Path, entry: dict[str, Any], timeout_seconds: int) -> ExtractionResult:
+def _extract_hwp_legacy(
+    path: Path,
+    entry: dict[str, Any],
+    timeout_seconds: int,
+) -> ExtractionResult:
     command = shutil.which("hwp5txt")
     if command is None:
         return _extract_hwp_binary_model(
@@ -394,15 +416,117 @@ def _extract_hwp(path: Path, entry: dict[str, Any], timeout_seconds: int) -> Ext
     )
 
 
+def _add_warnings(result: ExtractionResult, *warnings: str | None) -> ExtractionResult:
+    return replace(
+        result,
+        warnings=tuple(sorted(set(result.warnings) | {value for value in warnings if value})),
+    )
+
+
+def _extract_hwp(path: Path, entry: dict[str, Any], timeout_seconds: int) -> ExtractionResult:
+    command = resolve_rhwp_command()
+    if command is None:
+        if path.suffix.lower() == ".hwpx":
+            return ExtractionResult(
+                status="failed",
+                extractor="rhwp",
+                extractor_version="unavailable;adapter=1.0",
+                blocks=[],
+                error_code="hwp_extractor_unavailable",
+            )
+        return _add_warnings(
+            _extract_hwp_legacy(path, entry, timeout_seconds),
+            "rhwp_unavailable_using_legacy",
+        )
+
+    attempt = extract_rhwp(command, path, timeout_seconds)
+    if attempt.status == "failed":
+        failed = ExtractionResult(
+            status="failed",
+            extractor="rhwp",
+            extractor_version=attempt.extractor_version,
+            blocks=[],
+            page_count=attempt.page_count,
+            error_code=attempt.error_code or "rhwp_extract_failed",
+        )
+        if path.suffix.lower() == ".hwpx":
+            return failed
+        return _add_warnings(
+            _extract_hwp_legacy(path, entry, timeout_seconds),
+            "rhwp_primary_failed",
+            attempt.error_code,
+        )
+
+    blocks: list[dict[str, Any]] = []
+    for page in attempt.pages:
+        page_number = page.page_index + 1
+        blocks.append(
+            _block(
+                doc_id=entry["doc_id"],
+                sequence=len(blocks),
+                block_type="page_text",
+                text=page.text,
+                extractor="rhwp",
+                extractor_version=attempt.extractor_version,
+                page_start=page_number,
+                page_end=page_number,
+                source_locator=f"page:{page_number}",
+            )
+        )
+
+    empty_tables = 0
+    for table in attempt.tables:
+        text = table_text(table)
+        if not text:
+            empty_tables += 1
+            continue
+        blocks.append(
+            _block(
+                doc_id=entry["doc_id"],
+                sequence=len(blocks),
+                block_type="table",
+                text=text,
+                extractor="rhwp",
+                extractor_version=attempt.extractor_version,
+                page_start=None,
+                page_end=None,
+                source_locator=(
+                    f"section:{table['section'] + 1}/"
+                    f"paragraph:{table['paragraph'] + 1}/"
+                    f"table:{table['index'] + 1}"
+                ),
+                retrieval_role="structured_auxiliary",
+                table_structure=table,
+            )
+        )
+
+    warnings = set(attempt.warnings)
+    if attempt.tables:
+        warnings.add("rhwp_table_page_bbox_unlinked")
+    if empty_tables:
+        warnings.add("rhwp_empty_tables_skipped")
+    return ExtractionResult(
+        status=attempt.status,
+        extractor="rhwp",
+        extractor_version=attempt.extractor_version,
+        blocks=blocks,
+        page_count=attempt.page_count,
+        warnings=tuple(sorted(warnings)),
+    )
+
+
 ADAPTERS: dict[str, Callable[[Path, dict[str, Any], int], ExtractionResult]] = {
     ".pdf": _extract_pdf,
     ".hwp": _extract_hwp,
+    ".hwpx": _extract_hwp,
 }
 
 
 def _pii_counts(blocks: list[dict[str, Any]]) -> dict[str, int]:
     counts = {"email": 0, "phone": 0}
     for block in blocks:
+        if block.get("retrieval_role", "primary") != "primary":
+            continue
         text = block["text"]
         counts["email"] += len(EMAIL_PATTERN.findall(text))
         counts["phone"] += len(PHONE_PATTERN.findall(text))
@@ -517,6 +641,16 @@ def extract_manifest(
         input_hash = _entry_input_hash(entry, result)
         if result.status in {"ok", "partial"}:
             assert block_path is not None and metadata_path is not None
+            primary_text_chars = sum(
+                len(block["text"])
+                for block in result.blocks
+                if block.get("retrieval_role", "primary") == "primary"
+            )
+            auxiliary_text_chars = sum(
+                len(block["text"])
+                for block in result.blocks
+                if block.get("retrieval_role") == "structured_auxiliary"
+            )
             write_jsonl(block_path, result.blocks)
             write_json(
                 metadata_path,
@@ -527,6 +661,8 @@ def extract_manifest(
                     "extractor": result.extractor,
                     "extractor_version": result.extractor_version,
                     "block_count": len(result.blocks),
+                    "primary_text_chars": primary_text_chars,
+                    "auxiliary_text_chars": auxiliary_text_chars,
                 },
             )
             output_relpath = block_path.relative_to(data_dir).as_posix()
@@ -536,8 +672,10 @@ def extract_manifest(
             if metadata_path is not None:
                 metadata_path.unlink(missing_ok=True)
             output_relpath = None
+            primary_text_chars = 0
+            auxiliary_text_chars = 0
 
-        text_chars = sum(len(block["text"]) for block in result.blocks)
+        text_chars = primary_text_chars + auxiliary_text_chars
         entry.update(
             {
                 "extractor": result.extractor,
@@ -549,8 +687,12 @@ def extract_manifest(
                 "page_count": result.page_count,
                 "block_count": len(result.blocks),
                 "text_chars": text_chars,
+                "primary_text_chars": primary_text_chars,
+                "auxiliary_text_chars": auxiliary_text_chars,
                 "output_relpath": output_relpath,
-                "index_eligible": result.status in {"ok", "partial"} and text_chars > 0,
+                "index_eligible": (
+                    result.status in {"ok", "partial"} and primary_text_chars > 0
+                ),
                 "pii_counts": _pii_counts(result.blocks),
                 "extracted_at": utc_now(),
             }

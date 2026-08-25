@@ -44,12 +44,23 @@ OpenAI API 기반 스택과 GCP L4 기반 로컬 Hugging Face 스택을 동일�
 Batch 1은 private 데이터 디렉터리 안에서만 manifest와 추출 산출물을 만들며,
 표준 출력에는 집계 상태와 오류 코드만 기록합니다.
 
-HWP까지 처리하는 격리 환경은 다음처럼 준비합니다.
+HWP fallback까지 처리하는 격리 Python 환경은 다음처럼 준비합니다.
 
 ```bash
 python3 -m venv .venv
 .venv/bin/python -m pip install -e '.[hwp]'
 source .venv/bin/activate
+```
+
+HWP/HWPX 주 추출기는 공식 Release의 체크섬을 검증한 `rhwp v0.8.4` CLI입니다.
+OS에 맞는 바이너리는 [공식 v0.8.4 Release](https://github.com/edwardkim/rhwp/releases/tag/v0.8.4)에서
+받고 함께 제공되는 `SHA256SUMS.txt`와 대조합니다. 바이너리를 저장소에 커밋하지 말고 절대경로를
+명시합니다. Release archive 검증 후 실제 실행 바이너리 자체의 SHA-256도 운영 환경에 고정합니다.
+
+```bash
+export MIDPROJECTRAG_RHWP_BIN=/absolute/path/to/rhwp
+export MIDPROJECTRAG_RHWP_SHA256=REPLACE_WITH_64_HEX_CHARACTERS
+"$MIDPROJECTRAG_RHWP_BIN" --version  # rhwp v0.8.4
 ```
 
 ```bash
@@ -65,13 +76,23 @@ PYTHONPATH=src python -m midprojectrag extract \
 PYTHONPATH=src python -m midprojectrag verify \
   --manifest /secure/corpus/private/manifest.extracted.jsonl \
   --blocks-dir /secure/corpus/private/blocks \
-  --require-extracted
+  --require-primary-hwp \
+  --rhwp-sha256 "$MIDPROJECTRAG_RHWP_SHA256"
 ```
 
-HWP는 먼저 `hwp5txt`로 처리하고, XML 변환 단계만 실패하면 같은 원문의 pyhwp 바이너리
-텍스트 레코드 fallback을 격리 subprocess에서 실행합니다. fallback 결과도 페이지·표 위치를
-보존하지 못하므로 `partial`과 명시적 경고로 남습니다. 의존성이 없거나 원문 해시가
-manifest와 달라지면 문서를 누락하지 않고 `failed` 상태와 비식별 오류 코드로 기록합니다.
+HWP/HWPX는 `rhwp export-text --json`의 페이지별 본문과 `export-tables --json`의 병합셀·중첩표
+구조를 bounded subprocess에서 읽습니다. 페이지 누락·절단 표시, 표 cell count·span 겹침은
+fail-closed로 검사합니다. 페이지는 1-based source locator로 변환하고 표는 caption, 중첩 container
+path와 구조화된 셀 metadata를 보존합니다. 표의 페이지·bbox는 별도 render-tree fidelity QA가
+끝날 때까지 null입니다.
+
+기준선 임베딩에는 `retrieval_role=primary`인 페이지 본문만 사용합니다. 표 block은
+`structured_auxiliary`로 따로 저장해 구조 검색 실험에서만 사용하며, 페이지 본문과 표를 한
+인덱스에 무조건 함께 넣지 않습니다. manifest도 primary/auxiliary 문자 수를 분리해 중복 계수를
+막습니다. `rhwp`가 실패한 HWP5만 `hwp5txt`, 이어서 같은 원문의 pyhwp binary-model fallback을
+사용합니다. fallback 결과는 페이지·표 위치를 보존하지 못하므로 `partial`과 명시적 경고로
+남습니다. 의존성이 없거나 원문 해시가 manifest와 달라지면 문서를 누락하지 않고 `failed`
+상태와 비식별 오류 코드로 기록합니다.
 
 ## 공통 평가 계약
 

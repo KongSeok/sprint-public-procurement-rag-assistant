@@ -17,7 +17,8 @@
     "content_sha256",
     "extractor",
     "extractor_version",
-    "source_locator"
+    "source_locator",
+    "retrieval_role"
   ],
   "properties": {
     "schema_version": {"const": "1.0"},
@@ -36,9 +37,101 @@
     },
     "text": {"type": "string", "minLength": 1},
     "content_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "structure_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "table_structure": {"$ref": "#/$defs/tableStructure"},
     "extractor": {"type": "string", "minLength": 1},
     "extractor_version": {"type": "string", "minLength": 1},
-    "source_locator": {"type": "string", "minLength": 1}
+    "source_locator": {"type": "string", "minLength": 1},
+    "retrieval_role": {"enum": ["primary", "structured_auxiliary"]}
   },
+  "$defs": {
+    "tableStructure": {
+      "type": "object",
+      "required": ["index", "section", "paragraph", "rows", "cols", "cell_count", "cells"],
+      "properties": {
+        "index": {"type": "integer", "minimum": 0},
+        "section": {"type": "integer", "minimum": 0},
+        "paragraph": {"type": "integer", "minimum": 0},
+        "rows": {"type": "integer", "minimum": 0},
+        "cols": {"type": "integer", "minimum": 0},
+        "cell_count": {"type": "integer", "minimum": 0},
+        "caption": {"type": "string"},
+        "control": {"type": "integer", "minimum": 0},
+        "container_path": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/tableContainer"}
+        },
+        "cells": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/tableCell"}
+        }
+      },
+      "additionalProperties": false
+    },
+    "tableContainer": {
+      "type": "object",
+      "required": ["kind", "paragraph", "control"],
+      "properties": {
+        "kind": {"type": "string", "minLength": 1},
+        "paragraph": {"type": "integer", "minimum": 0},
+        "control": {"type": "integer", "minimum": 0},
+        "cell": {"type": "integer", "minimum": 0}
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {"kind": {"const": "tableCell"}},
+            "required": ["kind"]
+          },
+          "then": {"required": ["cell"]}
+        }
+      ],
+      "additionalProperties": false
+    },
+    "tableCell": {
+      "type": "object",
+      "required": ["row", "col", "row_span", "col_span", "is_header", "text"],
+      "properties": {
+        "row": {"type": "integer", "minimum": 0},
+        "col": {"type": "integer", "minimum": 0},
+        "row_span": {"type": "integer", "minimum": 1},
+        "col_span": {"type": "integer", "minimum": 1},
+        "is_header": {"type": "boolean"},
+        "text": {"type": "string"},
+        "nested": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/tableStructure"}
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "block_type": {"const": "table"},
+          "extractor": {"const": "rhwp"}
+        },
+        "required": ["block_type", "extractor"]
+      },
+      "then": {
+        "required": ["table_structure", "structure_sha256"],
+        "properties": {"retrieval_role": {"const": "structured_auxiliary"}}
+      }
+    },
+    {
+      "if": {
+        "properties": {"retrieval_role": {"const": "structured_auxiliary"}},
+        "required": ["retrieval_role"]
+      },
+      "then": {
+        "properties": {
+          "block_type": {"const": "table"},
+          "extractor": {"const": "rhwp"}
+        }
+      }
+    }
+  ],
   "additionalProperties": false
 }

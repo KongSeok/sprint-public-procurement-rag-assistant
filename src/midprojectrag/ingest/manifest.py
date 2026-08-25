@@ -213,6 +213,8 @@ def build_manifest(
                 "page_count": None,
                 "block_count": 0,
                 "text_chars": 0,
+                "primary_text_chars": 0,
+                "auxiliary_text_chars": 0,
                 "output_relpath": None,
                 "index_eligible": False,
                 "pii_counts": {},

@@ -18,6 +18,12 @@ Review this file before implementation and test execution.
 - Mock every optional-dependency signal in absence tests so installed developer tools cannot change the expected path.
 - Use explicit `PYTHONPATH=src` with the bundled runtime; its venv editable `.pth` may not activate in the sandbox.
 - Treat legacy macOS `tidy` as HTML4-only; validate UTF-8 HTML5 with an HTML5-capable or tag-balance parser.
+- Keep `rhwp` page text, logical tables and render-tree bbox as separate contracts; do not claim a canonical join until its measured success rate passes QA.
+- Mock primary-command discovery separately from legacy-command discovery when testing an ordered parser fallback chain.
+- Pin external parser binaries by version and checksum, keep them outside Git, and include the local adapter version in the manifest input hash.
+- Require `rhwp export-text` to report no truncation, zero omitted characters and a complete zero-based page index set before accepting page blocks.
+- Validate `export-tables` cell count and non-overlapping spans, but treat `containerPath` coordinates as kind-dependent: header/footer omit `cell`, while `tableCell` requires it.
+- Keep overlapping page text and structured tables in separate retrieval roles; baseline metrics and PII counts use the primary lane only.
 
 ## Confirmed Incidents
 
@@ -31,3 +37,5 @@ Review this file before implementation and test execution.
 - Venv editable path: `errorlogs/backend/2026-08-24-venv-editable-path.md`
 - Local validator runtime limits: `errorlogs/backend/2026-08-24-local-validator-runtime.md`
 - HWP optional-dependency test isolation: `errorlogs/backend/2026-08-24-hwp-optional-dependency-test-isolation.md`
+- rhwp test-double routing: `errorlogs/backend/2026-08-25-rhwp-test-double-routing.md`
+- rhwp container path contract: `errorlogs/backend/2026-08-25-rhwp-container-path-contract.md`

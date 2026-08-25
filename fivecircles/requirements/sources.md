@@ -1,6 +1,6 @@
 # Source Register and Data Audit
 
-최종 확인: 2026-08-24
+최종 확인: 2026-08-25
 
 ## 1. 과제 가이드
 
@@ -31,6 +31,10 @@
 - CSV `텍스트` 길이는 약 89~18,335자이고 문장·단어 중간에서 끝나는 사례가 있어 전체 본문이 아니다.
 - PDF 원문은 약 46k~200k자까지 추출되지만 CSV에는 약 220~2,716자만 포함된 사례가 있다.
 - HWP는 Drive connector가 본문을 직접 추출하지 못해 별도 HWP5 파서 또는 승인된 변환 경로가 필요하다.
+- 공식 `rhwp v0.8.4` 전수 실사에서 HWP 96/96 페이지 텍스트·표 구조 추출에 성공했다. 텍스트 총량은 기존 추출 대비 약 3.26배였고 표 11,183개·병합셀 66,929개가 검출됐다.
+- 고정 실행 바이너리 SHA-256으로 재추출한 production snapshot은 HWP 96·PDF 4 모두 `ok`이며,
+  strict gate와 실제 manifest/block Schema 검증을 통과했다.
+- `rhwp`의 표 구조와 render-tree bbox는 별도 출력이므로 canonical 조인과 한컴 페이지 대조는 별도 fidelity gate로 남긴다.
 - 결측: 공고번호 18건, 공고차수 18건, 입찰 시작일 26건, 마감일 8건.
 - 금액: 결측 1건, 0원 6건, 1원 1건으로 총 8건이 결측·sentinel 의심값이다.
 - 담당자 이름, 전화번호와 이메일이 원문에 포함될 수 있다.
@@ -46,6 +50,16 @@
 ## 5. 사용 경계
 
 - CSV metadata와 `사업 요약`: 문서 라우팅·필터·표시용
-- HWP/PDF 원문 추출 결과: 검색·인용 근거용
+- HWP/PDF 원문 추출 결과: 검색·인용 근거용. naive baseline은 primary page block만 임베딩하고
+  구조화 table block은 별도 auxiliary 검색 실험용으로 둔다.
+- 팀원 데이터 탐색 리뷰: 임베딩·인덱스 생성 직후 manifest·추출·인덱스 결과와 교차확인하는 품질 게이트
 - 원본·추출문·청크·private 평가 근거: restricted, Git 금지
 - 코드·스키마·집계 지표·비식별 예시: 공개 가능
+
+## 6. HWP parser 권위 자료
+
+- `rhwp v0.8.4` Release: https://github.com/edwardkim/rhwp/releases/tag/v0.8.4
+- CLI JSON·표·render-tree 계약: https://github.com/edwardkim/rhwp/blob/v0.8.4/mydocs/manual/cli_commands.md
+- RAG/대량 처리 가이드: https://github.com/edwardkim/rhwp/blob/v0.8.4/mydocs/manual/cli_json_pipeline_guide.md
+- 라이선스(MIT): https://github.com/edwardkim/rhwp/blob/v0.8.4/LICENSE
+- 한컴 조판 쪽수 차이 추적 이슈: https://github.com/edwardkim/rhwp/issues/5757

@@ -68,3 +68,29 @@ This file summarizes recent updates so other agents can continue without re‑di
 
 ### Tests
 - 전체 58/58, 최종 `require-extracted` 100/100, compile, safety 317파일을 통과했다.
+
+## Addendum (2026-08-25) - rhwp primary HWP extraction
+
+### Decision
+- 공식 `rhwp v0.8.4` Release 바이너리의 SHA-256을 검증하고 HWP/HWPX 주 추출기로 확정했다.
+- HWP→PDF 일괄 변환 대신 `rhwp` 페이지 텍스트·표 구조를 직접 보존하며, legacy parser와 PDF는 fallback/검증 안전망으로 둔다.
+
+### Backend
+- `export-text --json`을 one-based page source block으로, `export-tables --json`을 병합셀·중첩표 구조 block으로 변환하는 bounded adapter를 구현했다.
+- `rhwp` text 실패 시 HWP5에 한해 `hwp5txt`→pyhwp binary-model로 복구하고, table 실패 시 page text를 `partial`로 보존한다.
+- HWP 96건·PDF 4건을 기존 산출물과 분리해 재추출한 결과 100건 모두 `ok`, 실패 0건이었다.
+- 실행 바이너리 절대경로·버전·SHA-256을 extractor identity/input hash에 고정하고, checksum이
+  다르면 실행 자체를 막는 production gate를 추가했다.
+- page JSON 절단·누락과 table cell count·span 겹침을 fail-closed로 검증한다. page text는
+  `primary`, 구조화 table은 `structured_auxiliary`로 분리해 baseline 중복 임베딩을 차단했다.
+
+### Data review
+- 팀원 탐색 리뷰와 inventory, NFC 100/100, CSV preview 잘림, 결측 18/18/26/8/1건, HWP 전수 재파싱 결과가 일치했다.
+- PDF 4건 중 최대 문서의 parser별 문자 수가 약 10% 달라 후속 fidelity QA로 남겼다.
+
+### Verification
+- 전체 70/70 테스트, 별도 pycache compile, real `require-primary-hwp`를 통과했다.
+- 실제 manifest 100행과 source block 20,569행은 JSON Schema 오류 0건이었다.
+- 저장소 안전 검사 322파일을 통과했다.
+- 동일 입력 재추출의 block/meta 200개가 byte-for-byte 동일해 결정성 계약을 통과했다.
+- 남은 Batch 1 gate는 HWP 5건의 table↔bbox/한컴 페이지 정합과 PDF 4건 표·bbox QA다.

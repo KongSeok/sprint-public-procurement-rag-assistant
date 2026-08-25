@@ -20,9 +20,9 @@ Fields: `doc_id`, normalized metadata, source hash, MIME, parser/version, extrac
 
 A stable, citation-addressable structural unit created before experiment-specific chunking.
 
-Fields: `block_id`, `doc_id`, `sequence`, `block_type`, `section_path`, page range, bbox, text, content hash, source locator.
+Fields: `block_id`, `doc_id`, `sequence`, `block_type`, `retrieval_role`, `section_path`, page range, bbox, text, content hash, source locator. Structured table blocks additionally carry caption, normalized cells, spans, header flags, nested container paths/tables and a structure hash committed into the block ID.
 
-Invariant: the same corpus snapshot and extraction version must produce the same block IDs.
+Invariant: the same corpus snapshot, extraction identity and retrieval role must produce the same block IDs. The baseline indexes `primary` blocks only; `structured_auxiliary` blocks remain a separate experimental lane.
 
 ## Chunk
 

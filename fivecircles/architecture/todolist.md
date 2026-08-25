@@ -39,8 +39,15 @@
 - [x] 대용량 PDF worker IPC 순서 문제를 회귀 테스트와 함께 수정하고 PDF 4건을 재추출한다.
 - [x] HWP 실패 2건을 비식별 진단하고 원문 바이너리 텍스트 fallback으로 복구한다.
 - [x] HWP 96건·PDF 4건 전수 추출 manifest를 `require-extracted`로 재검증한다.
-- [ ] HWP 페이지·표 및 PDF 표·bbox fidelity를 표본 QA하고 필요 시 결정된 fallback을 구현한다.
-- 검증: manifest/schema 테스트, 실패 문서 누락 0건, PII 포함 로그 0건.
+- [x] 체크섬 검증 `rhwp v0.8.4`로 HWP 96/96 페이지 텍스트·표 구조를 전수 실사하고 주 추출기 adapter를 구현한다.
+- [x] `rhwp` 기반 별도 private manifest를 생성해 HWP 96·PDF 4 모두 `ok`, 실패 0건으로 재검증한다.
+- [x] `rhwp` 절대경로·실행 SHA-256 production gate와 페이지/표 완전성 계약을 추가하고
+  두 번의 100건 재추출 및 byte-for-byte 결정성을 검증한다.
+- [x] page text를 primary, 구조화 table을 auxiliary retrieval lane으로 분리해 naive baseline의
+  중복 임베딩을 금지한다.
+- [ ] HWP 5건의 table↔render-tree bbox 조인율·한컴 페이지 정합과 PDF 4건의 표·bbox fidelity를 표본 QA한다.
+- 검증: 전체 70개 테스트, 실제 manifest 100행·block 20,569행 Schema 오류 0건,
+  strict primary gate 통과, 실패 문서 누락 0건, PII 포함 로그 0건.
 
 ## Batch 2 — 평가 세트와 공통 계약 선확정
 

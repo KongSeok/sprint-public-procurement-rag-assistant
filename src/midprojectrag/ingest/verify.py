@@ -5,7 +5,8 @@ from pathlib import Path
 import re
 from typing import Any
 
-from midprojectrag.ingest.common import read_jsonl, sha256_text
+from midprojectrag.ingest.common import canonical_json, read_jsonl, sha256_text
+from midprojectrag.ingest.rhwp_adapter import verified_rhwp_sha256
 
 
 DOC_ID_PATTERN = re.compile(r"^doc_[0-9a-f]{24}$")
@@ -34,6 +35,8 @@ REQUIRED_MANIFEST_FIELDS = {
     "page_count",
     "block_count",
     "text_chars",
+    "primary_text_chars",
+    "auxiliary_text_chars",
     "output_relpath",
     "index_eligible",
     "pii_counts",
@@ -42,6 +45,7 @@ REQUIRED_MANIFEST_FIELDS = {
 VALID_STATUSES = {"pending", "ok", "partial", "failed"}
 VALID_EXTENSIONS = {".hwp", ".hwpx", ".pdf"}
 VALID_BLOCK_TYPES = {"heading", "paragraph", "table", "page_text"}
+VALID_RETRIEVAL_ROLES = {"primary", "structured_auxiliary"}
 REQUIRED_BLOCK_FIELDS = {
     "schema_version",
     "block_id",
@@ -57,6 +61,7 @@ REQUIRED_BLOCK_FIELDS = {
     "extractor",
     "extractor_version",
     "source_locator",
+    "retrieval_role",
 }
 
 
@@ -85,6 +90,100 @@ def _relative_path(value: Any) -> bool:
     return not path.is_absolute() and ".." not in path.parts
 
 
+def _valid_table_structure(value: Any, *, depth: int = 0) -> bool:
+    if depth > 8 or not isinstance(value, dict):
+        return False
+    for field in ("index", "section", "paragraph", "rows", "cols"):
+        field_value = value.get(field)
+        if (
+            not isinstance(field_value, int)
+            or isinstance(field_value, bool)
+            or field_value < 0
+        ):
+            return False
+    cells = value.get("cells")
+    cell_count = value.get("cell_count")
+    if (
+        not isinstance(cells, list)
+        or not isinstance(cell_count, int)
+        or isinstance(cell_count, bool)
+        or cell_count < 0
+        or cell_count != len(cells)
+    ):
+        return False
+    if "caption" in value and not isinstance(value.get("caption"), str):
+        return False
+    if "control" in value and (
+        not isinstance(value.get("control"), int)
+        or isinstance(value.get("control"), bool)
+        or value["control"] < 0
+    ):
+        return False
+    if "container_path" in value:
+        container_path = value.get("container_path")
+        if not isinstance(container_path, list):
+            return False
+        for item in container_path:
+            if not isinstance(item, dict) or not isinstance(item.get("kind"), str):
+                return False
+            for field in ("paragraph", "control"):
+                field_value = item.get(field)
+                if (
+                    not isinstance(field_value, int)
+                    or isinstance(field_value, bool)
+                    or field_value < 0
+                ):
+                    return False
+            if "cell" in item and (
+                not isinstance(item.get("cell"), int)
+                or isinstance(item.get("cell"), bool)
+                or item["cell"] < 0
+            ):
+                return False
+            if item["kind"] == "tableCell" and "cell" not in item:
+                return False
+    covered_coordinates: set[tuple[int, int]] = set()
+    for cell in cells:
+        if not isinstance(cell, dict):
+            return False
+        for field, minimum in (
+            ("row", 0),
+            ("col", 0),
+            ("row_span", 1),
+            ("col_span", 1),
+        ):
+            field_value = cell.get(field)
+            if (
+                not isinstance(field_value, int)
+                or isinstance(field_value, bool)
+                or field_value < minimum
+            ):
+                return False
+        if (
+            cell["row"] >= value["rows"]
+            or cell["col"] >= value["cols"]
+            or cell["row"] + cell["row_span"] > value["rows"]
+            or cell["col"] + cell["col_span"] > value["cols"]
+            or not isinstance(cell.get("is_header"), bool)
+            or not isinstance(cell.get("text"), str)
+        ):
+            return False
+        cell_coordinates = {
+            (row, col)
+            for row in range(cell["row"], cell["row"] + cell["row_span"])
+            for col in range(cell["col"], cell["col"] + cell["col_span"])
+        }
+        if covered_coordinates & cell_coordinates:
+            return False
+        covered_coordinates.update(cell_coordinates)
+        nested = cell.get("nested", [])
+        if not isinstance(nested, list) or not all(
+            _valid_table_structure(table, depth=depth + 1) for table in nested
+        ):
+            return False
+    return True
+
+
 def verify_manifest(
     entries: list[dict[str, Any]],
     *,
@@ -93,8 +192,11 @@ def verify_manifest(
     expected_hwp: int = 96,
     expected_pdf: int = 4,
     require_extracted: bool = False,
+    require_primary_hwp: bool = False,
+    expected_rhwp_sha256: str | None = None,
     max_failed: int = 0,
 ) -> dict[str, Any]:
+    require_extracted = require_extracted or require_primary_hwp
     errors: list[dict[str, Any]] = []
     warnings: list[dict[str, Any]] = []
 
@@ -150,13 +252,25 @@ def verify_manifest(
         error_code = entry.get("error_code")
         block_count = entry.get("block_count")
         text_chars = entry.get("text_chars")
+        primary_text_chars = entry.get("primary_text_chars")
+        auxiliary_text_chars = entry.get("auxiliary_text_chars")
         index_eligible = entry.get("index_eligible")
+        valid_text_counts = all(
+            isinstance(value, int) and not isinstance(value, bool) and value >= 0
+            for value in (text_chars, primary_text_chars, auxiliary_text_chars)
+        )
+        counts_reconcile = (
+            valid_text_counts
+            and text_chars == primary_text_chars + auxiliary_text_chars
+        )
         if status == "pending" and (
             extractor is not None
             or extractor_version is not None
             or error_code is not None
             or block_count != 0
             or text_chars != 0
+            or primary_text_chars != 0
+            or auxiliary_text_chars != 0
             or output_relpath is not None
             or index_eligible is not False
         ):
@@ -171,6 +285,9 @@ def verify_manifest(
             or not isinstance(text_chars, int)
             or isinstance(text_chars, bool)
             or text_chars < 1
+            or not valid_text_counts
+            or not counts_reconcile
+            or primary_text_chars < 1
             or not _relative_path(output_relpath)
             or (
                 isinstance(doc_id, str)
@@ -187,6 +304,8 @@ def verify_manifest(
             or not _nonempty_string(error_code)
             or block_count != 0
             or text_chars != 0
+            or primary_text_chars != 0
+            or auxiliary_text_chars != 0
             or output_relpath is not None
             or index_eligible is not False
             or not _nonempty_string(entry.get("extracted_at"))
@@ -207,6 +326,49 @@ def verify_manifest(
         errors.append(_issue("hwp_count_mismatch", extension_counts[".hwp"]))
     if extension_counts[".pdf"] != expected_pdf:
         errors.append(_issue("pdf_count_mismatch", extension_counts[".pdf"]))
+
+    if require_primary_hwp:
+        hwp_rows = [
+            (row_ids[index], entry)
+            for index, entry in enumerate(entries)
+            if entry.get("extension") in {".hwp", ".hwpx"}
+        ]
+        not_ok = [safe_id for safe_id, entry in hwp_rows if entry.get("status") != "ok"]
+        wrong_extractor = [
+            safe_id for safe_id, entry in hwp_rows if entry.get("extractor") != "rhwp"
+        ]
+        identity_digests = [
+            (safe_id, verified_rhwp_sha256(entry.get("extractor_version")))
+            for safe_id, entry in hwp_rows
+        ]
+        wrong_version = [safe_id for safe_id, digest in identity_digests if digest is None]
+        if not_ok:
+            errors.append(_issue("hwp_primary_not_ok", len(not_ok), not_ok))
+        if wrong_extractor:
+            errors.append(
+                _issue("hwp_primary_extractor_required", len(wrong_extractor), wrong_extractor)
+            )
+        if wrong_version:
+            errors.append(_issue("hwp_primary_version_mismatch", len(wrong_version), wrong_version))
+        if (
+            not isinstance(expected_rhwp_sha256, str)
+            or SHA256_PATTERN.fullmatch(expected_rhwp_sha256) is None
+        ):
+            errors.append(_issue("hwp_primary_checksum_required", 1))
+        else:
+            wrong_checksum = [
+                safe_id
+                for safe_id, digest in identity_digests
+                if digest is not None and digest != expected_rhwp_sha256
+            ]
+            if wrong_checksum:
+                errors.append(
+                    _issue(
+                        "hwp_primary_checksum_mismatch",
+                        len(wrong_checksum),
+                        wrong_checksum,
+                    )
+                )
 
     doc_id_counts = Counter(
         value
@@ -278,6 +440,8 @@ def verify_manifest(
             if len(blocks) != entry.get("block_count"):
                 errors.append(_issue("block_count_mismatch", 1, [doc_id]))
             calculated_chars = 0
+            calculated_primary_chars = 0
+            calculated_auxiliary_chars = 0
             for expected_sequence, block in enumerate(blocks):
                 block_id = block.get("block_id")
                 if REQUIRED_BLOCK_FIELDS - set(block):
@@ -295,6 +459,20 @@ def verify_manifest(
                 block_type = block.get("block_type")
                 if not isinstance(block_type, str) or block_type not in VALID_BLOCK_TYPES:
                     block_contract_issues["invalid_block_type"].append(doc_id)
+                if (
+                    block.get("extractor") == "rhwp"
+                    and block_type == "table"
+                    and not _valid_table_structure(block.get("table_structure"))
+                ):
+                    block_contract_issues["invalid_table_structure"].append(doc_id)
+                retrieval_role = block.get("retrieval_role")
+                if retrieval_role not in VALID_RETRIEVAL_ROLES:
+                    block_contract_issues["invalid_retrieval_role"].append(doc_id)
+                if block.get("extractor") == "rhwp" and block_type == "table":
+                    if retrieval_role != "structured_auxiliary":
+                        block_contract_issues["rhwp_table_role_mismatch"].append(doc_id)
+                elif retrieval_role == "structured_auxiliary":
+                    block_contract_issues["auxiliary_role_not_allowed"].append(doc_id)
                 section_path = block.get("section_path")
                 if not isinstance(section_path, list) or not all(
                     isinstance(value, str) for value in section_path
@@ -342,16 +520,34 @@ def verify_manifest(
                     block_contract_issues["block_text_empty"].append(doc_id)
                     continue
                 calculated_chars += len(text)
+                if retrieval_role == "structured_auxiliary":
+                    calculated_auxiliary_chars += len(text)
+                else:
+                    calculated_primary_chars += len(text)
                 content_sha256 = sha256_text(text)
                 if block.get("content_sha256") != content_sha256:
                     block_contract_issues["block_content_hash_mismatch"].append(doc_id)
-                expected_block_id = "block_" + sha256_text(
-                    f"{doc_id}:{expected_sequence}:{content_sha256}"
-                )[:24]
+                id_material = (
+                    f"{doc_id}:{expected_sequence}:{content_sha256}:{retrieval_role}"
+                )
+                if block.get("extractor") == "rhwp" and block_type == "table":
+                    structure = block.get("table_structure")
+                    if _valid_table_structure(structure):
+                        structure_sha256 = sha256_text(canonical_json(structure))
+                        if block.get("structure_sha256") != structure_sha256:
+                            block_contract_issues["table_structure_hash_mismatch"].append(doc_id)
+                        id_material = f"{id_material}:{structure_sha256}"
+                    elif not _nonempty_string(block.get("structure_sha256")):
+                        block_contract_issues["table_structure_hash_missing"].append(doc_id)
+                expected_block_id = "block_" + sha256_text(id_material)[:24]
                 if block_id != expected_block_id:
                     block_contract_issues["block_id_mismatch"].append(doc_id)
             if calculated_chars != entry.get("text_chars"):
                 errors.append(_issue("text_char_count_mismatch", 1, [doc_id]))
+            if calculated_primary_chars != entry.get("primary_text_chars"):
+                errors.append(_issue("primary_text_char_count_mismatch", 1, [doc_id]))
+            if calculated_auxiliary_chars != entry.get("auxiliary_text_chars"):
+                errors.append(_issue("auxiliary_text_char_count_mismatch", 1, [doc_id]))
 
     for code, owners in sorted(block_contract_issues.items()):
         errors.append(_issue(code, len(owners), sorted(set(owners))))

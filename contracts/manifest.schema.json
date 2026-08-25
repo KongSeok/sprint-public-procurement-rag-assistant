@@ -25,6 +25,8 @@
     "page_count",
     "block_count",
     "text_chars",
+    "primary_text_chars",
+    "auxiliary_text_chars",
     "output_relpath",
     "index_eligible",
     "pii_counts",
@@ -56,6 +58,8 @@
     "page_count": {"type": ["integer", "null"], "minimum": 0},
     "block_count": {"type": "integer", "minimum": 0},
     "text_chars": {"type": "integer", "minimum": 0},
+    "primary_text_chars": {"type": "integer", "minimum": 0},
+    "auxiliary_text_chars": {"type": "integer", "minimum": 0},
     "output_relpath": {
       "type": ["string", "null"],
       "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+"
@@ -78,6 +82,8 @@
           "error_code": {"type": "null"},
           "block_count": {"const": 0},
           "text_chars": {"const": 0},
+          "primary_text_chars": {"const": 0},
+          "auxiliary_text_chars": {"const": 0},
           "output_relpath": {"type": "null"},
           "index_eligible": {"const": false}
         }
@@ -96,6 +102,8 @@
           "error_code": {"type": "null"},
           "block_count": {"type": "integer", "minimum": 1},
           "text_chars": {"type": "integer", "minimum": 1},
+          "primary_text_chars": {"type": "integer", "minimum": 1},
+          "auxiliary_text_chars": {"type": "integer", "minimum": 0},
           "output_relpath": {"type": "string", "minLength": 1},
           "index_eligible": {"const": true}
         }
@@ -114,6 +122,8 @@
           "error_code": {"type": "string", "minLength": 1},
           "block_count": {"const": 0},
           "text_chars": {"const": 0},
+          "primary_text_chars": {"const": 0},
+          "auxiliary_text_chars": {"const": 0},
           "output_relpath": {"type": "null"},
           "index_eligible": {"const": false}
         }
