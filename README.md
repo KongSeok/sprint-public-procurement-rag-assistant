@@ -2,6 +2,8 @@
 
 > 공공입찰 컨설턴트를 위한 근거 기반 RFP 의사결정 코파일럿
 
+Repository: `sprint-public-procurement-rag-assistant`
+
 입찰메이트는 공공입찰 컨설턴트가 고객사에 적합한 제안요청서(RFP)를 찾고, 참가 조건과 위험 요소를 원문 근거와 함께 검토하도록 돕는 RAG(Retrieval-Augmented Generation) 서비스입니다.
 
 단순한 문서 질의응답을 넘어 `RFP 탐색 → 핵심 조건 확인 → 위험 검토 → 문서 비교 → 컨설팅 브리프 작성`으로 이어지는 실제 업무 흐름을 지원하는 것을 목표로 합니다.
