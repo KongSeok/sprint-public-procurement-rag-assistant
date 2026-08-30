@@ -45,3 +45,5 @@ Per batch:
   file 정책 때문에 live viewport QA는 environment-blocked다.
 - Next TODO: 사람 검토 gold와 model weight가 준비되면 실제 OCR 품질 gate를 통과한 뒤 HWP 94건을
   별도 실행한다. 그 전에는 기본 runtime과 외부 parser/search API를 활성화하지 않는다.
+- Published: 공개 구현 `df72d69`를 `origin/feat/hwp-visual-corpus-rollout`에 푸시했다. 릴레이는
+  외부 입력 gate 때문에 `STOP_WITH_REASON`으로 닫았다.

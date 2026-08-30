@@ -97,3 +97,9 @@
   - Failures: publish 권한·sandbox·identity/rank/support-ref/schema parity 결함을 발견했다.
   - Fixes: atomic fail-closed, OS network sandbox, bounded quota, exact visual gold와 parity test를 추가했다.
   - Evidence: focused 92/92, full 493/493, compileall, 23 schemas, safety 556, diff-check PASS.
+
+- [2026-08-30 18:47] Stage=Integrate
+  - Pre-check: staged-only 414/414, 20 schemas, compileall, safety 460과 공개 경로·개인경로 검사를 통과했다.
+  - Commit: `df72d69` — `feat(ingest): recover and index local visual evidence`.
+  - Push: `origin/feat/hwp-visual-corpus-rollout` 신규 추적 브랜치 publication 성공.
+  - Evidence: private/resources/scoring/apps/configs-rag 제외, stale v1 report screenshot 제외.

@@ -93,9 +93,9 @@
 - git status 확인: 대량 기존 dirty tree를 보존하고 의도한 code/docs/tests만 explicit stage.
 - 커밋 범위: visual recovery와 이를 실행 가능하게 하는 기존 uncommitted visual stack;
   private artifacts/resources와 scoring은 제외.
-- 커밋: 검증 뒤 기록.
-- 푸시: `origin feat/hwp-visual-corpus-rollout`.
-- 상태: `IN_PROGRESS`
+- 커밋: 공개 구현 `df72d69` (`feat(ingest): recover and index local visual evidence`).
+- 푸시: `origin/feat/hwp-visual-corpus-rollout` 신규 브랜치 publication 성공.
+- 상태: `COMPLETED`
 
 ### 8. Closeout Report
 
@@ -123,7 +123,7 @@
 - Implementation: `COMPLETED_PUBLIC`
 - Validation: `COMPLETED`
 - Repair: `COMPLETED`
-- Push: `IN_PROGRESS`
+- Push: `COMPLETED`
 - Report: `COMPLETED`
 - Relay: `STOP_WITH_REASON`
 - 남은 리스크: private human gold/model weights, 그 gate 뒤 HWP 94건 전수와 실제 품질 판정.
@@ -131,9 +131,9 @@
 ## Batch Sequential Runner Ledger
 
 - Run mode: `hybrid`
-- Current wave: publication closeout
+- Current wave: complete
 - Completed: Batch 1–6과 Batch 7의 공개 orchestration/대표 실행
-- In progress: publication
+- In progress: none
 - Blocked: Batch 7 private 94건은 reviewed gold와 model-quality gate 대기
 - Failed after retry: none
 - Skipped with reason: none

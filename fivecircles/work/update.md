@@ -485,3 +485,7 @@ This file summarizes recent updates so other agents can continue without re‑di
 ### Tests
 - 전체 unittest 493/493, compileall, JSON Schema 23개, diff-check와 safety 556 files를 통과했다.
 - flow HTML은 정적 QA 완료, 인앱 `file://` 검증은 정책 차단으로 별도 기록했다.
+
+### Publication
+- 공개 구현 커밋 `df72d69`를 `origin/feat/hwp-visual-corpus-rollout` 신규 브랜치에 푸시했다.
+- private corpus·crop·모델 출력, `resources/**`, scoring과 무관한 앱/UI 작업은 커밋에서 제외했다.
