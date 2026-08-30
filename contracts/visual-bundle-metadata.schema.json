@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://midprojectrag.local/schemas/visual-bundle-metadata.schema.json",
+  "title": "HWP visual bundle aggregate metadata",
+  "type": "object",
+  "required": [
+    "schema_version", "doc_id", "method", "coordinate_space", "source_sha256",
+    "rhwp_binary_sha256", "config_sha256", "blocks_sha256", "layout_records_sha256",
+    "table_artifact_sha256", "image_artifact_sha256", "ordered_artifact_sha256",
+    "asset_object_manifest_sha256", "artifact_set_id", "page_count",
+    "tables", "images", "ordered_occurrences", "asset_count",
+    "asset_reference_count", "asset_bytes", "asset_references_reconciled",
+    "table_status_counts", "image_status_counts", "ordered_status_counts"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "doc_id": {"type": "string", "pattern": "^doc_[0-9a-f]{24}$"},
+    "method": {"const": "rhwp-ordered-visual-evidence-v1"},
+    "coordinate_space": {"const": "rhwp_css_px_96dpi"},
+    "source_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "rhwp_binary_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "config_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "blocks_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "layout_records_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "table_artifact_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "image_artifact_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "ordered_artifact_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "asset_object_manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "artifact_set_id": {"type": "string", "pattern": "^visual_[0-9a-f]{24}$"},
+    "page_count": {"type": "integer", "minimum": 0},
+    "tables": {"type": "integer", "minimum": 0},
+    "images": {"type": "integer", "minimum": 0},
+    "ordered_occurrences": {"type": "integer", "minimum": 0},
+    "asset_count": {"type": "integer", "minimum": 0},
+    "asset_reference_count": {"type": "integer", "minimum": 0},
+    "asset_bytes": {"type": "integer", "minimum": 0},
+    "asset_references_reconciled": {"const": true},
+    "table_status_counts": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 1}},
+    "image_status_counts": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 1}},
+    "ordered_status_counts": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 1}}
+  },
+  "additionalProperties": false
+}

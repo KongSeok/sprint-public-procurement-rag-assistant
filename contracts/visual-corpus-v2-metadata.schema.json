@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://midprojectrag.local/schemas/visual-corpus-v2-metadata.schema.json",
+  "title": "Deterministic visual corpus v2 artifact identity",
+  "type": "object",
+  "required": ["schema_version", "artifact_set_id", "method", "source_manifest_sha256", "adapter_code_sha256", "config_sha256", "dependency_versions", "document_count", "occurrence_count", "ocr_count", "caption_count", "chunk_count", "status_counts", "artifact_hashes", "external_api_calls", "private_egress", "strict_reuse_eligible"],
+  "properties": {
+    "schema_version": {"const": "2.0"},
+    "artifact_set_id": {"type": "string", "pattern": "^visualv2_[0-9a-f]{24}$"},
+    "method": {"const": "local-visual-occurrence-understanding-v2"},
+    "source_manifest_sha256": {"$ref": "#/$defs/sha256"},
+    "adapter_code_sha256": {"$ref": "#/$defs/sha256"},
+    "config_sha256": {"$ref": "#/$defs/sha256"},
+    "dependency_versions": {"type": "object", "additionalProperties": {"type": "string", "minLength": 1}},
+    "document_count": {"type": "integer", "minimum": 0},
+    "occurrence_count": {"type": "integer", "minimum": 0},
+    "ocr_count": {"type": "integer", "minimum": 0},
+    "caption_count": {"type": "integer", "minimum": 0},
+    "chunk_count": {"type": "integer", "minimum": 0},
+    "status_counts": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}},
+    "artifact_hashes": {"type": "object", "additionalProperties": {"$ref": "#/$defs/sha256"}},
+    "external_api_calls": {"const": 0},
+    "private_egress": {"const": false},
+    "strict_reuse_eligible": {"type": "boolean"}
+  },
+  "$defs": {"sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}},
+  "additionalProperties": false
+}

@@ -7,12 +7,16 @@ from typing import Any
 
 
 COPY_PREFIX = "Copy of "
+REFINED_PREFIX = "refined_"
+NON_IDENTITY_PREFIXES = (COPY_PREFIX, REFINED_PREFIX)
 
 
 def normalize_filename(value: str) -> str:
     filename = value.strip()
-    if filename.startswith(COPY_PREFIX):
-        filename = filename[len(COPY_PREFIX) :]
+    for prefix in NON_IDENTITY_PREFIXES:
+        if filename.startswith(prefix):
+            filename = filename[len(prefix) :]
+            break
     return unicodedata.normalize("NFC", filename)
 
 

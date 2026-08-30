@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://midprojectrag.local/schemas/caption-evidence-v1.schema.json",
+  "title": "Supported local diagram description evidence",
+  "type": "object",
+  "required": ["schema_version", "evidence_id", "occurrence_id", "crop_sha256", "description", "claims", "model", "weights_sha256", "prompt_sha256", "decode_config_sha256", "status", "warnings"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "evidence_id": {"type": "string", "pattern": "^cap_[0-9a-f]{24}$"},
+    "occurrence_id": {"type": "string", "pattern": "^vocc2_[0-9a-f]{24}$"},
+    "crop_sha256": {"$ref": "#/$defs/sha256"},
+    "description": {"type": "string", "maxLength": 20000},
+    "claims": {"type": "array", "maxItems": 1000, "items": {"$ref": "#/$defs/claim"}},
+    "model": {"type": "string", "minLength": 1},
+    "weights_sha256": {"$ref": "#/$defs/sha256"},
+    "prompt_sha256": {"$ref": "#/$defs/sha256"},
+    "decode_config_sha256": {"$ref": "#/$defs/sha256"},
+    "status": {"enum": ["success", "descriptive_only", "failed"]},
+    "warnings": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1, "maxLength": 128}}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "claim": {
+      "type": "object", "required": ["claim_id", "text", "support_refs", "status"],
+      "properties": {
+        "claim_id": {"type": "string", "pattern": "^claim_[0-9a-f]{24}$"},
+        "text": {"type": "string", "minLength": 1, "maxLength": 5000},
+        "support_refs": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1, "maxLength": 256}},
+        "status": {"enum": ["supported", "descriptive_only", "rejected"]}
+      },
+      "allOf": [{"if": {"properties": {"status": {"const": "supported"}}, "required": ["status"]}, "then": {"properties": {"support_refs": {"minItems": 1}}}}],
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

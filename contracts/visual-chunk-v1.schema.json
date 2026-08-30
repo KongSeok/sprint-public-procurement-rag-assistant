@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://midprojectrag.local/schemas/visual-chunk-v1.schema.json",
+  "title": "Visual OCR, layout, or caption retrieval chunk",
+  "type": "object",
+  "required": ["schema_version", "chunk_id", "doc_id", "occurrence_id", "evidence_ids", "text", "evidence_type", "page", "bbox", "crop_sha256", "retrieval_role", "chunker_id", "retrieval_weight", "citation", "content_sha256"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "chunk_id": {"type": "string", "pattern": "^vchunk_[0-9a-f]{24}$"},
+    "doc_id": {"type": "string", "pattern": "^doc_[0-9a-f]{24}$"},
+    "occurrence_id": {"type": "string", "pattern": "^vocc2_[0-9a-f]{24}$"},
+    "evidence_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^(?:ocr|cap)_[0-9a-f]{24}$"}},
+    "text": {"type": "string", "minLength": 1, "maxLength": 24000},
+    "evidence_type": {"enum": ["ocr", "layout", "caption"]},
+    "page": {"type": "integer", "minimum": 1},
+    "bbox": {"$ref": "#/$defs/bbox"},
+    "crop_sha256": {"$ref": "#/$defs/sha256"},
+    "retrieval_role": {"const": "visual_auxiliary"},
+    "chunker_id": {"enum": ["image-ocr-v1", "image-layout-v1", "image-caption-v1"]},
+    "retrieval_weight": {"type": "number", "exclusiveMinimum": 0, "maximum": 1},
+    "citation": {"$ref": "#/$defs/citation"},
+    "answer_support": {"$ref": "#/$defs/answerSupport"},
+    "content_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "bbox": {"type": "object", "required": ["x", "y", "w", "h"], "properties": {"x": {"type": "number"}, "y": {"type": "number"}, "w": {"type": "number", "exclusiveMinimum": 0}, "h": {"type": "number", "exclusiveMinimum": 0}}, "additionalProperties": false},
+    "citation": {
+      "type": "object", "required": ["doc_id", "page", "bbox", "occurrence_id", "crop_sha256", "evidence_ids"],
+      "properties": {
+        "doc_id": {"type": "string", "pattern": "^doc_[0-9a-f]{24}$"},
+        "page": {"type": "integer", "minimum": 1}, "bbox": {"$ref": "#/$defs/bbox"},
+        "occurrence_id": {"type": "string", "pattern": "^vocc2_[0-9a-f]{24}$"},
+        "crop_sha256": {"$ref": "#/$defs/sha256"},
+        "evidence_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^(?:ocr|cap)_[0-9a-f]{24}$"}}
+      }, "additionalProperties": false
+    },
+    "answerSupport": {
+      "type": "object",
+      "required": ["status", "support_refs"],
+      "properties": {
+        "status": {"enum": ["supported", "descriptive_only"]},
+        "support_refs": {
+          "type": "array",
+          "maxItems": 256,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,255}$"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"status": {"const": "supported"}}, "required": ["status"]},
+          "then": {"properties": {"support_refs": {"minItems": 1}}}
+        },
+        {
+          "if": {"properties": {"status": {"const": "descriptive_only"}}, "required": ["status"]},
+          "then": {"properties": {"support_refs": {"maxItems": 0}}}
+        }
+      ],
+      "additionalProperties": false
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"evidence_type": {"const": "caption"}}, "required": ["evidence_type"]},
+      "then": {
+        "properties": {
+          "chunker_id": {"const": "image-caption-v1"},
+          "retrieval_weight": {"maximum": 0.35},
+          "evidence_ids": {
+            "items": {"type": "string", "pattern": "^cap_[0-9a-f]{24}$"}
+          },
+          "citation": {
+            "properties": {
+              "evidence_ids": {
+                "items": {"type": "string", "pattern": "^cap_[0-9a-f]{24}$"}
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {"properties": {"evidence_type": {"enum": ["ocr", "layout"]}}, "required": ["evidence_type"]},
+      "then": {
+        "properties": {
+          "evidence_ids": {
+            "items": {"type": "string", "pattern": "^ocr_[0-9a-f]{24}$"}
+          },
+          "citation": {
+            "properties": {
+              "evidence_ids": {
+                "items": {"type": "string", "pattern": "^ocr_[0-9a-f]{24}$"}
+              }
+            }
+          }
+        },
+        "not": {"required": ["answer_support"]}
+      }
+    }
+  ],
+  "additionalProperties": false
+}

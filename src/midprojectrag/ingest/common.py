@@ -29,6 +29,16 @@ def sha256_file(path: Path, chunk_size: int = 1024 * 1024) -> str:
     return digest.hexdigest()
 
 
+def require_sha256(value: Any, error_code: str) -> str:
+    if (
+        not isinstance(value, str)
+        or len(value) != 64
+        or any(character not in "0123456789abcdef" for character in value)
+    ):
+        raise ValueError(error_code)
+    return value
+
+
 def require_within(path: Path, root: Path, error_code: str) -> Path:
     """Resolve a path and reject traversal or symlink escape from ``root``."""
     resolved_root = root.resolve()

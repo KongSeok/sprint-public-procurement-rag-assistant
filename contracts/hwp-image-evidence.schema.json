@@ -1,0 +1,136 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://midprojectrag.local/schemas/hwp-image-evidence.schema.json",
+  "title": "HWP image asset and render evidence",
+  "type": "object",
+  "required": [
+    "schema_version", "occurrence_id", "doc_id", "ordinal", "node_type", "status",
+    "asset_id", "asset_sha256", "asset_relpath", "media_type", "byte_size", "width", "height",
+    "source_asset_sha256", "source_byte_size", "source_media_type", "source_extension", "normalizations",
+    "page_start", "page_end", "bbox", "coordinate_space", "render_key", "sequence_in_page",
+    "image_ordinal_in_page", "container_kind", "preceding_text", "link_method",
+    "doclang_loss_count", "warnings"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "occurrence_id": {"type": "string", "pattern": "^occ_[0-9a-f]{24}$"},
+    "doc_id": {"type": "string", "pattern": "^doc_[0-9a-f]{24}$"},
+    "ordinal": {"type": "integer", "minimum": 0},
+    "node_type": {"const": "image"},
+    "status": {"enum": ["verified_asset_render", "asset_only_unlinked", "unsupported_source_asset", "render_only_missing_asset"]},
+    "asset_id": {"type": ["string", "null"], "pattern": "^asset_[0-9a-f]{24}$"},
+    "asset_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+    "asset_relpath": {"type": ["string", "null"], "pattern": "^objects/[0-9a-f]{64}\\.(?:png|jpg|bmp|tif)$"},
+    "media_type": {"enum": ["image/png", "image/jpeg", "image/bmp", "image/tiff", null]},
+    "byte_size": {"type": ["integer", "null"], "minimum": 1, "maximum": 67108864},
+    "width": {"type": ["integer", "null"], "minimum": 1, "maximum": 100000},
+    "height": {"type": ["integer", "null"], "minimum": 1, "maximum": 100000},
+    "source_asset_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+    "source_byte_size": {"type": ["integer", "null"], "minimum": 1, "maximum": 67108864},
+    "source_media_type": {"enum": ["image/png", "image/jpeg", "image/bmp", "image/tiff", "image/wmf", "image/gif", null]},
+    "source_extension": {"oneOf": [{"type": "null"}, {"type": "string", "pattern": "^\\.[A-Za-z0-9]{1,16}$"}]},
+    "normalizations": {
+      "type": "array", "uniqueItems": true,
+      "items": {"enum": ["source_extension_canonicalized", "png_trailing_bytes_removed"]}
+    },
+    "page_start": {"type": ["integer", "null"], "minimum": 1},
+    "page_end": {"type": ["integer", "null"], "minimum": 1},
+    "bbox": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/bbox"}]},
+    "coordinate_space": {"enum": ["rhwp_css_px_96dpi", null]},
+    "render_key": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/renderKey"}]},
+    "sequence_in_page": {"type": ["integer", "null"], "minimum": 0},
+    "image_ordinal_in_page": {"type": ["integer", "null"], "minimum": 0},
+    "container_kind": {"enum": ["body", "table_nested", null]},
+    "preceding_text": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/textContext"}]},
+    "link_method": {"enum": ["doclang_picture_render_image_global_ordinal_exact_count", "doclang_picture_unlinked", "doclang_picture_unsupported_unlinked", "render_image_unlinked"]},
+    "doclang_loss_count": {"type": "integer", "minimum": 0},
+    "warnings": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+  },
+  "$defs": {
+    "bbox": {
+      "type": "object", "required": ["x", "y", "w", "h"],
+      "properties": {"x": {"type": "number"}, "y": {"type": "number"}, "w": {"type": "number", "exclusiveMinimum": 0}, "h": {"type": "number", "exclusiveMinimum": 0}},
+      "additionalProperties": false
+    },
+    "renderKey": {
+      "type": "object", "required": ["section", "paragraph", "control"],
+      "properties": {"section": {"type": "integer", "minimum": 0}, "paragraph": {"type": "integer", "minimum": 0}, "control": {"type": "integer", "minimum": 0}},
+      "additionalProperties": false
+    },
+    "textContext": {
+      "type": "object", "required": ["text", "bbox", "render_key", "method"],
+      "properties": {
+        "text": {"type": "string", "minLength": 1, "maxLength": 500},
+        "bbox": {"$ref": "#/$defs/bbox"},
+        "render_key": {
+          "type": "object", "required": ["section", "paragraph"],
+          "properties": {"section": {"type": "integer", "minimum": 0}, "paragraph": {"type": "integer", "minimum": 0}},
+          "additionalProperties": false
+        },
+        "method": {"const": "nearest_prior_top_level_textline"}
+      },
+      "additionalProperties": false
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"status": {"const": "verified_asset_render"}}, "required": ["status"]},
+      "then": {
+        "properties": {
+          "asset_id": {"type": "string"}, "asset_sha256": {"type": "string"}, "asset_relpath": {"type": "string"},
+          "media_type": {"type": "string"}, "byte_size": {"type": "integer"}, "width": {"type": "integer"}, "height": {"type": "integer"},
+          "source_asset_sha256": {"type": "string"}, "source_byte_size": {"type": "integer"}, "source_media_type": {"type": "string"},
+          "page_start": {"type": "integer"}, "page_end": {"type": "integer"}, "bbox": {"$ref": "#/$defs/bbox"},
+          "coordinate_space": {"const": "rhwp_css_px_96dpi"}, "render_key": {"$ref": "#/$defs/renderKey"},
+          "sequence_in_page": {"type": "integer"}, "image_ordinal_in_page": {"type": "integer"}, "container_kind": {"enum": ["body", "table_nested"]},
+          "link_method": {"const": "doclang_picture_render_image_global_ordinal_exact_count"},
+          "warnings": {"maxItems": 0}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"status": {"const": "asset_only_unlinked"}}, "required": ["status"]},
+      "then": {
+        "properties": {
+          "asset_id": {"type": "string"}, "asset_sha256": {"type": "string"}, "asset_relpath": {"type": "string"},
+          "media_type": {"type": "string"}, "byte_size": {"type": "integer"}, "width": {"type": "integer"}, "height": {"type": "integer"},
+          "source_asset_sha256": {"type": "string"}, "source_byte_size": {"type": "integer"}, "source_media_type": {"type": "string"},
+          "page_start": {"type": "null"}, "page_end": {"type": "null"}, "bbox": {"type": "null"}, "coordinate_space": {"type": "null"},
+          "render_key": {"type": "null"}, "sequence_in_page": {"type": "null"}, "image_ordinal_in_page": {"type": "null"}, "container_kind": {"type": "null"}, "preceding_text": {"type": "null"},
+          "link_method": {"const": "doclang_picture_unlinked"},
+          "warnings": {"minItems": 1}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"status": {"const": "unsupported_source_asset"}}, "required": ["status"]},
+      "then": {
+        "properties": {
+          "asset_id": {"type": "null"}, "asset_sha256": {"type": "null"}, "asset_relpath": {"type": "null"}, "media_type": {"type": "null"},
+          "byte_size": {"type": "null"}, "width": {"type": "null"}, "height": {"type": "null"},
+          "source_asset_sha256": {"type": "string"}, "source_byte_size": {"type": "integer"}, "source_media_type": {"enum": ["image/wmf", "image/gif"]},
+          "normalizations": {"maxItems": 0},
+          "page_start": {"type": "null"}, "page_end": {"type": "null"}, "bbox": {"type": "null"}, "coordinate_space": {"type": "null"},
+          "render_key": {"type": "null"}, "sequence_in_page": {"type": "null"}, "image_ordinal_in_page": {"type": "null"}, "container_kind": {"type": "null"}, "preceding_text": {"type": "null"},
+          "link_method": {"const": "doclang_picture_unsupported_unlinked"}, "warnings": {"minItems": 1}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"status": {"const": "render_only_missing_asset"}}, "required": ["status"]},
+      "then": {
+        "properties": {
+          "asset_id": {"type": "null"}, "asset_sha256": {"type": "null"}, "asset_relpath": {"type": "null"}, "media_type": {"type": "null"},
+          "byte_size": {"type": "null"}, "width": {"type": "null"}, "height": {"type": "null"},
+          "source_asset_sha256": {"type": "null"}, "source_byte_size": {"type": "null"}, "source_media_type": {"type": "null"}, "source_extension": {"type": "null"}, "normalizations": {"maxItems": 0},
+          "page_start": {"type": "integer"}, "page_end": {"type": "integer"}, "bbox": {"$ref": "#/$defs/bbox"},
+          "coordinate_space": {"const": "rhwp_css_px_96dpi"}, "render_key": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/renderKey"}]},
+          "sequence_in_page": {"type": "integer"}, "image_ordinal_in_page": {"type": "integer"}, "container_kind": {"enum": ["body", "table_nested"]},
+          "link_method": {"const": "render_image_unlinked"},
+          "warnings": {"minItems": 1}
+        }
+      }
+    }
+  ],
+  "additionalProperties": false
+}

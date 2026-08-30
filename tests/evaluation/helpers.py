@@ -186,9 +186,12 @@ def make_runs(cases: list[dict[str, Any]], *, stack_id: str = "api") -> list[dic
                 "git_commit": "abcdef0",
                 "generator_model": "gpt-5-mini" if stack_id == "api" else "synthetic-hf-generator",
                 "embedding_model": "text-embedding-3-small" if stack_id == "api" else "synthetic-hf-embedding",
+                **({"reasoning_effort": "minimal"} if stack_id == "api" else {}),
                 "environment": {
                     "python_version": "3.12.13",
                     "platform": "synthetic-test",
+                    "region": "us-central1" if stack_id == "gcp_local" else "local-test",
+                    "machine_type": "g2-standard-4" if stack_id == "gcp_local" else "synthetic-test",
                     "vcpu": 4,
                     "ram_gb": 16.0,
                     "gpu_model": "NVIDIA L4" if stack_id == "gcp_local" else None,

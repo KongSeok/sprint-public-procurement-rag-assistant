@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0",
+  "runtime": "node>=18",
+  "packages": {
+    "@napi-rs/canvas": {
+      "integrity": "sha512-/SaLcvlqGWdm0HSCWMgHu7cjJiQXfP8/mOY+6dUyV9flQz7sPBBZ+ed2zYtoukojPmxOaL7bm+d/G4GeWWoN7g==",
+      "version": "1.0.8"
+    },
+    "@rhwp/core": {
+      "integrity": "sha512-Wr5HwQLzuGHHGfkJTvakRrB+BczyxnrRynwMBxDeoE2AxUU5z9GkqKhK+2Op9IS8Uq0KtA6c89PaCj1OA/QsfA==",
+      "version": "0.8.4"
+    }
+  },
+  "execution_policy": {
+    "network": "disabled_after_install",
+    "private_egress": false,
+    "require_entrypoint_sha256": true,
+    "require_wasm_sha256": true
+  }
+}

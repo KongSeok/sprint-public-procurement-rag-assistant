@@ -1,0 +1,299 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://midprojectrag.local/schemas/visual-corpus-rollout.schema.json",
+  "title": "Private HWP visual corpus rollout report",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "run_id",
+    "mode",
+    "selection_sha256",
+    "config_sha256",
+    "source_manifest_sha256",
+    "table_layout_artifact_sha256",
+    "rhwp_binary_sha256",
+    "selected_documents",
+    "passed",
+    "document_status_counts",
+    "totals",
+    "table_status_counts",
+    "image_status_counts",
+    "ordered_status_counts",
+    "bundle_totals",
+    "artifact_set_digest",
+    "documents"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "run_id": {
+      "type": "string",
+      "pattern": "^run_[a-z0-9][a-z0-9_-]{0,62}$",
+      "maxLength": 67
+    },
+    "mode": {"enum": ["sample", "corpus"]},
+    "selection_sha256": {"$ref": "#/$defs/sha256"},
+    "config_sha256": {"$ref": "#/$defs/sha256"},
+    "source_manifest_sha256": {"$ref": "#/$defs/sha256"},
+    "table_layout_artifact_sha256": {"$ref": "#/$defs/sha256"},
+    "rhwp_binary_sha256": {"$ref": "#/$defs/sha256"},
+    "selected_documents": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^doc_[0-9a-f]{24}$"
+      }
+    },
+    "passed": {"type": "boolean"},
+    "document_status_counts": {"$ref": "#/$defs/documentStatusCounts"},
+    "totals": {"$ref": "#/$defs/runCounts"},
+    "bundle_totals": {"$ref": "#/$defs/bundleCounts"},
+    "artifact_set_digest": {"$ref": "#/$defs/sha256"},
+    "table_status_counts": {"$ref": "#/$defs/tableStatusCounts"},
+    "image_status_counts": {"$ref": "#/$defs/imageStatusCounts"},
+    "ordered_status_counts": {"$ref": "#/$defs/orderedStatusCounts"},
+    "documents": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/documentResult"}
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"passed": {"const": true}},
+        "required": ["passed"]
+      },
+      "then": {
+        "properties": {
+          "document_status_counts": {
+            "properties": {"failed": {"const": 0}}
+          },
+          "bundle_totals": {
+            "properties": {"asset_references_reconciled": {"const": true}}
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"passed": {"const": false}},
+        "required": ["passed"]
+      },
+      "then": {
+        "properties": {
+          "document_status_counts": {
+            "properties": {"failed": {"minimum": 1}}
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "nullableSha256": {
+      "type": ["string", "null"],
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "documentStatusCounts": {
+      "type": "object",
+      "required": ["materialized", "reused", "failed"],
+      "properties": {
+        "materialized": {"type": "integer", "minimum": 0},
+        "reused": {"type": "integer", "minimum": 0},
+        "failed": {"type": "integer", "minimum": 0}
+      },
+      "additionalProperties": false
+    },
+    "runCounts": {
+      "type": "object",
+      "required": ["requested", "succeeded", "materialized", "reused", "failed"],
+      "properties": {
+        "requested": {"type": "integer", "minimum": 1},
+        "succeeded": {"type": "integer", "minimum": 0},
+        "materialized": {"type": "integer", "minimum": 0},
+        "reused": {"type": "integer", "minimum": 0},
+        "failed": {"type": "integer", "minimum": 0}
+      },
+      "additionalProperties": false
+    },
+    "bundleCounts": {
+      "type": "object",
+      "required": [
+        "page_count",
+        "tables",
+        "images",
+        "ordered_occurrences",
+        "asset_count",
+        "asset_reference_count",
+        "asset_bytes",
+        "asset_references_reconciled"
+      ],
+      "properties": {
+        "page_count": {"type": "integer", "minimum": 0},
+        "tables": {"type": "integer", "minimum": 0},
+        "images": {"type": "integer", "minimum": 0},
+        "ordered_occurrences": {"type": "integer", "minimum": 0},
+        "asset_count": {"type": "integer", "minimum": 0},
+        "asset_reference_count": {"type": "integer", "minimum": 0},
+        "asset_bytes": {"type": "integer", "minimum": 0},
+        "asset_references_reconciled": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "tableStatusCounts": {
+      "type": "object",
+      "properties": {
+        "layout_missing": {"type": "integer", "minimum": 1},
+        "layout_unresolved": {"type": "integer", "minimum": 1},
+        "render_occurrence_unresolved": {"type": "integer", "minimum": 1},
+        "verified_render": {"type": "integer", "minimum": 1}
+      },
+      "additionalProperties": false
+    },
+    "imageStatusCounts": {
+      "type": "object",
+      "properties": {
+        "verified_asset_render": {"type": "integer", "minimum": 1},
+        "asset_only_unlinked": {"type": "integer", "minimum": 1},
+        "unsupported_source_asset": {"type": "integer", "minimum": 1},
+        "render_only_missing_asset": {"type": "integer", "minimum": 1}
+      },
+      "additionalProperties": false
+    },
+    "orderedStatusCounts": {
+      "type": "object",
+      "properties": {
+        "render_text": {"type": "integer", "minimum": 1},
+        "verified_table_link": {"type": "integer", "minimum": 1},
+        "verified_image_link": {"type": "integer", "minimum": 1},
+        "render_only_unlinked": {"type": "integer", "minimum": 1}
+      },
+      "additionalProperties": false
+    },
+    "documentResult": {
+      "type": "object",
+      "required": [
+        "doc_id",
+        "terminal_state",
+        "attempts",
+        "source_sha256",
+        "blocks_sha256",
+        "layout_records_sha256",
+        "artifact_set_id",
+        "metadata_sha256",
+        "error_code",
+        "counts",
+        "table_status_counts",
+        "image_status_counts",
+        "ordered_status_counts"
+      ],
+      "properties": {
+        "doc_id": {
+          "type": "string",
+          "pattern": "^doc_[0-9a-f]{24}$"
+        },
+        "terminal_state": {
+          "enum": ["materialized", "reused", "failed"]
+        },
+        "attempts": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2
+        },
+        "source_sha256": {"$ref": "#/$defs/sha256"},
+        "blocks_sha256": {"$ref": "#/$defs/sha256"},
+        "layout_records_sha256": {"$ref": "#/$defs/sha256"},
+        "artifact_set_id": {
+          "type": ["string", "null"],
+          "pattern": "^visual_[0-9a-f]{24}$"
+        },
+        "metadata_sha256": {"$ref": "#/$defs/nullableSha256"},
+        "error_code": {
+          "type": ["string", "null"],
+          "pattern": "^[a-z][a-z0-9_]{0,63}$",
+          "maxLength": 64
+        },
+        "counts": {"$ref": "#/$defs/bundleCounts"},
+        "table_status_counts": {"$ref": "#/$defs/tableStatusCounts"},
+        "image_status_counts": {"$ref": "#/$defs/imageStatusCounts"},
+        "ordered_status_counts": {"$ref": "#/$defs/orderedStatusCounts"}
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "terminal_state": {"enum": ["materialized", "reused"]}
+            },
+            "required": ["terminal_state"]
+          },
+          "then": {
+            "properties": {
+              "artifact_set_id": {"type": "string"},
+              "metadata_sha256": {"type": "string"},
+              "error_code": {"type": "null"},
+              "counts": {
+                "properties": {
+                  "asset_references_reconciled": {"const": true}
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {"terminal_state": {"const": "materialized"}},
+            "required": ["terminal_state"]
+          },
+          "then": {
+            "properties": {"attempts": {"minimum": 1}}
+          }
+        },
+        {
+          "if": {
+            "properties": {"terminal_state": {"const": "reused"}},
+            "required": ["terminal_state"]
+          },
+          "then": {
+            "properties": {"attempts": {"const": 0}}
+          }
+        },
+        {
+          "if": {
+            "properties": {"terminal_state": {"const": "failed"}},
+            "required": ["terminal_state"]
+          },
+          "then": {
+            "properties": {
+              "attempts": {"minimum": 1},
+              "artifact_set_id": {"type": "null"},
+              "metadata_sha256": {"type": "null"},
+              "error_code": {"type": "string"},
+              "counts": {
+                "properties": {
+                  "page_count": {"const": 0},
+                  "tables": {"const": 0},
+                  "images": {"const": 0},
+                  "ordered_occurrences": {"const": 0},
+                  "asset_count": {"const": 0},
+                  "asset_reference_count": {"const": 0},
+                  "asset_bytes": {"const": 0},
+                  "asset_references_reconciled": {"const": false}
+                }
+              },
+              "table_status_counts": {"maxProperties": 0},
+              "image_status_counts": {"maxProperties": 0},
+              "ordered_status_counts": {"maxProperties": 0}
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

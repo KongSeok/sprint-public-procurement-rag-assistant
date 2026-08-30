@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://midprojectrag.local/schemas/visual-occurrence-v2.schema.json",
+  "title": "Visual occurrence with source-object and page-placement evidence",
+  "type": "object",
+  "required": [
+    "schema_version", "occurrence_id", "doc_id", "source_sha256", "page", "bbox",
+    "coordinate_space", "sequence_in_page", "container_path", "source_anchor",
+    "region_kind", "evidence_origin", "page_render_sha256", "render_profile_sha256",
+    "crop_sha256", "crop_relpath", "crop_media_type", "parent_occurrence_id",
+    "source_image_key", "source_object_id", "source_object_sha256",
+    "source_object_media_type", "source_object_status", "link_method", "match_evidence",
+    "placement_status", "understanding_status", "retrieval_status", "nearby_title", "warnings"
+  ],
+  "properties": {
+    "schema_version": {"const": "2.0"},
+    "occurrence_id": {"type": "string", "pattern": "^vocc2_[0-9a-f]{24}$"},
+    "doc_id": {"type": "string", "pattern": "^doc_[0-9a-f]{24}$"},
+    "source_sha256": {"$ref": "#/$defs/sha256"},
+    "page": {"type": ["integer", "null"], "minimum": 1},
+    "bbox": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/bbox"}]},
+    "coordinate_space": {"enum": ["rhwp_css_px_96dpi", "pdf_points_top_left", null]},
+    "sequence_in_page": {"type": ["integer", "null"], "minimum": 0},
+    "container_path": {
+      "type": "array", "maxItems": 64,
+      "items": {"type": "string", "minLength": 1, "maxLength": 256}
+    },
+    "source_anchor": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/sourceAnchor"}]},
+    "region_kind": {"enum": ["raster_image", "inline_image", "vector_diagram", "table", "table_child_image", "decorative", "ambiguous"]},
+    "evidence_origin": {"enum": ["source_object", "page_render_crop", "resource_and_page_crop"]},
+    "page_render_sha256": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/sha256"}]},
+    "render_profile_sha256": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/sha256"}]},
+    "crop_sha256": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/sha256"}]},
+    "crop_relpath": {"type": ["string", "null"], "pattern": "^crops/[0-9a-f]{64}\\.png$"},
+    "crop_media_type": {"enum": ["image/png", null]},
+    "parent_occurrence_id": {"type": ["string", "null"], "pattern": "^vocc2_[0-9a-f]{24}$"},
+    "source_image_key": {"type": ["string", "null"], "minLength": 1, "maxLength": 256},
+    "source_object_id": {"type": ["string", "null"], "pattern": "^vobj_[0-9a-f]{24}$"},
+    "source_object_sha256": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/sha256"}]},
+    "source_object_media_type": {"type": ["string", "null"], "pattern": "^(?:image|application)/[A-Za-z0-9.+-]+$"},
+    "source_object_status": {"enum": ["exact_resource_link", "verified_exact_visual_match", "render_only", "unsupported", "missing", "ambiguous"]},
+    "link_method": {"enum": ["document_resource_key", "raw_sha256_bbox_exact", "rgba_sha256_bbox_exact", "render_region_only", "none"]},
+    "match_evidence": {
+      "type": "array", "uniqueItems": true,
+      "items": {"enum": ["document_resource_key", "raw_sha256", "normalized_rgba_sha256", "bbox_exact", "unique_candidate", "page_render"]}
+    },
+    "placement_status": {"enum": ["page_bbox_verified", "doc_only_unlinked", "ambiguous", "missing"]},
+    "understanding_status": {"enum": ["none", "ocr_ready", "layout_ready", "caption_ready", "failed"]},
+    "retrieval_status": {"enum": ["eligible", "withheld", "quarantined"]},
+    "nearby_title": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/nearbyTitle"}]},
+    "warnings": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1, "maxLength": 128}}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "bbox": {
+      "type": "object", "required": ["x", "y", "w", "h"],
+      "properties": {
+        "x": {"type": "number"}, "y": {"type": "number"},
+        "w": {"type": "number", "exclusiveMinimum": 0},
+        "h": {"type": "number", "exclusiveMinimum": 0}
+      },
+      "additionalProperties": false
+    },
+    "cellPathSegment": {
+      "type": "object", "required": ["control_index", "cell_index", "cell_paragraph_index", "row", "column"],
+      "properties": {
+        "control_index": {"type": "integer", "minimum": 0},
+        "cell_index": {"type": "integer", "minimum": 0},
+        "cell_paragraph_index": {"type": "integer", "minimum": 0},
+        "row": {"type": ["integer", "null"], "minimum": 0},
+        "column": {"type": ["integer", "null"], "minimum": 0}
+      },
+      "additionalProperties": false
+    },
+    "sourceAnchor": {
+      "type": "object", "required": ["kind", "section_index", "paragraph_index", "control_index", "table_block_id", "cell_path"],
+      "properties": {
+        "kind": {"enum": ["body", "table_nested", "page_overlay", "pdf_resource", "pdf_geometry"]},
+        "section_index": {"type": ["integer", "null"], "minimum": 0},
+        "paragraph_index": {"type": ["integer", "null"], "minimum": 0},
+        "control_index": {"type": ["integer", "null"], "minimum": 0},
+        "table_block_id": {"type": ["string", "null"], "pattern": "^block_[0-9a-f]{24}$"},
+        "cell_path": {"type": "array", "maxItems": 32, "items": {"$ref": "#/$defs/cellPathSegment"}}
+      },
+      "additionalProperties": false
+    },
+    "nearbyTitle": {
+      "type": "object", "required": ["text", "text_sha256", "bbox", "method"],
+      "properties": {
+        "text": {"type": "string", "minLength": 1, "maxLength": 500},
+        "text_sha256": {"$ref": "#/$defs/sha256"},
+        "bbox": {"$ref": "#/$defs/bbox"},
+        "method": {"const": "nearest_prior_heading_bounded_v1"}
+      },
+      "additionalProperties": false
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"placement_status": {"const": "page_bbox_verified"}}, "required": ["placement_status"]},
+      "then": {"properties": {"page": {"type": "integer"}, "bbox": {"$ref": "#/$defs/bbox"}, "coordinate_space": {"type": "string"}, "sequence_in_page": {"type": "integer"}}}
+    },
+    {
+      "if": {"properties": {"retrieval_status": {"const": "eligible"}}, "required": ["retrieval_status"]},
+      "then": {"properties": {"placement_status": {"const": "page_bbox_verified"}, "crop_sha256": {"$ref": "#/$defs/sha256"}, "crop_relpath": {"type": "string"}, "crop_media_type": {"const": "image/png"}, "page_render_sha256": {"$ref": "#/$defs/sha256"}, "render_profile_sha256": {"$ref": "#/$defs/sha256"}}}
+    },
+    {
+      "if": {"properties": {"source_object_status": {"enum": ["exact_resource_link", "verified_exact_visual_match"]}}, "required": ["source_object_status"]},
+      "then": {"properties": {"source_object_id": {"type": "string"}, "source_object_sha256": {"$ref": "#/$defs/sha256"}, "source_object_media_type": {"type": "string"}}}
+    },
+    {
+      "if": {"properties": {"source_object_status": {"const": "exact_resource_link"}}, "required": ["source_object_status"]},
+      "then": {"properties": {"source_image_key": {"type": "string"}, "link_method": {"const": "document_resource_key"}}}
+    }
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://midprojectrag.local/schemas/visual-table-corpus-metadata.schema.json",
+  "title": "Corpus-wide visual table chunk metadata",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "method",
+    "chunker_id",
+    "retrieval_role",
+    "source_manifest_sha256",
+    "source_chunk_artifact_sha256",
+    "overlay_artifact_sha256",
+    "corpus_metadata_sha256",
+    "chunk_artifact_sha256",
+    "config_sha256",
+    "documents",
+    "source_chunks",
+    "chunks",
+    "overlay_records",
+    "context_counts",
+    "table_status_counts"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.2"},
+    "method": {
+      "const": "exact-block-prior-context-row-scoped-schedule-v1"
+    },
+    "chunker_id": {"const": "table-md-visual-context-v2"},
+    "retrieval_role": {"const": "structured_auxiliary"},
+    "source_manifest_sha256": {"$ref": "#/$defs/sha256"},
+    "source_chunk_artifact_sha256": {"$ref": "#/$defs/sha256"},
+    "overlay_artifact_sha256": {"$ref": "#/$defs/sha256"},
+    "corpus_metadata_sha256": {"$ref": "#/$defs/sha256"},
+    "chunk_artifact_sha256": {"$ref": "#/$defs/sha256"},
+    "config_sha256": {"$ref": "#/$defs/sha256"},
+    "documents": {"type": "integer", "minimum": 1},
+    "source_chunks": {"type": "integer", "minimum": 1},
+    "chunks": {"type": "integer", "minimum": 1},
+    "overlay_records": {"type": "integer", "minimum": 1},
+    "context_counts": {"$ref": "#/$defs/contextCounts"},
+    "table_status_counts": {"$ref": "#/$defs/tableStatusCounts"}
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "contextCounts": {
+      "type": "object",
+      "required": [
+        "chunks_with_prior_context",
+        "chunks_with_schedule_context"
+      ],
+      "properties": {
+        "chunks_with_prior_context": {"type": "integer", "minimum": 0},
+        "chunks_with_schedule_context": {"type": "integer", "minimum": 0}
+      },
+      "additionalProperties": false
+    },
+    "tableStatusCounts": {
+      "type": "object",
+      "properties": {
+        "layout_missing": {"type": "integer", "minimum": 1},
+        "layout_unresolved": {"type": "integer", "minimum": 1},
+        "render_occurrence_unresolved": {"type": "integer", "minimum": 1},
+        "verified_render": {"type": "integer", "minimum": 1}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

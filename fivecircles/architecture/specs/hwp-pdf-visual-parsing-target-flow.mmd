@@ -1,0 +1,28 @@
+flowchart TD
+    SRC["refined source 94 HWP + 4 PDF"]:::gray --> PARSE["pinned local canonical parsers<br/>text/table identities unchanged"]:::green
+    PARSE --> HREC["HWP resource key + full layer tree<br/>exact table/cell anchor"]:::amber
+    PARSE --> PREC["PDF resource bytes/path + placement<br/>raster/vector/table-child classification"]:::amber
+    HREC --> OCC["VisualOccurrenceV2<br/>doc + page + bbox + container path"]:::green
+    PREC --> OCC
+    OCC --> LINK{"exact object link available?"}:::gray
+    LINK -->|"document-local key or exact bytes/pixels+bbox"| EXACT["exact source-object provenance"]:::green
+    LINK -->|"no or ambiguous"| REGION["render-region evidence<br/>source link withheld"]:::amber
+    EXACT --> CROP["deterministic page-region crop<br/>crop SHA + render profile"]:::green
+    REGION --> CROP
+    CROP --> OCR["local Korean OCR + layout<br/>polygon/confidence/order/cells"]:::amber
+    OCR --> DIAG{"relation-heavy diagram?"}:::gray
+    DIAG -->|"no"| CHUNK["image-ocr/layout chunks"]:::green
+    DIAG -->|"yes, pinned local model"| CAP["caption claims + support refs<br/>descriptive evidence only"]:::amber
+    CAP --> CHUNK
+    CHUNK --> RET["low-weight visual retrieval + RRF<br/>page/bbox/crop citation"]:::green
+    RET --> GATE["5-risk HWP + 4-PDF representative execution<br/>human occurrence/title/relation gold"]:::amber
+    GATE --> READY{"reviewed gold + pinned model<br/>quality gate passed?"}:::gray
+    READY -->|"yes"| ROLL["94-HWP resumable rollout<br/>reconciliation + deterministic reuse"]:::green
+    READY -->|"no"| BLOCK["private rollout and activation withheld"]:::red
+    SRC -. "external parser/search API forbidden" .-> BLOCK
+
+    classDef green fill:#e8f2ea,stroke:#bdd1c2,color:#1f2933,stroke-width:1.5px
+    classDef blue fill:#e8f0f7,stroke:#c2d3e0,color:#1f2933,stroke-width:1.5px
+    classDef amber fill:#fff4dc,stroke:#e7c88f,color:#1f2933,stroke-width:1.5px
+    classDef red fill:#fde9e6,stroke:#e8bab5,color:#1f2933,stroke-width:1.5px
+    classDef gray fill:#eef1ed,stroke:#d8e0da,color:#1f2933,stroke-width:1.5px

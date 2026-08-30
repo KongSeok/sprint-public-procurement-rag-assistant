@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://midprojectrag.local/schemas/visual-gold-v1.schema.json",
+  "title": "Private human visual occurrence annotation",
+  "type": "object",
+  "required": ["schema_version", "annotation_id", "doc_id", "source_sha256", "source_format", "risk_type", "page", "bbox", "coordinate_space", "region_kind", "nearby_title", "expected_text", "relationship_claims", "critical_case", "reviewers", "status"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "annotation_id": {"type": "string", "pattern": "^vgold_[0-9a-f]{24}$"},
+    "doc_id": {"type": "string", "pattern": "^doc_[0-9a-f]{24}$"},
+    "source_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "source_format": {"enum": ["hwp", "pdf"]},
+    "risk_type": {"enum": ["hwp_body_image", "hwp_table_nested", "hwp_vector_diagram", "hwp_unsupported_media", "hwp_repeated_mismatch", "pdf_raster", "pdf_inline_or_mask", "pdf_vector_diagram", "pdf_schedule_table"]},
+    "page": {"type": "integer", "minimum": 1},
+    "bbox": {"type": "object", "required": ["x", "y", "w", "h"], "properties": {"x": {"type": "number"}, "y": {"type": "number"}, "w": {"type": "number", "exclusiveMinimum": 0}, "h": {"type": "number", "exclusiveMinimum": 0}}, "additionalProperties": false},
+    "coordinate_space": {"enum": ["rhwp_css_px_96dpi", "pdf_points_top_left"]},
+    "region_kind": {"enum": ["raster_image", "inline_image", "vector_diagram", "table", "table_child_image", "decorative", "ambiguous"]},
+    "nearby_title": {"type": ["string", "null"], "maxLength": 500},
+    "expected_text": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1, "maxLength": 500}},
+    "relationship_claims": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1, "maxLength": 1000}},
+    "critical_case": {"enum": ["none", "schedule", "system_diagram"]},
+    "reviewers": {"type": "array", "minItems": 1, "maxItems": 2, "uniqueItems": true, "items": {"type": "string", "minLength": 1, "maxLength": 128}},
+    "status": {"enum": ["draft", "reviewed"]}
+  },
+  "allOf": [
+    {"if": {"properties": {"source_format": {"const": "hwp"}}, "required": ["source_format"]}, "then": {"properties": {"risk_type": {"pattern": "^hwp_"}, "coordinate_space": {"const": "rhwp_css_px_96dpi"}}}},
+    {"if": {"properties": {"source_format": {"const": "pdf"}}, "required": ["source_format"]}, "then": {"properties": {"risk_type": {"pattern": "^pdf_"}, "coordinate_space": {"const": "pdf_points_top_left"}}}}
+  ],
+  "additionalProperties": false
+}

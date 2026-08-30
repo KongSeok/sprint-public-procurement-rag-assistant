@@ -53,6 +53,12 @@
       "pattern": "^block_[0-9a-f]{24}$"
     },
     "citation": {
+      "oneOf": [
+        {"$ref": "#/$defs/textCitation"},
+        {"$ref": "#/$defs/visualCitation"}
+      ]
+    },
+    "textCitation": {
       "type": "object",
       "required": ["doc_id", "chunk_id", "source_block_ids", "locator"],
       "properties": {
@@ -71,6 +77,91 @@
       },
       "additionalProperties": false
     },
+    "visualCitation": {
+      "type": "object",
+      "required": [
+        "doc_id",
+        "chunk_id",
+        "occurrence_id",
+        "evidence_ids",
+        "evidence_type",
+        "locator"
+      ],
+      "properties": {
+        "doc_id": {"$ref": "#/$defs/documentId"},
+        "chunk_id": {
+          "type": "string",
+          "pattern": "^vchunk_[0-9a-f]{24}$"
+        },
+        "occurrence_id": {
+          "type": "string",
+          "pattern": "^vocc2_[0-9a-f]{24}$"
+        },
+        "evidence_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "pattern": "^(?:ocr|cap)_[0-9a-f]{24}$"
+          },
+          "uniqueItems": true
+        },
+        "evidence_type": {"enum": ["ocr", "layout", "caption"]},
+        "locator": {"$ref": "#/$defs/visualLocator"}
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {"evidence_type": {"const": "caption"}},
+            "required": ["evidence_type"]
+          },
+          "then": {
+            "properties": {
+              "evidence_ids": {
+                "items": {"type": "string", "pattern": "^cap_[0-9a-f]{24}$"}
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {"evidence_type": {"enum": ["ocr", "layout"]}},
+            "required": ["evidence_type"]
+          },
+          "then": {
+            "properties": {
+              "evidence_ids": {
+                "items": {"type": "string", "pattern": "^ocr_[0-9a-f]{24}$"}
+              }
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "visualLocator": {
+      "type": "object",
+      "required": ["page", "bbox", "crop_sha256"],
+      "properties": {
+        "page": {"type": "integer", "minimum": 1},
+        "bbox": {
+          "type": "object",
+          "required": ["x", "y", "w", "h"],
+          "properties": {
+            "x": {"type": "number"},
+            "y": {"type": "number"},
+            "w": {"type": "number", "exclusiveMinimum": 0},
+            "h": {"type": "number", "exclusiveMinimum": 0}
+          },
+          "additionalProperties": false
+        },
+        "crop_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": false
+    },
     "locator": {
       "type": "object",
       "required": ["section_path", "page_start", "page_end"],
@@ -80,8 +171,29 @@
           "items": {"type": "string", "minLength": 1}
         },
         "page_start": {"type": ["integer", "null"], "minimum": 1},
-        "page_end": {"type": ["integer", "null"], "minimum": 1}
+        "page_end": {"type": ["integer", "null"], "minimum": 1},
+        "source_locator": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000,
+          "pattern": "\\S"
+        }
       },
+      "oneOf": [
+        {
+          "properties": {
+            "page_start": {"type": "integer", "minimum": 1},
+            "page_end": {"type": "integer", "minimum": 1}
+          }
+        },
+        {
+          "required": ["source_locator"],
+          "properties": {
+            "page_start": {"type": "null"},
+            "page_end": {"type": "null"}
+          }
+        }
+      ],
       "additionalProperties": false
     },
     "abstention": {
@@ -113,7 +225,7 @@
       "if": {"properties": {"status": {"const": "answered"}}},
       "then": {
         "properties": {
-          "answer": {"minLength": 1},
+          "answer": {"minLength": 1, "pattern": "\\S"},
           "citations": {"minItems": 1},
           "abstention": {"type": "null"},
           "error": {"type": "null"}

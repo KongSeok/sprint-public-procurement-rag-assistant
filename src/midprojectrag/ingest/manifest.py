@@ -30,8 +30,14 @@ CSV_COLUMNS = {
     "source_filename": "파일명",
     "text_preview": "텍스트",
 }
+OPTIONAL_CSV_COLUMNS = {
+    "notice_id_namespace": "공고 번호 체계",
+    "bid_open_at": "개찰 일시",
+    "proposal_evaluation_at": "제안서 평가 일시",
+}
 
 SUPPORTED_EXTENSIONS = {".hwp", ".hwpx", ".pdf"}
+MAX_CSV_FIELD_BYTES = 16 * 1024 * 1024
 CFB_SIGNATURE = bytes.fromhex("D0CF11E0A1B11AE1")
 PDF_SIGNATURE = b"%PDF-"
 
@@ -68,11 +74,16 @@ def detect_mime(path: Path) -> tuple[str, list[str]]:
 
 
 def _read_csv_rows(csv_path: Path) -> tuple[list[dict[str, str]], list[str]]:
-    with csv_path.open("r", encoding="utf-8-sig", newline="") as source:
-        reader = csv.DictReader(source)
-        fieldnames = reader.fieldnames or []
-        missing_columns = [column for column in CSV_COLUMNS.values() if column not in fieldnames]
-        rows = [{key: clean_cell(value) for key, value in row.items()} for row in reader]
+    previous_limit = csv.field_size_limit()
+    try:
+        csv.field_size_limit(MAX_CSV_FIELD_BYTES)
+        with csv_path.open("r", encoding="utf-8-sig", newline="") as source:
+            reader = csv.DictReader(source)
+            fieldnames = reader.fieldnames or []
+            missing_columns = [column for column in CSV_COLUMNS.values() if column not in fieldnames]
+            rows = [{key: clean_cell(value) for key, value in row.items()} for row in reader]
+    finally:
+        csv.field_size_limit(previous_limit)
     return rows, missing_columns
 
 
@@ -96,8 +107,8 @@ def build_manifest(
     data_dir: Path,
     csv_path: Path,
     raw_dir: Path,
-    expected_documents: int = 100,
-    expected_hwp: int = 96,
+    expected_documents: int = 98,
+    expected_hwp: int = 94,
     expected_pdf: int = 4,
 ) -> ManifestBuildResult:
     data_dir = data_dir.resolve()
@@ -176,9 +187,17 @@ def build_manifest(
         amount_value, amount_warnings = normalize_amount(amount_raw)
         preview = row.get(CSV_COLUMNS["text_preview"], "")
 
+        metadata_columns = {
+            **CSV_COLUMNS,
+            **{
+                key: column
+                for key, column in OPTIONAL_CSV_COLUMNS.items()
+                if column in row
+            },
+        }
         metadata = {
             key: row.get(column, "")
-            for key, column in CSV_COLUMNS.items()
+            for key, column in metadata_columns.items()
             if key not in {"text_preview", "project_amount_raw", "source_filename"}
         }
         metadata.update(

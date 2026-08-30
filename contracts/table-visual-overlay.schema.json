@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://midprojectrag.local/schemas/table-visual-overlay.schema.json",
+  "title": "HWP table visual evidence overlay",
+  "type": "object",
+  "required": [
+    "schema_version", "doc_id", "block_id", "structure_sha256", "status",
+    "page_start", "page_end", "coordinate_space", "render_key",
+    "page_contexts", "background_cells", "schedule_facts"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "doc_id": {"type": "string", "pattern": "^doc_[0-9a-f]{24}$"},
+    "block_id": {"type": "string", "pattern": "^block_[0-9a-f]{24}$"},
+    "structure_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "status": {"enum": ["layout_missing", "layout_unresolved", "render_occurrence_unresolved", "verified_render"]},
+    "page_start": {"type": ["integer", "null"], "minimum": 1},
+    "page_end": {"type": ["integer", "null"], "minimum": 1},
+    "coordinate_space": {"const": "rhwp_css_px_96dpi"},
+    "render_key": {"$ref": "#/$defs/renderKey"},
+    "page_contexts": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/pageContext"}
+    },
+    "background_cells": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/backgroundCell"}
+    },
+    "schedule_facts": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/scheduleFact"}
+    }
+  },
+  "$defs": {
+    "bbox": {
+      "type": "object",
+      "required": ["x", "y", "w", "h"],
+      "properties": {
+        "x": {"type": "number"}, "y": {"type": "number"},
+        "w": {"type": "number", "exclusiveMinimum": 0}, "h": {"type": "number", "exclusiveMinimum": 0}
+      },
+      "additionalProperties": false
+    },
+    "renderKey": {
+      "type": "object",
+      "required": ["section", "paragraph", "control"],
+      "properties": {
+        "section": {"type": "integer", "minimum": 0},
+        "paragraph": {"type": "integer", "minimum": 0},
+        "control": {"type": "integer", "minimum": 0}
+      },
+      "additionalProperties": false
+    },
+    "textContext": {
+      "type": "object",
+      "required": ["text", "bbox", "render_key", "method"],
+      "properties": {
+        "text": {"type": "string", "minLength": 1, "maxLength": 500},
+        "bbox": {"$ref": "#/$defs/bbox"},
+        "render_key": {
+          "type": "object",
+          "required": ["section", "paragraph"],
+          "properties": {
+            "section": {"type": "integer", "minimum": 0},
+            "paragraph": {"type": "integer", "minimum": 0}
+          },
+          "additionalProperties": false
+        },
+        "method": {"const": "nearest_prior_top_level_textline"}
+      },
+      "additionalProperties": false
+    },
+    "pageContext": {
+      "type": "object",
+      "required": ["page", "sequence_in_page", "bbox", "preceding_text"],
+      "properties": {
+        "page": {"type": "integer", "minimum": 1},
+        "sequence_in_page": {"type": "integer", "minimum": 0},
+        "bbox": {"$ref": "#/$defs/bbox"},
+        "preceding_text": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/textContext"}]}
+      },
+      "additionalProperties": false
+    },
+    "backgroundCell": {
+      "type": "object",
+      "required": ["page", "row", "col", "bbox", "kind"],
+      "properties": {
+        "page": {"type": "integer", "minimum": 1},
+        "row": {"type": "integer", "minimum": 0},
+        "col": {"type": "integer", "minimum": 0},
+        "bbox": {"$ref": "#/$defs/bbox"},
+        "kind": {"const": "background_present"}
+      },
+      "additionalProperties": false
+    },
+    "evidenceCell": {
+      "type": "object",
+      "required": ["page", "row", "col", "bbox", "period"],
+      "properties": {
+        "page": {"type": "integer", "minimum": 1},
+        "row": {"type": "integer", "minimum": 0},
+        "col": {"type": "integer", "minimum": 0},
+        "bbox": {"$ref": "#/$defs/bbox"},
+        "period": {"type": "string", "pattern": "^M(?:\\+[1-9][0-9]*)?$"}
+      },
+      "additionalProperties": false
+    },
+    "scheduleFact": {
+      "type": "object",
+      "required": ["row", "label", "periods", "text", "evidence_cells"],
+      "properties": {
+        "row": {"type": "integer", "minimum": 0},
+        "label": {"type": "string", "minLength": 1},
+        "periods": {
+          "type": "array", "minItems": 1, "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^M(?:\\+[1-9][0-9]*)?$"}
+        },
+        "text": {"type": "string", "minLength": 1},
+        "evidence_cells": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/evidenceCell"}}
+      },
+      "additionalProperties": false
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"status": {"const": "verified_render"}}, "required": ["status"]},
+      "then": {
+        "properties": {
+          "page_start": {"type": "integer", "minimum": 1},
+          "page_end": {"type": "integer", "minimum": 1},
+          "page_contexts": {"minItems": 1}
+        }
+      }
+    }
+  ],
+  "additionalProperties": false
+}

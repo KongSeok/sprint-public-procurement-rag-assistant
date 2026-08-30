@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0",
+  "model_name": "replace-with-approved-local-vlm",
+  "model_version": "replace-with-locally-provisioned-version",
+  "weights_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "runtime": "checksum-pinned-local-command",
+  "device": "approved-local-device",
+  "prompt": "Describe only visible structure. Return factual claims only when each claim cites an allowed OCR or structural support reference.",
+  "max_new_tokens": 512,
+  "seed": 0,
+  "temperature": 0.0,
+  "do_sample": false,
+  "model_download": "forbidden"
+}

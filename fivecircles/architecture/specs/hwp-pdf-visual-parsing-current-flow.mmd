@@ -1,0 +1,25 @@
+flowchart TD
+    SRC["refined source<br/>94 HWP + 4 PDF"]:::gray --> BASE["canonical text/table identities<br/>unchanged"]:::green
+    BASE --> HHELP["pinned rhwp JS/WASM helper<br/>exact key + full body/cell anchor"]:::green
+    BASE --> PDF["durable PDF v2 runner<br/>4 docs / 570 pages"]:::green
+    HHELP --> HREP["5 HWP representative run<br/>27 exact objects<br/>16 placed / 11 withheld"]:::amber
+    PDF --> POCC["416 resources / 1,110 occurrences<br/>1,103 eligible / 7 ambiguous"]:::green
+    HREP --> OCC["VisualOccurrenceV2<br/>page + bbox + crop hash"]:::green
+    POCC --> OCC
+    OCC --> OCRRUN["PP-StructureV3 / Korean PP-OCRv5 adapter<br/>pinned OS network sandbox"]:::green
+    OCRRUN --> MODEL{"private pinned model<br/>weights available?"}:::gray
+    MODEL -->|"no"| OBLK["actual OCR/caption run withheld<br/>external calls 0"]:::red
+    MODEL -. "yes after pin/review" .-> EVID["OCR/layout + supported caption evidence"]:::amber
+    EVID --> VCHUNK["visual chunks<br/>evidence prefix + answer-support contract"]:::green
+    VCHUNK --> RET["bounded visual quota + RRF<br/>caption cap / OCR priority"]:::green
+    RET --> CITE["page/bbox/crop visual citation<br/>evaluation parity"]:::green
+    CITE --> GOLD{"reviewed 5 HWP + 4 PDF gold?"}:::gray
+    GOLD -->|"no"| FULL["94-HWP corpus mode fail-closed"]:::red
+    GOLD -. "yes" .-> ROLL["94-HWP resumable rollout"]:::amber
+    SRC -. "external parser/search API forbidden" .-> OBLK
+
+    classDef green fill:#e8f2ea,stroke:#bdd1c2,color:#1f2933,stroke-width:1.5px
+    classDef blue fill:#e8f0f7,stroke:#c2d3e0,color:#1f2933,stroke-width:1.5px
+    classDef amber fill:#fff4dc,stroke:#e7c88f,color:#1f2933,stroke-width:1.5px
+    classDef red fill:#fde9e6,stroke:#e8bab5,color:#1f2933,stroke-width:1.5px
+    classDef gray fill:#eef1ed,stroke:#d8e0da,color:#1f2933,stroke-width:1.5px

@@ -130,6 +130,9 @@ EXPECTED_METRIC_KEYS = {
 DOC_ID_RE = re.compile(r"^doc_[0-9a-f]{24}$")
 BLOCK_ID_RE = re.compile(r"^block_[0-9a-f]{24}$")
 CHUNK_ID_RE = re.compile(r"^chunk_[0-9a-f]{24}$")
+VISUAL_CHUNK_ID_RE = re.compile(r"^vchunk_[0-9a-f]{24}$")
+VISUAL_OCCURRENCE_ID_RE = re.compile(r"^vocc2_[0-9a-f]{24}$")
+VISUAL_EVIDENCE_ID_RE = re.compile(r"^(?:ocr|cap)_[0-9a-f]{24}$")
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 CASE_ID_RE = re.compile(r"^(dev|heldout)-(single|multi|followup|unknown)-[0-9]{3}$")
 SAFE_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$")
@@ -167,6 +170,41 @@ def _validate_required(
 def _validate_safe_id(value: Any, path: str) -> list[dict[str, str]]:
     if not isinstance(value, str) or SAFE_ID_RE.fullmatch(value) is None:
         return [_issue("invalid_id", path, "must be a non-empty portable identifier")]
+    return []
+
+
+def _validate_visual_evidence_binding(
+    evidence_ids: Any,
+    evidence_type: Any,
+    path: str,
+) -> list[dict[str, str]]:
+    """Require evidence IDs to identify the lane that produced them.
+
+    Layout chunks are projections of OCR layout output and therefore retain the
+    ``ocr_`` evidence identity. Captions are independently generated and use
+    ``cap_`` identities.
+    """
+
+    if (
+        not isinstance(evidence_ids, list)
+        or not isinstance(evidence_type, str)
+        or evidence_type not in {"ocr", "layout", "caption"}
+    ):
+        return []
+    expected_prefix = "cap_" if evidence_type == "caption" else "ocr_"
+    if any(
+        isinstance(evidence_id, str)
+        and VISUAL_EVIDENCE_ID_RE.fullmatch(evidence_id) is not None
+        and not evidence_id.startswith(expected_prefix)
+        for evidence_id in evidence_ids
+    ):
+        return [
+            _issue(
+                "visual_evidence_prefix_mismatch",
+                path,
+                "caption evidence must use cap_ IDs; OCR and layout evidence must use ocr_ IDs",
+            )
+        ]
     return []
 
 
@@ -266,17 +304,53 @@ def _validate_locator(value: Any, path: str) -> list[dict[str, str]]:
     if not isinstance(value, dict):
         return [_issue("invalid_locator", path, "must be an object")]
     required = ("section_path", "page_start", "page_end")
-    issues = _validate_required(value, required, required, path)
+    allowed = required + ("source_locator",)
+    issues = _validate_required(value, required, allowed, path)
     sections = value.get("section_path")
     if not isinstance(sections, list) or any(not isinstance(item, str) or not item for item in sections):
         issues.append(_issue("invalid_section_path", f"{path}.section_path", "must be an array of non-empty strings"))
+    source_locator = value.get("source_locator")
+    if "source_locator" in value and (
+        not isinstance(source_locator, str)
+        or not source_locator.strip()
+        or len(source_locator) > 1_000
+    ):
+        issues.append(
+            _issue(
+                "invalid_source_locator",
+                f"{path}.source_locator",
+                "must be a non-empty structure locator of at most 1000 characters",
+            )
+        )
     for name in ("page_start", "page_end"):
         page = value.get(name)
         if page is not None and (not isinstance(page, int) or isinstance(page, bool) or page < 1):
             issues.append(_issue("invalid_page", f"{path}.{name}", "must be null or an integer greater than zero"))
     start = value.get("page_start")
     end = value.get("page_end")
-    if isinstance(start, int) and isinstance(end, int) and end < start:
+    if (start is None) != (end is None):
+        issues.append(
+            _issue(
+                "incomplete_page_range",
+                path,
+                "page_start and page_end must both be present or both be null",
+            )
+        )
+    elif start is None and end is None and "source_locator" not in value:
+        issues.append(
+            _issue(
+                "missing_source_locator",
+                f"{path}.source_locator",
+                "page-less citations must include a verified structure locator",
+            )
+        )
+    elif (
+        isinstance(start, int)
+        and not isinstance(start, bool)
+        and isinstance(end, int)
+        and not isinstance(end, bool)
+        and end < start
+    ):
         issues.append(_issue("invalid_page_range", path, "page_end must not precede page_start"))
     return issues
 
@@ -284,6 +358,9 @@ def _validate_locator(value: Any, path: str) -> list[dict[str, str]]:
 def _validate_citation(value: Any, path: str) -> list[dict[str, str]]:
     if not isinstance(value, dict):
         return [_issue("invalid_citation", path, "must be an object")]
+    chunk_id = value.get("chunk_id")
+    if isinstance(chunk_id, str) and VISUAL_CHUNK_ID_RE.fullmatch(chunk_id) is not None:
+        return _validate_visual_citation(value, path)
     required = ("doc_id", "chunk_id", "source_block_ids", "locator")
     issues = _validate_required(value, required, required, path)
     doc_id = value.get("doc_id")
@@ -302,6 +379,136 @@ def _validate_citation(value: Any, path: str) -> list[dict[str, str]]:
             if not isinstance(block_id, str) or BLOCK_ID_RE.fullmatch(block_id) is None:
                 issues.append(_issue("invalid_block_id", f"{path}.source_block_ids[{index}]", "must match the block_id contract"))
     issues.extend(_validate_locator(value.get("locator"), f"{path}.locator"))
+    return issues
+
+
+def _validate_visual_citation(value: Mapping[str, Any], path: str) -> list[dict[str, str]]:
+    required = (
+        "doc_id",
+        "chunk_id",
+        "occurrence_id",
+        "evidence_ids",
+        "evidence_type",
+        "locator",
+    )
+    issues = _validate_required(value, required, required, path)
+    doc_id = value.get("doc_id")
+    if not isinstance(doc_id, str) or DOC_ID_RE.fullmatch(doc_id) is None:
+        issues.append(_issue("invalid_doc_id", f"{path}.doc_id", "must match the doc_id contract"))
+    chunk_id = value.get("chunk_id")
+    if not isinstance(chunk_id, str) or VISUAL_CHUNK_ID_RE.fullmatch(chunk_id) is None:
+        issues.append(
+            _issue(
+                "invalid_visual_chunk_id",
+                f"{path}.chunk_id",
+                "must match the visual chunk_id contract",
+            )
+        )
+    occurrence_id = value.get("occurrence_id")
+    if (
+        not isinstance(occurrence_id, str)
+        or VISUAL_OCCURRENCE_ID_RE.fullmatch(occurrence_id) is None
+    ):
+        issues.append(
+            _issue(
+                "invalid_visual_occurrence_id",
+                f"{path}.occurrence_id",
+                "must match the visual occurrence contract",
+            )
+        )
+    evidence_ids = value.get("evidence_ids")
+    if not isinstance(evidence_ids, list) or not evidence_ids:
+        issues.append(
+            _issue(
+                "visual_evidence_empty",
+                f"{path}.evidence_ids",
+                "must contain at least one visual evidence ID",
+            )
+        )
+    else:
+        if len(evidence_ids) != len(set(item for item in evidence_ids if isinstance(item, str))):
+            issues.append(
+                _issue(
+                    "duplicate_visual_evidence_id",
+                    f"{path}.evidence_ids",
+                    "visual evidence IDs must be unique",
+                )
+            )
+        for index, evidence_id in enumerate(evidence_ids):
+            if (
+                not isinstance(evidence_id, str)
+                or VISUAL_EVIDENCE_ID_RE.fullmatch(evidence_id) is None
+            ):
+                issues.append(
+                    _issue(
+                        "invalid_visual_evidence_id",
+                        f"{path}.evidence_ids[{index}]",
+                        "must match the visual evidence contract",
+                    )
+                )
+    evidence_type = value.get("evidence_type")
+    if (
+        not isinstance(evidence_type, str)
+        or evidence_type not in {"ocr", "layout", "caption"}
+    ):
+        issues.append(
+            _issue(
+                "invalid_visual_evidence_type",
+                f"{path}.evidence_type",
+                "must be ocr, layout or caption",
+            )
+        )
+    issues.extend(
+        _validate_visual_evidence_binding(
+            evidence_ids,
+            evidence_type,
+            f"{path}.evidence_ids",
+        )
+    )
+    locator = value.get("locator")
+    locator_path = f"{path}.locator"
+    if not isinstance(locator, dict):
+        issues.append(_issue("invalid_visual_locator", locator_path, "must be an object"))
+        return issues
+    locator_required = ("page", "bbox", "crop_sha256")
+    issues.extend(_validate_required(locator, locator_required, locator_required, locator_path))
+    page = locator.get("page")
+    if not isinstance(page, int) or isinstance(page, bool) or page < 1:
+        issues.append(_issue("invalid_page", f"{locator_path}.page", "must be a positive integer"))
+    bbox = locator.get("bbox")
+    bbox_path = f"{locator_path}.bbox"
+    if not isinstance(bbox, dict):
+        issues.append(_issue("invalid_visual_bbox", bbox_path, "must be an object"))
+    else:
+        bbox_fields = ("x", "y", "w", "h")
+        issues.extend(_validate_required(bbox, bbox_fields, bbox_fields, bbox_path))
+        for field in bbox_fields:
+            if not _is_number(bbox.get(field)):
+                issues.append(
+                    _issue(
+                        "invalid_visual_bbox",
+                        f"{bbox_path}.{field}",
+                        "must be a finite number",
+                    )
+                )
+        for field in ("w", "h"):
+            if _is_number(bbox.get(field)) and float(bbox[field]) <= 0:
+                issues.append(
+                    _issue(
+                        "invalid_visual_bbox",
+                        f"{bbox_path}.{field}",
+                        "must be greater than zero",
+                    )
+                )
+    crop_sha256 = locator.get("crop_sha256")
+    if not isinstance(crop_sha256, str) or SHA256_RE.fullmatch(crop_sha256) is None:
+        issues.append(
+            _issue(
+                "invalid_visual_crop_hash",
+                f"{locator_path}.crop_sha256",
+                "must be a lowercase SHA-256",
+            )
+        )
     return issues
 
 
@@ -496,35 +703,127 @@ def validate_case(value: Any, path: str = "case") -> list[dict[str, str]]:
         issues.append(_issue("invalid_evidence_refs", f"{path}.gold.evidence_refs", "must be an array"))
         evidence = []
     evidence_pairs: set[tuple[str, str]] = set()
+    visual_evidence_keys: set[tuple[str, str, str, tuple[str, ...]]] = set()
     for index, reference in enumerate(evidence):
         evidence_path = f"{path}.gold.evidence_refs[{index}]"
         if not isinstance(reference, dict):
             issues.append(_issue("invalid_evidence_ref", evidence_path, "must be an object"))
             continue
-        issues.extend(
-            _validate_required(
-                reference,
-                ("doc_id", "source_block_id", "locator_hash"),
-                ("doc_id", "source_block_id", "locator_hash"),
-                evidence_path,
-            )
-        )
         doc_id = reference.get("doc_id")
-        block_id = reference.get("source_block_id")
-        locator_hash = reference.get("locator_hash")
         if not isinstance(doc_id, str) or DOC_ID_RE.fullmatch(doc_id) is None:
             issues.append(_issue("invalid_doc_id", f"{evidence_path}.doc_id", "must match the doc_id contract"))
         else:
             evidence_docs.add(doc_id)
-        if not isinstance(block_id, str) or BLOCK_ID_RE.fullmatch(block_id) is None:
-            issues.append(_issue("invalid_block_id", f"{evidence_path}.source_block_id", "must match the block_id contract"))
-        if not isinstance(locator_hash, str) or SHA256_RE.fullmatch(locator_hash) is None:
-            issues.append(_issue("invalid_locator_hash", f"{evidence_path}.locator_hash", "must be a lowercase SHA-256"))
-        if isinstance(doc_id, str) and isinstance(block_id, str):
-            pair = (doc_id, block_id)
-            if pair in evidence_pairs:
-                issues.append(_issue("duplicate_evidence_ref", evidence_path, "evidence reference must be unique"))
-            evidence_pairs.add(pair)
+        is_visual_reference = any(
+            field in reference
+            for field in ("occurrence_id", "evidence_ids", "evidence_type")
+        )
+        if is_visual_reference:
+            visual_fields = ("doc_id", "occurrence_id", "evidence_ids", "evidence_type")
+            issues.extend(
+                _validate_required(reference, visual_fields, visual_fields, evidence_path)
+            )
+            occurrence_id = reference.get("occurrence_id")
+            if (
+                not isinstance(occurrence_id, str)
+                or VISUAL_OCCURRENCE_ID_RE.fullmatch(occurrence_id) is None
+            ):
+                issues.append(
+                    _issue(
+                        "invalid_visual_occurrence_id",
+                        f"{evidence_path}.occurrence_id",
+                        "must match the visual occurrence contract",
+                    )
+                )
+            evidence_ids = reference.get("evidence_ids")
+            if not isinstance(evidence_ids, list) or not evidence_ids:
+                issues.append(
+                    _issue(
+                        "visual_evidence_empty",
+                        f"{evidence_path}.evidence_ids",
+                        "must contain at least one visual evidence ID",
+                    )
+                )
+            else:
+                if len(evidence_ids) != len(
+                    set(item for item in evidence_ids if isinstance(item, str))
+                ):
+                    issues.append(
+                        _issue(
+                            "duplicate_visual_evidence_id",
+                            f"{evidence_path}.evidence_ids",
+                            "visual evidence IDs must be unique",
+                        )
+                    )
+                for evidence_index, evidence_id in enumerate(evidence_ids):
+                    if (
+                        not isinstance(evidence_id, str)
+                        or VISUAL_EVIDENCE_ID_RE.fullmatch(evidence_id) is None
+                    ):
+                        issues.append(
+                            _issue(
+                                "invalid_visual_evidence_id",
+                                f"{evidence_path}.evidence_ids[{evidence_index}]",
+                                "must match the visual evidence contract",
+                            )
+                        )
+            evidence_type = reference.get("evidence_type")
+            if (
+                not isinstance(evidence_type, str)
+                or evidence_type not in {"ocr", "layout", "caption"}
+            ):
+                issues.append(
+                    _issue(
+                        "invalid_visual_evidence_type",
+                        f"{evidence_path}.evidence_type",
+                        "must be ocr, layout or caption",
+                    )
+                )
+            issues.extend(
+                _validate_visual_evidence_binding(
+                    evidence_ids,
+                    evidence_type,
+                    f"{evidence_path}.evidence_ids",
+                )
+            )
+            if (
+                isinstance(doc_id, str)
+                and isinstance(occurrence_id, str)
+                and isinstance(evidence_type, str)
+                and isinstance(evidence_ids, list)
+                and all(isinstance(item, str) for item in evidence_ids)
+            ):
+                visual_key = (
+                    doc_id,
+                    occurrence_id,
+                    evidence_type,
+                    tuple(sorted(evidence_ids)),
+                )
+                if visual_key in visual_evidence_keys:
+                    issues.append(
+                        _issue(
+                            "duplicate_evidence_ref",
+                            evidence_path,
+                            "evidence reference must be unique",
+                        )
+                    )
+                visual_evidence_keys.add(visual_key)
+        else:
+            text_fields = ("doc_id", "source_block_id", "locator_hash")
+            issues.extend(
+                _validate_required(reference, text_fields, text_fields, evidence_path)
+            )
+            block_id = reference.get("source_block_id")
+            locator_hash = reference.get("locator_hash")
+            if not isinstance(block_id, str) or BLOCK_ID_RE.fullmatch(block_id) is None:
+                issues.append(_issue("invalid_block_id", f"{evidence_path}.source_block_id", "must match the block_id contract"))
+            if not isinstance(locator_hash, str) or SHA256_RE.fullmatch(locator_hash) is None:
+                issues.append(_issue("invalid_locator_hash", f"{evidence_path}.locator_hash", "must be a lowercase SHA-256"))
+            if isinstance(doc_id, str) and isinstance(block_id, str):
+                pair = (doc_id, block_id)
+                if pair in evidence_pairs:
+                    issues.append(_issue("duplicate_evidence_ref", evidence_path, "evidence reference must be unique"))
+                evidence_pairs.add(pair)
 
     axes = gold.get("comparison_axes")
     if not isinstance(axes, list) or any(not isinstance(axis, str) or not axis for axis in axes):
@@ -928,7 +1227,13 @@ def validate_run_record(value: Any, path: str = "run") -> list[dict[str, str]]:
         "temperature",
         "cache_hit",
     )
-    issues = _validate_required(value, required, required, path)
+    optional = (
+        "api_profile",
+        "embedding_dimensions",
+        "index_config_sha256",
+        "reasoning_effort",
+    )
+    issues = _validate_required(value, required, required + optional, path)
     if value.get("schema_version") != "1.0":
         issues.append(_issue("invalid_schema_version", f"{path}.schema_version", "must equal 1.0"))
     issues.extend(_validate_safe_id(value.get("run_id"), f"{path}.run_id"))
@@ -950,13 +1255,96 @@ def validate_run_record(value: Any, path: str = "run") -> list[dict[str, str]]:
         generator_model = value.get("generator_model")
         if not isinstance(generator_model, str) or generator_model not in ("gpt-5-mini", "gpt-5-nano"):
             issues.append(_issue("api_generator_not_allowed", f"{path}.generator_model", "API generator is outside the assignment allowlist"))
-        if value.get("embedding_model") != "text-embedding-3-small":
-            issues.append(_issue("api_embedding_not_allowed", f"{path}.embedding_model", "API embedding model is outside the assignment allowlist"))
+        if value.get("reasoning_effort") != "minimal":
+            issues.append(
+                _issue(
+                    "api_reasoning_effort_not_minimal",
+                    f"{path}.reasoning_effort",
+                    "API GPT-5 baseline runs must pin reasoning effort to minimal",
+                )
+            )
+        api_profile = value.get("api_profile", "assignment")
+        if api_profile not in ("assignment", "personal_experimental"):
+            issues.append(
+                _issue(
+                    "api_profile_not_allowed",
+                    f"{path}.api_profile",
+                    "API profile must be assignment or personal_experimental",
+                )
+            )
+        embedding_model = value.get("embedding_model")
+        allowed_embeddings = (
+            ("text-embedding-3-small",)
+            if api_profile == "assignment"
+            else ("text-embedding-3-small", "text-embedding-3-large")
+        )
+        if embedding_model not in allowed_embeddings:
+            issues.append(
+                _issue(
+                    "api_embedding_not_allowed",
+                    f"{path}.embedding_model",
+                    "API embedding model is outside the selected profile allowlist",
+                )
+            )
+        embedding_dimensions = value.get("embedding_dimensions")
+        expected_dimensions = {
+            "text-embedding-3-small": 1536,
+            "text-embedding-3-large": 3072,
+        }.get(embedding_model)
+        if embedding_dimensions is not None and embedding_dimensions != expected_dimensions:
+            issues.append(
+                _issue(
+                    "api_embedding_dimensions_mismatch",
+                    f"{path}.embedding_dimensions",
+                    "embedding dimensions must match the full-size 2x2 baseline",
+                )
+            )
+        index_config_sha256 = value.get("index_config_sha256")
+        if index_config_sha256 is not None and (
+            not isinstance(index_config_sha256, str)
+            or SHA256_RE.fullmatch(index_config_sha256) is None
+        ):
+            issues.append(
+                _issue(
+                    "invalid_sha256",
+                    f"{path}.index_config_sha256",
+                    "must be a lowercase SHA-256",
+                )
+            )
+        if api_profile == "personal_experimental":
+            if embedding_dimensions is None:
+                issues.append(
+                    _issue(
+                        "required_field_missing",
+                        f"{path}.embedding_dimensions",
+                        "personal experimental API runs require embedding dimensions",
+                    )
+                )
+            if index_config_sha256 is None:
+                issues.append(
+                    _issue(
+                        "required_field_missing",
+                        f"{path}.index_config_sha256",
+                        "personal experimental API runs require the index config hash",
+                    )
+                )
+    elif stack_id == "gcp_local":
+        for field in optional:
+            if field in value:
+                issues.append(
+                    _issue(
+                        "api_only_field_forbidden",
+                        f"{path}.{field}",
+                        "API-only run metadata is forbidden on gcp_local records",
+                    )
+                )
 
     environment = value.get("environment")
     environment_fields = (
         "python_version",
         "platform",
+        "region",
+        "machine_type",
         "vcpu",
         "ram_gb",
         "gpu_model",
@@ -972,6 +1360,16 @@ def validate_run_record(value: Any, path: str = "run") -> list[dict[str, str]]:
             maximum_length = 64 if field == "python_version" else 256
             if not isinstance(item, str) or not item.strip() or len(item) > maximum_length:
                 issues.append(_issue("invalid_environment_value", f"{path}.environment.{field}", "must be a non-empty environment identifier"))
+        for field, maximum_length in (("region", 64), ("machine_type", 128)):
+            item = environment.get(field)
+            if not isinstance(item, str) or not item.strip() or len(item) > maximum_length:
+                issues.append(
+                    _issue(
+                        "invalid_environment_value",
+                        f"{path}.environment.{field}",
+                        "must be a non-empty environment identifier",
+                    )
+                )
         vcpu = environment.get("vcpu")
         if not isinstance(vcpu, int) or isinstance(vcpu, bool) or vcpu < 1:
             issues.append(_issue("invalid_vcpu", f"{path}.environment.vcpu", "must be a positive integer"))
@@ -986,14 +1384,30 @@ def validate_run_record(value: Any, path: str = "run") -> list[dict[str, str]]:
         if not isinstance(dependency_hash, str) or SHA256_RE.fullmatch(dependency_hash) is None:
             issues.append(_issue("invalid_dependency_hash", f"{path}.environment.dependency_lock_sha256", "must be a lowercase SHA-256"))
         if stack_id == "gcp_local":
+            if environment.get("region") not in ("us-central1", "us-east1"):
+                issues.append(
+                    _issue(
+                        "gcp_region_not_allowed",
+                        f"{path}.environment.region",
+                        "GCP scenario region must be us-central1, or us-east1 for chunk4 allocations",
+                    )
+                )
+            if environment.get("machine_type") != "g2-standard-4":
+                issues.append(
+                    _issue(
+                        "gcp_machine_type_mismatch",
+                        f"{path}.environment.machine_type",
+                        "GCP scenario requires the exact g2-standard-4 machine type",
+                    )
+                )
             if isinstance(vcpu, int) and not isinstance(vcpu, bool) and vcpu > 4:
                 issues.append(_issue("gcp_vcpu_limit_exceeded", f"{path}.environment.vcpu", "GCP scenario is limited to 4 vCPU"))
             if _is_number(environment.get("ram_gb")) and environment["ram_gb"] > 16:
                 issues.append(_issue("gcp_ram_limit_exceeded", f"{path}.environment.ram_gb", "GCP scenario is limited to 16 GB RAM"))
             if not isinstance(gpu_model, str) or "L4" not in gpu_model:
                 issues.append(_issue("gcp_gpu_not_l4", f"{path}.environment.gpu_model", "GCP scenario requires an NVIDIA L4"))
-            if _is_number(environment.get("disk_gb")) and environment["disk_gb"] > 100:
-                issues.append(_issue("gcp_disk_limit_exceeded", f"{path}.environment.disk_gb", "GCP scenario is limited to 100 GB disk"))
+            if _is_number(environment.get("disk_gb")) and environment["disk_gb"] > 200:
+                issues.append(_issue("gcp_disk_limit_exceeded", f"{path}.environment.disk_gb", "GCP scenario is limited to 200 GB disk"))
     git_commit = value.get("git_commit")
     if git_commit != "uncommitted" and (
         not isinstance(git_commit, str) or re.fullmatch(r"^[0-9a-f]{7,64}$", git_commit) is None
@@ -1009,8 +1423,41 @@ def validate_run_record(value: Any, path: str = "run") -> list[dict[str, str]]:
         if not isinstance(hit, dict):
             issues.append(_issue("invalid_retrieval_hit", hit_path, "must be an object"))
             continue
-        hit_required = ("rank", "doc_id", "chunk_id", "source_block_ids", "score")
-        issues.extend(_validate_required(hit, hit_required, hit_required, hit_path))
+        chunk_id = hit.get("chunk_id")
+        is_visual_hit = (
+            isinstance(chunk_id, str)
+            and VISUAL_CHUNK_ID_RE.fullmatch(chunk_id) is not None
+        )
+        common_hit_fields = ("rank", "doc_id", "chunk_id", "score")
+        fusion_fields = ("lane", "lane_rank", "dense_score")
+        if is_visual_hit:
+            visual_fields = (
+                "occurrence_id",
+                "evidence_ids",
+                "evidence_type",
+                "page",
+                "bbox",
+                "crop_sha256",
+            )
+            hit_required = common_hit_fields + visual_fields
+            issues.extend(
+                _validate_required(
+                    hit,
+                    hit_required,
+                    hit_required + fusion_fields,
+                    hit_path,
+                )
+            )
+        else:
+            hit_required = common_hit_fields + ("source_block_ids",)
+            issues.extend(
+                _validate_required(
+                    hit,
+                    hit_required,
+                    hit_required + fusion_fields,
+                    hit_path,
+                )
+            )
         rank = hit.get("rank")
         if not isinstance(rank, int) or isinstance(rank, bool) or rank < 1:
             issues.append(_issue("invalid_rank", f"{hit_path}.rank", "must be a positive integer"))
@@ -1019,20 +1466,57 @@ def validate_run_record(value: Any, path: str = "run") -> list[dict[str, str]]:
         doc_id = hit.get("doc_id")
         if not isinstance(doc_id, str) or DOC_ID_RE.fullmatch(doc_id) is None:
             issues.append(_issue("invalid_doc_id", f"{hit_path}.doc_id", "must match the doc_id contract"))
-        chunk_id = hit.get("chunk_id")
-        if not isinstance(chunk_id, str) or CHUNK_ID_RE.fullmatch(chunk_id) is None:
-            issues.append(_issue("invalid_chunk_id", f"{hit_path}.chunk_id", "must match the chunk_id contract"))
-        block_ids = hit.get("source_block_ids")
-        if not isinstance(block_ids, list) or not block_ids:
-            issues.append(_issue("source_blocks_empty", f"{hit_path}.source_block_ids", "must list stable source blocks"))
+        if is_visual_hit:
+            visual_citation = {
+                "doc_id": hit.get("doc_id"),
+                "chunk_id": chunk_id,
+                "occurrence_id": hit.get("occurrence_id"),
+                "evidence_ids": hit.get("evidence_ids"),
+                "evidence_type": hit.get("evidence_type"),
+                "locator": {
+                    "page": hit.get("page"),
+                    "bbox": hit.get("bbox"),
+                    "crop_sha256": hit.get("crop_sha256"),
+                },
+            }
+            issues.extend(_validate_visual_citation(visual_citation, hit_path))
         else:
-            if len(block_ids) != len(set(item for item in block_ids if isinstance(item, str))):
-                issues.append(_issue("duplicate_source_block_id", f"{hit_path}.source_block_ids", "source block IDs must be unique"))
-            for block_index, block_id in enumerate(block_ids):
-                if not isinstance(block_id, str) or BLOCK_ID_RE.fullmatch(block_id) is None:
-                    issues.append(_issue("invalid_block_id", f"{hit_path}.source_block_ids[{block_index}]", "must match the block_id contract"))
+            if not isinstance(chunk_id, str) or CHUNK_ID_RE.fullmatch(chunk_id) is None:
+                issues.append(_issue("invalid_chunk_id", f"{hit_path}.chunk_id", "must match the chunk_id contract"))
+            block_ids = hit.get("source_block_ids")
+            if not isinstance(block_ids, list) or not block_ids:
+                issues.append(_issue("source_blocks_empty", f"{hit_path}.source_block_ids", "must list stable source blocks"))
+            else:
+                if len(block_ids) != len(set(item for item in block_ids if isinstance(item, str))):
+                    issues.append(_issue("duplicate_source_block_id", f"{hit_path}.source_block_ids", "source block IDs must be unique"))
+                for block_index, block_id in enumerate(block_ids):
+                    if not isinstance(block_id, str) or BLOCK_ID_RE.fullmatch(block_id) is None:
+                        issues.append(_issue("invalid_block_id", f"{hit_path}.source_block_ids[{block_index}]", "must match the block_id contract"))
         if not _is_number(hit.get("score")):
             issues.append(_issue("invalid_score", f"{hit_path}.score", "must be a finite number"))
+        present_fusion_fields = [field for field in fusion_fields if field in hit]
+        if present_fusion_fields and len(present_fusion_fields) != len(fusion_fields):
+            issues.append(
+                _issue(
+                    "incomplete_fusion_metadata",
+                    hit_path,
+                    "lane, lane_rank and dense_score must be present together",
+                )
+            )
+        if "lane" in hit and (
+            not isinstance(hit.get("lane"), str)
+            or not hit["lane"]
+            or len(hit["lane"]) > 64
+        ):
+            issues.append(_issue("invalid_lane", f"{hit_path}.lane", "must be a short non-empty string"))
+        if "lane_rank" in hit and (
+            not isinstance(hit.get("lane_rank"), int)
+            or isinstance(hit.get("lane_rank"), bool)
+            or hit["lane_rank"] < 1
+        ):
+            issues.append(_issue("invalid_lane_rank", f"{hit_path}.lane_rank", "must be a positive integer"))
+        if "dense_score" in hit and not _is_number(hit.get("dense_score")):
+            issues.append(_issue("invalid_dense_score", f"{hit_path}.dense_score", "must be a finite number"))
     if ranks and sorted(ranks) != list(range(1, len(ranks) + 1)):
         issues.append(_issue("non_contiguous_ranks", f"{path}.retrieval", "ranks must be unique and contiguous from one"))
 
@@ -1097,8 +1581,14 @@ def validate_run_record(value: Any, path: str = "run") -> list[dict[str, str]]:
         elif len(reviewers) != len(set(reviewers)):
             issues.append(_issue("duplicate_reviewer_id", f"{path}.judgment.reviewer_ids", "reviewer IDs must be unique"))
     temperature = value.get("temperature")
-    if not _is_number(temperature) or temperature < 0:
-        issues.append(_issue("invalid_temperature", f"{path}.temperature", "must be a non-negative number"))
+    if temperature is not None and (not _is_number(temperature) or temperature < 0):
+        issues.append(
+            _issue(
+                "invalid_temperature",
+                f"{path}.temperature",
+                "must be null when unsupported or a non-negative number",
+            )
+        )
     if value.get("seed") is not None and (not isinstance(value.get("seed"), int) or isinstance(value.get("seed"), bool)):
         issues.append(_issue("invalid_seed", f"{path}.seed", "must be an integer or null"))
     if not isinstance(value.get("cache_hit"), bool):
@@ -1497,26 +1987,73 @@ def score_runs(
             and isinstance(reference.get("doc_id"), str)
             and isinstance(reference.get("source_block_id"), str)
         }
-        if citations and gold_evidence_pairs:
-            valid = 0
-            for citation in citations:
-                if not isinstance(citation, dict):
+        gold_visual_evidence = {
+            (
+                reference.get("doc_id"),
+                reference.get("occurrence_id"),
+                reference.get("evidence_type"),
+                frozenset(reference.get("evidence_ids", [])),
+            )
+            for reference in evidence_refs
+            if isinstance(reference, dict)
+            and isinstance(reference.get("doc_id"), str)
+            and isinstance(reference.get("occurrence_id"), str)
+            and isinstance(reference.get("evidence_type"), str)
+            and isinstance(reference.get("evidence_ids"), list)
+            and reference.get("evidence_ids")
+            and all(isinstance(item, str) for item in reference["evidence_ids"])
+        }
+        scored_citations: list[float] = []
+        for citation in citations:
+            if not isinstance(citation, dict):
+                continue
+            chunk_id = citation.get("chunk_id")
+            is_visual_citation = (
+                isinstance(chunk_id, str)
+                and VISUAL_CHUNK_ID_RE.fullmatch(chunk_id) is not None
+            )
+            if is_visual_citation:
+                # A visual citation is scored only when the sealed case includes
+                # visual gold. This avoids treating an unannotated evidence lane
+                # as a false match while still scoring exact occurrence/evidence
+                # identities whenever that gold exists.
+                if not gold_visual_evidence:
                     continue
-                citation_blocks = (
-                    {
-                        block_id
-                        for block_id in citation.get("source_block_ids", [])
-                        if isinstance(block_id, str)
-                    }
-                    if isinstance(citation.get("source_block_ids"), list)
-                    else set()
+                citation_ids = citation.get("evidence_ids")
+                visual_key = (
+                    citation.get("doc_id"),
+                    citation.get("occurrence_id"),
+                    citation.get("evidence_type"),
+                    frozenset(citation_ids)
+                    if isinstance(citation_ids, list)
+                    and all(isinstance(item, str) for item in citation_ids)
+                    else frozenset(),
                 )
-                citation_doc_id = citation.get("doc_id")
-                if isinstance(citation_doc_id, str) and any(
-                    (citation_doc_id, block_id) in gold_evidence_pairs for block_id in citation_blocks
-                ):
-                    valid += 1
-            gold_citation_precisions.append(valid / len(citations))
+                scored_citations.append(float(visual_key in gold_visual_evidence))
+                continue
+            if not gold_evidence_pairs:
+                continue
+            citation_blocks = (
+                {
+                    block_id
+                    for block_id in citation.get("source_block_ids", [])
+                    if isinstance(block_id, str)
+                }
+                if isinstance(citation.get("source_block_ids"), list)
+                else set()
+            )
+            citation_doc_id = citation.get("doc_id")
+            scored_citations.append(
+                float(
+                    isinstance(citation_doc_id, str)
+                    and any(
+                        (citation_doc_id, block_id) in gold_evidence_pairs
+                        for block_id in citation_blocks
+                    )
+                )
+            )
+        if scored_citations:
+            gold_citation_precisions.append(_mean(scored_citations))
 
         timing = run.get("timing_ms") if isinstance(run.get("timing_ms"), dict) else {}
         for field, destination in (

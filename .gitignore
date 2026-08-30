@@ -25,7 +25,9 @@ build/
 data/
 private/
 resources/data_midP.zip
+resources/data_refined/
 **/data_list.csv
+**/refined_data_list.csv
 *.hwp
 *.hwpx
 *.pdf

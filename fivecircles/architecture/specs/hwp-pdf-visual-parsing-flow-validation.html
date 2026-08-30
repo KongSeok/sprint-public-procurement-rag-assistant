@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HWP/PDF visual parsing flow validation</title>
+  <style>
+    :root { color-scheme:light; --ink:#172033; --muted:#596579; --line:#d8deea; --panel:#f8fafc; --blue:#1d4ed8; --green:#15803d; --amber:#b45309; --red:#b91c1c; }
+    * { box-sizing:border-box; }
+    body { margin:0; font:15px/1.58 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif; color:var(--ink); background:#eef2f7; }
+    main { width:min(1480px,96vw); margin:24px auto; background:#fff; padding:28px; border:1px solid var(--line); border-radius:16px; box-shadow:0 12px 32px #18203318; }
+    h1,h2 { margin:0 0 14px; } h2 { margin-top:30px; padding-top:22px; border-top:1px solid var(--line); }
+    .meta { color:var(--muted); margin-bottom:22px; }
+    .status { display:inline-block; padding:5px 9px; margin:0 6px 6px 0; border-radius:999px; background:#dcfce7; color:#14532d; font-size:13px; font-weight:700; }
+    .status.wait { background:#fef3c7; color:#78350f; }
+    .metrics { display:grid; grid-template-columns:repeat(5,minmax(130px,1fr)); gap:10px; margin:20px 0; }
+    .metric { border:1px solid var(--line); border-radius:11px; padding:13px; background:var(--panel); }
+    .metric strong { display:block; font-size:23px; color:var(--blue); } .metric span { color:var(--muted); font-size:13px; }
+    .flows { display:grid; grid-template-columns:1fr 1fr; gap:18px; align-items:start; }
+    figure { margin:0; padding:14px; border:1px solid var(--line); border-radius:12px; background:var(--panel); }
+    figcaption { font-weight:700; margin-bottom:10px; } img { width:100%; height:auto; display:block; background:white; }
+    table { width:100%; border-collapse:collapse; table-layout:fixed; }
+    th,td { border:1px solid var(--line); padding:9px 11px; text-align:left; vertical-align:top; overflow-wrap:anywhere; }
+    th { background:#edf3ff; } code { background:#eef2f7; padding:2px 5px; border-radius:4px; overflow-wrap:anywhere; word-break:break-all; }
+    .boundary { border-left:5px solid var(--amber); background:#fffbeb; padding:14px 16px; border-radius:8px; }
+    .blocked { color:var(--red); font-weight:700; }
+    @media (max-width:1000px) { .metrics { grid-template-columns:repeat(2,1fr); } .flows { grid-template-columns:1fr; } }
+    @media (max-width:560px) { main { padding:17px; } .metrics { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+<main>
+  <h1>HWP/PDF visual parsing flow validation</h1>
+  <p class="meta">2026-08-30 · CLOSEOUT · occurrence recovery and understanding contract</p>
+  <p><span class="status">PUBLIC IMPLEMENTATION COMPLETE</span><span class="status">LOCAL ONLY</span><span class="status wait">PRIVATE QUALITY GATES BLOCKED</span></p>
+
+  <div class="metrics" aria-label="핵심 결과">
+    <div class="metric"><strong>5 / 5</strong><span>HWP representative execution</span></div>
+    <div class="metric"><strong>4 / 4</strong><span>PDF · 570 pages</span></div>
+    <div class="metric"><strong>1,137</strong><span>HWP + PDF v2 occurrences</span></div>
+    <div class="metric"><strong>1,119</strong><span>page/bbox retrieval eligible</span></div>
+    <div class="metric"><strong>0</strong><span>external API calls</span></div>
+  </div>
+
+  <h2>목표와 현재 흐름</h2>
+  <div class="flows">
+    <figure><figcaption>Target</figcaption><img src="hwp-pdf-visual-parsing-target-flow.png" alt="목표 visual parsing 흐름"></figure>
+    <figure><figcaption>Current</figcaption><img src="hwp-pdf-visual-parsing-current-flow.png" alt="현재 visual parsing 흐름"></figure>
+  </div>
+
+  <h2>Target vs Current</h2>
+  <table><thead><tr><th>ID</th><th>Target</th><th>Final evidence</th><th>Status</th></tr></thead><tbody>
+    <tr><td>V1</td><td>VisualOccurrenceV2 identity</td><td>closed schema, stable IDs, mixed-state validator</td><td>MATCHED</td></tr>
+    <tr><td>V2</td><td>HWP exact resource/cell anchor</td><td>pinned helper; 27 exact objects in five documents</td><td>MATCHED</td></tr>
+    <tr><td>V3</td><td>exact fallback + deterministic crop</td><td>16 placed crops; 11 page-less objects withheld</td><td>MATCHED</td></tr>
+    <tr><td>V4</td><td>PDF resource/placement runner</td><td>416 resources; 1,110 occurrences across 570 pages</td><td>MATCHED</td></tr>
+    <tr><td>V5</td><td>local OCR/layout</td><td>pinned OS-sandboxed adapter; private weights unavailable</td><td>CODE MATCHED / RUN BLOCKED</td></tr>
+    <tr><td>V6</td><td>supported caption/retrieval/citation</td><td>support guard, bounded fusion, visual-gold scoring parity</td><td>MATCHED PUBLIC</td></tr>
+    <tr><td>V7</td><td>representative → 94 rollout</td><td>five-document run complete; reviewed nine-document gold absent</td><td>PARTIAL / BLOCKED</td></tr>
+  </tbody></table>
+
+  <h2>실제 실행 결과</h2>
+  <table><thead><tr><th>Lane</th><th>Result</th><th>Eligible</th><th>Withheld</th></tr></thead><tbody>
+    <tr><td>HWP representative</td><td>5 documents · 27 exact objects</td><td>16 page/bbox crops</td><td>11 doc-only objects</td></tr>
+    <tr><td>PDF full set</td><td>4 documents · 570 pages · 1,110 occurrences</td><td>1,103 crops</td><td>7 complex ambiguous regions</td></tr>
+    <tr><td>OCR/caption</td><td>runner, cache, contracts and fixture E2E complete</td><td>0 private-model runs</td><td>weights and human gold required</td></tr>
+  </tbody></table>
+
+  <h2>검색·응답 수리</h2>
+  <p>Caption cap을 적용하기 전에 visual 후보를 충분히 조회하고, base 결과가 top-k를 채워도 제한된
+  visual slot을 보존한다. OCR/layout이 caption보다 우선하며 caption은 base보다 낮다. 증거 ID prefix와
+  support reference를 schema와 수동 validator에서 함께 검증한다. 지원 참조가 없는 caption-only 답변은
+  자동 기권한다.</p>
+
+  <h2>무결성과 결정성</h2>
+  <p>HWP 대표와 PDF 전수 모두 즉시 재실행에서 같은 artifact-set identity와 artifact hash를 반환했다.
+  전체 unittest 493/493, compileall, Draft 2020-12 schema 23개, diff check와 repository safety 556 files를
+  통과했다. macOS 고정 network sandbox의 loopback socket probe는 <code>EPERM</code>을 반환했다.</p>
+
+  <h2>품질 경계</h2>
+  <div class="boundary">페이지와 bbox를 증명하지 못한 HWP object는 OCR 대상이나 검색 근거로
+  승격하지 않았다. PDF drawing 상한 초과 영역도 추정 분류하지 않았다. 실제 OCR/VLM weight와 사람이
+  검토한 gold가 없으므로 OCR 정확도, 관계 이해 품질, HWP 94건 전수 완료를 주장하지 않는다.</div>
+
+  <h2>다음 승인 경계</h2>
+  <ol>
+    <li>HWP 5건 + PDF 4건 occurrence/title/OCR/관계 gold를 사람이 검토한다.</li>
+    <li>고정 checksum의 PP-StructureV3/Korean PP-OCRv5 weight로 private 품질 gate를 실행한다.</li>
+    <li>두 gate가 통과한 뒤에만 HWP 94건 전수와 visual retrieval gold를 실행한다.</li>
+  </ol>
+  <p class="blocked">기본 Streamlit/runtime 전환과 외부 parser/search API 사용은 계속 금지한다.</p>
+</main>
+</body>
+</html>

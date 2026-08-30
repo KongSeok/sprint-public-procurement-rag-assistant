@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://midprojectrag.local/schemas/chunk.schema.json",
+  "title": "MidProjectRAG deterministic retrieval chunk",
+  "oneOf": [
+    {"$ref": "#/$defs/pageChunk"},
+    {"$ref": "#/$defs/tableChunk"}
+  ],
+  "$defs": {
+    "docId": {"type": "string", "pattern": "^doc_[0-9a-f]{24}$"},
+    "chunkId": {"type": "string", "pattern": "^chunk_[0-9a-f]{24}$"},
+    "blockIds": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1,
+      "items": {"type": "string", "pattern": "^block_[0-9a-f]{24}$"},
+      "uniqueItems": true
+    },
+    "sectionPath": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1}
+    },
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "pageChunk": {
+      "type": "object",
+      "required": [
+        "schema_version", "chunk_id", "doc_id", "text", "source_block_ids",
+        "section_path", "page_start", "page_end", "part_index", "part_count",
+        "retrieval_role", "chunker_id", "config_sha256", "content_sha256"
+      ],
+      "properties": {
+        "schema_version": {"const": "1.0"},
+        "chunk_id": {"$ref": "#/$defs/chunkId"},
+        "doc_id": {"$ref": "#/$defs/docId"},
+        "text": {"type": "string", "minLength": 1},
+        "source_block_ids": {"$ref": "#/$defs/blockIds"},
+        "section_path": {"$ref": "#/$defs/sectionPath"},
+        "page_start": {"type": "integer", "minimum": 1},
+        "page_end": {"type": "integer", "minimum": 1},
+        "part_index": {"type": "integer", "minimum": 0},
+        "part_count": {"type": "integer", "minimum": 1},
+        "retrieval_role": {"const": "primary"},
+        "chunker_id": {"const": "page-v1"},
+        "config_sha256": {"$ref": "#/$defs/sha256"},
+        "content_sha256": {"$ref": "#/$defs/sha256"}
+      },
+      "additionalProperties": false
+    },
+    "tableChunk": {
+      "type": "object",
+      "required": [
+        "schema_version", "chunk_id", "doc_id", "text", "display_markdown",
+        "source_block_ids", "section_path", "page_start", "page_end",
+        "source_locator", "row_start", "row_end", "part_index", "part_count",
+        "retrieval_role", "chunker_id", "config_sha256", "content_sha256",
+        "display_sha256", "source_structure_sha256", "table_structure_sha256",
+        "header_source"
+      ],
+      "properties": {
+        "schema_version": {"enum": ["1.1", "1.2"]},
+        "chunk_id": {"$ref": "#/$defs/chunkId"},
+        "doc_id": {"$ref": "#/$defs/docId"},
+        "text": {"type": "string", "minLength": 1},
+        "display_markdown": {"type": "string", "minLength": 1},
+        "source_block_ids": {"$ref": "#/$defs/blockIds"},
+        "section_path": {"$ref": "#/$defs/sectionPath"},
+        "page_start": {"type": ["integer", "null"], "minimum": 1},
+        "page_end": {"type": ["integer", "null"], "minimum": 1},
+        "source_locator": {"type": "string", "minLength": 1, "maxLength": 1000},
+        "row_start": {"type": "integer", "minimum": 0},
+        "row_end": {"type": "integer", "minimum": 0},
+        "part_index": {"type": "integer", "minimum": 0},
+        "part_count": {"type": "integer", "minimum": 1},
+        "retrieval_role": {"const": "structured_auxiliary"},
+        "chunker_id": {"enum": ["table-md-rowgroup-v1", "table-md-visual-context-v2"]},
+        "config_sha256": {"$ref": "#/$defs/sha256"},
+        "content_sha256": {"$ref": "#/$defs/sha256"},
+        "display_sha256": {"$ref": "#/$defs/sha256"},
+        "source_structure_sha256": {"$ref": "#/$defs/sha256"},
+        "table_structure_sha256": {"$ref": "#/$defs/sha256"},
+        "header_source": {"enum": ["explicit", "inferred", "generic"]}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"schema_version": {"const": "1.1"}}, "required": ["schema_version"]},
+          "then": {"properties": {"chunker_id": {"const": "table-md-rowgroup-v1"}}}
+        },
+        {
+          "if": {"properties": {"schema_version": {"const": "1.2"}}, "required": ["schema_version"]},
+          "then": {"properties": {"chunker_id": {"const": "table-md-visual-context-v2"}}}
+        }
+      ],
+      "additionalProperties": false
+    }
+  }
+}

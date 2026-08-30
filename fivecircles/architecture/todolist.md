@@ -49,6 +49,116 @@
 - 검증: 전체 70개 테스트, 실제 manifest 100행·block 20,569행 Schema 오류 0건,
   strict primary gate 통과, 실패 문서 누락 0건, PII 포함 로그 0건.
 
+### Batch 1 데이터 품질 정정 — 결측치·날짜 오매핑
+
+상태: COMPLETED_HIGH_CONFIDENCE_WITH_REVIEW_QUEUE
+
+- [x] 원본 `data_list.csv`는 불변으로 보존하고, 정정 오버레이·수정본·감사 기록을 분리한다.
+- [x] `fivecircles/work/data-quality-corrections/`에 공개 가능한 근거·판정·전후 통계를 기록한다.
+- [x] 공식 발주기관·나라장터 자료와 로컬 원문을 교차검증해 공고번호·차수·사업금액·입찰 제출 시작/마감 값을 보완한다.
+- [x] `입찰 참여 마감일`에 섞인 개찰·제안서 평가 일시를 분리하고 확인된 오매핑을 수정한다.
+- [x] 미해결 값은 `원문 미기재`, `해당 없음`, `외부 확인 필요`로 구분하며 추정값을 입력하지 않는다.
+- [x] 중복 정정, 기존값 불일치, 날짜 역전, 근거 없는 확정값을 막는 자동 검증을 추가한다.
+- [x] 100건 전체를 다시 프로파일링하고 정정 전후 결측·오매핑·미해결 목록을 확정한다.
+- [x] 원래 결측 71셀과 잔여 결측 31셀을 사업명·필드·사유·예상 답변으로 handoff한다.
+- [ ] 과거 입찰 히스토리 문서 확보는 현재 정정 패스 완료 뒤 비용·수집 가능성을 검토하는 후순위로 둔다.
+- 후속 검토: 잔여 확인 4건, 후속 차수·일정 연장, 금액 정의 충돌,
+  기존 82건의 번호 namespace/차수 문자열 정규화.
+- 검증: 105개 결정, 실제 변경 77개, 원본 hash 불변, 100행·100/100 join 유지,
+  확정값 provenance 누락 0건, 날짜 순서 위반 0건, 전체 219 tests·safety 428 files 통과.
+
+### 2026-08-28 — refined 98문서 source-of-truth 전환
+
+상태: DOWNSTREAM_LOCAL_COMPLETE_API_ACTIVATION_PENDING
+
+- [x] 기존 100문서와 사용자 복제본을 대조해 유일한 바이너리 SHA 중복 두 쌍을 확정한다.
+- [x] 삭제된 원문 2건과 대응 CSV 행 2개를 함께 제거해 98행·98파일로 맞춘다.
+- [x] `resources/data_refined/**`와 `refined_data_list.csv`를 Git/safety restricted path로 고정한다.
+- [x] 98개 원문과 CSV 파일명을 `refined_`+Unicode NFC로 통일한다.
+- [x] retained rows의 검증된 metadata 교정 69셀을 refined CSV에 직접 반영한다.
+- [x] CSV `텍스트` 98행을 pinned parser canonical primary body로 직접 materialize한다.
+- [x] literal/NFC join 98/98, HWP 94/PDF 4, raw hash 중복 0, body 98/98,
+  stable doc ID 98/98과 pending manifest/verify를 통과한다.
+- [x] 98문서 extracted manifest와 source blocks bundle을 별도 materialize하고 strict primary gate를 통과한다.
+- [x] 98문서 page chunks와 local page index를 재생성하고 direct manifest metadata를 catalog 입력으로 검증한다.
+- [x] 기존 small page vector를 byte-identical 9,331개 subset으로 검증·이관한다.
+- [ ] 새 table OpenAI index를 생성하고 두 API index의 identity를 결합한다.
+- [ ] dev40을 새 manifest/source block hash로 재검증하고 과거 v5 결과와 분리한다.
+- [ ] 새 versioned runtime config를 만든 뒤 Streamlit 기본 data root를 refined bundle로 전환한다.
+
+검증 완료값: CSV 98행×15열, raw 98개, metadata 직접 변경 69셀, canonical body 7,430,548자,
+pending snapshot `snapshot_f14ad7018fae2d3905c4e604`. 기존 100문서 artifacts는 역사본으로 보존한다.
+
+### 2026-08-28 — HWP ordered visual evidence overlay v1
+
+상태: LOCAL_CORPUS_COMPLETE_HUMAN_AND_EXTERNAL_ACTIVATION_PENDING
+방법론: contract-first + one-shot delivery + evidence-gated relay
+
+- [x] D-018과 `ordered-layout-asset-extraction.md`에 호환성·보안·실패 계약을 고정한다.
+- [x] target/current Mermaid 시작 리포트와 gap/relay 점수를 기록한다.
+- [x] strict JSON Schema와 synthetic fixtures를 먼저 만든다.
+- [x] top-level text/table/image 순서, canonical table join, cell Rect evidence를 구현한다.
+- [x] bounded DocLang asset 추출·content-address 저장·image occurrence 검증을 구현한다.
+- [x] 알려진 69페이지 HWP p.7/p.8 private opt-in 회귀와 byte determinism을 검증한다.
+- [x] 기존 source block/page-v1 hash 불변, 전체 회귀, compile, safety를 검증한다.
+- [x] 완료 리포트·work log를 갱신하고 PDF local parser PoC를 같은 릴레이에서 실행한다.
+
+대표 gate 뒤 94건 전체 결과: 8,762쪽·표 10,787개·ordered occurrence 77,607개를 exact
+reconciliation했다. source image reference 452개 중 440개는 canonical 지원 형식으로 보존했고
+12개 WMF/GIF는 provenance-only unsupported로 남겼다. strict page render 연결은 58개이며 나머지는
+추정하지 않고 명시적 unlinked 상태다. 검색용 visual-context v2 표 청크 35,128개와 provider-free
+local index까지 생성했지만 semantic API index와 기본 runtime에는 연결하지 않았다.
+
+### 2026-08-28 — PDF local visual candidate PoC
+
+상태: POC_COMPLETE_NOT_ADOPTED_AS_SOLE_PARSER
+
+- [x] refined PDF 4건 570쪽을 `pdfplumber` lines strategy로 두 번 전수 실행한다.
+- [x] table/image bbox, same-page prior text와 direct fill rect를 bounded private record로 만든다.
+- [x] 1,270개 record를 strict schema로 검증하고 두 실행의 byte determinism을 확인한다.
+- [x] 조직도/box diagram의 선이 table로 과검출될 수 있어 결과를 verified가 아닌 candidate로 고정한다.
+- [ ] 일정표 row text-cell 정렬과 선 없는 표를 포함한 사람 fidelity gold를 만든다.
+- [ ] OCR/diagram lane과 PDF candidate calibration을 통과한 뒤에만 검색 runtime 채택을 결정한다.
+- [x] HWP visual rollout을 대표 위험 유형 5건 → 94건 전수 순서로 수행한다. 5/5와 94/94
+  strict·재실행 결정성 gate, page/table/asset reconciliation, 35,128개 visual-context v2 chunk,
+  provider-free local index와 RRF/citation smoke를 완료했다.
+- [ ] 대표 5건의 private 사람 fidelity gold에서 표 제목·행/열/fill과 그림 위치를 원본과 대조한다.
+- [ ] 목적지별 private corpus egress·비용을 명시 승인한 뒤에만 v2 semantic embedding/index와
+  기본 runtime 전환을 수행한다.
+
+### 2026-08-30 — HWP/PDF 이미지 복구·OCR·도식 이해
+
+상태: PUBLIC_IMPLEMENTATION_COMPLETE_PRIVATE_GATES_BLOCKED
+
+결정: OCR·이미지 설명만 추가하지 않는다. `doc_id + page + bbox + crop hash` occurrence를 먼저
+복구하고 그 위에 OCR/layout/caption과 검색 인용을 연결한다.
+
+- [x] HWP 94건과 PDF 4건의 완료·미완료 상태, 실패 원인, 해결 계약을 문서화한다.
+- [ ] `[BLOCKED_EXTERNAL_REVIEW]` HWP 대표 5유형과 PDF 4건의
+  object/page/bbox/title/OCR/관계 human gold를 동결한다.
+- [x] rhwp `sourceImageKey` helper와 occurrence별 verified/unresolved 혼합 schema·validator를 구현한다.
+- [x] table-nested image의 exact row/column/nested-cell path를 보존하고 top-level 중복을 금지한다.
+- [x] HWP render image·table-nested image·shape diagram의 deterministic occurrence crop 경로를 만든다.
+- [x] ID 부재 HWP는 raw SHA 또는 normalized RGBA SHA+bbox exact match만 verified로 승격한다.
+- [x] WMF/GIF는 page-render crop으로만 검색 가능하게 하고 원본 변환은 pinned converter 경계로 분리한다.
+- [x] PDF raster XObject/inline image/vector drawing/table을 분리하고 bytes·resource/bbox provenance를 만든다.
+- [x] PyMuPDF는 AGPL/상용 license 결정 전 spike-only로 두고 pypdf+pdfplumber를 기본으로 유지한다.
+- [x] PDF visual corpus durable CLI/runner로 4건 570쪽 v2 artifact를 재생성하고 strict reuse를 확인한다.
+- [x] stale v1 artifact는 검색 승격을 금지하고 current-code v2 재생성만 허용한다.
+- [ ] `[BLOCKED_MODEL_WEIGHT]` PP-StructureV3 + Korean PP-OCRv5 실제 weight로
+  OCR polygon/confidence/reading order/table cell 품질을 측정한다.
+- [ ] `[BLOCKED_MODEL_WEIGHT_AND_GOLD]` OCR로 부족한 구성도·조직도만 local caption 모델을 비교한다.
+- [x] `image-ocr-v1`/`image-layout-v1`/저가중치 `image-caption-v1`과 page/bbox crop 인용을 연결한다.
+- [ ] `[BLOCKED_HUMAN_GOLD]` 대표 gate 통과 뒤 HWP 94건을 전수 실행하고 visual retrieval gold를 검증한다.
+- [x] human gold, local model checksum, offline·resource gate 전에는 기본 runtime이 fail closed한다.
+
+실행 증거: HWP 대표 5건은 27 occurrence 중 16 eligible/11 withheld, PDF 4건은 1,110 occurrence 중
+1,103 eligible/7 withheld다. HWP 94 corpus mode는 reviewed gold 없이 실행 전 차단됐고 실제
+OCR/caption inference는 pinned weight 부재로 0건이다.
+
+구현 계약: `fivecircles/architecture/specs/visual-image-recovery-and-understanding.md`
+incident: `fivecircles/test/errorlogs/backend/2026-08-30-pdf-visual-artifact-stale.md`
+
 ## Batch 2 — 평가 세트와 공통 계약 선확정
 
 상태: READY_PRIVATE_GOLD (공개 계약·평가 도구·합성 검증 완료, 실제 60문항 작성 가능)
@@ -64,17 +174,144 @@
 
 ## Batch 3 — 시나리오 B API naive 기준선
 
-상태: PENDING
+상태: PROVISIONAL_API_2X2_COMPLETE_PENDING_HUMAN_REVIEW_AND_GCP_FAISS_SMOKE
 
-- [ ] 단순 청킹 + `text-embedding-3-small` + Dense top-k 기준선을 구현한다.
-- [ ] 임베딩·인덱스 생성 후 팀원 사전 데이터 리뷰와 manifest·추출 결과·인덱스 메타데이터를 교차확인하고 차이와 조치 결과를 기록한다.
-- [ ] `gpt-5-mini` 또는 `gpt-5-nano`로 인용·대화 문맥·기권을 포함한 응답을 생성한다.
-- [ ] 캐시·비용 원장·20달러 hard stop을 구현한다.
-- 검증: 팀원 리뷰 교차확인 미해결 0건, 4대 시나리오 smoke test와 dev 기준선 리포트 생성.
+### 2026-08-26 — 정식 루트 통합 및 Langfuse 실연결
+
+- [x] 현재 저장소를 유일한 원본으로 고정하고 작업 사본의 Langfuse 변경만 선별 이식한다.
+- [x] content-free trace I/O, `chain/retriever/generation/guardrail` 계층, `.env` 지연 로딩과 최신 Langfuse SDK를 반영한다.
+- [x] 비밀값을 출력하지 않고 자격증명·활성화 설정을 점검한 뒤 synthetic metadata trace를 전송·재조회·감사한다.
+- [x] 관측성 대상/전체 테스트와 저장소 안전 검사를 통과한 뒤 잘못된 작업 사본을 삭제한다.
+- 검증: 실제 trace 계층·I/O·model/token/cost 필드 감사, 전체 테스트, safety, 중복 경로 부재.
+
+- [x] deterministic page chunk + `text-embedding-3-small` adapter + FAISS `IndexFlatIP`/NumPy smoke + Dense top-k 기준선을 구현한다.
+- [x] 실제 small/large 임베딩과 각 9,509행 NumPy exact index를 생성하고 hash를 고정한다.
+- [ ] 팀원이 사전 데이터 리뷰와 manifest·추출 결과·index metadata를 교차확인한다.
+- [ ] GCP L4에서 production FAISS `IndexFlatIP` 저장·복원 smoke를 수행한다.
+- [x] `gpt-5-mini`/`gpt-5-nano` adapter로 인용·대화 문맥·기권 응답과 합성 4대 시나리오를 구현한다.
+- [x] embedding cache·중복 fan-out·process-safe 비용 원장·20달러 hard stop을 구현한다.
+- [x] 공개 tokenizer asset을 별도 승인으로만 warmup하고, 크기·SHA-256 검증 후 runtime을 완전 오프라인으로 고정한다.
+- [x] 기본 OFF인 provider-neutral 관측성과 metadata-only Langfuse adapter, evaluator score bridge를 구현한다.
+- [x] draft dev 40문항의 개인 API 2×2 잠정 실행 기록과 승인된 content-free trace를 생성한다.
+- [ ] 사람 교차검토 후 small 기준선을 공식 dev 결과로 승격한다.
+- [ ] Langfuse post-run programmatic audit의 Observations v2 schema drift를 해소한다.
+- 검증: `dev40-provisional-v5` 160/160, error 0, corpus/eval/config hash 고정, 비용 USD 0.111497070, budget clean. 사람 품질 판정과 GCP FAISS smoke는 미완료다.
+
+### Batch 3 다음 실행 순서 — Retrieval/Generation
+
+- 상세 계약: `fivecircles/architecture/specs/api-baseline-observability.md`의
+  `Retrieval/Generation 다음 실행 계획`을 따른다.
+- [x] query builder·top-k·prompt version을 담은 단일 RAG config와 hash를 고정한다.
+- [ ] 후속 질문 검색에서 assistant 답변을 검색·사실 근거와 분리하고, explicit scope와
+  2~5개 문서 context coverage를 회귀 테스트한다.
+- [ ] claim 단위 citation 검증과 `원문 미기재/정보 없음/추가 확인 필요` 의미를 구현한다.
+- [ ] private presentation layer에서 30초 입찰 검토 카드와 페이지 citation을 연결한다.
+- [ ] 현재 잠정 결과를 사람 검토하고 GCP FAISS smoke를 통과한 뒤 dev 40문항 공식 기준선으로 승격한다.
+- [ ] 기준선 실패 유형을 분류한 뒤 Batch 4 후보를 한 번에 하나만 승격한다.
+
+### 2026-08-26 — 개인 OpenAI API 2×2 잠정 기준선
+
+- [x] 개인 OpenAI 키의 `text-embedding-3-small`, `text-embedding-3-large`, `gpt-5-nano`, `gpt-5-mini` 접근성과 실행 가격을 확인한다.
+- [x] small 1,536차원과 large 3,072차원 인덱스·cache·config hash를 분리하고 합계 USD 5 전용 hard stop을 둔다.
+- [x] 동일한 draft dev 40문항으로 small/large × nano/mini 네 조합의 검색·생성 실행 기록을 만든다.
+- [x] Recall@1/3/5/10, MRR@10, required-doc coverage, 응답 계약, 인용, 기권, latency와 실제 비용을 같은 표로 비교한다.
+- [x] 팀 사람 리뷰 전 결과를 `provisional`로 표시하고, large 조합은 과정 공식 small 기준선과 분리된 개인 계정 실험으로 기록한다.
+- [ ] dev 40건의 named human review와 정답성·충실성·인용 타당성 점수를 완료한다.
+- 검증: `dev40-provisional-v5` 160/160, error 0, corpus/eval/config hash 고정, 비용 USD 0.111497070, budget clean. Langfuse metadata-only tracing은 활성화했으나 post-run API 감사는 schema drift에서 안전 중단됐다.
+
+### 2026-08-26 — small+nano Streamlit 첫 데모
+
+상태: AUTOMATED_AND_HEALTH_VERIFIED_BROWSER_VISUAL_PENDING
+
+- [x] UI의 첫 고정 조합을 `text-embedding-3-small + gpt-5-nano`, top-10/context-5/citation-3으로 정한다.
+- [x] Streamlit이 provider/index를 직접 import하지 않고 public application facade만 호출하게 한다.
+- [x] 전체 문서와 최대 20건 explicit scope, 대화 초기화, 답변·기권·오류, 페이지 인용과 실행 정보를 구현한다.
+- [x] 검색 manifest와 교정 catalog의 hash·역할을 분리하고, 100개 문서 정체성 일치를 검증한다.
+- [x] 매 요청 corpus egress 동의, 별도 USD 5 원장, 기본 Langfuse OFF를 적용한다.
+- [x] provider-free application/UI 테스트와 실제 9,509행 bundle startup을 통과한다.
+- [x] Streamlit loopback health와 AppTest의 범위 선택→질문→근거/기권 흐름을 검증한다.
+- [ ] 실제 브라우저에서 범위 선택→질문→근거→초기화 흐름을 시각 검증한다.
+  현재 Codex in-app browser의 localhost admin policy 검증 불가로 환경 차단됐다.
+- [ ] 승인된 개인 API로 small+nano 단일 질의 smoke를 수행하고 비용·인용·기권 상태를 기록한다.
+- [ ] 본문/청크 전처리 확정 시 새 versioned index를 생성하고 bundle config만 원자 전환한다.
+- 검증: UI 신규 12 tests, 전체 219/219, compile, safety 428 files, diff-check, 실제 bundle load,
+  `/_stcore/health=ok`. OpenAI API 질의는 실행하지 않았다.
+- [x] `doc_id`·원본 hash 100/100 일치와 metadata 77셀 변경을 별개 사실로 기록한다.
+- [x] 현 Streamlit의 교정 catalog 사용 범위를 사업명·발주기관 라벨 overlay로 한정해
+  문서화한다.
+- [x] trace에 run-config hash를 전송하고, egress 동의에 history를 포함하며, catalog
+  문자열을 plain text로 렌더한다.
+- [ ] 공고번호·차수·금액·입찰일을 답변 근거로 쓰기 전 provenance/locator를 가진
+  구조화 metadata retrieval·citation 계약을 정하고 gold case로 검증한다.
+- 최종 리뷰 수정 검증: application/UI 9/9, 전체 220/220, compile, safety 429 files,
+  `git diff --check` 통과. OpenAI API 질의는 실행하지 않았다.
+
+### 2026-08-26 — 구조화 metadata lane + Streamlit E2E
+
+상태: LIVE_API_CONTRACT_E2E_COMPLETE_ANSWERABLE_GOLD_PENDING
+방법론: TDD
+
+- [x] corrected catalog·correction overlay·RagResponse v1의 provenance 경계를 감사한다.
+- [x] 재임베딩 없는 exact/range/date filter, `doc_id` routing, metadata card 계약을 작성한다.
+- [x] 1차 peer review의 audit DTO·필드명·locator·provider 경계·날짜·UI state·config
+  변경 요청을 계약에 반영한다.
+- [x] 2차 peer review의 catalog data-flow 경계·정확한 structured locator 문법·spec index
+  정합성 변경 요청을 계약에 반영한다.
+- [x] 수정 계약을 재리뷰하고 `APPROVE`를 받은 뒤만 구현한다.
+- [x] typed metadata fact와 correction provenance join을 provider-neutral catalog module로 구현한다.
+- [x] runtime config에 correction artifact hash를 고정하고 provider 생성 전 drift를 차단한다.
+- [x] Streamlit에 필터→결과→최대 20건 선택→metadata card→본문 질의 흐름을 연결한다.
+- [x] provider-free/full/health/safety 및 실제 브라우저 흐름을 검증한다.
+- [x] destination-specific 승인 후 private corpus 단일 small+nano 질의를 실행하고 aggregate만 기록한다.
+- [ ] human-reviewed answerable gold 1건 이상에서 실제 페이지 인용 답변을 확인한다.
+- [x] metadata-citation vNext, 공식 웹 근거 snapshot, 20건 이상 server-side scope를 후속 gate로 기록한다.
+- 검증: 105개 감사 상태·77개 변경값 일치, 묵시적 top-20 절단 0, provider 전 drift 차단,
+  metadata/body 근거 분리, 전체 회귀·UI 흐름·저장소 안전 검사.
+
+### 2026-08-27 — metadata query·document scope 재검토
+
+상태: REVIEW_PENDING
+
+- [ ] **메타데이터 비교 부재:** `사업금액 상위 5개`처럼 top-N·정렬·최대/최소·집계가 필요한
+  자연어 질의를 body RAG가 아닌 deterministic catalog query로 처리할 범위와 계약을 검토한다.
+  null·0/1원 sentinel 제외, 동률 처리, 정렬 방향, metadata 근거 카드 표시를 함께 결정한다.
+- [ ] **전체 문서 검색 차단:** metadata-enabled UI에서 explicit scope를 20개로 제한하고
+  기존 `mode=all`을 숨긴 결정을 재검토한다. 수동/필터 선택은 최대 20개를 유지하더라도,
+  전체 100문서·9,509청크 Dense 검색을 독립 mode로 복원할지 품질·UX·인용 기준으로 결정한다.
+- 현재 판정: 20개는 vector index의 성능 한계가 아니라 explicit request/schema와 사용자 선택의
+  안전 경계다. underlying body RAG에는 전체 문서 검색 경로가 있으므로 복원 가능성을 우선 검토한다.
+- 이 항목은 검토 TODO이며 구현 확정이 아니다. 계약·gold case·UI 상태 전이를 승인한 뒤 구현한다.
+
+### Mac 로컬 Qwen3.8 탐색 경로 — 독립 기준선 완료
+
+- [x] 공식 Ollama 매니페스트·로컬 사양을 확인하고 `qwen3.8:27b-mlx` structured JSON 합성 생성을 검증한다.
+- [x] `local-hash-char-v1` 검색 인덱스를 기존 9,509개 chunk로 생성한다.
+- [x] loopback-only Ollama 생성기와 `local-query`를 연결한다.
+- [x] 합성 end-to-end 및 private corpus 단일 질의를 실행한다.
+- 제한: 이 경로는 `mac_local_experimental`이며 공식 API/GCP L4 성능 비교나 제출 점수로 사용하지 않는다.
+- 검증: 100문서·9,509청크 exact NumPy 인덱스, cache 재실행 9,509/9,509 hit,
+  실제 단일 질의 1건의 검색·생성·인용 완료, 전체 152개 테스트와 안전 검사 389파일 통과.
 
 ## Batch 4 — 검색 개선과 절제된 ablation
 
 상태: PENDING
+
+### 2026-08-28 — refined page/table dual-lane 전환
+
+상태: LOCAL_IMPLEMENTATION_COMPLETE_API_ACTIVATION_PENDING
+방법론: TDD + versioned bundle migration
+
+- [x] refined 98문서 extracted manifest/source blocks를 materialize하고 strict gate를 통과한다.
+- [x] 기존 page-v1과 하위호환되는 `table-md-rowgroup-v1` 계약·생성기·CLI를 구현한다.
+- [x] 병합셀 전개, header 반복, Markdown escaping, row-group 무손실을 합성 테스트로 검증한다.
+- [x] page/table exact index를 분리하고 query 1회 임베딩 + RRF fusion을 구현한다.
+- [x] runtime config v1.2에서 두 lane·layout artifact/hash를 provider 생성 전에 검증한다.
+- [x] HWP table locator→page join을 전수 측정하고 불확실한 page를 추정하지 않는다.
+- [x] 표 질문 3건의 로컬 smoke와 page/table 인용 위치 정합성을 확인하고 실패 1건도 기록한다.
+- [ ] OpenAI small 의미 임베딩으로 표 전용 gold를 실행해 page-only 대비 개선을 판정한다.
+- [ ] 새 refined bundle을 생성·검증한 뒤 Streamlit 기본 config를 원자 전환한다.
+- 테스트: chunk/schema unit, index fusion unit, application bundle integration, private opt-in
+  refined artifact audit, 전체 회귀·compile·repository safety.
 
 - [ ] 구조적 청킹 → 메타데이터 라우팅 → top-k 조정 순으로 한 요소씩 비교한다.
 - [ ] 검색 중복이 확인될 때만 MMR 또는 hybrid search를 실험한다.
@@ -89,11 +326,33 @@
 - MMR: top-k가 동일 문서·유사 청크로 과도하게 중복될 때만 적용 후보로 승격한다.
 - Reranking: 관련 청크가 검색됐지만 하위 순위에 머무는 실패가 반복될 때만 적용 후보로 승격한다.
 
+### 심화·후순위 — INFO21C 유사 서비스 화면 참고
+
+`resources/snapshot/`의 4개 화면은 기능 우선순위를 정하는 참고 자료이며 현재 corpus의
+구현 가능 범위를 넓히는 근거로 사용하지 않는다.
+
+#### 간단 기능 — 현재 100문서로 가능
+
+- [ ] 기관·사업명·금액·파일형식 catalog filter와 검색 결과 목록을 explicit scope에 연결한다.
+- [ ] 공고 상세 카드에 금액·일정·자격·요구사항·위험 요소와 입찰 일정 타임라인을 표시한다.
+  날짜가 확인되지 않으면 임의 보정하지 않고 결측 상태를 표시한다.
+- [ ] 북마크·메모·비교함과 검토 카드 내보내기를 local/private UI 상태로 제공한다.
+- [ ] 같은 발주기관, 사업 요약, 예산대와 의미 유사도를 이용해 `관련 RFP`를 추천하고
+  추천 이유와 원문 페이지 근거를 함께 표시한다.
+- 업종·지역은 현재 정식 metadata 컬럼이 아니므로 근거 추출·검증 전에는 확정 필터로 약속하지 않는다.
+
+#### 복잡 기능 — 외부 데이터 없이는 불가
+
+- [ ] 사업자번호 기반 자사·경쟁사 투찰 이력, 투찰금액·투찰률·순위·1순위 업체를 분석한다.
+- [ ] 발주처·업종·지역·기간별 낙찰/사정률 분포와 적중 분석을 제공한다.
+- 외부 회사·기관·개찰 데이터 연동은 출처·이용권한·보존정책·회사/기관명 entity resolution을
+  확인한 뒤 여는 하나의 후순위 gate로 두며, 현재 3주 MVP 범위에는 포함하지 않는다.
+
 ## Batch 5 — 시나리오 A GCP L4 로컬 HF 및 공정한 A/B
 
 상태: PENDING
 
-- [ ] 4 vCPU/16GB/L4/디스크 100GB 이하에서 구동할 생성·임베딩 모델을 각 1개 선정한다.
+- [ ] `g2-standard-4`(4 vCPU/16GB/L4), 디스크 hard max 200GB(운영 목표 100GB·80GB 경고)에서 구동할 생성·임베딩 모델을 각 1개 선정한다. 기본 region은 `us-central1`, chunk4 배정은 `us-east1`로 기록한다.
 - [ ] 공통 corpus snapshot·요청/응답 계약·평가셋으로 API 스택과 비교한다.
 - [ ] 품질, cold/warm latency, GPU 시간, VRAM, 추정 비용을 기록한다.
 - 검증: 동일 검색 설정 통제 비교와 각 스택 최선 설정 end-to-end 비교.

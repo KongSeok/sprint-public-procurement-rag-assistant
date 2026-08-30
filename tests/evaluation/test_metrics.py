@@ -3,7 +3,7 @@ from __future__ import annotations
 import copy
 import unittest
 
-from midprojectrag.evaluation import compare_reports, score_runs
+from midprojectrag.evaluation import compare_reports, dataset_sha256, score_runs
 from tests.evaluation.helpers import make_cases, make_runs, make_scoring_cases, scoring_kwargs
 
 
@@ -161,6 +161,95 @@ class MetricTests(unittest.TestCase):
             if result["passed"] is False
         }
         self.assertIn("metrics.answer.gold_citation_precision", failed_thresholds)
+
+    def test_visual_gold_citation_precision_scores_exact_evidence_identity(self) -> None:
+        cases = make_scoring_cases("dev")
+        runs = make_runs(cases)
+        case = next(item for item in cases if item["case_id"] == "dev-single-001")
+        run = next(item for item in runs if item["case_id"] == case["case_id"])
+        doc_id = case["gold"]["required_doc_ids"][0]
+        occurrence_id = "vocc2_" + "a" * 24
+        evidence_ids = ["ocr_" + "b" * 24]
+        case["gold"]["evidence_refs"] = [
+            {
+                "doc_id": doc_id,
+                "occurrence_id": occurrence_id,
+                "evidence_ids": evidence_ids,
+                "evidence_type": "layout",
+            }
+        ]
+        visual_locator = {
+            "page": 3,
+            "bbox": {"x": 1.0, "y": 2.0, "w": 300.0, "h": 200.0},
+            "crop_sha256": "c" * 64,
+        }
+        run["retrieval"] = [
+            {
+                "rank": 1,
+                "doc_id": doc_id,
+                "chunk_id": "vchunk_" + "d" * 24,
+                "score": 0.9,
+                "occurrence_id": occurrence_id,
+                "evidence_ids": evidence_ids,
+                "evidence_type": "layout",
+                "page": visual_locator["page"],
+                "bbox": visual_locator["bbox"],
+                "crop_sha256": visual_locator["crop_sha256"],
+            }
+        ]
+        run["response"]["citations"] = [
+            {
+                "doc_id": doc_id,
+                "chunk_id": run["retrieval"][0]["chunk_id"],
+                "occurrence_id": occurrence_id,
+                "evidence_ids": evidence_ids,
+                "evidence_type": "layout",
+                "locator": visual_locator,
+            }
+        ]
+        eval_hash = dataset_sha256(cases)
+        for item in runs:
+            item["eval_set_sha256"] = eval_hash
+
+        report = score_runs(cases, runs, **scoring_kwargs())
+        self.assertTrue(report["passed"], report["errors"])
+        self.assertEqual(report["metrics"]["answer"]["gold_citation_precision"], 1.0)
+
+        mismatched = copy.deepcopy(runs)
+        visual_run = next(
+            item for item in mismatched if item["case_id"] == case["case_id"]
+        )
+        visual_run["response"]["citations"][0]["evidence_ids"] = [
+            "ocr_" + "e" * 24
+        ]
+        mismatch_report = score_runs(cases, mismatched, **scoring_kwargs())
+        self.assertLess(
+            mismatch_report["metrics"]["answer"]["gold_citation_precision"],
+            1.0,
+        )
+
+    def test_unannotated_visual_lane_is_not_a_false_zero(self) -> None:
+        cases = make_scoring_cases("dev")
+        runs = make_runs(cases)
+        case = next(item for item in cases if item["case_id"] == "dev-single-001")
+        run = next(item for item in runs if item["case_id"] == case["case_id"])
+        run["response"]["citations"] = [
+            {
+                "doc_id": case["gold"]["required_doc_ids"][0],
+                "chunk_id": "vchunk_" + "1" * 24,
+                "occurrence_id": "vocc2_" + "2" * 24,
+                "evidence_ids": ["ocr_" + "3" * 24],
+                "evidence_type": "ocr",
+                "locator": {
+                    "page": 1,
+                    "bbox": {"x": 0.0, "y": 0.0, "w": 10.0, "h": 10.0},
+                    "crop_sha256": "4" * 64,
+                },
+            }
+        ]
+        report = score_runs(cases, runs, **scoring_kwargs())
+        self.assertTrue(report["passed"], report["errors"])
+        self.assertEqual(report["metrics"]["answer"]["gold_citation_precision"], 1.0)
 
     def test_explicit_scope_rejects_retrieval_and_citations_from_other_documents(self) -> None:
         cases = make_scoring_cases("dev")
