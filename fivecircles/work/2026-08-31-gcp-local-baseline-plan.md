@@ -65,8 +65,9 @@
 
 - git status 확인: 기존 dirty worktree와 본 작업을 분리.
 - 커밋 범위: public contract/code/tests/content-free receipts only.
-- 커밋/푸시: 테스트 통과 후 현재 branch에 선별 수행.
-- 상태: IN_PROGRESS.
+- 커밋/푸시: `81c6c26` (`feat(rag): add pinned KURE Qwen local baseline`)를
+  `origin/feat/hwp-visual-corpus-rollout`에 선별 push했다.
+- 상태: COMPLETED.
 
 ### 8. Closeout Report
 
@@ -80,6 +81,8 @@
 - 사용할 스킬: relay-shot.
 - 다음 후보: 로컬 결과 뒤 가장 높은 안전 gap.
 - 새 원샷딜 시작 여부: actionable이면 즉시 계속, L4/외부 승인만 남으면 STOP_WITH_REASON.
+- 재평가 결과: **STOP_WITH_REASON** — 다음 기술 단위는 유료 외부 VM을
+  시작하는 Batch 5.5이고, 의미 판정은 명시적 휴먼 승인과 고정 judge가 필요하다.
 
 ### 10. Final Ledger
 
@@ -87,9 +90,9 @@
 - Implementation: COMPLETED
 - Validation: COMPLETED_WITH_PROVISIONAL_SCORE
 - Repair: RECORDED_NO_POST_HOC_COERCION
-- Push: IN_PROGRESS
+- Push: COMPLETED (`81c6c26`, origin synchronized)
 - Report: CLOSEOUT_UPDATED
-- Relay: STOP_WITH_REASON_AFTER_PUBLICATION
+- Relay: STOP_WITH_REASON
 - 남은 리스크: CUDA/L4 부재, provisional gold, fixed Sol judge availability
 
 ## Measured Mac-equivalent Result
@@ -109,9 +112,10 @@
 ## Batch Sequential Runner Ledger
 
 - Run mode: sequential (contracts and providers are upstream dependencies).
-- Current wave: Batch 5 closeout/publication.
+- Current wave: Batch 5 local closeout complete.
 - Completed: 5.1, 5.2, 5.3, 5.4.
-- In progress: scoped publication and relay reevaluation.
+- In progress: none.
 - Blocked: Batch 5.5 live GCP until VM use is explicitly entered.
 - Remaining actionable: none without live GCP authorization or human/Sol semantic review.
-- Integration checks: shared contracts, full suite, safety, flow report, scoped Git publication.
+- Integration checks: staged-only 81/81, compile, diff/safety, flow HTML render, scoped Git
+  publication complete. Repository-wide 721-test run retains two unrelated mini131 fixture failures.
