@@ -1,0 +1,79 @@
+{
+  "artifact_sha256s": {
+    "answer_cases_selected": "a84bb3ed9114bd59d235aad97a8fb17bb8e8b17ce18bb5ecb649789b7fff75b0",
+    "answer_query_cache_bundle": "e455dc08152ddeced58e4e334e8626fabc9c78713d3f83e1adb1d9cd437b645f",
+    "catalog": "4ad41c16cb329cda5b7f9682d417ca867018c26cb03f2a6ef9dea788ae915dbc",
+    "chunks": "bb82b593153a93f9373f0bdf7f5be7531e651fdab9c5df36b69d53df0a35b9a2",
+    "index_metadata": "57849491470f389a581656ed32ac21fc1be2693ca101a523f3126cdb5af23e94",
+    "manifest": "6c91d30a4c01b12f1aae8924c88a2e5055446c841f5eabfbf687546fdc1fe1cb",
+    "set_cases": "e96727baac3180d5bc65d4fd964bbdc47111a5e8abc542b6e1d8e609336f6f2c"
+  },
+  "baseline_id": "supplemental-mini-gap30-v1",
+  "config_sha256": "5b88870b0e0754ad2d7b0781ef9ce5dc10e1e3837d713a1776b35ff5b23d7551",
+  "counts": {
+    "answer": 17,
+    "catalog": 98,
+    "set": 13,
+    "total": 30
+  },
+  "estimated_cost_upper_bound": {
+    "answer_usd": 0.09681575,
+    "hard_budget_usd": 1.0,
+    "method": "exact_bounded_prompts_plus_schema_plus_4096_token_overhead_and_max_output",
+    "per_call_max_usd": 0.0127065,
+    "set_usd": 0.16514575,
+    "suite_usd": 0.2619615
+  },
+  "passed": true,
+  "privacy": {
+    "contains_answers": false,
+    "contains_provider_requests": false,
+    "contains_provider_responses": false,
+    "contains_questions": false,
+    "contains_source_text": false
+  },
+  "provider_called": false,
+  "runtime": {
+    "answer_context_top_k": 5,
+    "answer_max_citations": 3,
+    "answer_max_output_tokens": 2000,
+    "answer_retrieval_top_k": 10,
+    "api_profile": "personal_experimental",
+    "budget_limit_usd": 1.0,
+    "case_interval_seconds": 0.5,
+    "embedding_dimensions": 1536,
+    "embedding_model": "text-embedding-3-small",
+    "generator_model": "gpt-5-mini",
+    "openai_max_retries": 0,
+    "per_call_reservation_usd": 0.025,
+    "reasoning_effort": "minimal",
+    "set_catalog_document_count": 98,
+    "set_max_output_tokens": 2500
+  },
+  "runtime_contract_sha256": "4866659da09e6a30fb868a95023c80b3192c58889dd4e9fcaa39259e25c71086",
+  "runtime_contract_sha256s": {
+    "module_bytes": {
+      "midprojectrag.answering.generation": "d5ec3afed85b9262d6448413eef816404bc2e7011ff549745cf1106a83130d60",
+      "midprojectrag.answering.pipeline": "025f2f971e92c88bc0065d731156da3d2b6cc1f6e9e1c908b29427b7ad6d0088",
+      "midprojectrag.indexing.budget": "b333902e808838ca5e338b7a7bad76f0ab5549d860841a61d5e596d761d115c9",
+      "midprojectrag.indexing.embeddings": "1d650233d1c163246eac6cfc633efce6b7ed745519d3b302bb9cf8d516a62db6",
+      "midprojectrag.indexing.exact_index": "66e2c44c35f6dcfdf90198263d942808a202c4269020e8ff0be4761d50456839",
+      "midprojectrag.ingest.common": "c37fd46c86c55f212644a398b2e72a7079bc3cf47239b80974cdf7feb2876b67",
+      "midprojectrag.stacks.api": "0092bbe40b3514b4a28b0c542b7ab0a47ab9125922402cbabdd4a74111025daf",
+      "midprojectrag.stacks.api.config": "6fe567408d832cf8e4146d8c2035fc05eaa46b5de64d70aa902ee0040dfed89b",
+      "midprojectrag.stacks.api.generation": "1ff730d86ad0ae1127c68421247c585961672ac2486a03646eec8c9aa11bd4ef",
+      "midprojectrag.supplemental_evaluation": "126b7bc71e2318df25c9b0ba6112c69f38eae589ca702fb9ea265d7b0e85b746",
+      "midprojectrag.supplemental_gap30_baseline": "e1fb80cdbd491b7042075291b0d048f3405e1e6f28446904cf1458145d30e81c"
+    },
+    "prompt_contracts": {
+      "answer_response_schema": "9d07e68828db825398eb3cab11502374ac767a7102e0e0b0aea94e7336eeeb27",
+      "answer_system_instructions": "4d507bd009711e430920b848def5e7e38c96f01d40adca8d288666ddbbb09219",
+      "catalog_limits": "b72d5a761fef44837b60117fb5ea3461e20dad9121d77bc15e2ad4d4773220b9",
+      "execution_contract": "c82ddcc1d9956221a4bf3d1ba6a1ae226bfb345eb56024b665fde4427766a041",
+      "frozen_runtime": "f9c0b53ab1feec4a2a380a6e5fdd6d1073a6e1b7f5d73c4a8c4cc516aa6c919e",
+      "set_response_schema": "bb27877011e4ea70d8e04ae45f6e2f8cba02aad3b3687b66eca26f9a557676df",
+      "set_system_instructions": "fce94701d0f4ed3cb082ae09c26187b2044ab8f730feb5660a0f2f0c31362e83"
+    }
+  },
+  "schema_version": "1.0"
+}

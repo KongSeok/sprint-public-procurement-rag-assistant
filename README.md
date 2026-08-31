@@ -100,6 +100,22 @@ Batch 2는 두 스택이 공유하는 요청·응답 JSON Schema와 단일 문�
 평가 계약을 제공합니다. 실제 질문·정답·실행 기록은 Git 밖에 두고, 저장소에는 스키마와 합성
 예제만 둡니다.
 
+비교계열의 의미 채점기는 ChatGPT `gpt-5.6-sol`, 루브릭은 `gpt56-semantic-v2`로 고정합니다.
+현재 첫 통합 후보 기준선은 `gpt-5-mini`이며 이후 생성 모델과 parser·chunking·embedding·retrieval·
+reranking·prompt 스택을 바꿔 비교합니다. 모든 후보는 답변·검색근거·인용·transcript를 먼저
+고정하고, Sol은 그 기록을 수정하거나 대체하지 않고 채점합니다. 현재 131개 완료본은 기존 exact
+Mini 답변 39개와 prospective 재실행 90개, 로컬 parser 회귀 2개의 계보를 구분한 provisional
+기준선이며, 39개 사후 복원 transcript를 숨기지 않습니다.
+
+현재 전체 자산은 RAG 129개와 별도 parser-fallback ETL 회귀 2개, 총 131개입니다. 조건목록의
+문서 집합 P/R/F1과 EDA 수치 검사는 Sol 의미점수에 병기하는 객관 지표이며, 파싱 2개는 RAG
+평균에 섞지 않고 PASS/FAIL로 따로 보고합니다.
+
+2026-08-31 통합 provisional 기준선은 RAG 평균 54.845/100, accepted 58/129,
+rejected 71/129, 미해결 0이며 parser C21/C22는 2/2 PASS입니다. 후보 provider 비용은
+USD 0.21345322입니다. 공개 집계는 `evaluation/baselines/mini131-bundle-v1/receipt.json`,
+질문·답변·근거·판정 이력이 포함된 131개 검토 화면은 Git 밖 private HTML에 둡니다.
+
 ```bash
 PYTHONPATH=src python -m midprojectrag.evaluation validate \
   --dev evaluation/templates/dev.example.jsonl \

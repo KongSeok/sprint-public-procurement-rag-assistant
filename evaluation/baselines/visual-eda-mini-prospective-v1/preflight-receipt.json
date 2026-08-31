@@ -1,0 +1,135 @@
+{
+  "artifact_sha256s": {
+    "analytics_calculations_sha256": "4c24b3929050fc150768153320ca413e27f9738c8b5a40f5042f888a3626d35c",
+    "analytics_cases_sha256": "e2324fea2cac26520ba371183675f933ab997b0ff5d54c796a608f6f44c37c2f",
+    "manifest_sha256": "6c91d30a4c01b12f1aae8924c88a2e5055446c841f5eabfbf687546fdc1fe1cb",
+    "page_chunks_sha256": "bb82b593153a93f9373f0bdf7f5be7531e651fdab9c5df36b69d53df0a35b9a2",
+    "page_index_config_sha256": "cedb53499e3d3b7dc5df0150019f27999dcfc02379e0d476b845a4117743beb7",
+    "page_index_metadata_sha256": "57849491470f389a581656ed32ac21fc1be2693ca101a523f3126cdb5af23e94",
+    "visual_cases_sha256": "949bba9e2afa4d8e34345edacaf5014234070734cdd626ba1f4d4448bc9f9756"
+  },
+  "baseline_id": "visual-eda-mini-prospective-v1",
+  "config_sha256": "dc495da6bd805b5712cb414b84f380e05257b54d28c6946364b2ee593096ec61",
+  "counts": {
+    "analytics": 10,
+    "total": 20,
+    "visual": 10,
+    "visual_figure": 4,
+    "visual_hwp": 5,
+    "visual_pdf": 5,
+    "visual_table": 6
+  },
+  "estimated_cost": {
+    "estimated_usd_upper_bound": 0.06439605,
+    "generation_input_tokens_upper_bound": 65505,
+    "generation_output_tokens_upper_bound": 24000,
+    "hard_budget_usd": 1.0,
+    "method": "worst_scoped_page_lengths_plus_max_output_tokens",
+    "query_embedding_tokens_upper_bound": 990
+  },
+  "estimated_live_requests": {
+    "corpus_embedding_calls": 0,
+    "generation_calls": 20,
+    "query_embedding_calls_upper_bound": 10,
+    "total_provider_requests_upper_bound": 30
+  },
+  "eval_set_sha256": "4596c24b0d18b949c1868271e4eef0ac9f8e53fd660955e277790f041d4eb0b5",
+  "evaluation_tier": "provisional",
+  "execution_contract": {
+    "explicit_egress_approval_required": true,
+    "external_destination": "OpenAI API",
+    "external_payload_classes": [
+      "golden_set_questions",
+      "retrieved_refined98_page_excerpts",
+      "deterministic_analytics_computed_evidence"
+    ],
+    "gold_leakage_policy": {
+      "analytics_gold_expected_sent_to_provider": false,
+      "reference_answer_sent_to_provider": false,
+      "visual_gold_sent_to_provider": false
+    },
+    "private_output_policy": {
+      "directory_mode": "0700",
+      "file_mode": "0600",
+      "tracked_receipts_must_exclude": [
+        "questions",
+        "answers",
+        "source_text",
+        "provider_request",
+        "provider_response",
+        "computed_values"
+      ]
+    },
+    "provider_attempt_policy": {
+      "maximum_attempts_per_case": 1,
+      "maximum_suite_calls": 30,
+      "sdk_max_retries": 0
+    },
+    "provider_execution": "explicit_approval_required",
+    "resume_policy": {
+      "checkpoint": "atomic_private_json_after_each_case",
+      "completed_cases_are_reused": true,
+      "reject_mismatched_hashes": true,
+      "started_only_case_requires_budget_audit": true,
+      "unit": "case"
+    },
+    "transcript_contract": {
+      "analytics_numeric_companion": "exact",
+      "assistant_final_answer": "exact",
+      "capture_time": "prospective_runtime",
+      "embedding_vectors": "omitted_with_sha256",
+      "provider_arguments": "exact",
+      "provider_response": "full_model_dump_when_available",
+      "visual_retrieval_page_object_companion": "exact"
+    },
+    "visual_capability_contract": {
+      "caption": false,
+      "image_or_crop_input": false,
+      "ocr": false,
+      "retrieval": "frozen_refined98_page_v1_dense_only",
+      "table_lane": false
+    }
+  },
+  "passed": true,
+  "private_corpus_egress_performed": false,
+  "provider_calls_performed": 0,
+  "public_artifact_contains_case_content": false,
+  "runtime": {
+    "api_profile": "personal_experimental",
+    "budget_limit_usd": 1.0,
+    "case_interval_seconds": 0.5,
+    "context_top_k": 5,
+    "embedding_dimensions": 1536,
+    "embedding_model": "text-embedding-3-small",
+    "generator_model": "gpt-5-mini",
+    "git_commit": "uncommitted",
+    "max_citations": 3,
+    "max_output_tokens": 1200,
+    "openai_max_retries": 0,
+    "reasoning_effort": "minimal",
+    "retrieval_top_k": 10
+  },
+  "runtime_contract_sha256": "fe84e118f46ceb8e2ca779fc2e99702939283d288b5ed49366337567642ad3a9",
+  "runtime_contract_sha256s": {
+    "module_bytes": {
+      "midprojectrag.answering.generation": "d5ec3afed85b9262d6448413eef816404bc2e7011ff549745cf1106a83130d60",
+      "midprojectrag.indexing.budget": "b333902e808838ca5e338b7a7bad76f0ab5549d860841a61d5e596d761d115c9",
+      "midprojectrag.indexing.embeddings": "1d650233d1c163246eac6cfc633efce6b7ed745519d3b302bb9cf8d516a62db6",
+      "midprojectrag.indexing.exact_index": "66e2c44c35f6dcfdf90198263d942808a202c4269020e8ff0be4761d50456839",
+      "midprojectrag.ingest.common": "c37fd46c86c55f212644a398b2e72a7079bc3cf47239b80974cdf7feb2876b67",
+      "midprojectrag.stacks.api": "0092bbe40b3514b4a28b0c542b7ab0a47ab9125922402cbabdd4a74111025daf",
+      "midprojectrag.stacks.api.config": "6fe567408d832cf8e4146d8c2035fc05eaa46b5de64d70aa902ee0040dfed89b",
+      "midprojectrag.stacks.api.embeddings": "a58f29167bfdcc95d10419ded799f556bfcebecb1f98c45721307b1930d4b08d",
+      "midprojectrag.stacks.api.generation": "1ff730d86ad0ae1127c68421247c585961672ac2486a03646eec8c9aa11bd4ef",
+      "midprojectrag.visual_eda_mini_baseline": "f74f9bc200b427d8c58486b8fec46c3c74f8871b8a9396f2cece28d9f3fa7d0d"
+    },
+    "prompt_contracts": {
+      "analytics_prompt_instruction": "0922ed2ca9ae0cd6f0528c4b27c099a6ea7d69979d2cf794a1e7b45eb56481c3",
+      "answer_schema": "d4fb356a817ff836bbe30122857e98204d7a6072e36c8a9fdf53c5d201256b93",
+      "prompt_format_contract": "5e6b9314c191da86aaee6068e75f3be9e89a1e37ee131f71bbd0308f6ee71e56",
+      "system_instructions": "0ffe8e54acdf929869f67fa7ebcf7fed3b4e65ca45b175f9a8476e4d29909776",
+      "visual_prompt_instruction": "46650a26a8ef165646ecd6e6be2f70c1be38b29098c0b66a2f3bf631e5a2403c"
+    }
+  },
+  "schema_version": "1.0"
+}

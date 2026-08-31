@@ -1,0 +1,37 @@
+{
+  "baseline_id": "corpus-analytics-deterministic-v1",
+  "case_count": 10,
+  "corpus_snapshot_id": "snapshot_f14ad7018fae2d3905c4e604",
+  "execution_mode": "deterministic_local_only",
+  "external_provider_calls": 0,
+  "gold_review_status": "draft",
+  "input_sha256": {
+    "cases": "e2324fea2cac26520ba371183675f933ab997b0ff5d54c796a608f6f44c37c2f",
+    "categories": "968f8f9baf3449bce1985464ae1b800b73a5f70d3713b0172cb8736e0dbaecca",
+    "manifest": "6c91d30a4c01b12f1aae8924c88a2e5055446c841f5eabfbf687546fdc1fe1cb",
+    "refined_csv": "cef0a27602976af468206ad2fa855027cb6f686fc877a52ce8fb191c57cd7e5b",
+    "targets": "a6eaf98780c3efc314f3998a116c42960a5c518f5df1306bd72cc2c61587bf4e"
+  },
+  "money_policy": {
+    "missing": "exclude_from_monetary_statistics",
+    "rounding": "nearest_won_ties_to_even",
+    "vat": "use_stored_nominal_amount_without_inference",
+    "zero": "report_separately_and_exclude_from_monetary_statistics"
+  },
+  "operations": [
+    "group_count_and_share",
+    "amount_quality_counts",
+    "argmax_group_count_with_ties",
+    "mean_median_and_ratio",
+    "quartiles_and_iqr",
+    "category_count_and_positive_amount_median",
+    "top_decile_share",
+    "tukey_upper_outlier_concentration",
+    "argmax_category_mean_to_median_ratio",
+    "outlier_exclusion_sensitivity"
+  ],
+  "percentage_rounding": "two_decimal_places_for_display",
+  "quantile_method": "linear_interpolation_at_(n-1)*p",
+  "result_label": "provisional_draft_gold",
+  "suite_version": "2026-08-31-local-draft-v1"
+}

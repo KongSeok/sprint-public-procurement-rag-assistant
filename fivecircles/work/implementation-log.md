@@ -47,3 +47,76 @@ Per batch:
   별도 실행한다. 그 전에는 기본 runtime과 외부 parser/search API를 활성화하지 않는다.
 - Published: 공개 구현 `df72d69`를 `origin/feat/hwp-visual-corpus-rollout`에 푸시했다. 릴레이는
   외부 입력 gate 때문에 `STOP_WITH_REASON`으로 닫았다.
+
+## 2026-08-31 — GPT-5.6 direct supplemental baseline scoring
+
+- Intent: 코드 문자열 판정 대신 ChatGPT `gpt-5.6-sol`이 기존 보조 베이스라인 답변을 직접
+  의미 채점하고, 검색·집합 지표와 분리된 실제 품질 점수를 확정한다.
+- Change summary: 56개 답변을 19/19/18로 나눠 1차 판정하고 경계 5건을 독립 2차·3차 판정했다.
+  private final judgment/summary와 문항별 로컬 HTML, content-free 공개 receipt를 생성했다.
+- Result: 평균 46.70/100, accepted 19/56, rejected 35/56, needs human 2/56, quality gate FAIL.
+  객관 진단은 document Recall@5 0.845679, set-13 Macro F1 0.232845다.
+- Safety boundary: 질문·답변·근거·판정 사유는 Git과 stdout에 기록하지 않고 ignored private
+  artifact에만 보존했다. 공개 기록은 aggregate와 hash만 포함한다.
+- Known limitation: 기존 실행이 기권 최종 문구를 보존하지 않아 정답 기권 2건은 의미를
+  추정하지 않고 `needs_human`으로 남겼다. 골든 정답·qrel 승인과 run 품질 판정은 별도다.
+- Next TODO: 과도한 기권과 인용 타당성 실패를 우선 개선한 뒤 동일 56문항으로 회귀 평가한다.
+
+## 2026-08-31 — supplemental 69 evaluation draft
+
+- Intent: 취합 136에서 유지한 44/13/12를 기존 dev40과 분리된 실행 자산으로 준비한다.
+- Change summary: 56 answer draft, 13 set draft, qrel review queue, case-hash decision,
+  manifest-aware set scorer와 pinned CSV support ref를 구현했다.
+- Safety boundary: 질문·정답·근거는 ignored private 경로에만 두고 로그에는 수량·hash·상태만 남겼다.
+- Verified: 112/112 legacy SHA mapping, 11 correction gate, B14=7, deterministic outputs,
+  evaluation 83/83, full 546/546 PASS.
+- Known limitation: named human approval은 0/69이므로 official 점수로 승격할 수 없다. 다만 draft
+  69개는 명시적으로 `provisional` 실행·채점할 수 있다.
+- Next TODO: 고정 OpenAI baseline을 실행한 뒤 팀원이 review queue와 정답 정합성을 검수한다.
+
+## 2026-08-31 — supplemental provisional baseline activation
+
+- Intent: 검수 대기 69문항을 실행 불가 상태로 두지 않고, official 승격과 분리된 잠정 기준선으로
+  실제 스택 최적화에 사용할 수 있게 고정한다.
+- Change summary: refined 98 page-only, `text-embedding-3-small`, `gpt-5-mini`, top-10/context-5,
+  citation 3, USD 2.00 설정을 hash로 고정했다. answer/set scorer, strict run schema, case별 atomic
+  checkpoint/resume, content-free public receipt와 명시적 OpenAI egress gate를 구현했다.
+- Safety boundary: private 질문·답변·run·문서 발췌는 ignored 경로에만 둔다. 실제 provider 실행은
+  `--approve-private-corpus-egress`가 없으면 stack 생성 전 중단한다.
+- Verified: frozen config preflight 56+13/98/9,331, 두 private build byte 동일, provisional validation
+  PASS, official 69건 `case_not_approved`, evaluation 83/83, 전체 546/546.
+- Known limitation: 실제 OpenAI run과 aggregate metric receipt는 egress 승인 뒤 생성한다.
+- Next TODO: baseline code/config를 선별 commit·push하고 승인된 실제 69건 run을 실행한다.
+
+## 2026-08-31 — Mini131 frozen baseline harness
+
+- Intent: 기존 Mini exact 39건을 보존하고 재실행 90건과 parser 2건을 동일한 131건 ledger로
+  평가하되 후보 스택과 고정 Sol 판정기를 분리한다.
+- Change summary: Core40, Gap30, Visual/EDA 실행기와 runtime hash/resume/budget gate, opaque blind
+  judge input, primary-secondary-adjudicator 이력, parser receipt 교차검증, private HTML을 구현했다.
+- Safety boundary: corpus 재임베딩은 하지 않고 질문 임베딩만 허용한다. 질문·답변·근거·판정사유는
+  ignored private 경로에만 두며 공개 receipt는 수량·비용·hash만 담는다.
+- Verified: 세 preflight PASS(provider 0), parser C21/C22 2/2, 평가 범위 90/90,
+  최초 전체 unittest 679/679, in-memory syntax 7개와 diff check PASS.
+- Concurrent drift: 이후 별도 작업이 visual schema 필수 필드를 추가해 기존 fixture 1건이 실패했다.
+  해당 파일은 수정하지 않았고 평가 범위는 재실행해 90/90 PASS를 유지했다.
+- Blocker: OpenAI API에 보낼 private payload 종류와 최대 140회/$4를 명시 승인받기 전에는
+  Mini 90건 실행, 129건 Sol 판정, 최종 HTML·receipt와 commit/push를 진행하지 않는다.
+
+## 2026-08-31 — Mini131 live execution and frozen Sol scoring
+
+- Intent: 승인된 범위에서 최초 통합 Mini 기준선을 끝까지 실행하고, 후보 답변을 고치지 않은 채
+  고정 Sol 의미 채점기로 129개를 모두 판정한다.
+- Candidate execution: 기존 exact 답변 39개를 계보 표시와 함께 보존하고 Core40, Gap30,
+  Visual/EDA20을 prospectively 실행했다. corpus 재임베딩은 하지 않았고 query embedding만 수행했다.
+- Provider recovery: Core API 연결 오류 2건과 Gap Structured Outputs 400 1건을 원래 error로
+  보존하고 재시도하지 않았다. `uniqueItems`는 이후 요청에서 제거하고 중복성은 앱에서 검증했다.
+- Judge workflow: blind primary 129, crossed secondary 13, fresh adjudicator 13을 고정
+  `gpt-5.6-sol`/high로 실행했다. 모든 reviewer 입력·출력과 역할 순서를 private history에 남겼다.
+- Final result: 평균 54.845, accepted 58, rejected 71, unresolved 0; parser 2/2 PASS.
+  후보 비용 USD 0.21345322, source transcript 129/129, HTML 131카드다.
+- Verification: Mini131 preflight 28/28·RAG 129, private mode 0600/public receipt 0644,
+  evaluation 210/210과 전체 unittest 728/728 PASS. staged clean-checkout snapshot은 614개 PASS,
+  private artifact가 없는 통합 테스트 8개만 의도대로 skip했다.
+- Safety boundary: 문항·답변·근거·provider payload·판정 사유는 `evaluation/private/**`에만 두고,
+  Git에는 content-free receipt·코드·합성 테스트·운영 문서만 포함한다.

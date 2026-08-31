@@ -4,6 +4,50 @@ This directory contains offline, standard-library-only validation and scoring to
 do not call model providers, download data or inspect the private corpus unless an explicit
 local manifest/block path is supplied to `validate`.
 
+## Frozen judge and variable candidates
+
+`fivecircles/architecture/specs/evaluation-contract.md` is authoritative. ChatGPT
+`gpt-5.6-sol` and rubric `gpt56-semantic-v2` are fixed across one comparison series; `gpt-5-mini` is the
+current first integrated candidate baseline, while the candidate generator and RAG/ETL stack may change. Execute
+and persist each candidate's exact transcript and answer before judgment. The judge scores that
+recorded output and must not regenerate or repair it.
+
+The current inventory is 129 RAG assets plus 2 separately reported parser-fallback ETL
+regressions. Set and numeric measurements are deterministic companion metrics and parser
+PASS/FAIL is a separate ETL lane; code does not replace the fixed Sol semantic judgment. Every
+RAG asset, including set and EDA cases, needs a recorded candidate natural-language answer.
+
+Only prospectively saved, runtime-exact transcripts qualify for a strict Version 1.2 comparison.
+The current user-authorized Mini 131 completion is a mixed-lineage provisional baseline: it reuses
+39 exact legacy answers with reconstructed transcripts, prospectively reruns the missing 30 and the
+remaining 60 RAG cases, and reports two current-parser checks separately. It must display that lineage
+and must not be presented as a fully prospective official score.
+
+## Mini 131 completion baseline
+
+The fixed ledger is `39 legacy exact Mini answers + 90 prospective Mini answers + 2 local parser
+regressions = 131`. Provider retries are disabled; the three live suites have at most 80, 30 and 30
+provider calls and separate USD 2, USD 1 and USD 1 ledgers. Their private payloads and transcripts
+remain ignored by Git.
+
+```bash
+PYTHONPATH=src python -m midprojectrag.core40_baseline --write-preflight-receipt
+PYTHONPATH=src python -m midprojectrag.supplemental_gap30_baseline --preflight-only
+PYTHONPATH=src python -m midprojectrag.visual_eda_mini_baseline --write-preflight-receipt
+PYTHONPATH=src python -m midprojectrag.parser_regression_baseline
+```
+
+Live commands require an explicit approval that names OpenAI as the destination, the private
+questions/history/RFP excerpts/table-page text/EDA evidence/98-document bounded catalog as payload,
+and the USD ceilings. After candidate transcripts are closed, `mini131_bundle` creates blind judge
+packets, Sol v2 judgments are merged, and `mini131_report` atomically replaces the same private HTML.
+
+The completed 2026-08-31 provisional run contains 129/129 source transcripts, 129 primary
+decisions, 13 crossed secondary reviews, 13 adjudications, and two passing parser checks. Its
+semantic mean is 54.845/100 with 58 accepted and 71 rejected RAG cases; the candidate provider
+cost is USD 0.21345322. The content-free aggregate is
+`evaluation/baselines/mini131-bundle-v1/receipt.json`.
+
 ## Private and public files
 
 - Keep real `dev.jsonl`, `heldout.jsonl`, run records and answer-level reports under

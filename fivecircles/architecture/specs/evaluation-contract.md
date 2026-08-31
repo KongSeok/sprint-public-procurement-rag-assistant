@@ -1,10 +1,13 @@
 # Evaluation Contract
 
-Status: Batch 2 baseline contract
+Status: ACTIVE_GPT56_SEMANTIC_JUDGE
 
-Version: 1.0
+Version: 1.2
 
-External calls: prohibited during Batch 2
+Date: 2026-08-31
+
+External calls: baseline provider calls require the existing destination/payload/cost approval;
+ChatGPT workspace judgment stays private and does not publish evaluation text
 
 ## 1. Goal
 
@@ -17,7 +20,9 @@ Hugging Face stack. It must measure the four required behaviors separately:
 4. abstention for unknown, unsupported or ambiguous questions
 
 The contract separates retrieval quality, answer quality, citation quality, abstention and
-operational cost. It does not select a model or retrieval technique.
+operational cost. The semantic judge is fixed; the candidate generation model and RAG stack are
+deliberately variable experiment inputs. `gpt-5-mini` is the current first integrated candidate
+baseline, not the fixed system under test.
 
 ## 2. Scope and exclusions
 
@@ -27,15 +32,39 @@ In scope:
 - stack-neutral query and response contracts
 - offline validation, scoring and A/B aggregate comparison
 - deterministic snapshot and configuration hashes
-- human-review fields for Korean long-form answers
+- ChatGPT `gpt-5.6-sol` direct semantic judgment for Korean long-form answers
 
 Out of scope:
 
-- model calls, embeddings or corpus downloads
-- automatic LLM-as-judge evaluation
+- unapproved model calls, embeddings or corpus downloads
+- code, lexical, regex or embedding-similarity rules acting as the semantic answer judge
+- model-written changes to gold questions, reference answers or qrels
 - hidden server session state
 - production latency SLOs not supplied by the assignment
 - committing raw RFP text, source-level chunks, private gold text or answer-level traces
+
+### 2.1 Frozen judge and variable system-under-test
+
+The following separation is binding for every baseline, ablation and stack comparison.
+
+| Role | Frozen or variable | Contract |
+| --- | --- | --- |
+| Semantic judge | Frozen | ChatGPT `gpt-5.6-sol` |
+| Judge rubric | Frozen | `evaluation/rubric.md` version `gpt56-semantic-v2`, including its prompt/schema, thresholds and adjudication rules |
+| Gold and scoring inputs | Frozen within one experiment series | question order, reference answers, required fact groups, qrels, corpus snapshot and scoring hashes |
+| Candidate generator | Variable | current first integrated run: `gpt-5-mini`; later API and local models may be compared |
+| Candidate RAG/ETL stack | Variable | parser, normalization, chunking, embedding, index, retrieval, filters, Top-k, reranking/MMR, context builder, generation prompt and citation behavior |
+
+Each candidate configuration must produce and persist its own answer transcript before semantic
+judgment begins. The transcript binds the exact question/history, retrieval results, selected
+context, candidate model response, final answer/status and citations to hashes. GPT-5.6 Sol judges
+that recorded candidate output; it must not regenerate, repair, supplement or replace the
+candidate answer. A missing candidate answer or transcript is `unjudged`/runtime failure until the
+candidate run is executed and recorded.
+
+Changing the judge model, rubric version, judge prompt/schema, score thresholds or adjudication
+rules starts a new evaluation series. Scores from different judge contracts must not be mixed in
+one comparison table.
 
 ## 3. Contract files
 
@@ -73,7 +102,8 @@ not contain raw excerpts or contact information.
 
 An abstention uses the exact non-factual message associated with its reason. For an unknown
 case, that reason must match the sealed gold reason and `judgment.safe_abstention` must be true.
-Every held-out response, including an abstention, requires two reviewers.
+Every held-out response requires a primary GPT-5.6 judgment. Boundary, low-confidence and
+disputed cases require the independent secondary/adjudication path defined in section 13.
 
 ## 6. Evaluation case contract
 
@@ -131,6 +161,25 @@ The initial target is 60 approved questions:
 - dev: 10 per task, 40 total
 - held-out: 5 per task, 20 total
 
+The current project-wide inventory is broader than that original 60-case target. The table below
+is the tracked binding count contract; `golden-set-final/golden-set-count-contract.md` is its
+local audit source:
+
+| Evaluation lane | Count | Primary scoring path |
+| --- | ---: | --- |
+| Bid RAG scenarios | 40 | recorded candidate answer judged by fixed GPT-5.6 Sol |
+| Clause/fact answer regression | 44 | recorded candidate answer judged by fixed GPT-5.6 Sol |
+| Conditional/all-list retrieval | 13 | complete document-set P/R/F1 and exact match plus required recorded candidate answer judged by Sol |
+| Gold/source alignment review | 12 | recorded candidate answer judged by Sol; gold approval remains a separate human-review state |
+| HWP/PDF table/figure QA | 10 | retrieval/object metrics plus recorded candidate answer judged by Sol |
+| Full-corpus analytics/EDA | 10 | exact/tolerance numeric checks plus required recorded candidate explanation judged by Sol |
+| **RAG evaluation assets** | **129** | lane-specific RAG scores |
+| Parser fallback regression | 2 | deterministic ETL execution PASS/FAIL, reported separately |
+| **Total test/review assets** | **131** | coverage total only; do not blend ETL PASS/FAIL into the RAG semantic mean |
+
+The 60 authored automatic inputs are a subset of the 129 RAG assets, not an additional suite to
+add to 129. All draft/approval states remain visible in reports.
+
 Paraphrases, related comparison variants and every turn from one conversation share a
 `group_id`. A group may appear in only one split. Multi-document pairs must not be duplicated
 across splits under different wording.
@@ -149,16 +198,25 @@ require human review.
 
 ## 9. Run record and reproducibility
 
-Every answer-level private run record includes:
+Every answer-level private experiment artifact set includes:
 
+- opaque experiment/run ID and candidate-stack label
 - stack, generator and embedding model/revision
+- parser, chunking, index, retrieval, reranking, context and prompt configuration
 - Git commit, corpus manifest hash, evaluation-set hash and configuration hash
 - Python/platform, dependency-lock hash, vCPU/RAM/GPU/disk environment snapshot
 - ranked chunk hits mapped back to stable source blocks
-- contract response and offline human judgments
+- immutable candidate transcript/response and a separately attributable private ChatGPT
+  `gpt-5.6-sol` semantic judgment
 - retrieval/generation/total latency
 - API tokens/USD or GPU seconds/peak VRAM
-- seed, temperature and cache state
+- seed, temperature and cache state; unsupported generation controls are recorded as null
+- exact candidate transcript hash and frozen judge-config hash
+
+The legacy `run-record.schema.json` v1 compatibility artifact may embed the finalized judgment
+after the separate judgment step. It is a scored join artifact, not evidence that the judge ran
+before the candidate answer was closed; the candidate transcript hash and content remain
+immutable.
 
 One score report contains only one stack, corpus snapshot and configuration. A/B comparison
 accepts exactly one passed API report and one passed GCP-local report and fails closed if corpus,
@@ -180,7 +238,7 @@ Retrieval:
 Answer and citation:
 
 - required key-point coverage
-- blinded human correctness and faithfulness
+- blinded ChatGPT `gpt-5.6-sol` correctness, completeness and faithfulness
 - factual-claim citation coverage
 - citation validity and gold-evidence citation precision
 - follow-up task success
@@ -219,7 +277,7 @@ Latency is a comparison metric until the team freezes an SLO. The API USD 20 cap
 - reviewed safe-abstention rate: 1.0
 - response contract and runtime error rate: 0
 - API total: at most USD 20
-- answerable human-judgment coverage: 1.0
+- answerable GPT-5.6 semantic-judgment coverage: 1.0
 - API cost or local GPU-usage coverage, as applicable: 1.0
 
 These targets, their operators, stack scopes, task floors and Recall@1/3/5/10 cutoffs are
@@ -228,8 +286,10 @@ target is reported as a result; held-out data is not retuned to make a target pa
 
 ## 12. A/B protocol
 
-Both stacks use the same corpus snapshot, evaluation-set hash, question order, explicit history
-and output contract. Use deterministic decoding and a recorded seed when supported.
+Every candidate stack uses the same corpus snapshot, evaluation-set hash, question order,
+explicit history, gold contract and frozen judge configuration. Use deterministic decoding and a
+recorded seed when supported. Only the candidate model/stack configuration may vary within the
+comparison series.
 
 For an explicit document scope, both retrieval hits and response citations outside the listed
 document IDs are contract failures.
@@ -242,17 +302,95 @@ Report two comparisons when feasible:
 The aggregate comparison reports deltas rather than declaring a winner. The final decision
 must weigh quality, latency, API spend, GPU usage and operational constraints together.
 
-## 13. Privacy and egress rules
+## 13. GPT-5.6 semantic judgment protocol
 
-The Drive corpus access level and provider egress permission are not assumed. Until the pending
-egress decision is resolved, this batch performs local schema validation and synthetic tests
-only. Private evaluation files and run records remain outside Git.
+Answer meaning is judged directly by ChatGPT `gpt-5.6-sol`; no repository function may infer
+correctness, completeness, faithfulness, citation quality or abstention quality from lexical,
+regex or embedding similarity. Such values may remain visible only as `diagnostic_only`.
+
+For each answer case the judge reads the private question, reference answer and required facts,
+the actual model answer or abstention, the retrieved context and cited/expected evidence. It
+records the rubric version/hash, case hash, run-record hash, exact judge-input hash, model ID,
+decision, component scores, confidence and a concise rationale in a private judgment JSONL. Code may validate this closed
+record, check hashes and aggregate its supplied scores; code does not create or revise the
+semantic decision.
+
+Judgment order is fixed:
+
+1. execute the candidate stack on the frozen question set
+2. persist the exact candidate transcript, answer/status, citations and retrieved evidence
+3. hash and close the candidate run record
+4. give the closed record plus frozen gold/evidence to GPT-5.6 Sol
+5. persist the Sol judgment separately and aggregate without rewriting the candidate record
+
+The candidate may be Mini, Nano, another API model or a local model. Candidate identity is hidden from
+the judge where feasible and never changes the rubric.
+
+The semantic reviewer receives only an opaque `blind_id`, a signed judge-input hash and a
+non-identifying `question_kind` with the review content. Case IDs, source execution lanes and
+candidate lineage stay exclusively in the private local merge envelope; local code restores them
+only after validating the opaque binding.
+
+Primary review may use deterministic blind-row slices. Secondary review receives only the
+locally computed primary-trigger subset and no prior judgment content. Adjudication receives a
+closed non-identifying packet containing the original blind row and the hash/config-validated
+primary and secondary blind decisions. The exact visible input and returned decision for every
+role are sealed atomically at mode `0600` in a hash-bound private review-history artifact.
+
+Only prospectively persisted, runtime-exact candidate transcripts are eligible for a Version 1.2
+comparison score. Post-hoc reconstructed transcripts and records with unavailable or elided final
+answers remain legacy diagnostics and must be re-executed before scoring in this series. In
+particular, `supplemental-provisional-v1` used `gpt-5-mini`, reconstructed all 69 transcripts after
+execution and lacks the exact final answer for 30 records. The current Mini 131 completion may reuse
+only its 39 exact answers as a clearly labelled mixed-lineage provisional diagnostic; the other 90
+RAG answers are prospectively rerun. It is not a fully prospective Version 1.2 baseline.
+
+The primary semantic judge is `gpt-5.6-sol`. A second independent `gpt-5.6-sol` judgment is
+required when the primary returns `needs_review`, low confidence, or a boundary score. Retrieval rank, set overlap, latency, usage and cost remain
+deterministic metrics because they are exact measurements rather than semantic judgments.
+
+Gold/qrel approval and generated-run quality are separate contracts. A gold-review decision
+binds to the case only. An answer-quality judgment binds to the case, generated run and exact
+evidence bundle, and must never approve, edit or replace the gold asset.
+
+The frozen scoring details are in `evaluation/rubric.md`. Raw questions, gold answers, source
+text, generated answers and rationales stay under ignored private evaluation paths. Public
+artifacts contain aggregate counts, scores and hashes only.
+
+### 13.1 Lane-specific deterministic metrics
+
+Deterministic code may calculate facts that do not require semantic interpretation:
+
+- conditional/all-list cases compare the complete `selected_doc_ids` set using Precision,
+  Recall, F1 and exact match; chat Top-k, context size, citation count and the UI 20-document
+  selection limit must not truncate this scoring response
+- the current 13 list cases contain at most 12 gold documents; inability to return the complete
+  set is recorded as a candidate capability failure, not attributed to the UI limit
+- list metrics do not replace the required candidate natural-language answer or Sol judgment;
+  missing prose/transcript leaves the RAG case `unjudged`
+- analytics cases compare required numeric fields by exact match or frozen tolerance; GPT-5.6 Sol
+  judges the recorded natural-language explanation, not the arithmetic produced by code
+- a deterministic analytics result without the candidate explanation is capability evidence, not
+  a completed end-to-end RAG score
+- the two legacy fallback cases now verify the current invariant—pinned `rhwp` extraction succeeds,
+  block files match the manifest and both documents are indexable. Obsolete pyhwp/native fallback
+  activation is not claimed or scored; ETL PASS/FAIL remains outside the 129-case RAG semantic mean
+
+Set and numeric measurements supplement the fixed Sol judgment and never act as a rule-based
+substitute for semantic correctness. Parser PASS/FAIL is a separate ETL lane rather than a
+semantic companion metric.
+
+## 14. Privacy and egress rules
+
+Baseline generation egress follows the destination/payload/cost approval recorded for that
+run. Direct ChatGPT GPT-5.6 judgment is authorized for this evaluation contract and operates on
+private local artifacts. Private evaluation files and run records remain outside Git.
 
 Questions, gold answers and reviewer notes must be redacted before publication. Public artifacts
 may contain schemas, code, hashes, aggregate metrics and synthetic examples, but not raw excerpts,
 PII, source-level chunks or answer traces that reconstruct restricted material.
 
-## 14. Failure behavior
+## 15. Failure behavior
 
 - invalid JSONL, schema violations or split leakage return a non-zero exit code
 - score reports record missing/duplicate runs and response-contract violations

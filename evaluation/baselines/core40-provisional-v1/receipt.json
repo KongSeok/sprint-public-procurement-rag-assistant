@@ -1,0 +1,82 @@
+{
+  "aggregate_metrics": {
+    "operations": {
+      "latency_generation_p50_ms": 2805.865125,
+      "latency_generation_p95_ms": 14916.78875,
+      "latency_retrieval_p50_ms": 170.263542,
+      "latency_total_p50_ms": 3031.707417,
+      "latency_total_p95_ms": 15026.294583,
+      "mean_query_cost_usd": 0.001339,
+      "query_cache_hit_rate": 0.05,
+      "total_query_cost_usd": 0.05356498
+    },
+    "response_behavior_unjudged": {
+      "answerable_false_abstain_rate": 0.1,
+      "response_contract_error_rate": 0.0,
+      "status_counts": {
+        "abstained": 10,
+        "answered": 28,
+        "error": 2
+      },
+      "unknown_abstention_rate": 0.7
+    },
+    "retrieval": {
+      "all_required_docs_recalled_at_1": 0.0,
+      "all_required_docs_recalled_at_10": 1.0,
+      "all_required_docs_recalled_at_3": 1.0,
+      "all_required_docs_recalled_at_5": 1.0,
+      "document_recall_at_1": 0.833333,
+      "document_recall_at_10": 1.0,
+      "document_recall_at_3": 1.0,
+      "document_recall_at_5": 1.0,
+      "mrr_at_10": 1.0,
+      "ndcg_at_10": 0.994648,
+      "source_block_recall_at_1": 0.545556,
+      "source_block_recall_at_10": 0.798889,
+      "source_block_recall_at_3": 0.672778,
+      "source_block_recall_at_5": 0.740556
+    },
+    "structural_citations_unjudged": {
+      "answered_mean_citation_count": 1.857143,
+      "citation_context_membership_rate": 1.0,
+      "cited_gold_evidence_block_id_coverage": 0.683889,
+      "cited_required_doc_id_coverage": 0.833333
+    }
+  },
+  "artifact_sha256s": {
+    "chat_transcripts": "8c40e3765e0297092601599658cc80e52b66f7c939df03545a1fa90f5e9bdb2d",
+    "private_summary": "11bb573f4883b2a5c06aa4065441c8ace6edee647dd9862a742d8b88a728297a",
+    "run_records": "c84f3c5e0c35702c8e80d4153f8e42b43ed2984a1850cffdf56cfb76ee7a6cd1"
+  },
+  "baseline_id": "core40-provisional-v1",
+  "config_sha256": "e4a960f524028acd76d4f3c6cc28683b5d29b97c55cfdf7d858d01b42d729ada",
+  "counts": {
+    "completed": 40,
+    "remaining": 0,
+    "total": 40
+  },
+  "eval_set_sha256": "0f2df1d9c3fdc5b4d03f6d1aafab9529281bc85ddfab308d25298b033f4b54b6",
+  "evaluation_tier": "provisional",
+  "official_gold_ready": false,
+  "passed": true,
+  "private_artifact_contents_exposed": false,
+  "provider_budget": {
+    "breached": false,
+    "committed_usd": 0.04381973,
+    "limit_usd": 2.0,
+    "reserved_usd": 0.00974525
+  },
+  "runtime_contract_amendment": {
+    "failed_case_count": 2,
+    "failed_cases_retried": false,
+    "provider_attempts_preserved": true,
+    "provider_retries": 0,
+    "recovery_audit_count": 2,
+    "recovery_audit_sha256": "356aa506d6b6f3eed773515a2d28793f3c3256a0b0b79bd76238fa23db27b176",
+    "recovery_code_amendment_id": "core40-mixed-runtime-recovery-v1",
+    "reserved_uncertain_usd": 0.00974525,
+    "source_runtime_contract_sha256": "ba7a727a6eba77ce41f2f70fc332ec5749c39f8abf51dfa49dabd4550817d987",
+    "target_runtime_contract_sha256": "179b0411c588d9a2a173b28d1da27755e575ef3434e7872ed739eb3c85a08065"
+  },
+  "schema_version": "1.0"
+}

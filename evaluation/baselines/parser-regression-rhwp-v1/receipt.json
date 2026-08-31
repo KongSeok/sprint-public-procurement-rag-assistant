@@ -1,0 +1,76 @@
+{
+  "artifacts": {
+    "config_sha256": "f8853d9f76919cd44a40fd08610cf091509052451834a40f149951024082cfdd",
+    "manifest_sha256": "6c91d30a4c01b12f1aae8924c88a2e5055446c841f5eabfbf687546fdc1fe1cb"
+  },
+  "baseline_id": "parser-regression-rhwp-v1",
+  "cases": [
+    {
+      "case_id": "C21",
+      "checks": {
+        "block_count_match": true,
+        "block_file_count_match": true,
+        "block_file_present": true,
+        "error_absent": true,
+        "extractor_match": true,
+        "index_eligible_match": true,
+        "input_sha256_match": true,
+        "manifest_row_present": true,
+        "page_count_match": true,
+        "primary_text_chars_match": true,
+        "status_match": true
+      },
+      "doc_id": "doc_5303c7b91b4746918a88d89b",
+      "observed": {
+        "block_count": 304,
+        "block_file_sha256": "ee44d8fecb762b1945a7462952b83342488de3cdbd5c6dcc6bc89adcd3b909c9",
+        "extractor": "rhwp",
+        "index_eligible": true,
+        "page_count": 135,
+        "primary_text_chars": 112440,
+        "status": "ok"
+      },
+      "passed": true
+    },
+    {
+      "case_id": "C22",
+      "checks": {
+        "block_count_match": true,
+        "block_file_count_match": true,
+        "block_file_present": true,
+        "error_absent": true,
+        "extractor_match": true,
+        "index_eligible_match": true,
+        "input_sha256_match": true,
+        "manifest_row_present": true,
+        "page_count_match": true,
+        "primary_text_chars_match": true,
+        "status_match": true
+      },
+      "doc_id": "doc_606018d2db1986427b3a8c83",
+      "observed": {
+        "block_count": 183,
+        "block_file_sha256": "cfe6c534910de38b59d4100c818c2892bbf3ec8c37c2ced467f03d36a740cac1",
+        "extractor": "rhwp",
+        "index_eligible": true,
+        "page_count": 75,
+        "primary_text_chars": 67312,
+        "status": "ok"
+      },
+      "passed": true
+    }
+  ],
+  "counts": {
+    "failed": 0,
+    "passed": 2,
+    "total": 2
+  },
+  "passed": true,
+  "schema_version": "1.0",
+  "scoring_contract": {
+    "current_invariant": "canonical_rhwp_extraction_and_indexability",
+    "lane": "deterministic_etl_regression",
+    "legacy_fallback_activation_scored": false,
+    "semantic_judge_required": false
+  }
+}

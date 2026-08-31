@@ -1,0 +1,103 @@
+{
+  "schema_version": "1.0",
+  "baseline_id": "core40-provisional-v1",
+  "evaluation_tier": "provisional",
+  "expected_counts": {
+    "single_doc": 10,
+    "multi_doc_compare": 10,
+    "follow_up": 10,
+    "unknown": 10,
+    "total": 40
+  },
+  "artifacts": {
+    "cases": "golden-set-final/dev.refined.review-candidate.jsonl",
+    "cases_file_sha256": "abb1b0b5b4ce6aa85d98e91c7b5cefd6f76f98a4b68fef2c1f534768028fae80",
+    "cases_dataset_sha256": "0f2df1d9c3fdc5b4d03f6d1aafab9529281bc85ddfab308d25298b033f4b54b6",
+    "cases_jsonl_canonical_sha256": "e5056e7e4e4eeeccf1c7a90a9ad162050f379beeabefaffbbe611d1ed2c7dde9",
+    "manifest": "resources/data_refined/private/manifest.extracted.jsonl",
+    "manifest_sha256": "6c91d30a4c01b12f1aae8924c88a2e5055446c841f5eabfbf687546fdc1fe1cb",
+    "chunks": "resources/data_refined/private/chunks.page-v1.jsonl",
+    "chunks_sha256": "bb82b593153a93f9373f0bdf7f5be7531e651fdab9c5df36b69d53df0a35b9a2",
+    "index_dir": "resources/data_refined/private/indexes/api/personal_experimental/text-embedding-3-small-1536",
+    "index_metadata_sha256": "57849491470f389a581656ed32ac21fc1be2693ca101a523f3126cdb5af23e94",
+    "index_config_file_sha256": "cedb53499e3d3b7dc5df0150019f27999dcfc02379e0d476b845a4117743beb7",
+    "tiktoken_cache_dir": "resources/data_refined/private/tiktoken-cache"
+  },
+  "runtime": {
+    "api_profile": "personal_experimental",
+    "embedding_model": "text-embedding-3-small",
+    "embedding_dimensions": 1536,
+    "generator_model": "gpt-5-mini",
+    "openai_max_retries": 0,
+    "retrieval_top_k": 10,
+    "context_top_k": 5,
+    "max_citations": 3,
+    "max_output_tokens": 2000,
+    "reasoning_effort": "minimal",
+    "case_interval_seconds": 0.5,
+    "budget_limit_usd": 2.0,
+    "git_commit": "uncommitted"
+  },
+  "execution_contract": {
+    "provider_execution": "explicit_approval_required",
+    "external_destination": "OpenAI API",
+    "external_payload_classes": [
+      "golden_set_questions",
+      "conversation_history",
+      "retrieved_rfp_excerpts"
+    ],
+    "explicit_egress_approval_required": true,
+    "provider_attempt_policy": {
+      "openai_sdk_max_retries": 0,
+      "maximum_attempts_per_case": 1,
+      "maximum_suite_calls": 80
+    },
+    "resume_policy": {
+      "unit": "case",
+      "case_identity_field": "case_id",
+      "checkpoint_identity_fields": [
+        "cases_dataset_sha256",
+        "config_sha256",
+        "manifest_sha256",
+        "index_metadata_sha256"
+      ],
+      "checkpoint": "atomic_private_json_after_each_case",
+      "completed_cases_are_reused": true,
+      "started_only_case_requires_budget_audit": true,
+      "reject_mismatched_hashes": true
+    },
+    "private_output_policy": {
+      "directory_mode": "0700",
+      "file_mode": "0600",
+      "run_records": "evaluation/private/",
+      "chat_transcripts": "evaluation/private/",
+      "tracked_receipts_must_exclude": [
+        "questions",
+        "answers",
+        "conversation_history",
+        "source_text",
+        "provider_request",
+        "provider_response"
+      ]
+    },
+    "transcript_contract": {
+      "capture_time": "prospective_runtime",
+      "request": "exact",
+      "retrieval_query": "exact",
+      "selected_context_with_source_text": "exact",
+      "generation_provider_arguments": "exact",
+      "generation_provider_response": "full_model_dump_when_available",
+      "assistant_structured_plan": "exact",
+      "assistant_final_response": "exact",
+      "embedding_vectors": "omitted_with_sha256",
+      "usage_timing_errors": "exact_available_runtime_values"
+    }
+  },
+  "outputs": {
+    "run_records": "evaluation/private/core40/runs/provisional-v1/run-records.jsonl",
+    "chat_transcripts": "evaluation/private/core40/runs/provisional-v1/chat-transcripts.jsonl",
+    "private_summary": "evaluation/private/core40/runs/provisional-v1/summary.json",
+    "preflight_receipt": "evaluation/baselines/core40-provisional-v1/preflight-receipt.json",
+    "receipt": "evaluation/baselines/core40-provisional-v1/receipt.json"
+  }
+}

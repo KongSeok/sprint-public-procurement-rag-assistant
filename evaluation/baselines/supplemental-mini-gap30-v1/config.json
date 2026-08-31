@@ -1,0 +1,105 @@
+{
+  "schema_version": "1.0",
+  "baseline_id": "supplemental-mini-gap30-v1",
+  "evaluation_tier": "provisional",
+  "expected_counts": {
+    "answer": 17,
+    "set": 13,
+    "total": 30
+  },
+  "artifacts": {
+    "answer_cases": "evaluation/private/supplemental/build-v1/rag-56.draft.jsonl",
+    "answer_cases_sha256": "29325e96483e8c29f41fc42df9fa279ba02dcd9b8ff8cdaf4309f3a75ae217cb",
+    "set_cases": "evaluation/private/supplemental/build-v1/set-13.draft.jsonl",
+    "set_cases_sha256": "e96727baac3180d5bc65d4fd964bbdc47111a5e8abc542b6e1d8e609336f6f2c",
+    "legacy_answer_runs": "evaluation/private/supplemental/runs/provisional-v1/answer-56.runs.jsonl",
+    "legacy_answer_runs_sha256": "5aa8a4b5d81e9b94e851aa163040cbd497e7f69444db5d4df1b4b1f9edacf9eb",
+    "legacy_chat_transcripts": "evaluation/private/supplemental/runs/provisional-v1/chat-transcripts.jsonl",
+    "legacy_chat_transcripts_sha256": "37c48362e0098a4654dd0d806927f5587260335a1bdd8ca3012f355cc0633187",
+    "manifest": "resources/data_refined/private/manifest.extracted.jsonl",
+    "manifest_sha256": "6c91d30a4c01b12f1aae8924c88a2e5055446c841f5eabfbf687546fdc1fe1cb",
+    "chunks": "resources/data_refined/private/chunks.page-v1.jsonl",
+    "chunks_sha256": "bb82b593153a93f9373f0bdf7f5be7531e651fdab9c5df36b69d53df0a35b9a2",
+    "index_dir": "resources/data_refined/private/indexes/api/personal_experimental/text-embedding-3-small-1536",
+    "index_metadata_sha256": "57849491470f389a581656ed32ac21fc1be2693ca101a523f3126cdb5af23e94",
+    "index_config_file_sha256": "cedb53499e3d3b7dc5df0150019f27999dcfc02379e0d476b845a4117743beb7",
+    "tiktoken_cache_dir": "resources/data_refined/private/tiktoken-cache",
+    "legacy_query_cache_dir": "evaluation/private/supplemental/runs/provisional-v1/query-cache"
+  },
+  "runtime": {
+    "api_profile": "personal_experimental",
+    "embedding_model": "text-embedding-3-small",
+    "embedding_dimensions": 1536,
+    "generator_model": "gpt-5-mini",
+    "openai_max_retries": 0,
+    "answer_retrieval_top_k": 10,
+    "answer_context_top_k": 5,
+    "answer_max_citations": 3,
+    "answer_max_output_tokens": 2000,
+    "set_max_output_tokens": 2500,
+    "set_catalog_document_count": 98,
+    "reasoning_effort": "minimal",
+    "case_interval_seconds": 0.5,
+    "per_call_reservation_usd": 0.025,
+    "budget_limit_usd": 1.0
+  },
+  "catalog_limits": {
+    "project_name": 180,
+    "ordering_agency": 120,
+    "project_amount": 64,
+    "date": 40,
+    "project_summary": 320
+  },
+  "execution_contract": {
+    "provider_execution": "explicit_approval_required",
+    "external_destination": "OpenAI API",
+    "external_payload_classes": [
+      "golden_set_questions",
+      "retrieved_rfp_excerpts_answer_lane",
+      "bounded_98_document_manifest_catalog_set_lane"
+    ],
+    "explicit_egress_approval_required": true,
+    "legacy_inputs": "hash_pinned_read_only",
+    "provider_attempt_policy": {
+      "openai_sdk_max_retries": 0,
+      "maximum_attempts_per_case": 1,
+      "maximum_suite_calls": 30
+    },
+    "answer_lane": {
+      "case_selector": "exact_17_missing_final_abstention_text_ids",
+      "retrieval": "refined98_page_v1_exact_dense",
+      "query_vectors": "verified_legacy_cache_reuse_only",
+      "generation": "gpt-5-mini"
+    },
+    "set_lane": {
+      "case_count": 13,
+      "candidate_input": "complete_bounded_98_document_manifest_catalog",
+      "gold_required_doc_ids_in_prompt": false,
+      "top_k_cap": null,
+      "ui_document_cap": null,
+      "response": "complete_selected_doc_ids_plus_answer_and_citations"
+    },
+    "resume_policy": {
+      "unit": "case",
+      "checkpoint": "atomic_private_json_after_each_case",
+      "completed_cases_are_reused": true,
+      "started_or_interrupted_case_requires_budget_audit": true,
+      "reject_mismatched_hashes": true
+    },
+    "private_output_policy": {
+      "directory_mode": "0700",
+      "file_mode": "0600",
+      "new_run_directory_only": true,
+      "exact_provider_arguments_and_response": true,
+      "exact_final_answer": true
+    }
+  },
+  "outputs": {
+    "answer_runs": "evaluation/private/supplemental/runs/mini-gap30-v1/answer-17.runs.jsonl",
+    "set_runs": "evaluation/private/supplemental/runs/mini-gap30-v1/set-13.runs.jsonl",
+    "chat_transcripts": "evaluation/private/supplemental/runs/mini-gap30-v1/chat-transcripts.jsonl",
+    "private_summary": "evaluation/private/supplemental/runs/mini-gap30-v1/summary.json",
+    "preflight_receipt": "evaluation/baselines/supplemental-mini-gap30-v1/preflight-receipt.json",
+    "receipt": "evaluation/baselines/supplemental-mini-gap30-v1/receipt.json"
+  }
+}

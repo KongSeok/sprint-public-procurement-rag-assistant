@@ -1,0 +1,40 @@
+{
+  "schema_version": "1.0",
+  "baseline_id": "parser-regression-rhwp-v1",
+  "contract": {
+    "current_invariant": "canonical_rhwp_extraction_and_indexability",
+    "legacy_fallback_activation_scored": false,
+    "semantic_judge_required": false
+  },
+  "artifacts": {
+    "manifest": "resources/data_refined/private/manifest.extracted.jsonl",
+    "manifest_sha256": "6c91d30a4c01b12f1aae8924c88a2e5055446c841f5eabfbf687546fdc1fe1cb"
+  },
+  "cases": [
+    {
+      "case_id": "C21",
+      "doc_id": "doc_5303c7b91b4746918a88d89b",
+      "input_sha256": "2da2ab6bf3e574d94b542f4c6fbd6f993faa56c46ae70bf8273448b817336484",
+      "expected_extractor": "rhwp",
+      "expected_status": "ok",
+      "expected_index_eligible": true,
+      "expected_block_count": 304,
+      "expected_primary_text_chars": 112440,
+      "expected_page_count": 135
+    },
+    {
+      "case_id": "C22",
+      "doc_id": "doc_606018d2db1986427b3a8c83",
+      "input_sha256": "8e54cc1a59fc0581c0bf955a12823a19ab8b9a6a8a0c24a8cac20499c4b1cc5b",
+      "expected_extractor": "rhwp",
+      "expected_status": "ok",
+      "expected_index_eligible": true,
+      "expected_block_count": 183,
+      "expected_primary_text_chars": 67312,
+      "expected_page_count": 75
+    }
+  ],
+  "outputs": {
+    "receipt": "evaluation/baselines/parser-regression-rhwp-v1/receipt.json"
+  }
+}

@@ -1,0 +1,111 @@
+{
+  "answer_score": {
+    "counts": {
+      "cases": 56,
+      "retrieval_eligible": 54,
+      "runs": 56,
+      "runtime_errors": 0,
+      "scored": 56
+    },
+    "error_count": 0,
+    "evaluation_tier": "provisional",
+    "metric_coverage": {
+      "abstention": 56,
+      "citation": 54,
+      "human_answer_quality": 0,
+      "lexical_fact": 39,
+      "retrieval": 54
+    },
+    "metrics": {
+      "abstention_behavior_match": 0.732143,
+      "document_recall_at_1": 0.753086,
+      "document_recall_at_10": 0.845679,
+      "document_recall_at_3": 0.808642,
+      "document_recall_at_5": 0.845679,
+      "lexical_required_fact_coverage": 0.280769,
+      "mean_total_latency_ms": 3709.149392,
+      "mrr_at_10": 0.824691,
+      "ndcg_at_10": 0.811461,
+      "required_doc_citation_coverage": 0.472222,
+      "response_error_rate": 0.0,
+      "total_cost_usd": 0.05369765
+    },
+    "official_gold_ready": false,
+    "passed": true,
+    "suite_complete": true
+  },
+  "artifact_sha256s": {
+    "answer_cases": "29325e96483e8c29f41fc42df9fa279ba02dcd9b8ff8cdaf4309f3a75ae217cb",
+    "answer_runs": "5aa8a4b5d81e9b94e851aa163040cbd497e7f69444db5d4df1b4b1f9edacf9eb",
+    "chat_transcripts": "37c48362e0098a4654dd0d806927f5587260335a1bdd8ca3012f355cc0633187",
+    "chunks": "bb82b593153a93f9373f0bdf7f5be7531e651fdab9c5df36b69d53df0a35b9a2",
+    "index_metadata": "57849491470f389a581656ed32ac21fc1be2693ca101a523f3126cdb5af23e94",
+    "manifest": "6c91d30a4c01b12f1aae8924c88a2e5055446c841f5eabfbf687546fdc1fe1cb",
+    "set_cases": "e96727baac3180d5bc65d4fd964bbdc47111a5e8abc542b6e1d8e609336f6f2c",
+    "set_runs": "1aaf3b90ba32d90cbe07bed1cd93615944330a764c0a737235b49c27dce32044"
+  },
+  "baseline_id": "supplemental-provisional-v1",
+  "config_sha256": "8b2a95e6718ac5f4dbb8f4e4e17d198ef4bb4b3d23d55a8f111a3e035df99c3a",
+  "counts": {
+    "answer_cases": 56,
+    "chat_transcripts": 69,
+    "chat_transcripts_answers_unavailable_or_elided": 30,
+    "chat_transcripts_exact_persisted_answers": 39,
+    "chat_transcripts_posthoc_reconstructed": 69,
+    "chat_transcripts_runtime_exact": 0,
+    "set_cases": 13,
+    "total_cases": 69
+  },
+  "evaluation_tier": "provisional",
+  "official_gold_ready": false,
+  "passed": true,
+  "privacy": {
+    "contains_answers": false,
+    "contains_questions": false,
+    "contains_source_text": false,
+    "private_run_records_tracked": false
+  },
+  "provider_budget": {
+    "breached": false,
+    "committed_usd": 0.06883836,
+    "limit_usd": 2.0,
+    "reserved_usd": 0.0
+  },
+  "runtime": {
+    "api_profile": "personal_experimental",
+    "budget_limit_usd": 2.0,
+    "case_interval_seconds": 0.5,
+    "context_top_k": 5,
+    "embedding_dimensions": 1536,
+    "embedding_model": "text-embedding-3-small",
+    "generator_model": "gpt-5-mini",
+    "max_citations": 3,
+    "max_output_tokens": 2000,
+    "reasoning_effort": "minimal",
+    "retrieval_top_k": 10
+  },
+  "schema_version": "1.0",
+  "set_score": {
+    "counts": {
+      "cases": 13,
+      "runs": 13,
+      "scored": 13
+    },
+    "error_count": 0,
+    "evaluation_tier": "provisional",
+    "metric_coverage": null,
+    "metrics": {
+      "count_accuracy": 0.0,
+      "exact_set_match": 0.0,
+      "macro_f1": 0.232845,
+      "macro_precision": 0.205769,
+      "macro_recall": 0.516026,
+      "micro_f1": 0.20979,
+      "micro_precision": 0.16129,
+      "micro_recall": 0.3
+    },
+    "official_gold_ready": false,
+    "passed": true,
+    "suite_complete": true
+  }
+}

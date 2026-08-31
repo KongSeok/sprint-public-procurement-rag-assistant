@@ -1,0 +1,107 @@
+{
+  "schema_version": "1.0",
+  "baseline_id": "visual-eda-mini-prospective-v1",
+  "evaluation_tier": "provisional",
+  "expected_counts": {
+    "visual": 10,
+    "visual_table": 6,
+    "visual_figure": 4,
+    "visual_hwp": 5,
+    "visual_pdf": 5,
+    "analytics": 10,
+    "total": 20
+  },
+  "artifacts": {
+    "visual_cases": "golden-set-final/document-structure-visual-qa.jsonl",
+    "visual_cases_sha256": "949bba9e2afa4d8e34345edacaf5014234070734cdd626ba1f4d4448bc9f9756",
+    "analytics_cases": "golden-set-final/corpus-analytics-qa.jsonl",
+    "analytics_cases_sha256": "e2324fea2cac26520ba371183675f933ab997b0ff5d54c796a608f6f44c37c2f",
+    "analytics_calculations": "evaluation/private/corpus-analytics/corpus-analytics-deterministic-v1/case-results.jsonl",
+    "analytics_calculations_sha256": "4c24b3929050fc150768153320ca413e27f9738c8b5a40f5042f888a3626d35c",
+    "manifest": "resources/data_refined/private/manifest.extracted.jsonl",
+    "manifest_sha256": "6c91d30a4c01b12f1aae8924c88a2e5055446c841f5eabfbf687546fdc1fe1cb",
+    "page_chunks": "resources/data_refined/private/chunks.page-v1.jsonl",
+    "page_chunks_sha256": "bb82b593153a93f9373f0bdf7f5be7531e651fdab9c5df36b69d53df0a35b9a2",
+    "page_index_dir": "resources/data_refined/private/indexes/api/personal_experimental/text-embedding-3-small-1536",
+    "page_index_metadata_sha256": "57849491470f389a581656ed32ac21fc1be2693ca101a523f3126cdb5af23e94",
+    "page_index_config_sha256": "cedb53499e3d3b7dc5df0150019f27999dcfc02379e0d476b845a4117743beb7",
+    "tiktoken_cache_dir": "resources/data_refined/private/tiktoken-cache"
+  },
+  "runtime": {
+    "api_profile": "personal_experimental",
+    "embedding_model": "text-embedding-3-small",
+    "embedding_dimensions": 1536,
+    "generator_model": "gpt-5-mini",
+    "retrieval_top_k": 10,
+    "context_top_k": 5,
+    "max_citations": 3,
+    "max_output_tokens": 1200,
+    "reasoning_effort": "minimal",
+    "openai_max_retries": 0,
+    "case_interval_seconds": 0.5,
+    "budget_limit_usd": 1.0,
+    "git_commit": "uncommitted"
+  },
+  "execution_contract": {
+    "provider_execution": "explicit_approval_required",
+    "external_destination": "OpenAI API",
+    "external_payload_classes": [
+      "golden_set_questions",
+      "retrieved_refined98_page_excerpts",
+      "deterministic_analytics_computed_evidence"
+    ],
+    "explicit_egress_approval_required": true,
+    "provider_attempt_policy": {
+      "sdk_max_retries": 0,
+      "maximum_attempts_per_case": 1,
+      "maximum_suite_calls": 30
+    },
+    "gold_leakage_policy": {
+      "visual_gold_sent_to_provider": false,
+      "analytics_gold_expected_sent_to_provider": false,
+      "reference_answer_sent_to_provider": false
+    },
+    "visual_capability_contract": {
+      "retrieval": "frozen_refined98_page_v1_dense_only",
+      "table_lane": false,
+      "ocr": false,
+      "caption": false,
+      "image_or_crop_input": false
+    },
+    "resume_policy": {
+      "unit": "case",
+      "checkpoint": "atomic_private_json_after_each_case",
+      "completed_cases_are_reused": true,
+      "started_only_case_requires_budget_audit": true,
+      "reject_mismatched_hashes": true
+    },
+    "private_output_policy": {
+      "directory_mode": "0700",
+      "file_mode": "0600",
+      "tracked_receipts_must_exclude": [
+        "questions",
+        "answers",
+        "source_text",
+        "provider_request",
+        "provider_response",
+        "computed_values"
+      ]
+    },
+    "transcript_contract": {
+      "capture_time": "prospective_runtime",
+      "provider_arguments": "exact",
+      "provider_response": "full_model_dump_when_available",
+      "assistant_final_answer": "exact",
+      "visual_retrieval_page_object_companion": "exact",
+      "analytics_numeric_companion": "exact",
+      "embedding_vectors": "omitted_with_sha256"
+    }
+  },
+  "outputs": {
+    "run_records": "evaluation/private/visual-eda-mini/runs/prospective-v1/run-records.jsonl",
+    "chat_transcripts": "evaluation/private/visual-eda-mini/runs/prospective-v1/chat-transcripts.jsonl",
+    "private_summary": "evaluation/private/visual-eda-mini/runs/prospective-v1/summary.json",
+    "preflight_receipt": "evaluation/baselines/visual-eda-mini-prospective-v1/preflight-receipt.json",
+    "receipt": "evaluation/baselines/visual-eda-mini-prospective-v1/receipt.json"
+  }
+}

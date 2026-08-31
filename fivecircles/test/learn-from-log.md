@@ -54,6 +54,10 @@ Review this file before implementation and test execution.
 - A local server started outside the managed sandbox may require the matching approved loopback environment for health checks; do not interpret the isolated namespace refusal as an application outage.
 - For Streamlit BaseWeb radio/checkbox controls, click the visible text or enclosing label and verify checked state; forced clicks on the underlying input may not commit controlled state.
 - If a managed external-egress gate requests renewed destination-specific private-corpus consent, stop before provider execution and leave the live smoke approval-pending rather than retrying indirectly.
+- Treat private-corpus egress consent as batch-specific: enumerate destination, exact payload classes, provider-call ceiling and USD hard cap; an earlier smoke approval never carries forward implicitly.
+- If any provider request was attempted and the candidate result ends in `error`, persist an interrupted checkpoint and require a manual budget audit even when the HTTP response itself was successful.
+- Give the semantic judge only an opaque blind-input artifact; keep case ID, candidate lineage and execution lane in a separate merge envelope bound by SHA-256.
+- In a shared multi-agent worktree, compare failing-file mtimes and diffs after a previously green full suite; do not repair or stage another active task's concurrent schema drift.
 - Separate live transport/contract success from answer-quality success: a schema-valid abstention proves the E2E path, while a cited answer still requires a known-answerable gold case.
 - Budget repeated table metadata together with Markdown rows; bound optional prefix fields before splitting oversized rows and never truncate canonical cell text to make a chunk fit.
 - Keep each chunking policy in its own lane config hash and assert existing page-v1 hash stability whenever adding a table-only rule.
@@ -78,6 +82,10 @@ Review this file before implementation and test execution.
 - A valid PNG hash and dimension do not prove usable visual evidence; composite alpha over the target background, reject semantic blanks, and visually compare representative crops with the source renderer.
 - When SVG data images are overlaid outside the SVG loader, preserve nested viewBox, rect clips and observed pixel effects; fail closed on unsupported transforms, masks, styles or filter forms.
 - Treat CSS selectors, hidden SVG ancestors and definition-only images as non-rendering structure; reject them unless the overlay compositor models their exact visibility and paint semantics.
+- When a provider attempt ends in an unknown transport state, preserve the exact attempt as `error`, do not retry under a no-retry baseline, and reserve the verified worst-case cost per affected case until billing is certain.
+- Treat reviewer-supplied timestamps as untrusted metadata. Preserve the original semantic decision, derive any ordering correction from an audited filesystem timestamp, and prove a semantic hash excluding the timestamp is unchanged before merge.
+- A chat-complete evaluation report must fail closed unless every RAG case has a source transcript and a complete primary/secondary/adjudicator history for every role that was triggered.
+- Tests that require ignored private artifacts must skip only those private integration cases when the artifacts are absent; keep synthetic contract tests mandatory and verify the staged clean-checkout snapshot separately.
 
 ## Confirmed Incidents
 
@@ -107,6 +115,9 @@ Review this file before implementation and test execution.
 - Visual integration contract gaps: `errorlogs/backend/2026-08-30-visual-integration-contract-gaps.md`
 - Flow report local-file browser policy: `errorlogs/frontend/2026-08-30-flow-report-file-url-policy.md`
 - Current-tree visual crop blank regression: `errorlogs/backend/2026-08-31-visual-crop-blank-regression.md`
+- Mini131 live provider recovery: `errorlogs/backend/2026-08-31-mini131-live-provider-recovery.md`
+- Mini131 judge timestamp ordering: `errorlogs/backend/2026-08-31-mini131-judge-timestamp-order.md`
+- Mini131 clean-checkout private fixture: `errorlogs/backend/2026-08-31-mini131-clean-checkout-private-fixture.md`
 
 - Batch 2 fail-closed audit: `errorlogs/backend/2026-08-24-evaluation-fail-closed-audit.md`
 - Synthetic/production floor split: `errorlogs/backend/2026-08-24-evaluation-fixture-floor.md`

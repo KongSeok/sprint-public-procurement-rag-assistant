@@ -1,0 +1,66 @@
+{
+  "baseline_id": "corpus-analytics-deterministic-v1",
+  "config_contract": {
+    "corpus_snapshot_id": "snapshot_f14ad7018fae2d3905c4e604",
+    "gold_review_status": "draft",
+    "suite_version": "2026-08-31-local-draft-v1"
+  },
+  "config_sha256": "87671e60056a883ba73b23b36c94c7adf8cd19c96d8816d2377ef1aa648607a7",
+  "counts": {
+    "cases_passed": 10,
+    "cases_total": 10,
+    "difficulty": {
+      "easy": 3,
+      "hard": 3,
+      "medium": 4
+    },
+    "difficulty_passed": {
+      "easy": 3,
+      "hard": 3,
+      "medium": 4
+    },
+    "fields_passed": 139,
+    "fields_total": 139,
+    "semantic_mismatches": 0
+  },
+  "executed_at": "2026-08-31T07:28:13.568931Z",
+  "input_sha256": {
+    "cases": "e2324fea2cac26520ba371183675f933ab997b0ff5d54c796a608f6f44c37c2f",
+    "categories": "968f8f9baf3449bce1985464ae1b800b73a5f70d3713b0172cb8736e0dbaecca",
+    "manifest": "6c91d30a4c01b12f1aae8924c88a2e5055446c841f5eabfbf687546fdc1fe1cb",
+    "refined_csv": "cef0a27602976af468206ad2fa855027cb6f686fc877a52ce8fb191c57cd7e5b",
+    "targets": "a6eaf98780c3efc314f3998a116c42960a5c518f5df1306bd72cc2c61587bf4e"
+  },
+  "metrics": {
+    "case_accuracy": 1.0,
+    "difficulty_accuracy": {
+      "easy": 1.0,
+      "hard": 1.0,
+      "medium": 1.0
+    },
+    "field_accuracy": 1.0,
+    "source_integrity_passed": true,
+    "target_set_integrity_passed": true
+  },
+  "operations": {
+    "external_provider_calls": 0,
+    "network_access": false,
+    "total_cost_usd": 0.0
+  },
+  "privacy": {
+    "contains_answers": false,
+    "contains_per_case_values": false,
+    "contains_questions": false
+  },
+  "private_artifacts": {
+    "case_results": {
+      "rows": 10,
+      "sha256": "4c24b3929050fc150768153320ca413e27f9738c8b5a40f5042f888a3626d35c"
+    },
+    "metrics": {
+      "sha256": "c53b0ae5ac48cccaf1418db250a37b32530220c492c8f69771c4ab8968dbffee"
+    }
+  },
+  "result_label": "provisional_draft_gold",
+  "schema_version": "1.0"
+}

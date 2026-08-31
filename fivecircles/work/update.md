@@ -527,3 +527,66 @@ This file summarizes recent updates so other agents can continue without re‑di
   `.metadata.json`에만 두고 질문·정답·문서명은 Git과 운영 로그에 기록하지 않았다.
 - 외부 API 호출 0회, `private_egress=false`다. source row verification을 상속한 EDA seed이며,
   strict evaluator schema 변환과 named human review 전에는 공식 평가 gold로 승격하지 않는다.
+
+## Addendum (2026-08-31) - supplemental 69 provisional baseline activation
+
+### Backend
+- 44/13/12를 56 answer+13 set draft로 만들고 11개 정정·사람 review·answer/set scorer를 고정했다.
+- small+mini top-10/context-5, atomic resume, content-free receipt와 명시적 OpenAI egress gate를 구현했다.
+
+### Tests
+- evaluation 83/83, 전체 546/546가 통과했다. (refs: 2026-08-26-actual-index-lock-sandbox.md)
+- private build는 byte 동일하고 provisional 69/69 PASS, official gate는 미승인 69건을 차단한다.
+
+## Addendum (2026-08-31) - LLM semantic review contract
+### Governance
+- 답변 의미 품질 판정을 코드 lexical flag에서 고정된 ChatGPT `gpt-5.6-sol` 직접 검수로 전환했다.
+### Tests
+- 리뷰 HTML 재생성 후 alignment-h16 false flag 제거, supplemental review 3 tests와 diff check PASS.
+
+## Addendum (2026-08-31) - GPT-5.6 direct supplemental baseline score
+
+### Evaluation
+- 답변형 56문항을 고정된 ChatGPT `gpt-5.6-sol`이 질문·기준답변·실제답변·검색근거·인용을
+  직접 읽어 판정했다. lexical/regex failure flag는 의미점수에서 제외했다.
+- 1차 56/56, 독립 2차 5건, 3차 판정 5건을 완료했다. 최종 평균은 46.70/100,
+  accepted 19, rejected 35, needs human 2로 품질 gate는 실패했다.
+- 의미 구성점수는 정확성 43.52%, 충실성 45.37%, 완전성 43.52%, 주장별 인용 커버리지
+  70.37%, 인용 타당성 42.59%다.
+
+### Diagnostics and privacy
+- 별도 검색 진단은 document Recall@5 84.57%, MRR@10 0.8247, set-13 Macro F1 23.28%,
+  exact set match 0%다. 기존 scorer의 `passed=true`는 구조·실행 통과이지 의미 품질 통과가 아니다.
+- 문항별 판정·사유·질문·답변은 ignored private JSONL/HTML에만 저장했다. 공개 영수증은 집계와
+  SHA-256만 포함한다.
+
+## Addendum (2026-08-31) - Mini131 frozen harness preflight
+
+### Backend
+- Mini 39+90, Sol 판정 이력, blind 입력, parser 2건과 동일 private HTML 계약을 고정했다.
+- 세 live preflight는 PASS이며 provider·corpus 재임베딩은 0회다.
+
+### Tests
+- parser 2/2, 평가 범위 90/90, 최초 전체 679/679와 syntax·diff check가 통과했다.
+- 이후 동시 변경된 visual schema fixture 1건만 전체 재실행에서 실패해 별도 로그로 분리했다.
+- 실제 90문항 실행·최종 점수·push는 명시적 OpenAI private-egress 승인 대기다.
+
+## Addendum (2026-08-31) - Mini131 integrated baseline completion
+
+### Live candidate and fixed judge
+- 사용자가 OpenAI 목적지·private payload·최대 140회·USD 4 상한을 승인한 뒤 Core40,
+  Gap30, Visual/EDA20을 `gpt-5-mini`로 완료했다. 기존 exact 39개는 별도 계보로 보존했다.
+- 후보 답변은 수정하지 않고 고정 `gpt-5.6-sol`/`gpt56-semantic-v2`가 RAG 129개를 판정했다.
+  primary 129, crossed secondary 13, fresh adjudicator 13의 입력·출력을 모두 private 기록에 남겼다.
+
+### Result and integrity
+- 평균 54.845/100, accepted 58, rejected 71, unresolved 0이며 parser C21/C22는 2/2 PASS다.
+- 후보 상태 answered 93·abstained 31·error 5, 총 비용 USD 0.21345322다. corpus vector
+  재임베딩은 0회이며 query embedding만 실행했다.
+- source transcript 129/129와 131개 HTML 카드를 확인했다. private JSONL/HTML은 0600,
+  공개 receipt는 0644이고 질문·답변·본문·case ID·provider payload를 포함하지 않는다.
+
+### Verification
+- Mini131 preflight `ready=true`, input 28/28, RAG 129/129.
+- evaluation 210/210, 전체 unittest 728/728, staged clean-checkout 614/614(비공개 artifact
+  통합 테스트 8개 expected skip), 최종 hash·권한·line count 검증 PASS.
