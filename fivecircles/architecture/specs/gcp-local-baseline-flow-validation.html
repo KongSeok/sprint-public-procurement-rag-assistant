@@ -20,7 +20,7 @@
 <body><main class="wrap">
   <h1>GCP Local Mini131 Baseline Flow Validation</h1>
   <p class="muted">refined98 · KURE · exact dense retrieval · Mac Qwen equivalent · GCP vLLM target · 2026-09-01</p>
-  <p class="verdict"><strong>Current closeout:</strong> RAG 129/129, parser 2/2, lane-complete deterministic receipt and the fresh Sol semantic aggregate are complete. Named human gold approval and live L4 telemetry are not closed. The result remains <code>mac_local_equivalent</code>, <code>official=false</code>, <code>passed=false</code> and provisional.</p>
+  <p class="verdict"><strong>Current closeout:</strong> RAG 129/129, parser 2/2, lane-complete deterministic receipt, fresh Sol semantic aggregate and the private 131-asset per-question performance report are complete. Named human gold approval and live L4 telemetry are not closed. The result remains <code>mac_local_equivalent</code>, <code>official=false</code>, <code>passed=false</code> and provisional.</p>
   <section class="legend" aria-label="Color semantics">
     <span class="green">implemented / validated</span><span class="blue">external model / comparison</span><span class="amber">private / blind / non-official</span><span class="red">blocked / gap / fail-closed</span><span class="gray">branch / helper</span>
   </section>
@@ -32,7 +32,7 @@
 
   <h2>Reviewer Visibility Boundary</h2>
   <p><code>candidate_output_visible_to_reviewer=false</code> hides the raw candidate artifact, file path, case ID and lineage metadata. The sanctioned hash-bound blind projection still exposes the answer/status, required chat context and retrieved/cited evidence needed to apply the frozen rubric.</p>
-  <p><a href="../../../evaluation/baselines/gcp-local-kure-qwen3-8b-awq-mini131-v1/mac-local-equivalent-semantic-receipt.json">Content-free public semantic receipt</a></p>
+  <p><a href="../../../evaluation/baselines/gcp-local-kure-qwen3-8b-awq-mini131-v1/mac-local-equivalent-semantic-receipt.json">Content-free public semantic receipt</a> · <a href="../../../evaluation/baselines/gcp-local-kure-qwen3-8b-awq-mini131-v1/mac-local-equivalent-performance-receipt.json">Content-free public per-question performance receipt</a></p>
 
   <h2>Target vs Current Gap</h2>
   <table id="gap-table"><thead><tr><th>ID</th><th>Node / edge</th><th>Status</th><th>Evidence / remaining gate</th></tr></thead><tbody>
@@ -44,9 +44,10 @@
     <tr><td>G6</td><td>Diagnostics → lane-complete receipt</td><td class="matched">MATCHED — remediated</td><td>Metric coverage complete: set count accuracy 0.538462; visual document/page Recall@10 1.0/0.6, object 0; analytics 10/10 and 139/139 comparisons pass. Map preflight is 5,094 tokens; the 102,687-token worst-case final stress probe is rejected before transport and is not a readiness gate.</td></tr>
     <tr><td>G7</td><td>Raw candidate → sanctioned blind projection</td><td class="matched">MATCHED — contract</td><td>Raw identity/lineage is hidden while rubric-required answer/status/chat/evidence is hash-bound.</td></tr>
     <tr><td>G8</td><td>Blind projection → fresh Sol aggregate</td><td class="matched">MATCHED — measured</td><td>Primary 129, secondary 4, adjudicator 3; accepted 88, rejected 41, acceptance 0.682171, mean 70.135659.</td></tr>
-    <tr><td>G9</td><td>Semantic aggregate + named human gold</td><td class="blocked">BLOCKED</td><td>The semantic ledger is complete but gold remains draft; named approval is required.</td></tr>
-    <tr><td>G10</td><td>Loopback vLLM → live L4 telemetry</td><td class="blocked">BLOCKED</td><td>Requires explicit VM authorization plus measured <code>gpu_seconds</code> and <code>peak_vram_gb</code>.</td></tr>
-    <tr><td>G11</td><td>Official GCP result → API↔GCP comparison</td><td class="blocked">BLOCKED</td><td>Requires valid same-hash <code>gcp_local</code> records; Mac evidence is rejected.</td></tr>
+    <tr><td>G9</td><td>Semantic aggregate → per-question gradebook + receipt</td><td class="matched">MATCHED — measured</td><td>129 RAG rows join question, expected result, actual answer, evidence, deterministic metrics and final Sol score/verdict/rationale; parser 2 rows remain separate. Difficulty is 41/48/40.</td></tr>
+    <tr><td>G10</td><td>Per-question evaluation + named human gold</td><td class="blocked">BLOCKED</td><td>Recording and provisional scoring are complete, but gold remains draft; named approval is required.</td></tr>
+    <tr><td>G11</td><td>Loopback vLLM → live L4 telemetry</td><td class="blocked">BLOCKED</td><td>Requires explicit VM authorization plus measured <code>gpu_seconds</code> and <code>peak_vram_gb</code>.</td></tr>
+    <tr><td>G12</td><td>Official GCP result → API↔GCP comparison</td><td class="blocked">BLOCKED</td><td>Requires valid same-hash <code>gcp_local</code> records; Mac evidence is rejected.</td></tr>
   </tbody></table>
 
   <h2>Done / Not Done Priority</h2>
@@ -54,9 +55,10 @@
     <tr><td>1</td><td>Mini131 candidate + parser execution</td><td>10</td><td class="matched">DONE — preserve 129 RAG terminal records, parser 2/2 and 6 measured errors</td></tr>
     <tr><td>2</td><td>Lane-complete deterministic scorer/receipt</td><td>9</td><td class="matched">DONE — metric coverage and global-set overflow policy validated</td></tr>
     <tr><td>3</td><td>Fresh Sol semantic aggregate</td><td>8</td><td class="matched">DONE — exact role counts and adjudication workflow validated</td></tr>
-    <tr><td>4</td><td>Named human gold approval</td><td>7</td><td class="blocked">BLOCKED — independent external review</td></tr>
-    <tr><td>5</td><td>Live Qwen3-8B-AWQ/vLLM L4 run</td><td>7</td><td class="blocked">BLOCKED — explicit authorization and complete telemetry</td></tr>
-    <tr><td>6</td><td>API↔GCP controlled comparison</td><td>6</td><td class="blocked">BLOCKED — depends on valid official GCP records</td></tr>
+    <tr><td>4</td><td>Per-question performance gradebook/report</td><td>8</td><td class="matched">DONE — 131 private records, exact hashes and content-free aggregate receipt</td></tr>
+    <tr><td>5</td><td>Named human gold approval</td><td>7</td><td class="blocked">BLOCKED — independent external review</td></tr>
+    <tr><td>6</td><td>Live Qwen3-8B-AWQ/vLLM L4 run</td><td>7</td><td class="blocked">BLOCKED — explicit authorization and complete telemetry</td></tr>
+    <tr><td>7</td><td>API↔GCP controlled comparison</td><td>6</td><td class="blocked">BLOCKED — depends on valid official GCP records</td></tr>
   </tbody></table>
 
   <h2>Scoring Criteria</h2>
@@ -66,10 +68,12 @@
   <ul id="validation-list">
     <li>Coverage readback is 129/129 RAG terminal candidates plus live parser C21/C22 at 2/2 PASS.</li>
     <li>The public report contains no question, answer, source text, case ID or reviewer rationale.</li>
+    <li>The private gradebook has 131 unique rows (129 RAG + parser 2), difficulty 41/48/40, semantic mean 70.135659, accepted/rejected 88/41 and parser 2/2 PASS.</li>
     <li>Metric-coverage and semantic-adjudication audit failures and resolutions are logged content-free under the backend error-log directory.</li>
     <li>Both Mermaid sources are rendered with <code>mmdc 11.15.0</code>, transparent background and scale 2.</li>
-    <li>Static QA checks two non-empty images, five valid local links, five legend items, 11 gap rows and 6 priority rows.</li>
+    <li>Static QA checks two non-empty images, six valid local links, five legend items, 12 gap rows and 7 priority rows.</li>
     <li>Browser QA stores screenshot evidence under <code>fivecircles/test/playwright-screenshots/</code>.</li>
     <li>The semantic aggregate is reported as provisional; no gold-approved score, official GCP telemetry or API↔GCP winner is claimed.</li>
+    <li>Flow diagram verification is PARTIAL: the Mac-local per-question evaluation path is matched; human approval and live GCP remain red gates.</li>
   </ul>
 </main></body></html>

@@ -24,7 +24,9 @@ flowchart TD
     RAW["raw candidate artifact / path / case ID / lineage"]:::red -. "not reviewer-visible" .-> BP
     BP --> SOL["fresh fixed-Sol review / primary 129 + secondary 4 + adjudicator 3"]:::blue
     SOL --> SEM["semantic aggregate complete / accepted 88 / rejected 41"]:::green
-    SEM --> FC["gold-approved semantic closeout / pending"]:::red
+    SEM --> PE["private per-question performance / 129 RAG + parser 2 / complete"]:::amber
+    PE --> PUB["content-free performance receipt / difficulty + purpose + lane aggregates"]:::green
+    PE --> FC["gold-approved semantic closeout / pending"]:::red
     H["named human gold approval / pending"]:::red --> FC
 
     K -. "contract-tested cloud adapter" .-> VA["loopback vLLM Qwen3-8B-AWQ / CPU FAISS"]:::green

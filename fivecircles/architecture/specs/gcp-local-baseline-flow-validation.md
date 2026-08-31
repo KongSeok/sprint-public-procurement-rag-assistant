@@ -4,7 +4,8 @@
 범위: refined98 page-only, KURE, exact dense retrieval, Mac Ollama Qwen equivalent, GCP Qwen3-8B-AWQ/vLLM target, Mini131 전체 자산
 
 현재 closeout은 **RAG 129/129 + parser 2/2, lane-complete 결정론 receipt, fresh Sol semantic
-aggregate 완료**를 뜻한다. Named human gold 승인과 live GCP telemetry는 아직 닫히지 않았으므로
+aggregate, 131개 문항별 private 성능평가 완료**를 뜻한다. Named human gold 승인과 live GCP
+telemetry는 아직 닫히지 않았으므로
 `mac_local_equivalent`, `official=false`, `passed=false`, provisional 경계를 유지한다.
 
 ## Target Flow
@@ -22,6 +23,7 @@ L4/vLLM/FAISS telemetry가 있는 `gcp_local` record만 허용한다.
 
 Current source: [`gcp-local-baseline-current-flow.mmd`](gcp-local-baseline-current-flow.mmd).
 Aggregate semantic evidence: [content-free public semantic receipt](../../../evaluation/baselines/gcp-local-kure-qwen3-8b-awq-mini131-v1/mac-local-equivalent-semantic-receipt.json).
+Per-question performance evidence: [content-free public performance receipt](../../../evaluation/baselines/gcp-local-kure-qwen3-8b-awq-mini131-v1/mac-local-equivalent-performance-receipt.json).
 
 현재 `candidate_output_visible_to_reviewer=false`는 raw candidate artifact·파일 경로·case ID·lineage를
 reviewer에게 직접 노출하지 않는다는 뜻이다. frozen rubric 적용에 필요한 answer/status, 대화 문맥,
@@ -39,9 +41,10 @@ retrieved/cited evidence는 sanctioned hash-bound blind projection으로 전달�
 | G6 | deterministic diagnostics → lane-complete public receipt | **MATCHED — remediated** | metric coverage is complete: set count accuracy `0.538462`; visual document/page Recall@10 `1.0/0.6`, object `0`; analytics 10/10 and 139/139 comparisons pass | map preflight is 5,094 tokens; the 102,687-token worst-case final probe is a non-readiness stress case rejected before transport |
 | G7 | raw candidate → sanctioned blind projection | **MATCHED — contract/adapter** | raw artifact identity and lineage stay hidden while required answer/status/chat/evidence are hash-bound into the blind packet | none for projection contract |
 | G8 | blind projection → fresh Sol semantic aggregate | **MATCHED — measured** | primary 129, secondary 4, adjudicator 3; accepted 88, rejected 41, acceptance `0.682171`, mean `70.135659` | do not reuse prior API judgments or treat this as gold approval |
-| G9 | semantic aggregate + named human gold → gold-approved closeout | **BLOCKED** | semantic ledger is complete but gold remains draft | obtain named human gold approval |
-| G10 | loopback vLLM → live L4 telemetry | **BLOCKED** | adapter/run-record guards exist; the Mac Ollama/NumPy run is not L4/vLLM/FAISS evidence | explicit VM authorization, live run, `gpu_seconds` and `peak_vram_gb` |
-| G11 | official GCP result → API↔GCP comparison | **BLOCKED** | comparison correctly rejects `mac_local_equivalent` evidence | valid same-hash `gcp_local` records with complete telemetry |
+| G9 | semantic aggregate → 문항별 gradebook + performance receipt | **MATCHED — measured** | 129 RAG의 질문·기대답·실제 답변·근거·결정론 지표·Sol 점수/판정/사유와 parser 2건을 private 131행으로 결합; easy/medium/hard `41/48/40` | private 원장·HTML은 Git 비추적 및 mode `0600` 유지 |
+| G10 | per-question evaluation + named human gold → gold-approved closeout | **BLOCKED** | 기록·잠정 채점은 완료됐지만 gold remains draft | obtain named human gold approval |
+| G11 | loopback vLLM → live L4 telemetry | **BLOCKED** | adapter/run-record guards exist; the Mac Ollama/NumPy run is not L4/vLLM/FAISS evidence | explicit VM authorization, live run, `gpu_seconds` and `peak_vram_gb` |
+| G12 | official GCP result → API↔GCP comparison | **BLOCKED** | comparison correctly rejects `mac_local_equivalent` evidence | valid same-hash `gcp_local` records with complete telemetry |
 
 ## Done / Not Done Priority
 
@@ -52,9 +55,10 @@ Scoring: upstream 0–4 + connection 0–3 + safety 0–2 + validation 0–2 + r
 | 1 | Mini131 candidate + parser execution | 10 | **DONE — measured** | preserve immutable private transcript and 6 measured errors |
 | 2 | Lane-complete deterministic scorer/receipt | 9 | **DONE — measured** | preserve complete metric coverage and fail-closed global-set preflight evidence |
 | 3 | Fresh Sol semantic aggregate | 8 | **DONE — measured** | preserve exact role counts, workflow validation and content-free aggregate |
-| 4 | Named human gold approval | 7 | **BLOCKED — external review** | record approval independently from the candidate/Sol ledger |
-| 5 | Live Qwen3-8B-AWQ/vLLM on L4 | 7 | **BLOCKED — external execution** | start the VM only with explicit authorization; collect complete telemetry |
-| 6 | API↔GCP controlled comparison | 6 | **BLOCKED — depends on rank 5** | compare only same-hash official GCP records |
+| 4 | Per-question performance gradebook/report | 8 | **DONE — measured** | preserve 131 private records, exact hashes and content-free aggregate receipt |
+| 5 | Named human gold approval | 7 | **BLOCKED — external review** | record approval independently from the candidate/Sol ledger |
+| 6 | Live Qwen3-8B-AWQ/vLLM on L4 | 7 | **BLOCKED — external execution** | start the VM only with explicit authorization; collect complete telemetry |
+| 7 | API↔GCP controlled comparison | 6 | **BLOCKED — depends on rank 6** | compare only same-hash official GCP records |
 
 ## Scoring Criteria
 
@@ -77,13 +81,19 @@ Scoring: upstream 0–4 + connection 0–3 + safety 0–2 + validation 0–2 + r
 - Frozen coverage readback: 129/129 RAG terminal candidates and live parser C21/C22 2/2 PASS.
 - Public aggregate boundary: question, answer, source text, case ID and rationale remain absent from
   the content-free receipt and this report.
+- Private gradebook readback: 131 unique records (`129 RAG + parser 2`), RAG difficulty
+  `easy 41 / medium 48 / hard 40`, semantic mean `70.135659`, accepted/rejected `88/41`, parser
+  `2/2 PASS`; every RAG row contains the actual answer and final rationale.
 - Release-audit gaps and their fail-closed resolutions are recorded without private content in
   `2026-09-01-mini131-release-audit-metric-coverage.md` and
   `2026-09-01-mini131-semantic-adjudication-workflow.md` under the backend error-log directory.
 - Mermaid target/current source is rendered with `mmdc 11.15.0`, transparent background and scale 2.
-- Static HTML QA requires two non-empty images, five valid local artifact links, five legend items,
-  11 gap rows, six priority rows and the provisional closeout boundary.
+- Static HTML QA requires two non-empty images, six valid local artifact links, five legend items,
+  12 gap rows, seven priority rows and the provisional closeout boundary.
 - Browser render QA stores screenshot evidence under `fivecircles/test/playwright-screenshots/` and
   must show both diagrams plus the gap and priority tables.
-- Closeout verdict: **131/131 COVERAGE, LANE-COMPLETE RECEIPT AND FRESH SOL AGGREGATE MATCHED /
-  HUMAN GOLD AND LIVE GCP EVIDENCE NOT CLOSED**.
+- Closeout verdict: **131/131 COVERAGE, LANE-COMPLETE RECEIPT, FRESH SOL AGGREGATE AND
+  PER-QUESTION PERFORMANCE REPORT MATCHED / HUMAN GOLD AND LIVE GCP EVIDENCE NOT CLOSED**.
+- Flow diagram verification: **PARTIAL** — the requested Mac-local per-question evaluation path is
+  matched; named human approval, live GCP telemetry and official API↔GCP comparison remain explicit
+  red gates.

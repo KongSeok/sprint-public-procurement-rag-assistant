@@ -1,0 +1,2484 @@
+{
+  "artifact_hashes": {
+    "candidates_sha256": "afd9e579c97507a0b972e6dc82e90e96ea84c1853624a5f483958a3ce0a567f3",
+    "deterministic_score_sha256": "18b79d01a2fe0ff40e899480244635abd980d22060bebc8415b8db34365d7e73",
+    "parser_rerun_sha256": "87088ddbd5421518e32ab8a7dd8e142785b52ca68f29a498377cabef0aceaedd",
+    "private_html_sha256": "503521d02a336efd011fb71693483e420e9b5eb888f5aef3af32611a6c9e4651",
+    "private_records_sha256": "0e8dc05112b4171823dadece1e2ca27a90d6b30da72754a68cbd5b24962905f0",
+    "private_summary_sha256": "72c967c40a383099caf363bda5449d19f1fe0362d498bad3dae2edb736a62868",
+    "review_history_sha256": "f75da26f0ceba69d0e117e542fbb0dab5106ca6f2511c6c6ecb1efeb48522ddb",
+    "semantic_score_sha256": "1ccd6ef19547aa32826c9609852a5dfaed2c3d342361414258b3c0e852cfaf7b"
+  },
+  "artifact_role": "per_question_performance_evaluation_receipt",
+  "candidate": {
+    "embedding": "nlpai-lab/KURE-v1",
+    "execution_profile": "mac_local_equivalent",
+    "generator": "qwen3.8:27b-mlx"
+  },
+  "counts": {
+    "difficulty": {
+      "easy": 41,
+      "hard": 40,
+      "medium": 48
+    },
+    "parser": 2,
+    "parser_passed": 2,
+    "rag": 129,
+    "total_assets": 131
+  },
+  "evaluation_status": {
+    "gold_approved": false,
+    "official_eligible": false,
+    "quality_pass": false,
+    "record_complete": true
+  },
+  "evaluation_tier": "provisional_non_official",
+  "gold_review_status": "draft",
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "rubric_version": "gpt56-semantic-v2"
+  },
+  "limitations": {
+    "candidate_runtime": "mac_ollama_numpy",
+    "held_out_executed": false,
+    "human_gold_approved": false,
+    "judge_is_gold": false,
+    "live_gcp_executed": false,
+    "unreported_frozen_metrics_remain": true
+  },
+  "metrics": {
+    "by_difficulty": {
+      "easy": {
+        "acceptance_rate": 0.829268,
+        "accepted": 34,
+        "behavior_checks": {
+          "follow_up_success": {
+            "eligible": 3,
+            "passed": 3,
+            "rate": 1.0
+          },
+          "safe_abstention": {
+            "eligible": 3,
+            "passed": 2,
+            "rate": 0.666667
+          }
+        },
+        "components": {
+          "abstention_quality": {
+            "eligible": 3,
+            "mean": 0.666667
+          },
+          "citation_validity": {
+            "eligible": 38,
+            "mean": 0.868421
+          },
+          "completeness": {
+            "eligible": 38,
+            "mean": 0.828947
+          },
+          "correctness": {
+            "eligible": 38,
+            "mean": 0.855263
+          },
+          "factual_claim_coverage": {
+            "eligible": 38,
+            "mean": 0.868421
+          },
+          "faithfulness": {
+            "eligible": 38,
+            "mean": 0.868421
+          }
+        },
+        "count": 41,
+        "deterministic_metrics": {
+          "analytics_calculation.case_passed": {
+            "eligible": 3,
+            "mean": 1.0
+          },
+          "analytics_calculation.comparison_count": {
+            "eligible": 3,
+            "mean": 4.0
+          },
+          "analytics_calculation.comparison_match_rate": {
+            "eligible": 3,
+            "mean": 1.0
+          },
+          "analytics_calculation.exact_comparison_count": {
+            "eligible": 3,
+            "mean": 0.666667
+          },
+          "analytics_calculation.exact_comparison_match_rate": {
+            "eligible": 1,
+            "mean": 1.0
+          },
+          "analytics_calculation.exact_matched_comparison_count": {
+            "eligible": 3,
+            "mean": 0.666667
+          },
+          "analytics_calculation.matched_comparison_count": {
+            "eligible": 3,
+            "mean": 4.0
+          },
+          "analytics_calculation.tolerance_comparison_count": {
+            "eligible": 3,
+            "mean": 3.333333
+          },
+          "analytics_calculation.tolerance_comparison_match_rate": {
+            "eligible": 3,
+            "mean": 1.0
+          },
+          "analytics_calculation.tolerance_matched_comparison_count": {
+            "eligible": 3,
+            "mean": 3.333333
+          },
+          "citation_valid": {
+            "eligible": 33,
+            "mean": 1.0
+          },
+          "document_recall_at_1": {
+            "eligible": 31,
+            "mean": 0.967742
+          },
+          "document_recall_at_10": {
+            "eligible": 31,
+            "mean": 1.0
+          },
+          "document_recall_at_5": {
+            "eligible": 31,
+            "mean": 1.0
+          },
+          "expected_behavior_match": {
+            "eligible": 41,
+            "mean": 0.853659
+          },
+          "mrr_at_10": {
+            "eligible": 31,
+            "mean": 1.0
+          },
+          "set_count_match": {
+            "eligible": 4,
+            "mean": 1.0
+          },
+          "set_exact_match": {
+            "eligible": 4,
+            "mean": 1.0
+          },
+          "set_expected_count": {
+            "eligible": 4,
+            "mean": 1.0
+          },
+          "set_f1": {
+            "eligible": 4,
+            "mean": 1.0
+          },
+          "set_precision": {
+            "eligible": 4,
+            "mean": 1.0
+          },
+          "set_recall": {
+            "eligible": 4,
+            "mean": 1.0
+          },
+          "set_selected_count": {
+            "eligible": 4,
+            "mean": 1.0
+          },
+          "visual_retrieval.chunk_or_block.mrr_at_10": {
+            "eligible": 1,
+            "mean": 0.0
+          },
+          "visual_retrieval.chunk_or_block.recall_at_1": {
+            "eligible": 1,
+            "mean": 0.0
+          },
+          "visual_retrieval.chunk_or_block.recall_at_10": {
+            "eligible": 1,
+            "mean": 0.0
+          },
+          "visual_retrieval.chunk_or_block.recall_at_5": {
+            "eligible": 1,
+            "mean": 0.0
+          },
+          "visual_retrieval.chunk_or_block.target_count": {
+            "eligible": 1,
+            "mean": 1.0
+          },
+          "visual_retrieval.document.mrr_at_10": {
+            "eligible": 3,
+            "mean": 1.0
+          },
+          "visual_retrieval.document.recall_at_1": {
+            "eligible": 3,
+            "mean": 1.0
+          },
+          "visual_retrieval.document.recall_at_10": {
+            "eligible": 3,
+            "mean": 1.0
+          },
+          "visual_retrieval.document.recall_at_5": {
+            "eligible": 3,
+            "mean": 1.0
+          },
+          "visual_retrieval.document.target_count": {
+            "eligible": 3,
+            "mean": 1.0
+          },
+          "visual_retrieval.object.mrr_at_10": {
+            "eligible": 3,
+            "mean": 0.0
+          },
+          "visual_retrieval.object.recall_at_1": {
+            "eligible": 3,
+            "mean": 0.0
+          },
+          "visual_retrieval.object.recall_at_10": {
+            "eligible": 3,
+            "mean": 0.0
+          },
+          "visual_retrieval.object.recall_at_5": {
+            "eligible": 3,
+            "mean": 0.0
+          },
+          "visual_retrieval.object.target_count": {
+            "eligible": 3,
+            "mean": 1.0
+          },
+          "visual_retrieval.page.mrr_at_10": {
+            "eligible": 3,
+            "mean": 0.333333
+          },
+          "visual_retrieval.page.recall_at_1": {
+            "eligible": 3,
+            "mean": 0.333333
+          },
+          "visual_retrieval.page.recall_at_10": {
+            "eligible": 3,
+            "mean": 0.333333
+          },
+          "visual_retrieval.page.recall_at_5": {
+            "eligible": 3,
+            "mean": 0.333333
+          },
+          "visual_retrieval.page.target_count": {
+            "eligible": 3,
+            "mean": 1.0
+          }
+        },
+        "mean_semantic_score": 84.207317,
+        "parser_count": 0,
+        "rag_count": 41,
+        "rejected": 7,
+        "runtime_error_rate": 0.02439,
+        "status": {
+          "abstained": 7,
+          "answered": 33,
+          "error": 1
+        }
+      },
+      "hard": {
+        "acceptance_rate": 0.575,
+        "accepted": 23,
+        "behavior_checks": {
+          "follow_up_success": {
+            "eligible": 3,
+            "passed": 2,
+            "rate": 0.666667
+          },
+          "safe_abstention": {
+            "eligible": 5,
+            "passed": 4,
+            "rate": 0.8
+          }
+        },
+        "components": {
+          "abstention_quality": {
+            "eligible": 5,
+            "mean": 0.8
+          },
+          "citation_validity": {
+            "eligible": 35,
+            "mean": 0.6
+          },
+          "completeness": {
+            "eligible": 35,
+            "mean": 0.485714
+          },
+          "correctness": {
+            "eligible": 35,
+            "mean": 0.557143
+          },
+          "factual_claim_coverage": {
+            "eligible": 35,
+            "mean": 0.6
+          },
+          "faithfulness": {
+            "eligible": 35,
+            "mean": 0.6
+          }
+        },
+        "count": 40,
+        "deterministic_metrics": {
+          "analytics_calculation.case_passed": {
+            "eligible": 3,
+            "mean": 1.0
+          },
+          "analytics_calculation.comparison_count": {
+            "eligible": 3,
+            "mean": 27.333333
+          },
+          "analytics_calculation.comparison_match_rate": {
+            "eligible": 3,
+            "mean": 1.0
+          },
+          "analytics_calculation.exact_comparison_count": {
+            "eligible": 3,
+            "mean": 10.0
+          },
+          "analytics_calculation.exact_comparison_match_rate": {
+            "eligible": 2,
+            "mean": 1.0
+          },
+          "analytics_calculation.exact_matched_comparison_count": {
+            "eligible": 3,
+            "mean": 10.0
+          },
+          "analytics_calculation.matched_comparison_count": {
+            "eligible": 3,
+            "mean": 27.333333
+          },
+          "analytics_calculation.tolerance_comparison_count": {
+            "eligible": 3,
+            "mean": 17.333333
+          },
+          "analytics_calculation.tolerance_comparison_match_rate": {
+            "eligible": 3,
+            "mean": 1.0
+          },
+          "analytics_calculation.tolerance_matched_comparison_count": {
+            "eligible": 3,
+            "mean": 17.333333
+          },
+          "citation_valid": {
+            "eligible": 21,
+            "mean": 1.0
+          },
+          "document_recall_at_1": {
+            "eligible": 26,
+            "mean": 0.833333
+          },
+          "document_recall_at_10": {
+            "eligible": 26,
+            "mean": 0.967949
+          },
+          "document_recall_at_5": {
+            "eligible": 26,
+            "mean": 0.955128
+          },
+          "expected_behavior_match": {
+            "eligible": 40,
+            "mean": 0.65
+          },
+          "mrr_at_10": {
+            "eligible": 26,
+            "mean": 1.0
+          },
+          "set_count_match": {
+            "eligible": 6,
+            "mean": 0.333333
+          },
+          "set_exact_match": {
+            "eligible": 6,
+            "mean": 0.333333
+          },
+          "set_expected_count": {
+            "eligible": 6,
+            "mean": 7.0
+          },
+          "set_f1": {
+            "eligible": 6,
+            "mean": 0.333333
+          },
+          "set_precision": {
+            "eligible": 6,
+            "mean": 0.333333
+          },
+          "set_recall": {
+            "eligible": 6,
+            "mean": 0.333333
+          },
+          "set_selected_count": {
+            "eligible": 6,
+            "mean": 1.5
+          },
+          "visual_retrieval.chunk_or_block.mrr_at_10": {
+            "eligible": 1,
+            "mean": 0.0
+          },
+          "visual_retrieval.chunk_or_block.recall_at_1": {
+            "eligible": 1,
+            "mean": 0.0
+          },
+          "visual_retrieval.chunk_or_block.recall_at_10": {
+            "eligible": 1,
+            "mean": 0.0
+          },
+          "visual_retrieval.chunk_or_block.recall_at_5": {
+            "eligible": 1,
+            "mean": 0.0
+          },
+          "visual_retrieval.chunk_or_block.target_count": {
+            "eligible": 1,
+            "mean": 2.0
+          },
+          "visual_retrieval.document.mrr_at_10": {
+            "eligible": 3,
+            "mean": 1.0
+          },
+          "visual_retrieval.document.recall_at_1": {
+            "eligible": 3,
+            "mean": 1.0
+          },
+          "visual_retrieval.document.recall_at_10": {
+            "eligible": 3,
+            "mean": 1.0
+          },
+          "visual_retrieval.document.recall_at_5": {
+            "eligible": 3,
+            "mean": 1.0
+          },
+          "visual_retrieval.document.target_count": {
+            "eligible": 3,
+            "mean": 1.0
+          },
+          "visual_retrieval.object.mrr_at_10": {
+            "eligible": 3,
+            "mean": 0.0
+          },
+          "visual_retrieval.object.recall_at_1": {
+            "eligible": 3,
+            "mean": 0.0
+          },
+          "visual_retrieval.object.recall_at_10": {
+            "eligible": 3,
+            "mean": 0.0
+          },
+          "visual_retrieval.object.recall_at_5": {
+            "eligible": 3,
+            "mean": 0.0
+          },
+          "visual_retrieval.object.target_count": {
+            "eligible": 3,
+            "mean": 1.333333
+          },
+          "visual_retrieval.page.mrr_at_10": {
+            "eligible": 3,
+            "mean": 0.416667
+          },
+          "visual_retrieval.page.recall_at_1": {
+            "eligible": 3,
+            "mean": 0.166667
+          },
+          "visual_retrieval.page.recall_at_10": {
+            "eligible": 3,
+            "mean": 0.666667
+          },
+          "visual_retrieval.page.recall_at_5": {
+            "eligible": 3,
+            "mean": 0.666667
+          },
+          "visual_retrieval.page.target_count": {
+            "eligible": 3,
+            "mean": 1.333333
+          }
+        },
+        "mean_semantic_score": 59.1875,
+        "parser_count": 0,
+        "rag_count": 40,
+        "rejected": 17,
+        "runtime_error_rate": 0.1,
+        "status": {
+          "abstained": 15,
+          "answered": 21,
+          "error": 4
+        }
+      },
+      "medium": {
+        "acceptance_rate": 0.645833,
+        "accepted": 31,
+        "behavior_checks": {
+          "follow_up_success": {
+            "eligible": 4,
+            "passed": 3,
+            "rate": 0.75
+          },
+          "safe_abstention": {
+            "eligible": 4,
+            "passed": 3,
+            "rate": 0.75
+          }
+        },
+        "components": {
+          "abstention_quality": {
+            "eligible": 4,
+            "mean": 0.75
+          },
+          "citation_validity": {
+            "eligible": 44,
+            "mean": 0.738636
+          },
+          "completeness": {
+            "eligible": 44,
+            "mean": 0.568182
+          },
+          "correctness": {
+            "eligible": 44,
+            "mean": 0.659091
+          },
+          "factual_claim_coverage": {
+            "eligible": 44,
+            "mean": 0.738636
+          },
+          "faithfulness": {
+            "eligible": 44,
+            "mean": 0.693182
+          }
+        },
+        "count": 48,
+        "deterministic_metrics": {
+          "analytics_calculation.case_passed": {
+            "eligible": 4,
+            "mean": 1.0
+          },
+          "analytics_calculation.comparison_count": {
+            "eligible": 4,
+            "mean": 11.25
+          },
+          "analytics_calculation.comparison_match_rate": {
+            "eligible": 4,
+            "mean": 1.0
+          },
+          "analytics_calculation.exact_comparison_count": {
+            "eligible": 4,
+            "mean": 3.5
+          },
+          "analytics_calculation.exact_comparison_match_rate": {
+            "eligible": 2,
+            "mean": 1.0
+          },
+          "analytics_calculation.exact_matched_comparison_count": {
+            "eligible": 4,
+            "mean": 3.5
+          },
+          "analytics_calculation.matched_comparison_count": {
+            "eligible": 4,
+            "mean": 11.25
+          },
+          "analytics_calculation.tolerance_comparison_count": {
+            "eligible": 4,
+            "mean": 7.75
+          },
+          "analytics_calculation.tolerance_comparison_match_rate": {
+            "eligible": 4,
+            "mean": 1.0
+          },
+          "analytics_calculation.tolerance_matched_comparison_count": {
+            "eligible": 4,
+            "mean": 7.75
+          },
+          "citation_valid": {
+            "eligible": 33,
+            "mean": 1.0
+          },
+          "document_recall_at_1": {
+            "eligible": 37,
+            "mean": 0.945946
+          },
+          "document_recall_at_10": {
+            "eligible": 37,
+            "mean": 1.0
+          },
+          "document_recall_at_5": {
+            "eligible": 37,
+            "mean": 1.0
+          },
+          "expected_behavior_match": {
+            "eligible": 48,
+            "mean": 0.770833
+          },
+          "mrr_at_10": {
+            "eligible": 37,
+            "mean": 1.0
+          },
+          "set_count_match": {
+            "eligible": 3,
+            "mean": 0.333333
+          },
+          "set_exact_match": {
+            "eligible": 3,
+            "mean": 0.333333
+          },
+          "set_expected_count": {
+            "eligible": 3,
+            "mean": 1.333333
+          },
+          "set_f1": {
+            "eligible": 3,
+            "mean": 0.733333
+          },
+          "set_precision": {
+            "eligible": 3,
+            "mean": 0.638889
+          },
+          "set_recall": {
+            "eligible": 3,
+            "mean": 1.0
+          },
+          "set_selected_count": {
+            "eligible": 3,
+            "mean": 2.666667
+          },
+          "visual_retrieval.chunk_or_block.mrr_at_10": {
+            "eligible": 1,
+            "mean": 0.0
+          },
+          "visual_retrieval.chunk_or_block.recall_at_1": {
+            "eligible": 1,
+            "mean": 0.0
+          },
+          "visual_retrieval.chunk_or_block.recall_at_10": {
+            "eligible": 1,
+            "mean": 0.0
+          },
+          "visual_retrieval.chunk_or_block.recall_at_5": {
+            "eligible": 1,
+            "mean": 0.0
+          },
+          "visual_retrieval.chunk_or_block.target_count": {
+            "eligible": 1,
+            "mean": 1.0
+          },
+          "visual_retrieval.document.mrr_at_10": {
+            "eligible": 4,
+            "mean": 1.0
+          },
+          "visual_retrieval.document.recall_at_1": {
+            "eligible": 4,
+            "mean": 1.0
+          },
+          "visual_retrieval.document.recall_at_10": {
+            "eligible": 4,
+            "mean": 1.0
+          },
+          "visual_retrieval.document.recall_at_5": {
+            "eligible": 4,
+            "mean": 1.0
+          },
+          "visual_retrieval.document.target_count": {
+            "eligible": 4,
+            "mean": 1.0
+          },
+          "visual_retrieval.object.mrr_at_10": {
+            "eligible": 4,
+            "mean": 0.0
+          },
+          "visual_retrieval.object.recall_at_1": {
+            "eligible": 4,
+            "mean": 0.0
+          },
+          "visual_retrieval.object.recall_at_10": {
+            "eligible": 4,
+            "mean": 0.0
+          },
+          "visual_retrieval.object.recall_at_5": {
+            "eligible": 4,
+            "mean": 0.0
+          },
+          "visual_retrieval.object.target_count": {
+            "eligible": 4,
+            "mean": 1.0
+          },
+          "visual_retrieval.page.mrr_at_10": {
+            "eligible": 4,
+            "mean": 0.625
+          },
+          "visual_retrieval.page.recall_at_1": {
+            "eligible": 4,
+            "mean": 0.5
+          },
+          "visual_retrieval.page.recall_at_10": {
+            "eligible": 4,
+            "mean": 0.75
+          },
+          "visual_retrieval.page.recall_at_5": {
+            "eligible": 4,
+            "mean": 0.75
+          },
+          "visual_retrieval.page.target_count": {
+            "eligible": 4,
+            "mean": 1.0
+          }
+        },
+        "mean_semantic_score": 67.239583,
+        "parser_count": 0,
+        "rag_count": 48,
+        "rejected": 17,
+        "runtime_error_rate": 0.020833,
+        "status": {
+          "abstained": 14,
+          "answered": 33,
+          "error": 1
+        }
+      }
+    },
+    "by_lane": {
+      "core40": {
+        "acceptance_rate": 0.7,
+        "accepted": 28,
+        "behavior_checks": {
+          "follow_up_success": {
+            "eligible": 10,
+            "passed": 8,
+            "rate": 0.8
+          },
+          "safe_abstention": {
+            "eligible": 10,
+            "passed": 7,
+            "rate": 0.7
+          }
+        },
+        "components": {
+          "abstention_quality": {
+            "eligible": 10,
+            "mean": 0.7
+          },
+          "citation_validity": {
+            "eligible": 30,
+            "mean": 0.833333
+          },
+          "completeness": {
+            "eligible": 30,
+            "mean": 0.633333
+          },
+          "correctness": {
+            "eligible": 30,
+            "mean": 0.733333
+          },
+          "factual_claim_coverage": {
+            "eligible": 30,
+            "mean": 0.816667
+          },
+          "faithfulness": {
+            "eligible": 30,
+            "mean": 0.8
+          }
+        },
+        "count": 40,
+        "deterministic_metrics": {
+          "citation_valid": {
+            "eligible": 25,
+            "mean": 1.0
+          },
+          "document_recall_at_1": {
+            "eligible": 30,
+            "mean": 0.833333
+          },
+          "document_recall_at_10": {
+            "eligible": 30,
+            "mean": 1.0
+          },
+          "document_recall_at_5": {
+            "eligible": 30,
+            "mean": 1.0
+          },
+          "expected_behavior_match": {
+            "eligible": 40,
+            "mean": 0.85
+          },
+          "mrr_at_10": {
+            "eligible": 30,
+            "mean": 1.0
+          }
+        },
+        "mean_semantic_score": 73.625,
+        "parser_count": 0,
+        "rag_count": 40,
+        "rejected": 12,
+        "runtime_error_rate": 0.025,
+        "status": {
+          "abstained": 14,
+          "answered": 25,
+          "error": 1
+        }
+      },
+      "corpus_analytics": {
+        "acceptance_rate": 1.0,
+        "accepted": 10,
+        "behavior_checks": {
+          "follow_up_success": {
+            "eligible": 0,
+            "passed": 0,
+            "rate": null
+          },
+          "safe_abstention": {
+            "eligible": 0,
+            "passed": 0,
+            "rate": null
+          }
+        },
+        "components": {
+          "abstention_quality": {
+            "eligible": 0,
+            "mean": null
+          },
+          "citation_validity": {
+            "eligible": 10,
+            "mean": 1.0
+          },
+          "completeness": {
+            "eligible": 10,
+            "mean": 0.8
+          },
+          "correctness": {
+            "eligible": 10,
+            "mean": 1.0
+          },
+          "factual_claim_coverage": {
+            "eligible": 10,
+            "mean": 1.0
+          },
+          "faithfulness": {
+            "eligible": 10,
+            "mean": 1.0
+          }
+        },
+        "count": 10,
+        "deterministic_metrics": {
+          "analytics_calculation.case_passed": {
+            "eligible": 10,
+            "mean": 1.0
+          },
+          "analytics_calculation.comparison_count": {
+            "eligible": 10,
+            "mean": 13.9
+          },
+          "analytics_calculation.comparison_match_rate": {
+            "eligible": 10,
+            "mean": 1.0
+          },
+          "analytics_calculation.exact_comparison_count": {
+            "eligible": 10,
+            "mean": 4.6
+          },
+          "analytics_calculation.exact_comparison_match_rate": {
+            "eligible": 5,
+            "mean": 1.0
+          },
+          "analytics_calculation.exact_matched_comparison_count": {
+            "eligible": 10,
+            "mean": 4.6
+          },
+          "analytics_calculation.matched_comparison_count": {
+            "eligible": 10,
+            "mean": 13.9
+          },
+          "analytics_calculation.tolerance_comparison_count": {
+            "eligible": 10,
+            "mean": 9.3
+          },
+          "analytics_calculation.tolerance_comparison_match_rate": {
+            "eligible": 10,
+            "mean": 1.0
+          },
+          "analytics_calculation.tolerance_matched_comparison_count": {
+            "eligible": 10,
+            "mean": 9.3
+          },
+          "citation_valid": {
+            "eligible": 10,
+            "mean": 1.0
+          },
+          "expected_behavior_match": {
+            "eligible": 10,
+            "mean": 1.0
+          }
+        },
+        "mean_semantic_score": 96.0,
+        "parser_count": 0,
+        "rag_count": 10,
+        "rejected": 0,
+        "runtime_error_rate": 0.0,
+        "status": {
+          "abstained": 0,
+          "answered": 10,
+          "error": 0
+        }
+      },
+      "parser_regression": {
+        "acceptance_rate": null,
+        "accepted": 0,
+        "behavior_checks": {
+          "follow_up_success": {
+            "eligible": 0,
+            "passed": 0,
+            "rate": null
+          },
+          "safe_abstention": {
+            "eligible": 0,
+            "passed": 0,
+            "rate": null
+          }
+        },
+        "components": {
+          "abstention_quality": {
+            "eligible": 0,
+            "mean": null
+          },
+          "citation_validity": {
+            "eligible": 0,
+            "mean": null
+          },
+          "completeness": {
+            "eligible": 0,
+            "mean": null
+          },
+          "correctness": {
+            "eligible": 0,
+            "mean": null
+          },
+          "factual_claim_coverage": {
+            "eligible": 0,
+            "mean": null
+          },
+          "faithfulness": {
+            "eligible": 0,
+            "mean": null
+          }
+        },
+        "count": 2,
+        "deterministic_metrics": {},
+        "mean_semantic_score": null,
+        "parser_count": 2,
+        "rag_count": 0,
+        "rejected": 0,
+        "runtime_error_rate": null,
+        "status": {
+          "abstained": 0,
+          "answered": 0,
+          "error": 0
+        }
+      },
+      "supplemental_answer_legacy": {
+        "acceptance_rate": 0.769231,
+        "accepted": 30,
+        "behavior_checks": {
+          "follow_up_success": {
+            "eligible": 0,
+            "passed": 0,
+            "rate": null
+          },
+          "safe_abstention": {
+            "eligible": 0,
+            "passed": 0,
+            "rate": null
+          }
+        },
+        "components": {
+          "abstention_quality": {
+            "eligible": 0,
+            "mean": null
+          },
+          "citation_validity": {
+            "eligible": 39,
+            "mean": 0.807692
+          },
+          "completeness": {
+            "eligible": 39,
+            "mean": 0.730769
+          },
+          "correctness": {
+            "eligible": 39,
+            "mean": 0.782051
+          },
+          "factual_claim_coverage": {
+            "eligible": 39,
+            "mean": 0.820513
+          },
+          "faithfulness": {
+            "eligible": 39,
+            "mean": 0.782051
+          }
+        },
+        "count": 39,
+        "deterministic_metrics": {
+          "citation_valid": {
+            "eligible": 32,
+            "mean": 1.0
+          },
+          "document_recall_at_1": {
+            "eligible": 39,
+            "mean": 0.987179
+          },
+          "document_recall_at_10": {
+            "eligible": 39,
+            "mean": 1.0
+          },
+          "document_recall_at_5": {
+            "eligible": 39,
+            "mean": 1.0
+          },
+          "expected_behavior_match": {
+            "eligible": 39,
+            "mean": 0.820513
+          },
+          "mrr_at_10": {
+            "eligible": 39,
+            "mean": 1.0
+          }
+        },
+        "mean_semantic_score": 77.820513,
+        "parser_count": 0,
+        "rag_count": 39,
+        "rejected": 9,
+        "runtime_error_rate": 0.0,
+        "status": {
+          "abstained": 7,
+          "answered": 32,
+          "error": 0
+        }
+      },
+      "supplemental_answer_rerun": {
+        "acceptance_rate": 0.352941,
+        "accepted": 6,
+        "behavior_checks": {
+          "follow_up_success": {
+            "eligible": 0,
+            "passed": 0,
+            "rate": null
+          },
+          "safe_abstention": {
+            "eligible": 2,
+            "passed": 2,
+            "rate": 1.0
+          }
+        },
+        "components": {
+          "abstention_quality": {
+            "eligible": 2,
+            "mean": 1.0
+          },
+          "citation_validity": {
+            "eligible": 15,
+            "mean": 0.4
+          },
+          "completeness": {
+            "eligible": 15,
+            "mean": 0.3
+          },
+          "correctness": {
+            "eligible": 15,
+            "mean": 0.3
+          },
+          "factual_claim_coverage": {
+            "eligible": 15,
+            "mean": 0.4
+          },
+          "faithfulness": {
+            "eligible": 15,
+            "mean": 0.4
+          }
+        },
+        "count": 17,
+        "deterministic_metrics": {
+          "citation_valid": {
+            "eligible": 6,
+            "mean": 1.0
+          },
+          "document_recall_at_1": {
+            "eligible": 15,
+            "mean": 0.877778
+          },
+          "document_recall_at_10": {
+            "eligible": 15,
+            "mean": 0.944444
+          },
+          "document_recall_at_5": {
+            "eligible": 15,
+            "mean": 0.922222
+          },
+          "expected_behavior_match": {
+            "eligible": 17,
+            "mean": 0.470588
+          },
+          "mrr_at_10": {
+            "eligible": 15,
+            "mean": 1.0
+          }
+        },
+        "mean_semantic_score": 42.205882,
+        "parser_count": 0,
+        "rag_count": 17,
+        "rejected": 11,
+        "runtime_error_rate": 0.0,
+        "status": {
+          "abstained": 11,
+          "answered": 6,
+          "error": 0
+        }
+      },
+      "supplemental_set_rerun": {
+        "acceptance_rate": 0.692308,
+        "accepted": 9,
+        "behavior_checks": {
+          "follow_up_success": {
+            "eligible": 0,
+            "passed": 0,
+            "rate": null
+          },
+          "safe_abstention": {
+            "eligible": 0,
+            "passed": 0,
+            "rate": null
+          }
+        },
+        "components": {
+          "abstention_quality": {
+            "eligible": 0,
+            "mean": null
+          },
+          "citation_validity": {
+            "eligible": 13,
+            "mean": 0.692308
+          },
+          "completeness": {
+            "eligible": 13,
+            "mean": 0.692308
+          },
+          "correctness": {
+            "eligible": 13,
+            "mean": 0.692308
+          },
+          "factual_claim_coverage": {
+            "eligible": 13,
+            "mean": 0.692308
+          },
+          "faithfulness": {
+            "eligible": 13,
+            "mean": 0.692308
+          }
+        },
+        "count": 13,
+        "deterministic_metrics": {
+          "citation_valid": {
+            "eligible": 9,
+            "mean": 1.0
+          },
+          "expected_behavior_match": {
+            "eligible": 13,
+            "mean": 0.692308
+          },
+          "set_count_match": {
+            "eligible": 13,
+            "mean": 0.538462
+          },
+          "set_exact_match": {
+            "eligible": 13,
+            "mean": 0.538462
+          },
+          "set_expected_count": {
+            "eligible": 13,
+            "mean": 3.846154
+          },
+          "set_f1": {
+            "eligible": 13,
+            "mean": 0.630769
+          },
+          "set_precision": {
+            "eligible": 13,
+            "mean": 0.608974
+          },
+          "set_recall": {
+            "eligible": 13,
+            "mean": 0.692308
+          },
+          "set_selected_count": {
+            "eligible": 13,
+            "mean": 1.615385
+          }
+        },
+        "mean_semantic_score": 69.230769,
+        "parser_count": 0,
+        "rag_count": 13,
+        "rejected": 4,
+        "runtime_error_rate": 0.307692,
+        "status": {
+          "abstained": 0,
+          "answered": 9,
+          "error": 4
+        }
+      },
+      "visual": {
+        "acceptance_rate": 0.5,
+        "accepted": 5,
+        "behavior_checks": {
+          "follow_up_success": {
+            "eligible": 0,
+            "passed": 0,
+            "rate": null
+          },
+          "safe_abstention": {
+            "eligible": 0,
+            "passed": 0,
+            "rate": null
+          }
+        },
+        "components": {
+          "abstention_quality": {
+            "eligible": 0,
+            "mean": null
+          },
+          "citation_validity": {
+            "eligible": 10,
+            "mean": 0.5
+          },
+          "completeness": {
+            "eligible": 10,
+            "mean": 0.45
+          },
+          "correctness": {
+            "eligible": 10,
+            "mean": 0.5
+          },
+          "factual_claim_coverage": {
+            "eligible": 10,
+            "mean": 0.5
+          },
+          "faithfulness": {
+            "eligible": 10,
+            "mean": 0.5
+          }
+        },
+        "count": 10,
+        "deterministic_metrics": {
+          "citation_valid": {
+            "eligible": 5,
+            "mean": 1.0
+          },
+          "document_recall_at_1": {
+            "eligible": 10,
+            "mean": 1.0
+          },
+          "document_recall_at_10": {
+            "eligible": 10,
+            "mean": 1.0
+          },
+          "document_recall_at_5": {
+            "eligible": 10,
+            "mean": 1.0
+          },
+          "expected_behavior_match": {
+            "eligible": 10,
+            "mean": 0.5
+          },
+          "mrr_at_10": {
+            "eligible": 10,
+            "mean": 1.0
+          },
+          "visual_retrieval.chunk_or_block.mrr_at_10": {
+            "eligible": 3,
+            "mean": 0.0
+          },
+          "visual_retrieval.chunk_or_block.recall_at_1": {
+            "eligible": 3,
+            "mean": 0.0
+          },
+          "visual_retrieval.chunk_or_block.recall_at_10": {
+            "eligible": 3,
+            "mean": 0.0
+          },
+          "visual_retrieval.chunk_or_block.recall_at_5": {
+            "eligible": 3,
+            "mean": 0.0
+          },
+          "visual_retrieval.chunk_or_block.target_count": {
+            "eligible": 3,
+            "mean": 1.333333
+          },
+          "visual_retrieval.document.mrr_at_10": {
+            "eligible": 10,
+            "mean": 1.0
+          },
+          "visual_retrieval.document.recall_at_1": {
+            "eligible": 10,
+            "mean": 1.0
+          },
+          "visual_retrieval.document.recall_at_10": {
+            "eligible": 10,
+            "mean": 1.0
+          },
+          "visual_retrieval.document.recall_at_5": {
+            "eligible": 10,
+            "mean": 1.0
+          },
+          "visual_retrieval.document.target_count": {
+            "eligible": 10,
+            "mean": 1.0
+          },
+          "visual_retrieval.object.mrr_at_10": {
+            "eligible": 10,
+            "mean": 0.0
+          },
+          "visual_retrieval.object.recall_at_1": {
+            "eligible": 10,
+            "mean": 0.0
+          },
+          "visual_retrieval.object.recall_at_10": {
+            "eligible": 10,
+            "mean": 0.0
+          },
+          "visual_retrieval.object.recall_at_5": {
+            "eligible": 10,
+            "mean": 0.0
+          },
+          "visual_retrieval.object.target_count": {
+            "eligible": 10,
+            "mean": 1.1
+          },
+          "visual_retrieval.page.mrr_at_10": {
+            "eligible": 10,
+            "mean": 0.475
+          },
+          "visual_retrieval.page.recall_at_1": {
+            "eligible": 10,
+            "mean": 0.35
+          },
+          "visual_retrieval.page.recall_at_10": {
+            "eligible": 10,
+            "mean": 0.6
+          },
+          "visual_retrieval.page.recall_at_5": {
+            "eligible": 10,
+            "mean": 0.6
+          },
+          "visual_retrieval.page.target_count": {
+            "eligible": 10,
+            "mean": 1.1
+          }
+        },
+        "mean_semantic_score": 49.0,
+        "parser_count": 0,
+        "rag_count": 10,
+        "rejected": 5,
+        "runtime_error_rate": 0.1,
+        "status": {
+          "abstained": 4,
+          "answered": 5,
+          "error": 1
+        }
+      }
+    },
+    "by_purpose": {
+      "abstention": {
+        "acceptance_rate": 0.7,
+        "accepted": 7,
+        "behavior_checks": {
+          "follow_up_success": {
+            "eligible": 0,
+            "passed": 0,
+            "rate": null
+          },
+          "safe_abstention": {
+            "eligible": 10,
+            "passed": 7,
+            "rate": 0.7
+          }
+        },
+        "components": {
+          "abstention_quality": {
+            "eligible": 10,
+            "mean": 0.7
+          },
+          "citation_validity": {
+            "eligible": 0,
+            "mean": null
+          },
+          "completeness": {
+            "eligible": 0,
+            "mean": null
+          },
+          "correctness": {
+            "eligible": 0,
+            "mean": null
+          },
+          "factual_claim_coverage": {
+            "eligible": 0,
+            "mean": null
+          },
+          "faithfulness": {
+            "eligible": 0,
+            "mean": null
+          }
+        },
+        "count": 10,
+        "deterministic_metrics": {
+          "expected_behavior_match": {
+            "eligible": 10,
+            "mean": 0.9
+          }
+        },
+        "mean_semantic_score": 70.0,
+        "parser_count": 0,
+        "rag_count": 10,
+        "rejected": 3,
+        "runtime_error_rate": 0.1,
+        "status": {
+          "abstained": 9,
+          "answered": 0,
+          "error": 1
+        }
+      },
+      "clause_fact_regression": {
+        "acceptance_rate": 0.545455,
+        "accepted": 24,
+        "behavior_checks": {
+          "follow_up_success": {
+            "eligible": 0,
+            "passed": 0,
+            "rate": null
+          },
+          "safe_abstention": {
+            "eligible": 2,
+            "passed": 2,
+            "rate": 1.0
+          }
+        },
+        "components": {
+          "abstention_quality": {
+            "eligible": 2,
+            "mean": 1.0
+          },
+          "citation_validity": {
+            "eligible": 42,
+            "mean": 0.607143
+          },
+          "completeness": {
+            "eligible": 42,
+            "mean": 0.535714
+          },
+          "correctness": {
+            "eligible": 42,
+            "mean": 0.547619
+          },
+          "factual_claim_coverage": {
+            "eligible": 42,
+            "mean": 0.619048
+          },
+          "faithfulness": {
+            "eligible": 42,
+            "mean": 0.583333
+          }
+        },
+        "count": 44,
+        "deterministic_metrics": {
+          "citation_valid": {
+            "eligible": 26,
+            "mean": 1.0
+          },
+          "document_recall_at_1": {
+            "eligible": 42,
+            "mean": 0.944444
+          },
+          "document_recall_at_10": {
+            "eligible": 42,
+            "mean": 0.980159
+          },
+          "document_recall_at_5": {
+            "eligible": 42,
+            "mean": 0.972222
+          },
+          "expected_behavior_match": {
+            "eligible": 44,
+            "mean": 0.636364
+          },
+          "mrr_at_10": {
+            "eligible": 42,
+            "mean": 1.0
+          }
+        },
+        "mean_semantic_score": 58.693182,
+        "parser_count": 0,
+        "rag_count": 44,
+        "rejected": 20,
+        "runtime_error_rate": 0.0,
+        "status": {
+          "abstained": 18,
+          "answered": 26,
+          "error": 0
+        }
+      },
+      "conditional_all_list": {
+        "acceptance_rate": 0.692308,
+        "accepted": 9,
+        "behavior_checks": {
+          "follow_up_success": {
+            "eligible": 0,
+            "passed": 0,
+            "rate": null
+          },
+          "safe_abstention": {
+            "eligible": 0,
+            "passed": 0,
+            "rate": null
+          }
+        },
+        "components": {
+          "abstention_quality": {
+            "eligible": 0,
+            "mean": null
+          },
+          "citation_validity": {
+            "eligible": 13,
+            "mean": 0.692308
+          },
+          "completeness": {
+            "eligible": 13,
+            "mean": 0.692308
+          },
+          "correctness": {
+            "eligible": 13,
+            "mean": 0.692308
+          },
+          "factual_claim_coverage": {
+            "eligible": 13,
+            "mean": 0.692308
+          },
+          "faithfulness": {
+            "eligible": 13,
+            "mean": 0.692308
+          }
+        },
+        "count": 13,
+        "deterministic_metrics": {
+          "citation_valid": {
+            "eligible": 9,
+            "mean": 1.0
+          },
+          "expected_behavior_match": {
+            "eligible": 13,
+            "mean": 0.692308
+          },
+          "set_count_match": {
+            "eligible": 13,
+            "mean": 0.538462
+          },
+          "set_exact_match": {
+            "eligible": 13,
+            "mean": 0.538462
+          },
+          "set_expected_count": {
+            "eligible": 13,
+            "mean": 3.846154
+          },
+          "set_f1": {
+            "eligible": 13,
+            "mean": 0.630769
+          },
+          "set_precision": {
+            "eligible": 13,
+            "mean": 0.608974
+          },
+          "set_recall": {
+            "eligible": 13,
+            "mean": 0.692308
+          },
+          "set_selected_count": {
+            "eligible": 13,
+            "mean": 1.615385
+          }
+        },
+        "mean_semantic_score": 69.230769,
+        "parser_count": 0,
+        "rag_count": 13,
+        "rejected": 4,
+        "runtime_error_rate": 0.307692,
+        "status": {
+          "abstained": 0,
+          "answered": 9,
+          "error": 4
+        }
+      },
+      "corpus_analytics": {
+        "acceptance_rate": 1.0,
+        "accepted": 10,
+        "behavior_checks": {
+          "follow_up_success": {
+            "eligible": 0,
+            "passed": 0,
+            "rate": null
+          },
+          "safe_abstention": {
+            "eligible": 0,
+            "passed": 0,
+            "rate": null
+          }
+        },
+        "components": {
+          "abstention_quality": {
+            "eligible": 0,
+            "mean": null
+          },
+          "citation_validity": {
+            "eligible": 10,
+            "mean": 1.0
+          },
+          "completeness": {
+            "eligible": 10,
+            "mean": 0.8
+          },
+          "correctness": {
+            "eligible": 10,
+            "mean": 1.0
+          },
+          "factual_claim_coverage": {
+            "eligible": 10,
+            "mean": 1.0
+          },
+          "faithfulness": {
+            "eligible": 10,
+            "mean": 1.0
+          }
+        },
+        "count": 10,
+        "deterministic_metrics": {
+          "analytics_calculation.case_passed": {
+            "eligible": 10,
+            "mean": 1.0
+          },
+          "analytics_calculation.comparison_count": {
+            "eligible": 10,
+            "mean": 13.9
+          },
+          "analytics_calculation.comparison_match_rate": {
+            "eligible": 10,
+            "mean": 1.0
+          },
+          "analytics_calculation.exact_comparison_count": {
+            "eligible": 10,
+            "mean": 4.6
+          },
+          "analytics_calculation.exact_comparison_match_rate": {
+            "eligible": 5,
+            "mean": 1.0
+          },
+          "analytics_calculation.exact_matched_comparison_count": {
+            "eligible": 10,
+            "mean": 4.6
+          },
+          "analytics_calculation.matched_comparison_count": {
+            "eligible": 10,
+            "mean": 13.9
+          },
+          "analytics_calculation.tolerance_comparison_count": {
+            "eligible": 10,
+            "mean": 9.3
+          },
+          "analytics_calculation.tolerance_comparison_match_rate": {
+            "eligible": 10,
+            "mean": 1.0
+          },
+          "analytics_calculation.tolerance_matched_comparison_count": {
+            "eligible": 10,
+            "mean": 9.3
+          },
+          "citation_valid": {
+            "eligible": 10,
+            "mean": 1.0
+          },
+          "expected_behavior_match": {
+            "eligible": 10,
+            "mean": 1.0
+          }
+        },
+        "mean_semantic_score": 96.0,
+        "parser_count": 0,
+        "rag_count": 10,
+        "rejected": 0,
+        "runtime_error_rate": 0.0,
+        "status": {
+          "abstained": 0,
+          "answered": 10,
+          "error": 0
+        }
+      },
+      "follow_up": {
+        "acceptance_rate": 0.8,
+        "accepted": 8,
+        "behavior_checks": {
+          "follow_up_success": {
+            "eligible": 10,
+            "passed": 8,
+            "rate": 0.8
+          },
+          "safe_abstention": {
+            "eligible": 0,
+            "passed": 0,
+            "rate": null
+          }
+        },
+        "components": {
+          "abstention_quality": {
+            "eligible": 0,
+            "mean": null
+          },
+          "citation_validity": {
+            "eligible": 10,
+            "mean": 0.8
+          },
+          "completeness": {
+            "eligible": 10,
+            "mean": 0.7
+          },
+          "correctness": {
+            "eligible": 10,
+            "mean": 0.8
+          },
+          "factual_claim_coverage": {
+            "eligible": 10,
+            "mean": 0.8
+          },
+          "faithfulness": {
+            "eligible": 10,
+            "mean": 0.8
+          }
+        },
+        "count": 10,
+        "deterministic_metrics": {
+          "citation_valid": {
+            "eligible": 8,
+            "mean": 1.0
+          },
+          "document_recall_at_1": {
+            "eligible": 10,
+            "mean": 1.0
+          },
+          "document_recall_at_10": {
+            "eligible": 10,
+            "mean": 1.0
+          },
+          "document_recall_at_5": {
+            "eligible": 10,
+            "mean": 1.0
+          },
+          "expected_behavior_match": {
+            "eligible": 10,
+            "mean": 0.8
+          },
+          "mrr_at_10": {
+            "eligible": 10,
+            "mean": 1.0
+          }
+        },
+        "mean_semantic_score": 78.0,
+        "parser_count": 0,
+        "rag_count": 10,
+        "rejected": 2,
+        "runtime_error_rate": 0.0,
+        "status": {
+          "abstained": 2,
+          "answered": 8,
+          "error": 0
+        }
+      },
+      "gold_source_alignment": {
+        "acceptance_rate": 1.0,
+        "accepted": 12,
+        "behavior_checks": {
+          "follow_up_success": {
+            "eligible": 0,
+            "passed": 0,
+            "rate": null
+          },
+          "safe_abstention": {
+            "eligible": 0,
+            "passed": 0,
+            "rate": null
+          }
+        },
+        "components": {
+          "abstention_quality": {
+            "eligible": 0,
+            "mean": null
+          },
+          "citation_validity": {
+            "eligible": 12,
+            "mean": 1.0
+          },
+          "completeness": {
+            "eligible": 12,
+            "mean": 0.875
+          },
+          "correctness": {
+            "eligible": 12,
+            "mean": 1.0
+          },
+          "factual_claim_coverage": {
+            "eligible": 12,
+            "mean": 1.0
+          },
+          "faithfulness": {
+            "eligible": 12,
+            "mean": 1.0
+          }
+        },
+        "count": 12,
+        "deterministic_metrics": {
+          "citation_valid": {
+            "eligible": 12,
+            "mean": 1.0
+          },
+          "document_recall_at_1": {
+            "eligible": 12,
+            "mean": 1.0
+          },
+          "document_recall_at_10": {
+            "eligible": 12,
+            "mean": 1.0
+          },
+          "document_recall_at_5": {
+            "eligible": 12,
+            "mean": 1.0
+          },
+          "expected_behavior_match": {
+            "eligible": 12,
+            "mean": 1.0
+          },
+          "mrr_at_10": {
+            "eligible": 12,
+            "mean": 1.0
+          }
+        },
+        "mean_semantic_score": 97.5,
+        "parser_count": 0,
+        "rag_count": 12,
+        "rejected": 0,
+        "runtime_error_rate": 0.0,
+        "status": {
+          "abstained": 0,
+          "answered": 12,
+          "error": 0
+        }
+      },
+      "multi_doc_compare": {
+        "acceptance_rate": 0.5,
+        "accepted": 5,
+        "behavior_checks": {
+          "follow_up_success": {
+            "eligible": 0,
+            "passed": 0,
+            "rate": null
+          },
+          "safe_abstention": {
+            "eligible": 0,
+            "passed": 0,
+            "rate": null
+          }
+        },
+        "components": {
+          "abstention_quality": {
+            "eligible": 0,
+            "mean": null
+          },
+          "citation_validity": {
+            "eligible": 10,
+            "mean": 0.7
+          },
+          "completeness": {
+            "eligible": 10,
+            "mean": 0.4
+          },
+          "correctness": {
+            "eligible": 10,
+            "mean": 0.55
+          },
+          "factual_claim_coverage": {
+            "eligible": 10,
+            "mean": 0.65
+          },
+          "faithfulness": {
+            "eligible": 10,
+            "mean": 0.6
+          }
+        },
+        "count": 10,
+        "deterministic_metrics": {
+          "citation_valid": {
+            "eligible": 7,
+            "mean": 1.0
+          },
+          "document_recall_at_1": {
+            "eligible": 10,
+            "mean": 0.5
+          },
+          "document_recall_at_10": {
+            "eligible": 10,
+            "mean": 1.0
+          },
+          "document_recall_at_5": {
+            "eligible": 10,
+            "mean": 1.0
+          },
+          "expected_behavior_match": {
+            "eligible": 10,
+            "mean": 0.7
+          },
+          "mrr_at_10": {
+            "eligible": 10,
+            "mean": 1.0
+          }
+        },
+        "mean_semantic_score": 55.75,
+        "parser_count": 0,
+        "rag_count": 10,
+        "rejected": 5,
+        "runtime_error_rate": 0.0,
+        "status": {
+          "abstained": 3,
+          "answered": 7,
+          "error": 0
+        }
+      },
+      "parser_regression": {
+        "acceptance_rate": null,
+        "accepted": 0,
+        "behavior_checks": {
+          "follow_up_success": {
+            "eligible": 0,
+            "passed": 0,
+            "rate": null
+          },
+          "safe_abstention": {
+            "eligible": 0,
+            "passed": 0,
+            "rate": null
+          }
+        },
+        "components": {
+          "abstention_quality": {
+            "eligible": 0,
+            "mean": null
+          },
+          "citation_validity": {
+            "eligible": 0,
+            "mean": null
+          },
+          "completeness": {
+            "eligible": 0,
+            "mean": null
+          },
+          "correctness": {
+            "eligible": 0,
+            "mean": null
+          },
+          "factual_claim_coverage": {
+            "eligible": 0,
+            "mean": null
+          },
+          "faithfulness": {
+            "eligible": 0,
+            "mean": null
+          }
+        },
+        "count": 2,
+        "deterministic_metrics": {},
+        "mean_semantic_score": null,
+        "parser_count": 2,
+        "rag_count": 0,
+        "rejected": 0,
+        "runtime_error_rate": null,
+        "status": {
+          "abstained": 0,
+          "answered": 0,
+          "error": 0
+        }
+      },
+      "single_doc": {
+        "acceptance_rate": 0.8,
+        "accepted": 8,
+        "behavior_checks": {
+          "follow_up_success": {
+            "eligible": 0,
+            "passed": 0,
+            "rate": null
+          },
+          "safe_abstention": {
+            "eligible": 0,
+            "passed": 0,
+            "rate": null
+          }
+        },
+        "components": {
+          "abstention_quality": {
+            "eligible": 0,
+            "mean": null
+          },
+          "citation_validity": {
+            "eligible": 10,
+            "mean": 1.0
+          },
+          "completeness": {
+            "eligible": 10,
+            "mean": 0.8
+          },
+          "correctness": {
+            "eligible": 10,
+            "mean": 0.85
+          },
+          "factual_claim_coverage": {
+            "eligible": 10,
+            "mean": 1.0
+          },
+          "faithfulness": {
+            "eligible": 10,
+            "mean": 1.0
+          }
+        },
+        "count": 10,
+        "deterministic_metrics": {
+          "citation_valid": {
+            "eligible": 10,
+            "mean": 1.0
+          },
+          "document_recall_at_1": {
+            "eligible": 10,
+            "mean": 1.0
+          },
+          "document_recall_at_10": {
+            "eligible": 10,
+            "mean": 1.0
+          },
+          "document_recall_at_5": {
+            "eligible": 10,
+            "mean": 1.0
+          },
+          "expected_behavior_match": {
+            "eligible": 10,
+            "mean": 1.0
+          },
+          "mrr_at_10": {
+            "eligible": 10,
+            "mean": 1.0
+          }
+        },
+        "mean_semantic_score": 90.75,
+        "parser_count": 0,
+        "rag_count": 10,
+        "rejected": 2,
+        "runtime_error_rate": 0.0,
+        "status": {
+          "abstained": 0,
+          "answered": 10,
+          "error": 0
+        }
+      },
+      "visual_table_figure": {
+        "acceptance_rate": 0.5,
+        "accepted": 5,
+        "behavior_checks": {
+          "follow_up_success": {
+            "eligible": 0,
+            "passed": 0,
+            "rate": null
+          },
+          "safe_abstention": {
+            "eligible": 0,
+            "passed": 0,
+            "rate": null
+          }
+        },
+        "components": {
+          "abstention_quality": {
+            "eligible": 0,
+            "mean": null
+          },
+          "citation_validity": {
+            "eligible": 10,
+            "mean": 0.5
+          },
+          "completeness": {
+            "eligible": 10,
+            "mean": 0.45
+          },
+          "correctness": {
+            "eligible": 10,
+            "mean": 0.5
+          },
+          "factual_claim_coverage": {
+            "eligible": 10,
+            "mean": 0.5
+          },
+          "faithfulness": {
+            "eligible": 10,
+            "mean": 0.5
+          }
+        },
+        "count": 10,
+        "deterministic_metrics": {
+          "citation_valid": {
+            "eligible": 5,
+            "mean": 1.0
+          },
+          "document_recall_at_1": {
+            "eligible": 10,
+            "mean": 1.0
+          },
+          "document_recall_at_10": {
+            "eligible": 10,
+            "mean": 1.0
+          },
+          "document_recall_at_5": {
+            "eligible": 10,
+            "mean": 1.0
+          },
+          "expected_behavior_match": {
+            "eligible": 10,
+            "mean": 0.5
+          },
+          "mrr_at_10": {
+            "eligible": 10,
+            "mean": 1.0
+          },
+          "visual_retrieval.chunk_or_block.mrr_at_10": {
+            "eligible": 3,
+            "mean": 0.0
+          },
+          "visual_retrieval.chunk_or_block.recall_at_1": {
+            "eligible": 3,
+            "mean": 0.0
+          },
+          "visual_retrieval.chunk_or_block.recall_at_10": {
+            "eligible": 3,
+            "mean": 0.0
+          },
+          "visual_retrieval.chunk_or_block.recall_at_5": {
+            "eligible": 3,
+            "mean": 0.0
+          },
+          "visual_retrieval.chunk_or_block.target_count": {
+            "eligible": 3,
+            "mean": 1.333333
+          },
+          "visual_retrieval.document.mrr_at_10": {
+            "eligible": 10,
+            "mean": 1.0
+          },
+          "visual_retrieval.document.recall_at_1": {
+            "eligible": 10,
+            "mean": 1.0
+          },
+          "visual_retrieval.document.recall_at_10": {
+            "eligible": 10,
+            "mean": 1.0
+          },
+          "visual_retrieval.document.recall_at_5": {
+            "eligible": 10,
+            "mean": 1.0
+          },
+          "visual_retrieval.document.target_count": {
+            "eligible": 10,
+            "mean": 1.0
+          },
+          "visual_retrieval.object.mrr_at_10": {
+            "eligible": 10,
+            "mean": 0.0
+          },
+          "visual_retrieval.object.recall_at_1": {
+            "eligible": 10,
+            "mean": 0.0
+          },
+          "visual_retrieval.object.recall_at_10": {
+            "eligible": 10,
+            "mean": 0.0
+          },
+          "visual_retrieval.object.recall_at_5": {
+            "eligible": 10,
+            "mean": 0.0
+          },
+          "visual_retrieval.object.target_count": {
+            "eligible": 10,
+            "mean": 1.1
+          },
+          "visual_retrieval.page.mrr_at_10": {
+            "eligible": 10,
+            "mean": 0.475
+          },
+          "visual_retrieval.page.recall_at_1": {
+            "eligible": 10,
+            "mean": 0.35
+          },
+          "visual_retrieval.page.recall_at_10": {
+            "eligible": 10,
+            "mean": 0.6
+          },
+          "visual_retrieval.page.recall_at_5": {
+            "eligible": 10,
+            "mean": 0.6
+          },
+          "visual_retrieval.page.target_count": {
+            "eligible": 10,
+            "mean": 1.1
+          }
+        },
+        "mean_semantic_score": 49.0,
+        "parser_count": 0,
+        "rag_count": 10,
+        "rejected": 5,
+        "runtime_error_rate": 0.1,
+        "status": {
+          "abstained": 4,
+          "answered": 5,
+          "error": 1
+        }
+      }
+    },
+    "overall": {
+      "acceptance_rate": 0.682171,
+      "accepted": 88,
+      "behavior_checks": {
+        "follow_up_success": {
+          "eligible": 10,
+          "passed": 8,
+          "rate": 0.8
+        },
+        "safe_abstention": {
+          "eligible": 12,
+          "passed": 9,
+          "rate": 0.75
+        }
+      },
+      "components": {
+        "abstention_quality": {
+          "eligible": 12,
+          "mean": 0.75
+        },
+        "citation_validity": {
+          "eligible": 117,
+          "mean": 0.739316
+        },
+        "completeness": {
+          "eligible": 117,
+          "mean": 0.628205
+        },
+        "correctness": {
+          "eligible": 117,
+          "mean": 0.692308
+        },
+        "factual_claim_coverage": {
+          "eligible": 117,
+          "mean": 0.739316
+        },
+        "faithfulness": {
+          "eligible": 117,
+          "mean": 0.722222
+        }
+      },
+      "count": 131,
+      "deterministic_metrics": {
+        "analytics_calculation.case_passed": {
+          "eligible": 10,
+          "mean": 1.0
+        },
+        "analytics_calculation.comparison_count": {
+          "eligible": 10,
+          "mean": 13.9
+        },
+        "analytics_calculation.comparison_match_rate": {
+          "eligible": 10,
+          "mean": 1.0
+        },
+        "analytics_calculation.exact_comparison_count": {
+          "eligible": 10,
+          "mean": 4.6
+        },
+        "analytics_calculation.exact_comparison_match_rate": {
+          "eligible": 5,
+          "mean": 1.0
+        },
+        "analytics_calculation.exact_matched_comparison_count": {
+          "eligible": 10,
+          "mean": 4.6
+        },
+        "analytics_calculation.matched_comparison_count": {
+          "eligible": 10,
+          "mean": 13.9
+        },
+        "analytics_calculation.tolerance_comparison_count": {
+          "eligible": 10,
+          "mean": 9.3
+        },
+        "analytics_calculation.tolerance_comparison_match_rate": {
+          "eligible": 10,
+          "mean": 1.0
+        },
+        "analytics_calculation.tolerance_matched_comparison_count": {
+          "eligible": 10,
+          "mean": 9.3
+        },
+        "citation_valid": {
+          "eligible": 87,
+          "mean": 1.0
+        },
+        "document_recall_at_1": {
+          "eligible": 94,
+          "mean": 0.921986
+        },
+        "document_recall_at_10": {
+          "eligible": 94,
+          "mean": 0.991135
+        },
+        "document_recall_at_5": {
+          "eligible": 94,
+          "mean": 0.987589
+        },
+        "expected_behavior_match": {
+          "eligible": 129,
+          "mean": 0.75969
+        },
+        "mrr_at_10": {
+          "eligible": 94,
+          "mean": 1.0
+        },
+        "set_count_match": {
+          "eligible": 13,
+          "mean": 0.538462
+        },
+        "set_exact_match": {
+          "eligible": 13,
+          "mean": 0.538462
+        },
+        "set_expected_count": {
+          "eligible": 13,
+          "mean": 3.846154
+        },
+        "set_f1": {
+          "eligible": 13,
+          "mean": 0.630769
+        },
+        "set_precision": {
+          "eligible": 13,
+          "mean": 0.608974
+        },
+        "set_recall": {
+          "eligible": 13,
+          "mean": 0.692308
+        },
+        "set_selected_count": {
+          "eligible": 13,
+          "mean": 1.615385
+        },
+        "visual_retrieval.chunk_or_block.mrr_at_10": {
+          "eligible": 3,
+          "mean": 0.0
+        },
+        "visual_retrieval.chunk_or_block.recall_at_1": {
+          "eligible": 3,
+          "mean": 0.0
+        },
+        "visual_retrieval.chunk_or_block.recall_at_10": {
+          "eligible": 3,
+          "mean": 0.0
+        },
+        "visual_retrieval.chunk_or_block.recall_at_5": {
+          "eligible": 3,
+          "mean": 0.0
+        },
+        "visual_retrieval.chunk_or_block.target_count": {
+          "eligible": 3,
+          "mean": 1.333333
+        },
+        "visual_retrieval.document.mrr_at_10": {
+          "eligible": 10,
+          "mean": 1.0
+        },
+        "visual_retrieval.document.recall_at_1": {
+          "eligible": 10,
+          "mean": 1.0
+        },
+        "visual_retrieval.document.recall_at_10": {
+          "eligible": 10,
+          "mean": 1.0
+        },
+        "visual_retrieval.document.recall_at_5": {
+          "eligible": 10,
+          "mean": 1.0
+        },
+        "visual_retrieval.document.target_count": {
+          "eligible": 10,
+          "mean": 1.0
+        },
+        "visual_retrieval.object.mrr_at_10": {
+          "eligible": 10,
+          "mean": 0.0
+        },
+        "visual_retrieval.object.recall_at_1": {
+          "eligible": 10,
+          "mean": 0.0
+        },
+        "visual_retrieval.object.recall_at_10": {
+          "eligible": 10,
+          "mean": 0.0
+        },
+        "visual_retrieval.object.recall_at_5": {
+          "eligible": 10,
+          "mean": 0.0
+        },
+        "visual_retrieval.object.target_count": {
+          "eligible": 10,
+          "mean": 1.1
+        },
+        "visual_retrieval.page.mrr_at_10": {
+          "eligible": 10,
+          "mean": 0.475
+        },
+        "visual_retrieval.page.recall_at_1": {
+          "eligible": 10,
+          "mean": 0.35
+        },
+        "visual_retrieval.page.recall_at_10": {
+          "eligible": 10,
+          "mean": 0.6
+        },
+        "visual_retrieval.page.recall_at_5": {
+          "eligible": 10,
+          "mean": 0.6
+        },
+        "visual_retrieval.page.target_count": {
+          "eligible": 10,
+          "mean": 1.1
+        }
+      },
+      "mean_semantic_score": 70.135659,
+      "parser_count": 2,
+      "rag_count": 129,
+      "rejected": 41,
+      "runtime_error_rate": 0.046512,
+      "status": {
+        "abstained": 36,
+        "answered": 87,
+        "error": 6
+      }
+    }
+  },
+  "official": false,
+  "passed": false,
+  "privacy": {
+    "contains_candidate_answers": false,
+    "contains_case_ids": false,
+    "contains_evidence": false,
+    "contains_expected_answers": false,
+    "contains_judge_rationales": false,
+    "contains_private_paths": false,
+    "contains_questions": false,
+    "private_artifacts_tracked": false
+  },
+  "schema_version": "local-mini131-golden-performance-receipt.v1",
+  "suite_id": "gcp-local-kure-qwen3-8b-awq-mini131-v1"
+}

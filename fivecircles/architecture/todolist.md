@@ -437,6 +437,11 @@ HWP blank-crop incident: `fivecircles/test/errorlogs/backend/2026-08-31-visual-c
   완료 결과는 RAG 129/129, parser 2/2이며 결정론 receipt는 `suite_complete=true`다.
 - [x] 새 로컬 후보의 fresh Sol blind ledger를 aggregate-validate한다. primary 129·secondary 4·
   adjudicator 3, accepted 88·rejected 41, acceptance 0.682171, mean 70.135659이다.
+- [x] **5.4c Per-question performance:** 129개 골든 질문의 정답 기준·실제 Qwen 답변·근거·
+  결정론 지표·Sol 구성점수/판정/사유를 하나의 private 원장으로 결합하고, parser 2건을 별도
+  ETL 카드로 더해 난이도·목적·lane별 HTML 성능표와 content-free receipt를 생성한다.
+  검증: 131행/해시/0600, easy·medium·hard 41/48/40, semantic aggregate exact reconcile,
+  HTML 정적/JS QA와 `file://` 자동화 정책 차단 기록, private artifact Git 추적 0건.
 - [ ] Named human gold review 상태를 별도 승인한다. 완료 전에는 `mac_local_equivalent`,
   `official=false`, provisional 상태를 유지한다.
 - [ ] **5.5 GCP live:** 정확한 `g2-standard-4`/L4에서 vLLM 8K smoke, GPU seconds, peak VRAM,

@@ -24,7 +24,9 @@ flowchart TD
     RAW["raw candidate artifact / path / case ID / lineage"]:::red -. "hidden from reviewer" .-> BP
     BP --> SOL["fixed gpt-5.6-sol review / secondary + adjudication when triggered"]:::blue
     SOL --> SR["hash-validated semantic aggregate"]:::green
-    SR --> FC["gold-approved semantic closeout"]:::green
+    SR --> PE["private 131-asset gradebook / question + expected + actual answer + evidence + score + rationale"]:::amber
+    PE --> PUB["content-free performance receipt / difficulty + purpose + lane aggregates"]:::green
+    PE --> FC["gold-approved semantic closeout"]:::green
     H["named human gold approval"]:::red --> FC
 
     Q --> RR["gcp_local run record / GPU seconds / peak VRAM"]:::amber
