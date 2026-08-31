@@ -87,6 +87,7 @@ Review this file before implementation and test execution.
 - Corrected catalog disconnected from answer context: `errorlogs/backend/2026-08-26-corrected-catalog-answer-boundary.md`
 - Catalog scoped discovery import path: `errorlogs/backend/2026-08-26-catalog-test-discovery-pythonpath.md`
 - Actual index shared-lock sandbox permission: `errorlogs/backend/2026-08-26-actual-index-lock-sandbox.md`
+- Supplemental DTO changes must update CLI signatures, schema, manual field sets and fixtures together; use task-specific shell variables. (`errorlogs/backend/2026-08-31-supplemental-evaluation-contract-drift.md`)
 - Live API corpus egress re-approval: `errorlogs/backend/2026-08-26-live-api-corpus-egress-reapproval.md`
 - Live API grounded abstention: `errorlogs/backend/2026-08-27-live-smoke-insufficient-evidence.md`
 - Table prefix token budget: `errorlogs/backend/2026-08-28-table-prefix-token-budget.md`

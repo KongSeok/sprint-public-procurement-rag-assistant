@@ -72,6 +72,41 @@ PYTHONPATH=src python -m midprojectrag.evaluation compare \
 The comparison reports numeric deltas without claiming a winner. Quality direction, latency,
 API cost and GPU cost must be interpreted together in the final report.
 
+## Supplemental provisional baseline (69 cases)
+
+The frozen baseline binds the 56 answer cases and 13 set-retrieval cases to the refined
+98-document page index. Human review still controls promotion to official gold; it does not
+block a clearly labelled provisional score.
+
+Verify every pinned input and the index without making a provider call. The checked-in
+`preflight-receipt.json` records this exact offline verification:
+
+```bash
+PYTHONPATH=src python -m midprojectrag.supplemental_baseline --preflight-only
+```
+
+Score previously produced local runs without network access:
+
+```bash
+PYTHONPATH=src python -m midprojectrag.supplemental_baseline --score-existing
+```
+
+Run the frozen OpenAI baseline only after explicitly approving the stated data flow. This
+sends the 69 private golden questions and each query's retrieved RFP excerpts to the OpenAI
+API, uses the USD 2.00 ledger ceiling in the frozen config, and resumes case by case:
+
+```bash
+PYTHONPATH=src python -m midprojectrag.supplemental_baseline \
+  --run-openai \
+  --approve-private-corpus-egress
+```
+
+Questions, answers, run records and per-case metrics remain under ignored private paths. After
+a complete run, `baselines/supplemental-provisional-v1/receipt.json` contains only hashes,
+counts and aggregate metrics and can be reviewed for Git publication. Preflight and
+`--score-existing` are deliberately offline; the provider path is fail-closed unless the
+explicit egress flag is present.
+
 ## Offline schema registry
 
 `schemas/registry.json` maps every schema `$id` and external `$ref` to a checked-in local file.

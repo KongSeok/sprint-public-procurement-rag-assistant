@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://midprojectrag.local/schemas/set-retrieval-run.schema.json",
+  "title": "MidProjectRAG supplemental set retrieval run",
+  "type": "object",
+  "required": ["schema_version", "case_id", "eval_set_sha256", "returned_doc_ids", "error"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "case_id": {"type": "string", "pattern": "^supplemental-set-[A-Za-z0-9._:-]+$"},
+    "eval_set_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "returned_doc_ids": {
+      "type": "array",
+      "items": {"type": "string", "pattern": "^doc_[0-9a-f]{24}$"},
+      "uniqueItems": true
+    },
+    "error": {
+      "oneOf": [
+        {"type": "null"},
+        {
+          "type": "object",
+          "required": ["code"],
+          "properties": {"code": {"type": "string", "pattern": "^[a-z][a-z0-9_]{0,127}$"}},
+          "additionalProperties": false
+        }
+      ]
+    }
+  },
+  "additionalProperties": false
+}

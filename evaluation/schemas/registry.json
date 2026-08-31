@@ -4,6 +4,11 @@
     "https://midprojectrag.local/schemas/rag-request.schema.json": "../../contracts/rag-request.schema.json",
     "https://midprojectrag.local/schemas/rag-response.schema.json": "../../contracts/rag-response.schema.json",
     "https://midprojectrag.local/schemas/eval-case.schema.json": "eval-case.schema.json",
-    "https://midprojectrag.local/schemas/run-record.schema.json": "run-record.schema.json"
+    "https://midprojectrag.local/schemas/run-record.schema.json": "run-record.schema.json",
+    "https://midprojectrag.local/schemas/supplemental-answer-case.schema.json": "supplemental-answer-case.schema.json",
+    "https://midprojectrag.local/schemas/supplemental-answer-run.schema.json": "supplemental-answer-run.schema.json",
+    "https://midprojectrag.local/schemas/set-retrieval-case.schema.json": "set-retrieval-case.schema.json",
+    "https://midprojectrag.local/schemas/set-retrieval-run.schema.json": "set-retrieval-run.schema.json",
+    "https://midprojectrag.local/schemas/gold-review-decision.schema.json": "gold-review-decision.schema.json"
   }
 }
