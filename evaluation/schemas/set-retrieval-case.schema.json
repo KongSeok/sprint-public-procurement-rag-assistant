@@ -1,0 +1,150 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://midprojectrag.local/schemas/set-retrieval-case.schema.json",
+  "title": "MidProjectRAG supplemental set retrieval case",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "case_id",
+    "legacy_id",
+    "profile",
+    "subtype",
+    "question",
+    "difficulty",
+    "source_manifest_sha256",
+    "source_sha256s",
+    "required_doc_ids",
+    "expected_count",
+    "required_fact_groups",
+    "set_definition",
+    "legacy_scoring_notes",
+    "source_labels",
+    "supporting_sources",
+    "reviewed_draft_sha256",
+    "review",
+    "enabled",
+    "tags"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "case_id": {"type": "string", "pattern": "^supplemental-set-[A-Za-z0-9._:-]+$"},
+    "legacy_id": {"type": "string", "pattern": "^[A-Za-z][A-Za-z0-9._:-]{0,63}$"},
+    "profile": {"const": "supplemental"},
+    "subtype": {"enum": ["list_condition", "single_lookup", "purpose_qa", "argmax", "compare"]},
+    "question": {"type": "string", "minLength": 1, "maxLength": 4000},
+    "difficulty": {"enum": ["easy", "medium", "hard"]},
+    "source_manifest_sha256": {"$ref": "#/$defs/sha256"},
+    "source_sha256s": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/sha256"},
+      "uniqueItems": true
+    },
+    "required_doc_ids": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/docId"},
+      "uniqueItems": true
+    },
+    "expected_count": {"type": "integer", "minimum": 1},
+    "required_fact_groups": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "array",
+        "minItems": 1,
+        "items": {"type": "string", "minLength": 1, "maxLength": 2000},
+        "uniqueItems": true
+      }
+    },
+    "set_definition": {
+      "type": "object",
+      "required": ["snapshot_id", "manifest_sha256", "description"],
+      "properties": {
+        "snapshot_id": {"type": "string", "minLength": 1, "maxLength": 128},
+        "manifest_sha256": {"$ref": "#/$defs/sha256"},
+        "description": {"type": "string", "minLength": 1, "maxLength": 2000}
+      },
+      "additionalProperties": false
+    },
+    "legacy_scoring_notes": {"type": ["string", "null"], "minLength": 1, "maxLength": 12000},
+    "source_labels": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1, "maxLength": 1024},
+      "uniqueItems": true
+    },
+    "supporting_sources": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1, "maxLength": 256},
+      "uniqueItems": true
+    },
+    "reviewed_draft_sha256": {
+      "type": ["string", "null"],
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "review": {"$ref": "#/$defs/review"},
+    "enabled": {"type": "boolean"},
+    "tags": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1, "maxLength": 128},
+      "uniqueItems": true
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"review": {"properties": {"status": {"const": "approved"}}, "required": ["status"]}},
+        "required": ["review"]
+      },
+      "then": {
+        "properties": {
+          "enabled": {"const": true},
+          "reviewed_draft_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "review": {
+            "properties": {
+              "reviewer": {"type": "string", "minLength": 1},
+              "reviewed_at": {"type": "string", "format": "date-time"}
+            }
+          }
+        }
+      },
+      "else": {"properties": {"enabled": {"const": false}, "reviewed_draft_sha256": {"const": null}}}
+    }
+  ],
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "docId": {"type": "string", "pattern": "^doc_[0-9a-f]{24}$"},
+    "review": {
+      "type": "object",
+      "required": ["author", "reviewer", "status", "reviewed_at"],
+      "properties": {
+        "author": {"type": "string", "minLength": 1, "maxLength": 128, "pattern": ".*\\S.*"},
+        "reviewer": {"type": ["string", "null"], "maxLength": 128, "pattern": ".*\\S.*"},
+        "status": {"enum": ["draft", "approved", "rejected"]},
+        "reviewed_at": {
+          "type": ["string", "null"],
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?(?:Z|[+-]\\d{2}:\\d{2})$"
+        }
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"status": {"const": "draft"}}, "required": ["status"]},
+          "then": {"properties": {"reviewer": {"const": null}, "reviewed_at": {"const": null}}},
+          "else": {
+            "properties": {
+              "reviewer": {"type": "string", "minLength": 1, "maxLength": 128, "pattern": ".*\\S.*"},
+              "reviewed_at": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?(?:Z|[+-]\\d{2}:\\d{2})$"
+              }
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

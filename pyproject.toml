@@ -48,6 +48,8 @@ ui = [
 [project.scripts]
 midprojectrag = "midprojectrag.cli:main"
 midprojectrag-eval = "midprojectrag.evaluation:main"
+midprojectrag-supplemental-eval = "midprojectrag.supplemental_evaluation:main"
+midprojectrag-supplemental-baseline = "midprojectrag.supplemental_baseline:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://midprojectrag.local/schemas/gold-review-decision.schema.json",
+  "title": "MidProjectRAG named human gold review decision",
+  "type": "object",
+  "required": ["schema_version", "case_id", "case_sha256", "reviewer", "reviewed_at", "decision", "answer_verified", "evidence_refs", "absence_scope_doc_ids", "notes"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "case_id": {"type": "string", "pattern": "^supplemental-(qa|alignment|set)-[A-Za-z0-9._:-]+$"},
+    "case_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "reviewer": {"type": "string", "minLength": 1, "maxLength": 128, "pattern": ".*\\S.*"},
+    "reviewed_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?(?:Z|[+-]\\d{2}:\\d{2})$"
+    },
+    "decision": {"enum": ["approved", "rejected"]},
+    "answer_verified": {"type": "boolean"},
+    "evidence_refs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["doc_id", "source_block_id", "page", "locator_hash"],
+        "properties": {
+          "doc_id": {"type": "string", "pattern": "^doc_[0-9a-f]{24}$"},
+          "source_block_id": {"type": "string", "pattern": "^block_[0-9a-f]{24}$"},
+          "page": {"type": "integer", "minimum": 1},
+          "locator_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        },
+        "additionalProperties": false
+      },
+      "uniqueItems": true
+    },
+    "absence_scope_doc_ids": {
+      "type": "array",
+      "items": {"type": "string", "pattern": "^doc_[0-9a-f]{24}$"},
+      "uniqueItems": true
+    },
+    "notes": {"type": ["string", "null"], "maxLength": 2000}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"decision": {"const": "approved"}}, "required": ["decision"]},
+      "then": {"properties": {"answer_verified": {"const": true}}}
+    }
+  ],
+  "additionalProperties": false
+}

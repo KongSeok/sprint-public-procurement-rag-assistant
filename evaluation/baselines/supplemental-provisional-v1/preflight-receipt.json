@@ -1,0 +1,50 @@
+{
+  "baseline_id": "supplemental-provisional-v1",
+  "config_sha256": "8b2a95e6718ac5f4dbb8f4e4e17d198ef4bb4b3d23d55a8f111a3e035df99c3a",
+  "counts": {
+    "answer_cases": 56,
+    "chunks": 9331,
+    "documents": 98,
+    "set_cases": 13,
+    "total_cases": 69
+  },
+  "evaluation_tier": "provisional",
+  "execution_contract": {
+    "explicit_egress_approval_required": true,
+    "external_destination": "OpenAI API",
+    "external_payload_classes": [
+      "golden_set_questions",
+      "retrieved_rfp_excerpts"
+    ],
+    "private_output_policy": {
+      "per_case_metrics": "evaluation/private/",
+      "run_records": "evaluation/private/",
+      "tracked_receipts_must_exclude": [
+        "questions",
+        "answers",
+        "source_text"
+      ]
+    },
+    "provider_execution": "explicit_approval_required",
+    "resume_policy": {
+      "case_identity_field": "case_id",
+      "checkpoint": "atomic_jsonl_after_each_case",
+      "checkpoint_manifest_identity_fields": [
+        "answer_eval_set_sha256",
+        "set_eval_set_sha256",
+        "config_sha256"
+      ],
+      "reject_mismatched_hashes": true,
+      "unit": "case"
+    }
+  },
+  "output_contract": {
+    "private_per_case_metrics": true,
+    "private_run_records": true,
+    "public_aggregate_receipt": true
+  },
+  "passed": true,
+  "private_corpus_egress": false,
+  "provider_calls": 0,
+  "schema_version": "1.0"
+}
