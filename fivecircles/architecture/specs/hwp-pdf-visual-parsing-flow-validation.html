@@ -31,14 +31,14 @@
 <body>
 <main>
   <h1>HWP/PDF visual parsing flow validation</h1>
-  <p class="meta">2026-08-30 · CLOSEOUT · occurrence recovery and understanding contract</p>
-  <p><span class="status">PUBLIC IMPLEMENTATION COMPLETE</span><span class="status">LOCAL ONLY</span><span class="status wait">PRIVATE QUALITY GATES BLOCKED</span></p>
+  <p class="meta">2026-08-31 · V3 CORRECTED · occurrence recovery and understanding contract</p>
+  <p><span class="status">BLANK-CROP CORRECTION VERIFIED</span><span class="status">LOCAL ONLY</span><span class="status wait">PRIVATE QUALITY GATES BLOCKED</span></p>
 
   <div class="metrics" aria-label="핵심 결과">
     <div class="metric"><strong>5 / 5</strong><span>HWP representative execution</span></div>
     <div class="metric"><strong>4 / 4</strong><span>PDF · 570 pages</span></div>
     <div class="metric"><strong>1,137</strong><span>HWP + PDF v2 occurrences</span></div>
-    <div class="metric"><strong>1,119</strong><span>page/bbox retrieval eligible</span></div>
+    <div class="metric"><strong>1,118</strong><span>page/bbox retrieval eligible</span></div>
     <div class="metric"><strong>0</strong><span>external API calls</span></div>
   </div>
 
@@ -52,7 +52,7 @@
   <table><thead><tr><th>ID</th><th>Target</th><th>Final evidence</th><th>Status</th></tr></thead><tbody>
     <tr><td>V1</td><td>VisualOccurrenceV2 identity</td><td>closed schema, stable IDs, mixed-state validator</td><td>MATCHED</td></tr>
     <tr><td>V2</td><td>HWP exact resource/cell anchor</td><td>pinned helper; 27 exact objects in five documents</td><td>MATCHED</td></tr>
-    <tr><td>V3</td><td>exact fallback + deterministic crop</td><td>16 placed crops; 11 page-less objects withheld</td><td>MATCHED</td></tr>
+    <tr><td>V3</td><td>exact fallback + deterministic crop</td><td>15 nonblank crops; TIFF 1 quarantined; 11 page-less objects withheld</td><td>MATCHED</td></tr>
     <tr><td>V4</td><td>PDF resource/placement runner</td><td>416 resources; 1,110 occurrences across 570 pages</td><td>MATCHED</td></tr>
     <tr><td>V5</td><td>local OCR/layout</td><td>pinned OS-sandboxed adapter; private weights unavailable</td><td>CODE MATCHED / RUN BLOCKED</td></tr>
     <tr><td>V6</td><td>supported caption/retrieval/citation</td><td>support guard, bounded fusion, visual-gold scoring parity</td><td>MATCHED PUBLIC</td></tr>
@@ -61,10 +61,18 @@
 
   <h2>실제 실행 결과</h2>
   <table><thead><tr><th>Lane</th><th>Result</th><th>Eligible</th><th>Withheld</th></tr></thead><tbody>
-    <tr><td>HWP representative</td><td>5 documents · 27 exact objects</td><td>16 page/bbox crops</td><td>11 doc-only objects</td></tr>
+    <tr><td>HWP representative</td><td>5 documents · 27 objects</td><td>15 nonblank page/bbox crops</td><td>1 TIFF quarantined · 11 doc-only</td></tr>
     <tr><td>PDF full set</td><td>4 documents · 570 pages · 1,110 occurrences</td><td>1,103 crops</td><td>7 complex ambiguous regions</td></tr>
     <tr><td>OCR/caption</td><td>runner, cache, contracts and fixture E2E complete</td><td>0 private-model runs</td><td>weights and human gold required</td></tr>
   </tbody></table>
+
+  <h2>2026-08-31 blank-crop correction</h2>
+  <p>기존 대표 bundle의 unique crop 14개가 모두 순백임을 확인해 완료 판정을 철회했다.
+  rhwp SVG의 embedded data-URI raster를 직접 합성하고 nested SVG viewBox/viewport·rect clip을
+  bitmap source crop으로 반영했다. 관측된 linear RGB filter와 opacity도 픽셀에 적용한다.
+  순백 crop은 <code>visual_crop_blank</code>로 거부하며, 현 canvas가 디코딩하지 못하는 TIFF는
+  crop 없이 격리한다. 또한 <code>&lt;style&gt;</code>, class, display/visibility/inline style과
+  <code>&lt;defs&gt;</code> 내부 image를 허용 경로로 오인하지 않고 fail closed한다.</p>
 
   <h2>검색·응답 수리</h2>
   <p>Caption cap을 적용하기 전에 visual 후보를 충분히 조회하고, base 결과가 top-k를 채워도 제한된
@@ -73,9 +81,14 @@
   자동 기권한다.</p>
 
   <h2>무결성과 결정성</h2>
-  <p>HWP 대표와 PDF 전수 모두 즉시 재실행에서 같은 artifact-set identity와 artifact hash를 반환했다.
-  전체 unittest 493/493, compileall, Draft 2020-12 schema 23개, diff check와 repository safety 556 files를
-  통과했다. macOS 고정 network sandbox의 loopback socket probe는 <code>EPERM</code>을 반환했다.</p>
+  <p>수정된 HWP 대표 bundle은 15/15 crop이 nonblank이고 즉시 재실행에서 같은 artifact-set identity와
+  artifact hash를 반환했다. page render도 14/14 nonblank다. current helper SHA-256은
+  <code>0b7ab8edd3b3cb6018704b40e1c7b662041a79c857dc99eba66432280cfc0a9b</code>, artifact set은
+  <code>visualv2_1a25cd3f5f6c34dfe2e8ff9c</code>이며 strict reuse를 통과했다. 외부 API 호출은 0회이고
+  <code>private_egress=false</code>다. 새 fail-closed 회귀를 포함한 helper focused 11/11을 통과했고,
+  대표 530페이지 스캔에서 해당 CSS/defs-image 패턴은 0건이었다. repository-wide discovery
+  505/505, focused schema 2/2, compileall, Node syntax, diff-check와 repository safety 562 files도
+  통과했다. Mermaid target/current PNG와 이 HTML은 실제 Chrome headless render에서 정상 표시됐다.</p>
 
   <h2>품질 경계</h2>
   <div class="boundary">페이지와 bbox를 증명하지 못한 HWP object는 OCR 대상이나 검색 근거로

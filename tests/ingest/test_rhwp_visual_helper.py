@@ -100,7 +100,8 @@ export class HwpDocument {
     return IMAGE_BYTES;
   }
   renderPageSvg(page) {
-    return `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="200"><rect width="100" height="200" fill="#fff"/><text>${page}</text></svg>`;
+    const encoded = Buffer.from(IMAGE_BYTES).toString("base64");
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="200" viewBox="0 0 100 200"><defs><clipPath id="page-clip"><rect x="0" y="0" width="100" height="200"/></clipPath><filter id="linear-filter"><feComponentTransfer><feFuncR type="linear" slope="1.15" intercept="0.025"/><feFuncG type="linear" slope="1.15" intercept="0.025"/><feFuncB type="linear" slope="1.15" intercept="0.025"/></feComponentTransfer></filter></defs><rect width="100" height="200" fill="#fff"/><text>${page}</text><image x="10" y="20" width="30" height="40" preserveAspectRatio="none" href="data:image/png;base64,${encoded}"/><image width="5" height="6" preserveAspectRatio="none" href="data:image/png;base64,${encoded}"/><svg x="50" y="60" width="10" height="12" viewBox="1 1 3 4"><image width="5" height="6" preserveAspectRatio="none" href="data:image/png;base64,${encoded}"/></svg><g clip-path="url(#page-clip)" filter="url(#linear-filter)" opacity="0.17"><image x="90" y="190" width="20" height="20" preserveAspectRatio="none" href="data:image/png;base64,${encoded}"/></g></svg>`;
   }
   free() {}
 }
@@ -109,8 +110,10 @@ export class HwpDocument {
 
 FAKE_CANVAS = r'''
 const PNG = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10, 1, 2, 3, 4]);
+const DRAW_TRACE_MARKER = "\nDRAW_CALLS=";
 
 export function createCanvas(width, height) {
+  const drawCalls = [];
   return {
     width,
     height,
@@ -119,19 +122,30 @@ export function createCanvas(width, height) {
         font: "",
         measureText(text) { return {width: String(text).length}; },
         clearRect() {},
-        drawImage() {}
+        getImageData(x, y, imageWidth, imageHeight) {
+          return {data: new Uint8ClampedArray(imageWidth * imageHeight * 4)};
+        },
+        putImageData() {},
+        drawImage() {
+          const numericArguments = Array.from(arguments).slice(1);
+          if (!numericArguments.every(Number.isFinite)) throw new Error("bad draw arguments");
+          drawCalls.push(numericArguments);
+        }
       };
     },
     toBuffer(kind) {
       if (kind !== "image/png") throw new Error("bad output kind");
-      return PNG;
+      return Buffer.concat([
+        PNG,
+        Buffer.from(DRAW_TRACE_MARKER + JSON.stringify(drawCalls), "utf8")
+      ]);
     }
   };
 }
 
 export async function loadImage(value) {
   if (!(value instanceof Uint8Array)) throw new Error("bad image input");
-  return {ok: true};
+  return {ok: true, width: 5, height: 6};
 }
 '''
 
@@ -278,6 +292,46 @@ class RhwpVisualHelperTests(unittest.TestCase):
             self.assertTrue(render_path.is_file())
             self.assertEqual(_sha256(render_path), render["page_render_sha256"])
             self.assertEqual(render["coordinate_page_bbox"]["w"], 100)
+            marker = b"\nDRAW_CALLS="
+            render_bytes = render_path.read_bytes()
+            self.assertIn(marker, render_bytes)
+            draw_calls = json.loads(render_bytes.split(marker, 1)[1])
+            self.assertEqual(len(draw_calls), 5)
+            cropped_calls = [arguments for arguments in draw_calls if len(arguments) == 8]
+            self.assertEqual(len(cropped_calls), 2)
+
+            source_x, source_y, source_w, source_h, dest_x, dest_y, dest_w, dest_h = (
+                next(arguments for arguments in cropped_calls if arguments[4] == 50)
+            )
+            source_fractions = (
+                source_x / 5,
+                source_y / 6,
+                source_w / 5,
+                source_h / 6,
+            )
+            for actual, expected in zip(
+                source_fractions,
+                (1 / 6, 1 / 6, 2 / 3, 2 / 3),
+                strict=True,
+            ):
+                self.assertAlmostEqual(actual, expected, delta=1e-12)
+            for actual, expected in zip(
+                (dest_x, dest_y, dest_w, dest_h),
+                (50, 60, 10, 12),
+                strict=True,
+            ):
+                self.assertAlmostEqual(actual, expected, delta=1e-12)
+            edge_call = next(arguments for arguments in cropped_calls if arguments[4] == 90)
+            for actual, expected in zip(
+                edge_call,
+                (0, 0, 2.5, 3, 90, 190, 10, 10),
+                strict=True,
+            ):
+                self.assertAlmostEqual(actual, expected, delta=1e-12)
+            self.assertEqual(
+                render["render_profile"]["renderer"],
+                "rhwp_core_renderPageSvg+napi_canvas+data_uri_overlay",
+            )
 
         second = self._run()
         self.assertEqual(second.returncode, 0, second.stderr)
@@ -317,6 +371,97 @@ class RhwpVisualHelperTests(unittest.TestCase):
             "rhwp_visual_helper_output_invalid",
         )
         self.assertFalse((outside / "helper.json").exists())
+
+    def test_rejects_unsupported_svg_effect_in_image_ancestor(self) -> None:
+        source = self.core.read_text(encoding="utf-8").replace(
+            'filter="url(#linear-filter)" opacity="0.17"',
+            'style="opacity:0.17"',
+        )
+        self.core.write_text(source, encoding="utf-8")
+        result = self._run()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(
+            json.loads(result.stderr)["error_code"],
+            "rhwp_visual_helper_page_svg_effect_unsupported",
+        )
+        self.assertFalse(self.output.exists())
+
+    def test_rejects_svg_stylesheet_that_can_change_image_effects(self) -> None:
+        source = self.core.read_text(encoding="utf-8").replace(
+            "<defs>",
+            "<defs><style>image { opacity: 0.17; }</style>",
+        )
+        self.core.write_text(source, encoding="utf-8")
+        result = self._run()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(
+            json.loads(result.stderr)["error_code"],
+            "rhwp_visual_helper_page_svg_effect_unsupported",
+        )
+        self.assertFalse(self.output.exists())
+
+    def test_rejects_svg_css_class_that_can_change_image_effects(self) -> None:
+        source = self.core.read_text(encoding="utf-8").replace(
+            '<image x="10"',
+            '<image class="watermark" x="10"',
+            1,
+        )
+        self.core.write_text(source, encoding="utf-8")
+        result = self._run()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(
+            json.loads(result.stderr)["error_code"],
+            "rhwp_visual_helper_page_svg_effect_unsupported",
+        )
+        self.assertFalse(self.output.exists())
+
+    def test_rejects_hidden_svg_image_ancestor(self) -> None:
+        source = self.core.read_text(encoding="utf-8").replace(
+            '<image x="10"',
+            '<g display="none"><image x="10"',
+            1,
+        ).replace(
+            'href="data:image/png;base64,${encoded}"/><image width="5"',
+            'href="data:image/png;base64,${encoded}"/></g><image width="5"',
+            1,
+        )
+        self.core.write_text(source, encoding="utf-8")
+        result = self._run()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(
+            json.loads(result.stderr)["error_code"],
+            "rhwp_visual_helper_page_svg_effect_unsupported",
+        )
+        self.assertFalse(self.output.exists())
+
+    def test_rejects_definition_only_svg_image(self) -> None:
+        source = self.core.read_text(encoding="utf-8").replace(
+            "</defs>",
+            '<image x="1" y="2" width="3" height="4" preserveAspectRatio="none" href="data:image/png;base64,${encoded}"/></defs>',
+            1,
+        )
+        self.core.write_text(source, encoding="utf-8")
+        result = self._run()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(
+            json.loads(result.stderr)["error_code"],
+            "rhwp_visual_helper_page_svg_image_structure_unsupported",
+        )
+        self.assertFalse(self.output.exists())
+
+    def test_rejects_unrecognized_svg_filter_form(self) -> None:
+        source = self.core.read_text(encoding="utf-8").replace(
+            '<feComponentTransfer><feFuncR type="linear" slope="1.15" intercept="0.025"/><feFuncG type="linear" slope="1.15" intercept="0.025"/><feFuncB type="linear" slope="1.15" intercept="0.025"/></feComponentTransfer>',
+            '<feGaussianBlur stdDeviation="2"/>',
+        )
+        self.core.write_text(source, encoding="utf-8")
+        result = self._run()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(
+            json.loads(result.stderr)["error_code"],
+            "rhwp_visual_helper_page_svg_filter_structure_unsupported",
+        )
+        self.assertFalse(self.output.exists())
 
     def test_rejects_page_count_over_bound(self) -> None:
         self.input.write_bytes(bytes([255]))

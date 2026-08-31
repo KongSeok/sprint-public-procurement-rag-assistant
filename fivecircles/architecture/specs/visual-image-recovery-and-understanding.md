@@ -468,14 +468,20 @@ implementation을 허위로 실패 처리하거나 simulated private pass로 주
 
 ## 15. Implementation closeout
 
+> 2026-08-31 정정: 아래 대표 HWP crop 완료 주장은 후속 픽셀 감사에서 무효화됐다.
+> 원본 산출물은 incident 증거로 격리하고, §16의 nonblank gate를 통과한 재생성 결과만
+> 검색 가능 evidence로 인정한다.
+
 공개 계약과 실행 경로는 구현 완료했다. HWP/PDF occurrence 복구, deterministic crop, 폐쇄형
 OCR·caption evidence, checksum-pinned OS-network-sandbox adapter, bounded visual fusion, page/bbox
 citation과 visual gold 평가를 기존 text/table identity를 바꾸지 않는 additive v2로 제공한다.
 
 실제 private 실행은 내용·파일명 없이 다음 집계만 남긴다.
 
-- HWP 대표 5문서: occurrence 27개, exact source object 27개, page+bbox/crop 검증 및 검색 가능
-  16개, page를 증명할 수 없어 withheld 11개. 재실행 artifact identity가 동일했다.
+- HWP 대표 5문서 초기 실행: occurrence 27개, exact source object 27개였으나, 16개 placement에서
+  공유된 14개 crop PNG가 전부 순백 픽셀이었다. 당시 metadata/hash/dimension 재사용 검증은
+  이 semantic blank를 검출하지 못했으므로 검색 가능 16개 주장은 철회한다. page를 증명할 수 없는
+  11개 withheld 상태와 source object provenance 자체는 영향을 받지 않는다.
 - PDF 4문서 570쪽: resource 416개, occurrence 1,110개, eligible 1,103개,
   ambiguous/withheld 7개. 재실행 artifact identity가 동일했다.
 - 실제 OCR/caption inference: 0개. checksum-pinned private model weight가 없으므로 공개 runner가
@@ -486,6 +492,97 @@ citation과 visual gold 평가를 기존 text/table identity를 바꾸지 않는
 따라서 남은 작업은 코드 TODO가 아니라 외부 입력 gate다. 사람이 occurrence/title/OCR/관계 gold를
 동결하고 허용된 model weight를 pin한 뒤 실제 품질 기준을 통과해야만 HWP 94건과 기본 runtime
 활성화를 별도 실행한다.
+
+## 16. HWP blank-crop correctness correction (2026-08-31)
+
+### 16.1 Goal and current problem
+
+`@rhwp/core.renderPageSvg()`가 만든 SVG에는 HWP 그림이 `data:image/...;base64` `<image>`로
+포함되지만, 현재 `@napi-rs/canvas.loadImage(Buffer(svg))` 경로는 SVG의 text/vector만 그리고
+내장 raster image를 누락한다. 그 결과 page render는 생성되지만 image bbox crop은 순백이 되며,
+기존 검증은 PNG 구조·크기·hash만 검사해 잘못된 evidence를 `eligible`로 승격했다.
+
+### 16.2 Scope and assumptions
+
+- 대상은 pinned rhwp helper가 생성하는 self-contained SVG data URI image다.
+- PNG/JPEG/BMP/WebP만 로컬 canvas overlay 대상으로 허용한다.
+- TIFF/GIF/SVG/WMF처럼 현재 renderer가 디코딩하지 못하는 source는 원본 provenance를 보존하되
+  crop/검색 승격 없이 `unsupported` + `withheld` 또는 `quarantined`로 남긴다.
+- 외부 parser, OCR, VLM, 검색 API는 호출하지 않는다.
+- 임의의 SVG `transform`, mask, CSS cascade와 복합 paint-order 일반화는 이번 수리 범위 밖이다.
+  helper가 실제로 내보내는 axis-aligned root/nested viewport, 단일 rect clip,
+  `none`/`meet`/`slice` preserve-aspect-ratio, RGB linear component-transfer와 scalar opacity만
+  허용한다. `<style>` element, `class`, ancestor `display`/`visibility`/inline `style`, 그리고
+  `<defs>`처럼 paint tree 밖의 container에 들어간 `<image>`는 조용히 무시하지 않고 fail closed한다.
+  SVG 표준에 따라 생략된 `x/y`는 0으로 정규화하고, 계약 밖 effect나 geometry는 추정하지 않는다.
+
+### 16.3 Function and evidence contracts
+
+1. helper는 `<image>` data URI를 bounded base64로 해석하고 media magic과 선언 MIME을 대조한다.
+2. base SVG를 먼저 rasterize한 뒤, 지원 raster를 page coordinate→pixel scale로 같은 bbox에
+   deterministic overlay한다. 중첩 `<svg>`는 `x/y/width/height`, `viewBox`, 기본
+   `xMidYMid meet` 또는 명시적 `none/meet/slice`를 axis-aligned transform으로 합성하고 viewport와
+   상위 viewport clip의 교집합만 bitmap source crop으로 그린다.
+3. `<clipPath><rect>` ancestor는 overlay crop에 교차하고, 관측된 RGB linear component-transfer와
+   scalar opacity는 bounded pixel buffer에 순서대로 적용한다. 다른 filter/mask는 실패시킨다.
+4. `<style>` element와 `class` attribute를 SVG 전체에서 거부한다. `<image>` ancestor의
+   `display`, `visibility`, inline `style`, mask/overflow 또는 `<svg>/<g>` 이외 container 구조도
+   `rhwp_visual_helper_page_svg_effect_unsupported` 또는
+   `rhwp_visual_helper_page_svg_image_structure_unsupported`로 fail closed한다.
+5. renderer identity는 `rhwp_core_renderPageSvg+napi_canvas+data_uri_overlay`로 바꿔 이전 artifact의
+   strict reuse를 자동 거부한다.
+6. `crop_page_region()`은 알파를 흰 배경에 합성한 뒤 모든 픽셀이 순백이면
+   `visual_crop_blank`로 fail closed한다. blank crop은 hash와 PNG 구조가 유효해도 evidence가 아니다.
+7. `source_object_status=unsupported` occurrence는 crop을 만들지 않으며 retrieval eligible로
+   승격하지 않는다.
+
+### 16.4 Acceptance criteria
+
+- synthetic helper 회귀에서 base SVG, direct embedded raster, x/y 생략 raster, nonzero viewBox의
+  nested raster, rect-clipped raster와 linear-filter/opacity raster가 예상 draw path로 그려진다.
+  nested/clip raster의 source fraction과 destination 좌표를 수치로 검증한다.
+- `<style>`, `class`, ancestor `display`/`visibility`/inline `style`, `<defs>` 내부 image fixture는
+  각각 허용 경로로 떨어지지 않고 명시적 helper 오류로 종료한다.
+- 순백 crop은 `visual_crop_blank`로 거부되고, nonblank crop은 기존 deterministic hash 계약을 유지한다.
+- 대표 HWP 5건을 새 renderer identity로 재생성했을 때 생성된 모든 eligible crop이 nonblank다.
+- 대표 문서의 PNG/JPEG placement는 실제 그림 픽셀을 포함하고, 디코딩 불가 TIFF는 명시적으로
+  격리된다.
+- 기존 흰 crop bundle은 삭제하지 않고 invalid incident artifact로 보존하며, canonical 대표 경로는
+  검증을 통과한 새 bundle로만 교체한다.
+- private 원문·crop·파일명은 Git에 커밋하지 않고 집계와 비식별 상태만 기록한다.
+
+### 16.5 Implementation batches and test plan
+
+1. SVG data-image parser/overlay와 renderer identity를 구현한다.
+2. blank crop gate와 unsupported-source promotion guard를 구현한다.
+3. unit tests, 대표 5건 재생성, 픽셀 전수 감사, sample visual review를 실행한다.
+4. flow report·incident·learn/update/TODO를 정정하고 scoped commit/push한다.
+
+검증은 Node syntax, 관련 Python/Node helper unit tests, 대표 bundle schema/reuse, Pillow nonwhite
+전수검사, 실제 crop 시각 확인, Mermaid PNG/HTML render, repository safety 순서로 수행한다.
+
+### 16.6 Closeout evidence
+
+- current helper SHA-256은
+  `0b7ab8edd3b3cb6018704b40e1c7b662041a79c857dc99eba66432280cfc0a9b`, canonical
+  representative artifact set은 `visualv2_1a25cd3f5f6c34dfe2e8ff9c`다.
+- 새 renderer profile로 대표 HWP 5/5를 재생성했다. occurrence 27개 중 15개가 nonblank
+  page/bbox crop으로 eligible, TIFF 1개가 quarantined, page를 증명하지 못한 11개가 withheld다.
+- unique crop PNG 15/15와 page render 14/14가 모두 nonblank다. 큰 문서형 raster 2개와
+  nested-viewBox 소형 로고 1개도 직접 열어 합성 위치와 내용이 보이는지 확인했다.
+- canonical output에 대해 occurrence reference/hash reconciliation, expected artifact-set identity와
+  strict reuse를 다시 통과했다. 외부 API 호출은 0회이고 metadata의 `private_egress`는 `false`다.
+- `<style>`/`class`/`display`/`visibility`/`<defs>`-image fail-closed 회귀를 포함한 helper focused
+  test는 11/11 통과했다. 대표 5문서 530페이지 SVG 전수 스캔에서 이 패턴은 0건이었다.
+- repository-wide discovery 505/505, focused schema 2/2, compileall, Node syntax,
+  `git diff --check`, repository safety 562 files를 모두 통과해 current-tree green을 확정했다.
+- 대표본의 linear-filter/opacity crop을 Chrome 원본 SVG render와 같은 bbox에서 비교한 결과 channel
+  mean absolute error는 `0.754/255`, RMSE는 `1.471/255`였다.
+- 과거 순백 14-crop bundle은 incident archive로 보존했고 canonical representative 경로에는
+  수정 bundle만 둔다. private artifact는 Git 범위 밖이다.
+
+이 closeout은 crop 복구의 기술 gate만 통과시킨다. 실제 OCR/도식 관계 품질과 HWP 94건 전수는
+사람이 검토한 5-HWP + 4-PDF gold와 pinned model-quality gate가 준비될 때까지 계속 차단한다.
 
 ## Official References
 

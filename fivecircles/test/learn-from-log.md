@@ -74,6 +74,10 @@ Review this file before implementation and test execution.
 - Compare visual citations by document, occurrence, evidence type and evidence-ID set; exclude unannotated evidence lanes from precision denominators.
 - Keep JSON Schema and manual validation in differential tests, including field dependencies, stack-specific exclusions and evidence-type ID prefixes.
 - Environment offline flags and executable checksums do not enforce no-egress; require a verified OS network sandbox for every private model subprocess.
+- Do not carry a previous closeout's green test count forward after visual code or fixtures change; rerun the current tree and report optional-lane failures separately from the page Dense baseline.
+- A valid PNG hash and dimension do not prove usable visual evidence; composite alpha over the target background, reject semantic blanks, and visually compare representative crops with the source renderer.
+- When SVG data images are overlaid outside the SVG loader, preserve nested viewBox, rect clips and observed pixel effects; fail closed on unsupported transforms, masks, styles or filter forms.
+- Treat CSS selectors, hidden SVG ancestors and definition-only images as non-rendering structure; reject them unless the overlay compositor models their exact visibility and paint semantics.
 
 ## Confirmed Incidents
 
@@ -101,6 +105,7 @@ Review this file before implementation and test execution.
 - Visual adapter network isolation: `errorlogs/backend/2026-08-30-visual-adapter-network-isolation.md`
 - Visual integration contract gaps: `errorlogs/backend/2026-08-30-visual-integration-contract-gaps.md`
 - Flow report local-file browser policy: `errorlogs/frontend/2026-08-30-flow-report-file-url-policy.md`
+- Current-tree visual crop blank regression: `errorlogs/backend/2026-08-31-visual-crop-blank-regression.md`
 
 - Batch 2 fail-closed audit: `errorlogs/backend/2026-08-24-evaluation-fail-closed-audit.md`
 - Synthetic/production floor split: `errorlogs/backend/2026-08-24-evaluation-fixture-floor.md`

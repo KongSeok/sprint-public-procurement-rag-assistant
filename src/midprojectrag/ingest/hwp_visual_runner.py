@@ -812,7 +812,7 @@ def _validate_helper_envelope(
             or raw.get("coordinate_page_bbox") != size["coordinate_page_bbox"]
             or profile
             != {
-                "renderer": "rhwp_core_renderPageSvg+napi_canvas",
+                "renderer": "rhwp_core_renderPageSvg+napi_canvas+data_uri_overlay",
                 "profile": "screen",
                 "scale": 1,
                 "pixel_rounding": "ceil",
@@ -1225,7 +1225,9 @@ def run_hwp_visual_v2_from_manifest(
         "timeout_seconds": float(timeout_seconds),
         "limits": asdict(limits),
         "network": "disabled_by_contract",
-        "render_profile": "rhwp_core_renderPageSvg+napi_canvas-screen-v1",
+        "render_profile": (
+            "rhwp_core_renderPageSvg+napi_canvas+data_uri_overlay-screen-v1"
+        ),
     }
     adapter_code_sha256 = _adapter_code_sha256()
     if output.exists():
@@ -1351,6 +1353,9 @@ def run_hwp_visual_v2_from_manifest(
                 promoted: list[dict[str, Any]] = []
                 for occurrence in recovered:
                     if occurrence["placement_status"] == "page_bbox_verified":
+                        if occurrence["source_object_status"] == "unsupported":
+                            promoted.append(occurrence)
+                            continue
                         render = page_renders.get(occurrence["page"])
                         if render is None:
                             _fail("hwp_visual_runner_page_render_coverage_mismatch")

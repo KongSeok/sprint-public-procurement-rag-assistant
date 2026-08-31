@@ -37,8 +37,23 @@ def _png() -> bytes:
     return output.getvalue()
 
 
-def _bridge_source(page_png: bytes) -> str:
+def _tiff() -> bytes:
+    image = Image.new("RGB", (8, 8), (120, 80, 40))
+    output = io.BytesIO()
+    image.save(output, format="TIFF")
+    return output.getvalue()
+
+
+def _bridge_source(
+    page_png: bytes,
+    *,
+    source_bytes: bytes | None = None,
+    source_media_type: str = "image/png",
+    supported: bool = True,
+) -> str:
     encoded = base64.b64encode(page_png).decode("ascii")
+    encoded_source = base64.b64encode(source_bytes or page_png).decode("ascii")
+    source_extension = "png" if source_media_type == "image/png" else "tiff"
     return textwrap.dedent(
         f"""\
         #!{sys.executable}
@@ -61,12 +76,14 @@ def _bridge_source(page_png: bytes) -> str:
         render_dir = pathlib.Path(args["--page-render-dir"])
         doc_id = args["--doc-id"]
         page_png = base64.b64decode("{encoded}")
-        digest = hashlib.sha256(page_png).hexdigest()
-        source_asset = asset_dir / (digest + ".png")
-        page_render = render_dir / (digest + ".png")
+        source_bytes = base64.b64decode("{encoded_source}")
+        page_digest = hashlib.sha256(page_png).hexdigest()
+        source_digest = hashlib.sha256(source_bytes).hexdigest()
+        source_asset = asset_dir / (source_digest + ".{source_extension}")
+        page_render = render_dir / (page_digest + ".png")
         source_asset.parent.mkdir(parents=True, exist_ok=True)
         page_render.parent.mkdir(parents=True, exist_ok=True)
-        source_asset.write_bytes(page_png)
+        source_asset.write_bytes(source_bytes)
         page_render.write_bytes(page_png)
         anchor = {{
             "kind": "body",
@@ -86,7 +103,7 @@ def _bridge_source(page_png: bytes) -> str:
             "coordinate_space": "rhwp_css_px_96dpi",
             "sequence_in_page": 0,
             "source_image_key": "img:1",
-            "source_resource_sha256": digest,
+            "source_resource_sha256": source_digest,
             "embedded_raw_sha256": None,
             "normalized_rgba_sha256": None,
             "match_bbox": None,
@@ -97,15 +114,15 @@ def _bridge_source(page_png: bytes) -> str:
             "doc_id": doc_id,
             "source_ordinal": 0,
             "source_image_key": "img:1",
-            "source_object_sha256": digest,
-            "source_object_media_type": "image/png",
+            "source_object_sha256": source_digest,
+            "source_object_media_type": "{source_media_type}",
             "normalized_rgba_sha256": None,
-            "supported": True,
+            "supported": {supported!r},
             "source_anchor": anchor,
         }}
         source_relpath = source_asset.relative_to(private_root).as_posix()
         render_relpath = page_render.relative_to(private_root).as_posix()
-        page_hash = "0" * 64 if "bad-page-hash" in helper_marker else digest
+        page_hash = "0" * 64 if "bad-page-hash" in helper_marker else page_digest
         counts = {{
             "page_count": 1,
             "pages_with_image_ops": 1,
@@ -114,7 +131,7 @@ def _bridge_source(page_png: bytes) -> str:
             "unresolved_occurrences": 0,
             "source_objects": 1,
             "source_assets": 1,
-            "unsupported_source_objects": 0,
+            "unsupported_source_objects": {0 if supported else 1},
             "page_renders": 1,
         }}
         page_bbox = {{"x": 0, "y": 0, "w": 20, "h": 20}}
@@ -139,9 +156,9 @@ def _bridge_source(page_png: bytes) -> str:
             "source_assets": [{{
                 "source_ordinal": 0,
                 "source_image_key_sha256": hashlib.sha256(b"img:1").hexdigest(),
-                "source_object_sha256": digest,
-                "source_object_media_type": "image/png",
-                "byte_size": len(page_png),
+                "source_object_sha256": source_digest,
+                "source_object_media_type": "{source_media_type}",
+                "byte_size": len(source_bytes),
                 "relpath": source_relpath,
             }}],
             "page_sizes": [{{
@@ -158,7 +175,7 @@ def _bridge_source(page_png: bytes) -> str:
                 "page_render_sha256": page_hash,
                 "relpath": render_relpath,
                 "render_profile": {{
-                    "renderer": "rhwp_core_renderPageSvg+napi_canvas",
+                    "renderer": "rhwp_core_renderPageSvg+napi_canvas+data_uri_overlay",
                     "profile": "screen",
                     "scale": 1,
                     "pixel_rounding": "ceil",
@@ -194,6 +211,7 @@ class HwpVisualRunnerTests(unittest.TestCase):
         *,
         helper_marker: str = "fixture-helper",
         source_relpath: str = "files/sample.hwp",
+        unsupported_source: bool = False,
     ) -> dict[str, object]:
         data_dir = root / "data"
         private_root = data_dir / "private"
@@ -234,7 +252,15 @@ class HwpVisualRunnerTests(unittest.TestCase):
             },
         )
         node = tools_dir / "fake-node"
-        node.write_text(_bridge_source(_png()), encoding="utf-8")
+        node.write_text(
+            _bridge_source(
+                _png(),
+                source_bytes=_tiff() if unsupported_source else None,
+                source_media_type="image/tiff" if unsupported_source else "image/png",
+                supported=not unsupported_source,
+            ),
+            encoding="utf-8",
+        )
         node.chmod(0o700)
         helper = tools_dir / "rhwp_visual_helper.mjs"
         helper.write_text(helper_marker, encoding="utf-8")
@@ -313,6 +339,19 @@ class HwpVisualRunnerTests(unittest.TestCase):
             self.assertEqual(first_files, second_files)
             for relative in first_files:
                 self.assertEqual((first / relative).read_bytes(), (second / relative).read_bytes())
+
+    def test_unsupported_source_is_quarantined_without_a_blank_crop(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            fixture = self._fixture(Path(directory), unsupported_source=True)
+            summary, output = self._run(fixture, "unsupported")
+            assert isinstance(output, Path)
+            occurrence = read_jsonl(output / OCCURRENCE_ARTIFACT)[0]
+            self.assertEqual(occurrence["source_object_status"], "unsupported")
+            self.assertEqual(occurrence["retrieval_status"], "quarantined")
+            self.assertIsNone(occurrence["crop_sha256"])
+            self.assertIsNone(occurrence["crop_relpath"])
+            self.assertEqual(summary["status_counts"]["retrieval:quarantined"], 1)
+            self.assertNotIn("retrieval:eligible", summary["status_counts"])
 
     def test_changed_contract_refuses_stale_existing_output(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

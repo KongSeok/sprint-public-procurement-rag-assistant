@@ -2,9 +2,11 @@ flowchart TD
     SRC["refined source<br/>94 HWP + 4 PDF"]:::gray --> BASE["canonical text/table identities<br/>unchanged"]:::green
     BASE --> HHELP["pinned rhwp JS/WASM helper<br/>exact key + full body/cell anchor"]:::green
     BASE --> PDF["durable PDF v2 runner<br/>4 docs / 570 pages"]:::green
-    HHELP --> HREP["5 HWP representative run<br/>27 exact objects<br/>16 placed / 11 withheld"]:::amber
+    HHELP --> HSVG["SVG data-URI overlay<br/>viewBox + rect clip + linear effect"]:::green
+    HSVG --> HREP["5 HWP representative run<br/>27 objects<br/>15 eligible / 1 quarantined / 11 withheld"]:::amber
+    HSVG --> HTIFF["TIFF/GIF/WMF/SVG<br/>source provenance only"]:::red
     PDF --> POCC["416 resources / 1,110 occurrences<br/>1,103 eligible / 7 ambiguous"]:::green
-    HREP --> OCC["VisualOccurrenceV2<br/>page + bbox + crop hash"]:::green
+    HREP --> OCC["VisualOccurrenceV2<br/>page + bbox + nonblank crop hash"]:::green
     POCC --> OCC
     OCC --> OCRRUN["PP-StructureV3 / Korean PP-OCRv5 adapter<br/>pinned OS network sandbox"]:::green
     OCRRUN --> MODEL{"private pinned model<br/>weights available?"}:::gray

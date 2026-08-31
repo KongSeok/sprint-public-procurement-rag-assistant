@@ -142,7 +142,9 @@ class VisualEvidenceV2Tests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as name:
             root = Path(name)
             page = root / "page.png"
-            Image.new("RGB", (100, 100), "white").save(page)
+            page_image = Image.new("RGB", (100, 100), "white")
+            page_image.putpixel((2, 2), (20, 40, 60))
+            page_image.save(page)
             promoted = crop_page_region(
                 render_only,
                 page_image=page,
@@ -160,6 +162,21 @@ class VisualEvidenceV2Tests(unittest.TestCase):
         self.assertEqual(promoted["source_object_status"], "render_only")
         self.assertEqual(promoted["retrieval_status"], "eligible")
         self.assertEqual(withheld["retrieval_status"], "withheld")
+
+    def test_crop_rejects_pure_white_visual_evidence(self) -> None:
+        occurrence = self._occurrence()
+        with tempfile.TemporaryDirectory() as name:
+            root = Path(name)
+            page = root / "page.png"
+            Image.new("RGB", (100, 100), "white").save(page)
+            with self.assertRaisesRegex(VisualEvidenceError, "^visual_crop_blank$"):
+                crop_page_region(
+                    occurrence,
+                    page_image=page,
+                    private_root=root / "private",
+                    coordinate_page_bbox={"x": 0, "y": 0, "w": 100, "h": 100},
+                    render_profile={"renderer": "synthetic"},
+                )
 
     def test_validator_rejects_false_eligible_asset_only(self) -> None:
         occurrence = self._occurrence()

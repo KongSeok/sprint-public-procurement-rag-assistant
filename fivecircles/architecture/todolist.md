@@ -128,7 +128,7 @@ local index까지 생성했지만 semantic API index와 기본 runtime에는 연
 
 ### 2026-08-30 — HWP/PDF 이미지 복구·OCR·도식 이해
 
-상태: PUBLIC_IMPLEMENTATION_COMPLETE_PRIVATE_GATES_BLOCKED
+상태: PUBLIC_CORRECTION_COMPLETE_PRIVATE_GATES_BLOCKED
 
 결정: OCR·이미지 설명만 추가하지 않는다. `doc_id + page + bbox + crop hash` occurrence를 먼저
 복구하고 그 위에 OCR/layout/caption과 검색 인용을 연결한다.
@@ -138,9 +138,10 @@ local index까지 생성했지만 semantic API index와 기본 runtime에는 연
   object/page/bbox/title/OCR/관계 human gold를 동결한다.
 - [x] rhwp `sourceImageKey` helper와 occurrence별 verified/unresolved 혼합 schema·validator를 구현한다.
 - [x] table-nested image의 exact row/column/nested-cell path를 보존하고 top-level 중복을 금지한다.
-- [x] HWP render image·table-nested image·shape diagram의 deterministic occurrence crop 경로를 만든다.
+- [x] HWP SVG data URI와 nested viewBox/viewport clip을 반영한 deterministic occurrence crop 경로를 만든다.
 - [x] ID 부재 HWP는 raw SHA 또는 normalized RGBA SHA+bbox exact match만 verified로 승격한다.
-- [x] WMF/GIF는 page-render crop으로만 검색 가능하게 하고 원본 변환은 pinned converter 경계로 분리한다.
+- [x] 현 canvas가 디코딩하지 못하는 TIFF/GIF/WMF/SVG는 source provenance만 보존하고 crop 없이
+  quarantined한다. 향후 변환은 pinned converter와 source/derived 이중 provenance로 분리한다.
 - [x] PDF raster XObject/inline image/vector drawing/table을 분리하고 bytes·resource/bbox provenance를 만든다.
 - [x] PyMuPDF는 AGPL/상용 license 결정 전 spike-only로 두고 pypdf+pdfplumber를 기본으로 유지한다.
 - [x] PDF visual corpus durable CLI/runner로 4건 570쪽 v2 artifact를 재생성하고 strict reuse를 확인한다.
@@ -151,13 +152,21 @@ local index까지 생성했지만 semantic API index와 기본 runtime에는 연
 - [x] `image-ocr-v1`/`image-layout-v1`/저가중치 `image-caption-v1`과 page/bbox crop 인용을 연결한다.
 - [ ] `[BLOCKED_HUMAN_GOLD]` 대표 gate 통과 뒤 HWP 94건을 전수 실행하고 visual retrieval gold를 검증한다.
 - [x] human gold, local model checksum, offline·resource gate 전에는 기본 runtime이 fail closed한다.
+- [x] `[REGRESSION_VISUAL_CROP]` SVG embedded raster 누락과 nested viewBox 좌표를 수리하고
+  rect clip·관측된 linear filter/opacity를 보존하며 pure-white crop을 fail closed한다. CSS
+  style/class, hidden image와 definition-only image는 지원하지 않고 거부한다. 대표 crop 15/15
+  및 page render 14/14 nonblank와 strict reuse를 재확인했다.
 
-실행 증거: HWP 대표 5건은 27 occurrence 중 16 eligible/11 withheld, PDF 4건은 1,110 occurrence 중
-1,103 eligible/7 withheld다. HWP 94 corpus mode는 reviewed gold 없이 실행 전 차단됐고 실제
-OCR/caption inference는 pinned weight 부재로 0건이다.
+실행 증거: HWP 대표 5건은 27 occurrence 중 15 eligible/1 TIFF quarantined/11 withheld이며
+unique crop 15개는 전부 nonblank다. 이전 순백 crop 14개 bundle은 incident archive로 보존했다.
+최종 helper `0b7ab8ed…`, artifact set `visualv2_1a25cd3f5f6c34dfe2e8ff9c`를 pin했고 관련
+31/31·전체 505/505 테스트와 독립 산출물 재감사를 통과했다.
+PDF 4건은 1,110 occurrence 중 1,103 eligible/7 withheld다. HWP 94 corpus mode는 reviewed gold 없이
+실행 전 차단됐고 실제 OCR/caption inference는 pinned weight 부재로 0건이다.
 
 구현 계약: `fivecircles/architecture/specs/visual-image-recovery-and-understanding.md`
 incident: `fivecircles/test/errorlogs/backend/2026-08-30-pdf-visual-artifact-stale.md`
+HWP blank-crop incident: `fivecircles/test/errorlogs/backend/2026-08-31-visual-crop-blank-regression.md`
 
 ## Batch 2 — 평가 세트와 공통 계약 선확정
 

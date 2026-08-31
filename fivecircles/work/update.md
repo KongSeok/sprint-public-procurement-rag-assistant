@@ -489,3 +489,21 @@ This file summarizes recent updates so other agents can continue without re‑di
 ### Publication
 - 공개 구현 커밋 `df72d69`를 `origin/feat/hwp-visual-corpus-rollout` 신규 브랜치에 푸시했다.
 - private corpus·crop·모델 출력, `resources/**`, scoring과 무관한 앱/UI 작업은 커밋에서 제외했다.
+
+## Addendum (2026-08-31) - HWP visual blank-crop correction closeout
+
+### Backend
+- `@rhwp/core` page SVG의 embedded raster를 로컬 canvas에 명시적으로 합성하고 nested viewBox,
+  viewport/rect clip, 관측된 RGB linear filter와 opacity를 보존했다.
+- SVG CSS style/class, display/visibility, definition-only image, 미지원 transform/mask/filter는
+  잘못 그리지 않고 fail closed하며 TIFF 1건은 provenance-only quarantine으로 유지한다.
+- 대표 5문서를 동결 helper `0b7ab8edd3b3cb6018704b40e1c7b662041a79c857dc99eba66432280cfc0a9b`로
+  재생성해 artifact set `visualv2_1a25cd3f5f6c34dfe2e8ff9c`를 canonical로 승격했다.
+
+### Verification
+- 27 occurrence 중 eligible 15/quarantined 1/withheld 11이며 crop 15/15와 page render 14/14가
+  nonblank다. strict reuse, object hash/ref, orphan/missing/symlink 0을 독립 재감사했다.
+- 관련 회귀 31/31, 전체 unittest 505/505, JSON Schema 2/2, compileall, Node syntax,
+  diff check와 repository safety 562 files를 통과했다.
+- 외부 API 호출과 private egress는 0이다. HWP 94건 실행은 reviewed human gold와 pinned model
+  weight gate가 남아 있어 `STOP_WITH_REASON`으로 유지한다.

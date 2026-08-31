@@ -104,7 +104,11 @@ class VisualUnderstandingBatchRunnerTests(unittest.TestCase):
         self.occurrences_path = self.private_root / "visual-occurrences-v2.jsonl"
 
         page = self.private_root / "page.png"
-        Image.new("RGB", (120, 120), "white").save(page)
+        page_image = Image.new("RGB", (120, 120), "white")
+        for x in range(20, 60):
+            for y in range(25, 50):
+                page_image.putpixel((x, y), (30, 90, 150))
+        page_image.save(page)
         base = make_visual_occurrence(
             doc_id=DOC_ID,
             source_sha256=SOURCE_SHA256,

@@ -34,10 +34,40 @@ const MAX_PAGE_DIMENSION = 100_000;
 const MAX_PAGE_PIXELS = 100_000_000;
 const MAX_KEY_CHARS = 256;
 const BBOX_TOLERANCE_PX = 0.125;
+const PAGE_RENDERER = "rhwp_core_renderPageSvg+napi_canvas+data_uri_overlay";
 const SHA256_RE = /^[0-9a-f]{64}$/;
 const DOC_ID_RE = /^doc_[0-9a-f]{24}$/;
 const BLOCK_ID_RE = /^block_[0-9a-f]{24}$/;
 const MEDIA_TYPE_RE = /^(?:image|application)\/[A-Za-z0-9.+-]+$/;
+const SVG_LENGTH_RE = /^[+-]?(?:(?:\d+(?:\.\d*)?)|(?:\.\d+))(?:[eE][+-]?\d+)?(?:px)?$/;
+const RASTERIZABLE_DATA_IMAGE_TYPES = new Set([
+  "image/png",
+  "image/jpeg",
+  "image/bmp",
+  "image/webp",
+]);
+const KNOWN_UNSUPPORTED_DATA_IMAGE_TYPES = new Set([
+  "image/gif",
+  "image/svg+xml",
+  "image/tiff",
+  "image/wmf",
+]);
+const SVG_IMAGE_ATTRIBUTES = new Set([
+  "x",
+  "y",
+  "width",
+  "height",
+  "preserveAspectRatio",
+  "href",
+  "xlink:href",
+]);
+const SVG_CLIP_PATH_ATTRIBUTES = new Set(["id", "clipPathUnits"]);
+const SVG_CLIP_RECT_ATTRIBUTES = new Set(["x", "y", "width", "height"]);
+const SVG_CLIP_ID_RE = /^[A-Za-z_][A-Za-z0-9_.:-]{0,255}$/;
+const SVG_FILTER_ATTRIBUTES = new Set(["id"]);
+const SVG_COMPONENT_ATTRIBUTES = new Set(["type", "slope", "intercept"]);
+const SVG_EFFECT_NUMBER_RE = /^[+-]?(?:(?:\d+(?:\.\d*)?)|(?:\.\d+))(?:[eE][+-]?\d+)?$/;
+const MAX_EFFECT_PIXELS = 25_000_000;
 
 class HelperError extends Error {
   constructor(code) {
@@ -649,14 +679,7 @@ function extensionFor(mediaType) {
 }
 
 function isSupportedMedia(mediaType) {
-  return new Set([
-    "image/png",
-    "image/jpeg",
-    "image/bmp",
-    "image/tiff",
-    "image/webp",
-    "image/svg+xml",
-  ]).has(mediaType);
+  return RASTERIZABLE_DATA_IMAGE_TYPES.has(mediaType);
 }
 
 function decodeInlineBase64(value) {
@@ -675,6 +698,651 @@ function decodeInlineBase64(value) {
   const inputCanonical = normalized.replace(/=+$/, "");
   const outputCanonical = bytes.toString("base64").replace(/=+$/, "");
   return inputCanonical === outputCanonical ? bytes : null;
+}
+
+function decodeXmlAttribute(value) {
+  if (typeof value !== "string" || value.length > MAX_METHOD_JSON_BYTES) {
+    fail("rhwp_visual_helper_page_svg_image_invalid");
+  }
+  let invalid = false;
+  const decoded = value.replace(
+    /&(?:#([0-9]{1,7})|#x([0-9A-Fa-f]{1,6})|amp|quot|apos|lt|gt);/g,
+    (entity, decimal, hexadecimal) => {
+      if (decimal !== undefined || hexadecimal !== undefined) {
+        const codePoint = Number.parseInt(decimal ?? hexadecimal, decimal !== undefined ? 10 : 16);
+        if (
+          !Number.isSafeInteger(codePoint) ||
+          codePoint < 0 ||
+          codePoint > 0x10ffff ||
+          (codePoint >= 0xd800 && codePoint <= 0xdfff)
+        ) {
+          invalid = true;
+          return "";
+        }
+        return String.fromCodePoint(codePoint);
+      }
+      return {
+        "&amp;": "&",
+        "&quot;": "\"",
+        "&apos;": "'",
+        "&lt;": "<",
+        "&gt;": ">",
+      }[entity];
+    },
+  );
+  if (invalid || decoded.includes("&") || /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(decoded)) {
+    fail("rhwp_visual_helper_page_svg_image_invalid");
+  }
+  return decoded;
+}
+
+function svgTagEnd(svg, start) {
+  let quote = null;
+  for (let index = start; index < svg.length; index += 1) {
+    const character = svg[index];
+    if (quote !== null) {
+      if (character === quote) quote = null;
+      continue;
+    }
+    if (character === "\"" || character === "'") {
+      quote = character;
+    } else if (character === ">") {
+      return index;
+    }
+  }
+  fail("rhwp_visual_helper_page_svg_image_invalid");
+}
+
+function parseSvgStartTag(tag, expectedName) {
+  if (!tag.startsWith(`<${expectedName}`) || !tag.endsWith(">")) {
+    fail("rhwp_visual_helper_page_svg_image_invalid");
+  }
+  let body = tag.slice(expectedName.length + 1, -1);
+  const selfClosing = /\/\s*$/.test(body);
+  if (selfClosing) body = body.replace(/\/\s*$/, "");
+  const attributes = new Map();
+  let index = 0;
+  while (index < body.length) {
+    while (index < body.length && /\s/.test(body[index])) index += 1;
+    if (index === body.length) break;
+    const nameMatch = /^[A-Za-z_][A-Za-z0-9_.:-]*/.exec(body.slice(index));
+    if (!nameMatch) fail("rhwp_visual_helper_page_svg_image_invalid");
+    const name = nameMatch[0];
+    index += name.length;
+    while (index < body.length && /\s/.test(body[index])) index += 1;
+    if (body[index] !== "=") fail("rhwp_visual_helper_page_svg_image_invalid");
+    index += 1;
+    while (index < body.length && /\s/.test(body[index])) index += 1;
+    const quote = body[index];
+    if (quote !== "\"" && quote !== "'") {
+      fail("rhwp_visual_helper_page_svg_image_invalid");
+    }
+    index += 1;
+    const valueStart = index;
+    while (index < body.length && body[index] !== quote) index += 1;
+    if (index >= body.length || attributes.has(name)) {
+      fail("rhwp_visual_helper_page_svg_image_invalid");
+    }
+    attributes.set(name, decodeXmlAttribute(body.slice(valueStart, index)));
+    index += 1;
+  }
+  return { attributes, selfClosing };
+}
+
+function svgLength(attributes, name, { positive, defaultValue = null }) {
+  const raw = attributes.get(name);
+  if (raw === undefined && defaultValue !== null) {
+    return normalizeNumber(
+      defaultValue,
+      "rhwp_visual_helper_page_svg_image_geometry_invalid",
+    );
+  }
+  if (typeof raw !== "string" || !SVG_LENGTH_RE.test(raw)) {
+    fail("rhwp_visual_helper_page_svg_image_geometry_invalid");
+  }
+  const number = Number.parseFloat(raw.endsWith("px") ? raw.slice(0, -2) : raw);
+  if (
+    !Number.isFinite(number) ||
+    (positive && number <= 0) ||
+    Math.abs(number) > MAX_PAGE_DIMENSION
+  ) {
+    fail("rhwp_visual_helper_page_svg_image_geometry_invalid");
+  }
+  return normalizeNumber(number, "rhwp_visual_helper_page_svg_image_geometry_invalid");
+}
+
+function decodeSvgDataImage(attributes) {
+  const hrefs = ["href", "xlink:href"].filter((name) => attributes.has(name));
+  if (hrefs.length !== 1) fail("rhwp_visual_helper_page_svg_image_data_invalid");
+  const uri = attributes.get(hrefs[0]);
+  if (typeof uri !== "string" || uri.length > MAX_ASSET_BYTES * 2 + 256) {
+    fail("rhwp_visual_helper_page_svg_image_data_invalid");
+  }
+  const match = /^data:([^;,]+);base64,([A-Za-z0-9+/=\s]+)$/.exec(uri);
+  if (!match) fail("rhwp_visual_helper_page_svg_image_data_invalid");
+  const mediaType = normalizeMediaType(match[1], null);
+  if (
+    mediaType === null ||
+    (!RASTERIZABLE_DATA_IMAGE_TYPES.has(mediaType) &&
+      !KNOWN_UNSUPPORTED_DATA_IMAGE_TYPES.has(mediaType))
+  ) {
+    fail("rhwp_visual_helper_page_svg_image_media_invalid");
+  }
+  const bytes = decodeInlineBase64(match[2]);
+  if (bytes === null || sniffMediaType(bytes) !== mediaType) {
+    fail("rhwp_visual_helper_page_svg_image_data_invalid");
+  }
+  return {
+    bytes,
+    mediaType,
+    rasterizable: RASTERIZABLE_DATA_IMAGE_TYPES.has(mediaType),
+  };
+}
+
+function svgViewBox(attributes) {
+  const raw = attributes.get("viewBox");
+  if (raw === undefined) return null;
+  const pieces = raw.trim().split(/[\s,]+/);
+  if (pieces.length !== 4 || pieces.some((piece) => !SVG_LENGTH_RE.test(piece))) {
+    fail("rhwp_visual_helper_page_svg_viewbox_invalid");
+  }
+  const values = pieces.map((piece) => Number.parseFloat(piece.replace(/px$/, "")));
+  if (
+    values.some((value) => !Number.isFinite(value) || Math.abs(value) > MAX_PAGE_DIMENSION) ||
+    values[2] <= 0 ||
+    values[3] <= 0 ||
+    values[2] * values[3] > MAX_PAGE_PIXELS
+  ) {
+    fail("rhwp_visual_helper_page_svg_viewbox_invalid");
+  }
+  return values.map((value) =>
+    normalizeNumber(value, "rhwp_visual_helper_page_svg_viewbox_invalid"),
+  );
+}
+
+function intersectSvgRects(left, right) {
+  if (left === null) return { ...right };
+  const x = Math.max(left.x, right.x);
+  const y = Math.max(left.y, right.y);
+  const rightEdge = Math.min(left.x + left.width, right.x + right.width);
+  const bottomEdge = Math.min(left.y + left.height, right.y + right.height);
+  if (rightEdge <= x || bottomEdge <= y) return null;
+  return {
+    x: normalizeNumber(x, "rhwp_visual_helper_page_svg_image_geometry_invalid"),
+    y: normalizeNumber(y, "rhwp_visual_helper_page_svg_image_geometry_invalid"),
+    width: normalizeNumber(
+      rightEdge - x,
+      "rhwp_visual_helper_page_svg_image_geometry_invalid",
+    ),
+    height: normalizeNumber(
+      bottomEdge - y,
+      "rhwp_visual_helper_page_svg_image_geometry_invalid",
+    ),
+  };
+}
+
+function mapSvgRect(context, rectangle) {
+  return {
+    x: normalizeNumber(
+      context.translateX + rectangle.x * context.scaleX,
+      "rhwp_visual_helper_page_svg_image_geometry_invalid",
+    ),
+    y: normalizeNumber(
+      context.translateY + rectangle.y * context.scaleY,
+      "rhwp_visual_helper_page_svg_image_geometry_invalid",
+    ),
+    width: normalizeNumber(
+      rectangle.width * context.scaleX,
+      "rhwp_visual_helper_page_svg_image_geometry_invalid",
+    ),
+    height: normalizeNumber(
+      rectangle.height * context.scaleY,
+      "rhwp_visual_helper_page_svg_image_geometry_invalid",
+    ),
+  };
+}
+
+function svgViewportContext(attributes, parent) {
+  const x = svgLength(attributes, "x", { positive: false, defaultValue: 0 });
+  const y = svgLength(attributes, "y", { positive: false, defaultValue: 0 });
+  const width = svgLength(attributes, "width", { positive: true });
+  const height = svgLength(attributes, "height", { positive: true });
+  if (width * height > MAX_PAGE_PIXELS) {
+    fail("rhwp_visual_helper_page_svg_image_geometry_invalid");
+  }
+  const viewportInRoot = mapSvgRect(parent, { x, y, width, height });
+  const clip = intersectSvgRects(parent.clip, viewportInRoot);
+  if (clip === null) fail("rhwp_visual_helper_page_svg_image_geometry_invalid");
+
+  const viewBox = svgViewBox(attributes);
+  let scaleX = 1;
+  let scaleY = 1;
+  let localTranslateX = x;
+  let localTranslateY = y;
+  if (viewBox !== null) {
+    const [minimumX, minimumY, viewWidth, viewHeight] = viewBox;
+    const preserve = (attributes.get("preserveAspectRatio") ?? "xMidYMid meet")
+      .trim()
+      .replace(/\s+/g, " ");
+    if (preserve === "none") {
+      scaleX = width / viewWidth;
+      scaleY = height / viewHeight;
+      localTranslateX = x - minimumX * scaleX;
+      localTranslateY = y - minimumY * scaleY;
+    } else {
+      const match = /^(xMin|xMid|xMax)(YMin|YMid|YMax)(?: (meet|slice))?$/.exec(preserve);
+      if (!match) fail("rhwp_visual_helper_page_svg_preserve_aspect_ratio_invalid");
+      const mode = match[3] ?? "meet";
+      const scale = mode === "slice"
+        ? Math.max(width / viewWidth, height / viewHeight)
+        : Math.min(width / viewWidth, height / viewHeight);
+      const remainingX = width - viewWidth * scale;
+      const remainingY = height - viewHeight * scale;
+      const alignX = match[1] === "xMin" ? 0 : match[1] === "xMid" ? 0.5 : 1;
+      const alignY = match[2] === "YMin" ? 0 : match[2] === "YMid" ? 0.5 : 1;
+      scaleX = scale;
+      scaleY = scale;
+      localTranslateX = x + remainingX * alignX - minimumX * scale;
+      localTranslateY = y + remainingY * alignY - minimumY * scale;
+    }
+  }
+  return {
+    scaleX: normalizeNumber(
+      parent.scaleX * scaleX,
+      "rhwp_visual_helper_page_svg_image_geometry_invalid",
+    ),
+    scaleY: normalizeNumber(
+      parent.scaleY * scaleY,
+      "rhwp_visual_helper_page_svg_image_geometry_invalid",
+    ),
+    translateX: normalizeNumber(
+      parent.translateX + parent.scaleX * localTranslateX,
+      "rhwp_visual_helper_page_svg_image_geometry_invalid",
+    ),
+    translateY: normalizeNumber(
+      parent.translateY + parent.scaleY * localTranslateY,
+      "rhwp_visual_helper_page_svg_image_geometry_invalid",
+    ),
+    clip,
+    opacity: parent.opacity,
+    componentTransfer: parent.componentTransfer,
+  };
+}
+
+function svgOverlayGeometry(context, rectangle) {
+  const destination = mapSvgRect(context, rectangle);
+  const clipped = intersectSvgRects(context.clip, destination);
+  if (clipped === null) fail("rhwp_visual_helper_page_svg_image_geometry_invalid");
+  const source = {
+    x: (clipped.x - destination.x) / destination.width,
+    y: (clipped.y - destination.y) / destination.height,
+    width: clipped.width / destination.width,
+    height: clipped.height / destination.height,
+  };
+  for (const value of Object.values(source)) {
+    if (!Number.isFinite(value) || value < -1e-9 || value > 1 + 1e-9) {
+      fail("rhwp_visual_helper_page_svg_image_geometry_invalid");
+    }
+  }
+  return {
+    destination: clipped,
+    source: {
+      x: Math.max(0, Math.min(1, source.x)),
+      y: Math.max(0, Math.min(1, source.y)),
+      width: Math.max(0, Math.min(1, source.width)),
+      height: Math.max(0, Math.min(1, source.height)),
+    },
+  };
+}
+
+function extractSvgRectClipPaths(svg) {
+  const clipPaths = new Map();
+  const pattern = /<clipPath(?=[\s>])[^>]*>[\s\S]*?<\/clipPath\s*>/g;
+  let matched = 0;
+  for (let match = pattern.exec(svg); match !== null; match = pattern.exec(svg)) {
+    matched += 1;
+    if (matched > MAX_OCCURRENCES) {
+      fail("rhwp_visual_helper_page_svg_clip_limit_exceeded");
+    }
+    const block = match[0];
+    const startEnd = svgTagEnd(block, "<clipPath".length);
+    const startTag = block.slice(0, startEnd + 1);
+    const { attributes, selfClosing } = parseSvgStartTag(startTag, "clipPath");
+    if (
+      selfClosing ||
+      [...attributes.keys()].some((name) => !SVG_CLIP_PATH_ATTRIBUTES.has(name)) ||
+      (attributes.get("clipPathUnits") ?? "userSpaceOnUse") !== "userSpaceOnUse"
+    ) {
+      fail("rhwp_visual_helper_page_svg_clip_unsupported");
+    }
+    const identifier = attributes.get("id");
+    if (typeof identifier !== "string" || !SVG_CLIP_ID_RE.test(identifier)) {
+      fail("rhwp_visual_helper_page_svg_clip_invalid");
+    }
+    const closingStart = block.search(/<\/clipPath\s*>$/);
+    if (closingStart < 0) fail("rhwp_visual_helper_page_svg_clip_invalid");
+    const body = block.slice(startEnd + 1, closingStart).trim();
+    if (!/^<rect(?=[\s>])[\s\S]*\/\s*>$/.test(body)) {
+      fail("rhwp_visual_helper_page_svg_clip_unsupported");
+    }
+    const { attributes: rectAttributes, selfClosing: rectSelfClosing } =
+      parseSvgStartTag(body, "rect");
+    if (
+      !rectSelfClosing ||
+      [...rectAttributes.keys()].some((name) => !SVG_CLIP_RECT_ATTRIBUTES.has(name))
+    ) {
+      fail("rhwp_visual_helper_page_svg_clip_unsupported");
+    }
+    const rectangle = {
+      x: svgLength(rectAttributes, "x", { positive: false, defaultValue: 0 }),
+      y: svgLength(rectAttributes, "y", { positive: false, defaultValue: 0 }),
+      width: svgLength(rectAttributes, "width", { positive: true }),
+      height: svgLength(rectAttributes, "height", { positive: true }),
+    };
+    if (rectangle.width * rectangle.height > MAX_PAGE_PIXELS || clipPaths.has(identifier)) {
+      fail("rhwp_visual_helper_page_svg_clip_invalid");
+    }
+    clipPaths.set(identifier, rectangle);
+  }
+  const withoutSupportedClips = svg.replace(pattern, "");
+  if (/<\/?clipPath(?=[\s>])/i.test(withoutSupportedClips)) {
+    fail("rhwp_visual_helper_page_svg_clip_unsupported");
+  }
+  return clipPaths;
+}
+
+function svgEffectNumber(raw, { minimum, maximum, code }) {
+  if (typeof raw !== "string" || !SVG_EFFECT_NUMBER_RE.test(raw)) fail(code);
+  const value = Number.parseFloat(raw);
+  if (!Number.isFinite(value) || value < minimum || value > maximum) fail(code);
+  return normalizeNumber(value, code);
+}
+
+function extractSvgComponentTransferFilters(svg) {
+  const filters = new Map();
+  const pattern = /<filter(?=[\s>])[^>]*>[\s\S]*?<\/filter\s*>/g;
+  let matched = 0;
+  for (let match = pattern.exec(svg); match !== null; match = pattern.exec(svg)) {
+    matched += 1;
+    if (matched > MAX_OCCURRENCES) {
+      fail("rhwp_visual_helper_page_svg_filter_limit_exceeded");
+    }
+    const block = match[0];
+    const startEnd = svgTagEnd(block, "<filter".length);
+    const startTag = block.slice(0, startEnd + 1);
+    const { attributes, selfClosing } = parseSvgStartTag(startTag, "filter");
+    const identifier = attributes.get("id");
+    if (
+      selfClosing ||
+      [...attributes.keys()].some((name) => !SVG_FILTER_ATTRIBUTES.has(name)) ||
+      typeof identifier !== "string" ||
+      !SVG_CLIP_ID_RE.test(identifier) ||
+      filters.has(identifier)
+    ) {
+      fail("rhwp_visual_helper_page_svg_filter_invalid");
+    }
+    const closingStart = block.search(/<\/filter\s*>$/);
+    if (closingStart < 0) fail("rhwp_visual_helper_page_svg_filter_invalid");
+    const body = block.slice(startEnd + 1, closingStart).trim();
+    const componentMatch = /^<feComponentTransfer\s*>([\s\S]*?)<\/feComponentTransfer\s*>$/.exec(body);
+    if (componentMatch === null) fail("rhwp_visual_helper_page_svg_filter_structure_unsupported");
+    const channels = {};
+    const channelPattern = /<feFunc([RGB])(?=[\s>])[^>]*\/\s*>/g;
+    for (
+      let channelMatch = channelPattern.exec(componentMatch[1]);
+      channelMatch !== null;
+      channelMatch = channelPattern.exec(componentMatch[1])
+    ) {
+      const channel = channelMatch[1];
+      const tag = channelMatch[0];
+      const { attributes: channelAttributes, selfClosing: channelSelfClosing } =
+        parseSvgStartTag(tag, `feFunc${channel}`);
+      if (
+        !channelSelfClosing ||
+        Object.hasOwn(channels, channel) ||
+        [...channelAttributes.keys()].some((name) => !SVG_COMPONENT_ATTRIBUTES.has(name)) ||
+        channelAttributes.get("type") !== "linear"
+      ) {
+        fail("rhwp_visual_helper_page_svg_filter_channel_unsupported");
+      }
+      channels[channel] = {
+        slope: svgEffectNumber(channelAttributes.get("slope"), {
+          minimum: 0,
+          maximum: 4,
+          code: "rhwp_visual_helper_page_svg_filter_invalid",
+        }),
+        intercept: svgEffectNumber(channelAttributes.get("intercept"), {
+          minimum: -1,
+          maximum: 1,
+          code: "rhwp_visual_helper_page_svg_filter_invalid",
+        }),
+      };
+    }
+    if (Object.keys(channels).sort().join("") !== "BGR") {
+      fail("rhwp_visual_helper_page_svg_filter_channel_coverage_unsupported");
+    }
+    if (componentMatch[1].replace(channelPattern, "").trim() !== "") {
+      fail("rhwp_visual_helper_page_svg_filter_content_unsupported");
+    }
+    filters.set(identifier, channels);
+  }
+  const withoutSupportedFilters = svg.replace(pattern, "");
+  if (/<\/?filter(?=[\s>])/i.test(withoutSupportedFilters)) {
+    fail("rhwp_visual_helper_page_svg_filter_definition_unsupported");
+  }
+  return filters;
+}
+
+function svgReferencedClip(tag, name, context, clipPaths) {
+  if (!/\sclip-path\s*=/.test(tag)) return context;
+  if (name === "svg" || name === "image") {
+    fail("rhwp_visual_helper_page_svg_clip_unsupported");
+  }
+  const { attributes } = parseSvgStartTag(tag, name);
+  const reference = attributes.get("clip-path");
+  const match = typeof reference === "string" ? /^url\(#([A-Za-z_][A-Za-z0-9_.:-]{0,255})\)$/.exec(reference) : null;
+  if (match === null || !clipPaths.has(match[1])) {
+    fail("rhwp_visual_helper_page_svg_clip_invalid");
+  }
+  const clip = intersectSvgRects(context.clip, mapSvgRect(context, clipPaths.get(match[1])));
+  if (clip === null) fail("rhwp_visual_helper_page_svg_clip_empty");
+  return { ...context, clip };
+}
+
+function svgReferencedEffects(tag, name, context, filters) {
+  if (!/\s(?:filter|opacity)\s*=/.test(tag)) return context;
+  if (name === "svg" || name === "image") {
+    fail("rhwp_visual_helper_page_svg_effect_unsupported");
+  }
+  const { attributes } = parseSvgStartTag(tag, name);
+  let opacity = context.opacity;
+  if (attributes.has("opacity")) {
+    opacity *= svgEffectNumber(attributes.get("opacity"), {
+      minimum: 0,
+      maximum: 1,
+      code: "rhwp_visual_helper_page_svg_effect_invalid",
+    });
+  }
+  let componentTransfer = context.componentTransfer;
+  if (attributes.has("filter")) {
+    const reference = attributes.get("filter");
+    const match = typeof reference === "string"
+      ? /^url\(#([A-Za-z_][A-Za-z0-9_.:-]{0,255})\)$/.exec(reference)
+      : null;
+    if (match === null) fail("rhwp_visual_helper_page_svg_filter_reference_invalid");
+    if (!filters.has(match[1])) fail("rhwp_visual_helper_page_svg_filter_reference_missing");
+    if (componentTransfer !== null) fail("rhwp_visual_helper_page_svg_filter_nested_unsupported");
+    componentTransfer = filters.get(match[1]);
+  }
+  return {
+    ...context,
+    opacity: normalizeNumber(opacity, "rhwp_visual_helper_page_svg_effect_invalid"),
+    componentTransfer,
+  };
+}
+
+function extractSvgDataImages(svg) {
+  if (
+    /<(?:[A-Za-z_][A-Za-z0-9_.-]*:)?style(?=[\s/>])/i.test(svg) ||
+    /\sclass\s*=/i.test(svg)
+  ) {
+    fail("rhwp_visual_helper_page_svg_effect_unsupported");
+  }
+  if (
+    svg.includes("<!--") ||
+    svg.includes("<![CDATA[") ||
+    /<!DOCTYPE/i.test(svg) ||
+    /<(?:script|foreignObject|iframe|object)(?=[\s/>])/i.test(svg) ||
+    (/<(?:[A-Za-z_][A-Za-z0-9_.-]*:)?image(?=[\s/>])/i.test(svg) &&
+      !/<image(?=[\s/>])/.test(svg))
+  ) {
+    fail("rhwp_visual_helper_page_svg_image_invalid");
+  }
+  const overlays = [];
+  const clipPaths = extractSvgRectClipPaths(svg);
+  const filters = extractSvgComponentTransferFilters(svg);
+  const fragments = [];
+  let cursor = 0;
+  let totalBytes = 0;
+  const identity = {
+    scaleX: 1,
+    scaleY: 1,
+    translateX: 0,
+    translateY: 0,
+    clip: null,
+    opacity: 1,
+    componentTransfer: null,
+  };
+  const stack = [];
+  const open = /<(\/)?([A-Za-z_][A-Za-z0-9_.:-]*)(?=[\s/>])/g;
+  for (let match = open.exec(svg); match !== null; match = open.exec(svg)) {
+    const closing = match[1] === "/";
+    const name = match[2];
+    const end = svgTagEnd(svg, match.index + match[0].length);
+    const tag = svg.slice(match.index, end + 1);
+    if (closing) {
+      while (stack.length > 0) {
+        const frame = stack.pop();
+        if (frame.name === name) break;
+      }
+      open.lastIndex = end + 1;
+      continue;
+    }
+    const selfClosing = /\/\s*>$/.test(tag);
+    const parent = stack.length > 0
+      ? stack[stack.length - 1]
+      : { context: identity, transformed: false, effectUnsupported: false };
+    const transformed = parent.transformed || /\stransform\s*=/.test(tag);
+    const effectUnsupported =
+      parent.effectUnsupported ||
+      /\s(?:display|mask|overflow|style|visibility)\s*=/.test(tag);
+    let context = parent.context;
+    if (name === "svg") {
+      const parsed = parseSvgStartTag(tag, "svg");
+      context = svgViewportContext(parsed.attributes, parent.context);
+    }
+    context = svgReferencedClip(tag, name, context, clipPaths);
+    context = svgReferencedEffects(tag, name, context, filters);
+    if (name !== "image") {
+      if (!selfClosing) stack.push({ name, context, transformed, effectUnsupported });
+      open.lastIndex = end + 1;
+      continue;
+    }
+    if (transformed) {
+      fail("rhwp_visual_helper_page_svg_image_transform_unsupported");
+    }
+    if (effectUnsupported) fail("rhwp_visual_helper_page_svg_effect_unsupported");
+    if (stack.some((frame) => frame.name !== "svg" && frame.name !== "g")) {
+      fail("rhwp_visual_helper_page_svg_image_structure_unsupported");
+    }
+    if (match.index < cursor) fail("rhwp_visual_helper_page_svg_image_invalid");
+    const { attributes } = parseSvgStartTag(tag, "image");
+    let removeEnd = end + 1;
+    if (!selfClosing) {
+      const closing = /^\s*<\/image\s*>/.exec(svg.slice(removeEnd));
+      if (!closing) fail("rhwp_visual_helper_page_svg_image_invalid");
+      removeEnd += closing[0].length;
+    }
+    const x = svgLength(attributes, "x", { positive: false, defaultValue: 0 });
+    const y = svgLength(attributes, "y", { positive: false, defaultValue: 0 });
+    const width = svgLength(attributes, "width", { positive: true });
+    const height = svgLength(attributes, "height", { positive: true });
+    if (
+      [...attributes.keys()].some((name) => !SVG_IMAGE_ATTRIBUTES.has(name)) ||
+      attributes.get("preserveAspectRatio") !== "none"
+    ) {
+      fail("rhwp_visual_helper_page_svg_image_transform_unsupported");
+    }
+    if (width * height > MAX_PAGE_PIXELS) {
+      fail("rhwp_visual_helper_page_svg_image_geometry_invalid");
+    }
+    const decoded = decodeSvgDataImage(attributes);
+    totalBytes += decoded.bytes.length;
+    if (totalBytes > MAX_TOTAL_ASSET_BYTES || overlays.length >= MAX_OCCURRENCES) {
+      fail("rhwp_visual_helper_page_svg_image_limit_exceeded");
+    }
+    fragments.push(svg.slice(cursor, match.index));
+    cursor = removeEnd;
+    overlays.push({
+      ...svgOverlayGeometry(context, { x, y, width, height }),
+      opacity: context.opacity,
+      componentTransfer: context.componentTransfer,
+      ...decoded,
+    });
+    open.lastIndex = removeEnd;
+  }
+  fragments.push(svg.slice(cursor));
+  const baseSvg = fragments.join("");
+  if (/<\/?(?:[A-Za-z_][A-Za-z0-9_.-]*:)?image(?=[\s>])/i.test(baseSvg)) {
+    fail("rhwp_visual_helper_page_svg_image_invalid");
+  }
+  return { baseSvg, overlays };
+}
+
+function applySvgOverlayEffects(canvasModule, image, overlay) {
+  if (overlay.opacity === 1 && overlay.componentTransfer === null) return image;
+  const width = image.width;
+  const height = image.height;
+  if (
+    !Number.isSafeInteger(width) ||
+    !Number.isSafeInteger(height) ||
+    width < 1 ||
+    height < 1 ||
+    width * height > MAX_EFFECT_PIXELS
+  ) {
+    fail("rhwp_visual_helper_page_svg_effect_dimensions_invalid");
+  }
+  const effectCanvas = canvasModule.createCanvas(width, height);
+  const effectContext = effectCanvas.getContext("2d");
+  if (
+    typeof effectContext.getImageData !== "function" ||
+    typeof effectContext.putImageData !== "function"
+  ) {
+    fail("rhwp_visual_helper_page_svg_effect_contract_invalid");
+  }
+  effectContext.clearRect?.(0, 0, width, height);
+  effectContext.drawImage(image, 0, 0, width, height);
+  const imageData = effectContext.getImageData(0, 0, width, height);
+  const pixels = imageData?.data;
+  if (!(pixels instanceof Uint8ClampedArray) || pixels.length !== width * height * 4) {
+    fail("rhwp_visual_helper_page_svg_effect_contract_invalid");
+  }
+  const channels = overlay.componentTransfer;
+  for (let index = 0; index < pixels.length; index += 4) {
+    if (channels !== null) {
+      for (const [offset, channel] of [[0, "R"], [1, "G"], [2, "B"]]) {
+        const transfer = channels[channel];
+        const value = (transfer.slope * (pixels[index + offset] / 255) + transfer.intercept) * 255;
+        pixels[index + offset] = Math.max(0, Math.min(255, Math.round(value)));
+      }
+    }
+    pixels[index + 3] = Math.max(
+      0,
+      Math.min(255, Math.round(pixels[index + 3] * overlay.opacity)),
+    );
+  }
+  effectContext.putImageData(imageData, 0, 0);
+  return effectCanvas;
 }
 
 function stableControlIndex(control) {
@@ -761,13 +1429,65 @@ async function renderAcceptedPages({ doc, canvasModule, pageRecords, pageSizes, 
     }
     let png;
     try {
-      const image = await canvasModule.loadImage(Buffer.from(svg, "utf8"));
+      const { baseSvg, overlays } = extractSvgDataImages(svg);
+      const image = await canvasModule.loadImage(Buffer.from(baseSvg, "utf8"));
       const canvas = canvasModule.createCanvas(pixelWidth, pixelHeight);
       const context = canvas.getContext("2d");
       context.clearRect?.(0, 0, pixelWidth, pixelHeight);
       context.drawImage(image, 0, 0, pixelWidth, pixelHeight);
+      const pageBox = size.coordinate_page_bbox;
+      const scaleX = pixelWidth / pageBox.w;
+      const scaleY = pixelHeight / pageBox.h;
+      for (const overlay of overlays) {
+        if (!overlay.rasterizable) continue;
+        const decodedOverlayImage = await canvasModule.loadImage(overlay.bytes);
+        const overlayImage = applySvgOverlayEffects(
+          canvasModule,
+          decodedOverlayImage,
+          overlay,
+        );
+        const destination = overlay.destination;
+        const source = overlay.source;
+        const sourceIsComplete =
+          Math.abs(source.x) <= 1e-12 &&
+          Math.abs(source.y) <= 1e-12 &&
+          Math.abs(source.width - 1) <= 1e-12 &&
+          Math.abs(source.height - 1) <= 1e-12;
+        if (sourceIsComplete) {
+          context.drawImage(
+            overlayImage,
+            (destination.x - pageBox.x) * scaleX,
+            (destination.y - pageBox.y) * scaleY,
+            destination.width * scaleX,
+            destination.height * scaleY,
+          );
+        } else {
+          const sourceWidth = overlayImage.width;
+          const sourceHeight = overlayImage.height;
+          if (
+            !Number.isFinite(sourceWidth) ||
+            !Number.isFinite(sourceHeight) ||
+            sourceWidth <= 0 ||
+            sourceHeight <= 0
+          ) {
+            fail("rhwp_visual_helper_page_svg_image_dimensions_invalid");
+          }
+          context.drawImage(
+            overlayImage,
+            source.x * sourceWidth,
+            source.y * sourceHeight,
+            source.width * sourceWidth,
+            source.height * sourceHeight,
+            (destination.x - pageBox.x) * scaleX,
+            (destination.y - pageBox.y) * scaleY,
+            destination.width * scaleX,
+            destination.height * scaleY,
+          );
+        }
+      }
       png = Buffer.from(canvas.toBuffer("image/png"));
-    } catch {
+    } catch (error) {
+      if (error instanceof HelperError) throw error;
       fail("rhwp_visual_helper_page_rasterize_failed");
     }
     if (png.length < 1 || png.length > MAX_ASSET_BYTES) {
@@ -784,7 +1504,7 @@ async function renderAcceptedPages({ doc, canvasModule, pageRecords, pageSizes, 
       page_render_sha256: digest,
       relpath: safeRelative(privateRoot, destination, "rhwp_visual_helper_page_render_path_invalid"),
       render_profile: {
-        renderer: "rhwp_core_renderPageSvg+napi_canvas",
+        renderer: PAGE_RENDERER,
         profile: RENDER_PROFILE,
         scale: 1,
         pixel_rounding: "ceil",

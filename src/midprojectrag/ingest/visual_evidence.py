@@ -440,7 +440,7 @@ def crop_page_region(
     page_sha256 = sha256_file(page_path)
 
     try:
-        from PIL import Image
+        from PIL import Image, ImageChops
     except ImportError:
         raise VisualEvidenceError("visual_crop_pillow_unavailable") from None
     try:
@@ -466,6 +466,13 @@ def crop_page_region(
             if (right - left) * (bottom - top) > MAX_CROP_PIXELS:
                 raise VisualEvidenceError("visual_crop_pixels_exceeded")
             cropped = image.crop((left, top, right, bottom)).convert("RGBA")
+            visible = Image.alpha_composite(
+                Image.new("RGBA", cropped.size, (255, 255, 255, 255)), cropped
+            ).convert("RGB")
+            if ImageChops.difference(
+                visible, Image.new("RGB", visible.size, (255, 255, 255))
+            ).getbbox() is None:
+                raise VisualEvidenceError("visual_crop_blank")
             output = io.BytesIO()
             cropped.save(output, format="PNG", optimize=False, compress_level=9)
             crop_bytes = output.getvalue()

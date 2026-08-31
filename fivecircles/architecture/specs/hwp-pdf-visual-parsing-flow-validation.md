@@ -1,7 +1,66 @@
 # HWP/PDF visual parsing flow validation
 
-최종 갱신: 2026-08-30
-상태: **CLOSEOUT / PUBLIC_IMPLEMENTATION_COMPLETE / PRIVATE_GATES_BLOCKED / LOCAL_ONLY**
+최종 갱신: 2026-08-31
+상태: **CLOSEOUT / V3_CORRECTED / PRIVATE_GATES_BLOCKED / LOCAL_ONLY**
+
+## 2026-08-31 blank-crop 수리 시작 리포트
+
+후속 픽셀 감사에서 HWP 대표 bundle의 unique crop PNG 14개가 전부 순백으로 확인됐다. 16개
+placement가 이 crop들을 참조했으므로, 2026-08-30의 `page+bbox/crop 검증 및 검색 가능 16개`
+판정은 철회한다. source object 27개와 11개 `doc_only_unlinked` provenance는 유효하지만,
+blank crop은 OCR·검색·citation evidence가 될 수 없다.
+
+원인은 `@rhwp/core` SVG 안의 data-URI `<image>`를 `@napi-rs/canvas` SVG loader가 그리지 않는
+renderer 경계다. PNG 구조/hash/dimension만 확인한 strict reuse도 이 문제를 놓쳤다.
+
+| Rank | 수리 단위 | U | C | S | V | R | Score | 시작 판정 |
+| ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| 1 | embedded raster overlay + blank fail-closed | 3 | 3 | 2 | 2 | 0 | 10 | selected |
+| 2 | unsupported TIFF honest quarantine | 2 | 2 | 2 | 2 | 0 | 8 | same repair dependency |
+| 3 | false closeout/운영 로그 정정 | 2 | 2 | 1 | 2 | 0 | 7 | after rerender |
+| 4 | 94-HWP corpus rollout | 1 | 3 | 1 | 1 | -3 | 3 | representative/human gate 뒤 |
+
+시작 current flow 판정은 `HHELP → HREP → OCC/CROP` edge가 `GAP`이다. 이번 cycle은 외부 API 없이
+data URI raster를 deterministic overlay하고, blank crop과 미지원 TIFF를 fail closed한 뒤 대표
+5건을 재생성·전수 픽셀 감사한다. 그 결과가 통과하기 전에는 OCR/model이나 94건 rollout으로
+릴레이하지 않는다.
+
+## 2026-08-31 blank-crop 수리 종료 리포트
+
+V3의 실제 renderer 경계를 수리했다. helper는 SVG의 embedded data-URI raster를 bounded decode한
+뒤 base SVG 위에 합성하고, 중첩 SVG의 `viewBox`, `preserveAspectRatio`, viewport와 rect clip을
+axis-aligned source crop으로 반영한다. 대표본에서 관측된 RGB linear component-transfer와 scalar
+opacity도 픽셀에 적용한다. renderer identity를 변경해 이전 순백 bundle은 strict reuse 대상에서
+제외했고, 순백 crop 자체도 `visual_crop_blank`로 거부한다. 현재 canvas가 지원하지 않는 TIFF는
+원본 provenance만 남기고 검색에서 격리한다.
+
+허용목록 밖 CSS/effect를 조용히 누락하지 않도록 `<style>` element, `class`, ancestor
+`display`/`visibility`/inline `style`, `<defs>` 내부 image도 명시적으로 fail closed한다.
+
+- 대표 HWP: 5/5문서, occurrence 27개
+- placement: page/bbox verified 16개, doc-only unlinked 11개
+- 최종 검색 상태: eligible 15개, TIFF quarantined 1개, withheld 11개
+- crop 픽셀 감사: unique PNG 15개 중 nonblank 15개, 최소 nonwhite ratio `0.218264`
+- page 픽셀 감사: page render 14개 중 nonblank 14개
+- current helper SHA-256:
+  `0b7ab8edd3b3cb6018704b40e1c7b662041a79c857dc99eba66432280cfc0a9b`
+- 결정성: artifact set `visualv2_1a25cd3f5f6c34dfe2e8ff9c`의 strict reuse와 identity 재검증 통과
+- 격리: 과거 순백 crop 14개 bundle은 `visual-v2-hwp-representative-invalid-blank-crops-20260831`
+  incident archive로 보존
+- 외부 parser/OCR/search API 호출: 0, `private_egress=false`
+- SVG 계약 감사: 대표 5문서 530페이지에서 `<style>`/`class`/`display`/`visibility`/`<defs>`-image
+  패턴 0건
+- 자동 검증: fail-closed 회귀를 포함한 helper focused 11/11, repository-wide discovery
+  505/505, focused schema 2/2, compileall, Node syntax, `git diff --check`, repository safety
+  562 files 통과
+- 보고서 검증: Mermaid target/current PNG 생성 후 실제 Chrome headless render 정상
+- effect fidelity 표본: representative linear-filter/opacity crop을 Chrome SVG 기준과 비교해
+  channel mean absolute error `0.754/255`, RMSE `1.471/255`
+
+따라서 시작 시 `GAP`이었던 `HHELP → HREP → OCC/CROP` 경계와 V3는 `MATCHED`로 종료한다.
+V5는 실제 private model weight가 없어 `CODE MATCHED / RUN BLOCKED`, V7은 사람이 검토한
+HWP 5 + PDF 4 gold가 없어 `PARTIAL / BLOCKED`다. 이 두 gate 전에는 HWP 94건 corpus mode를
+실행하지 않는 기존 fail-closed 계약을 유지한다.
 
 ## 2026-08-30 시작 리포트
 
@@ -175,7 +234,7 @@ runtime 활성화는 계속 금지한다.
 | --- | --- | --- | --- |
 | V1 | additive occurrence identity | 폐쇄형 v2 schema, stable ID, mixed occurrence validator | MATCHED |
 | V2 | HWP exact key/cell anchor | pinned helper·runner, 대표 5건 exact object 27 | MATCHED |
-| V3 | deterministic crop/fallback | page+bbox 16건 crop 승격, page 없는 11건 withheld | MATCHED |
+| V3 | deterministic crop/fallback | nonblank crop 15건, TIFF 1건 quarantined, page 없는 11건 withheld | MATCHED |
 | V4 | PDF durable recovery | 4건 570쪽, resource 416, occurrence 1,110 | MATCHED |
 | V5 | local OCR/layout | pinned adapter·cache·OS network sandbox 구현, 실제 weight 부재 | CODE_MATCHED / RUN_BLOCKED |
 | V6 | caption/retrieval/citation | support-ref guard, bounded visual quota, visual gold scoring parity | MATCHED_PUBLIC |
@@ -183,9 +242,13 @@ runtime 활성화는 계속 금지한다.
 
 ### 실제 실행 증거
 
-- HWP 대표: 5문서, occurrence 27건, exact source object 27건이다. page+bbox가 검증된 16건만
-  retrieval eligible이며, page를 증명할 수 없는 11건은 `doc_only_unlinked/withheld`다.
-- HWP 재실행: 같은 artifact-set ID와 세 artifact hash를 strict reuse로 재검증했다.
+- HWP 대표: 5문서, occurrence 27건, exact source object 27건이다. page+bbox가 검증된 16건 중
+  nonblank raster 15건만 retrieval eligible이고, TIFF 1건은 quarantined다. page를 증명할 수 없는
+  11건은 `doc_only_unlinked/withheld`다.
+- HWP 재실행: current helper
+  `0b7ab8edd3b3cb6018704b40e1c7b662041a79c857dc99eba66432280cfc0a9b`와 artifact set
+  `visualv2_1a25cd3f5f6c34dfe2e8ff9c`를 기준으로 strict reuse를 재검증했다. crop 15/15와
+  page render 14/14는 모두 nonblank다.
 - HWP 전수 gate: `mode=corpus`를 gold 없이 실행하면 helper 시작 전에
   `hwp_visual_runner_gold_gate_required`로 중단된다. 94건을 실행했다고 주장하지 않는다.
 - PDF: 4문서 570쪽, resource 416개, occurrence 1,110개다. 1,103개는 crop 근거로 eligible,
@@ -202,8 +265,11 @@ runtime 활성화는 계속 금지한다.
   강제한다. support reference 없는 caption-only 답변은 자동 기권한다.
 - visual gold는 document+occurrence+evidence type+evidence ID 집합을 exact 비교한다. visual gold가
   없는 기존 평가에서는 visual citation을 잘못된 0점으로 넣지 않는다.
-- 전체 unittest 493/493, compileall, Draft 2020-12 schema 23개, diff-check와 repository safety
-  556 files를 통과했다. private source text·filename·crop은 Git 대상에서 제외했다.
+- 2026-08-31 correction 후 `<style>`/`class`/`display`/`visibility`/`<defs>`-image를 포함한
+  helper focused 11/11을 통과했고, 대표 530페이지에서 이 패턴은 0건이었다. repository-wide
+  discovery 505/505, focused schema 2/2, compileall, Node syntax, diff-check와 repository safety
+  562 files도 통과했다. 외부 API 호출은 0회, `private_egress=false`이며 private source
+  text·filename·crop은 Git 대상에서 제외했다.
 
 ### 남은 명시적 blocker
 

@@ -4,6 +4,33 @@
 브랜치: `feat/hwp-visual-corpus-rollout`
 실행 모드: `hybrid` — 공통 schema/identity를 순차 잠근 뒤 HWP/PDF/OCR 레인을 병렬화하고 통합한다.
 
+> 2026-08-31 correction: 아래 2026-08-30 단계별 test count는 당시 공개 구현의 역사 기록이다.
+> current helper와 representative artifact의 권위 있는 상태는 바로 아래 correction ledger가
+> 대체하며, 과거 493/493 수치를 current-tree green 증거로 재사용하지 않는다.
+
+## 2026-08-31 blank-crop correction ledger
+
+- Root cause: `renderPageSvg()`의 data-URI `<image>`가 base SVG rasterization에서 누락됐고,
+  hash/dimension-only 검증이 순백 crop을 eligible로 통과시켰다.
+- Repair: embedded raster overlay, nested viewBox/viewport/rect clip, 관측된 linear RGB effect와
+  opacity를 구현했다. 순백 crop과 미지원 TIFF를 각각 fail closed/quarantine한다.
+- Parser hardening: `<style>` element, `class`, ancestor `display`/`visibility`/inline `style`,
+  `<defs>` 내부 image는 조용히 무시하지 않고 명시적 오류로 종료한다.
+- Pinned identity: helper SHA-256
+  `0b7ab8edd3b3cb6018704b40e1c7b662041a79c857dc99eba66432280cfc0a9b`, artifact set
+  `visualv2_1a25cd3f5f6c34dfe2e8ff9c`.
+- Private execution: 대표 5문서, occurrence 27개, eligible 15개, TIFF quarantined 1개,
+  doc-only withheld 11개. crop 15/15와 page render 14/14가 nonblank다.
+- Determinism/safety: expected artifact-set strict reuse `PASS`, 외부 API 호출 0회,
+  `private_egress=false`. 과거 순백 14-crop bundle은 incident archive로 보존한다.
+- Contract audit: representative 530페이지에서 `<style>`/`class`/`display`/`visibility`/
+  `<defs>`-image 패턴은 0건이며, 관측되지 않은 형식도 adversarial fixture로 fail closed를 검증한다.
+- Automated verification: helper focused 11/11, repository-wide discovery 505/505, focused schema
+  2/2, compileall, Node syntax, diff-check, repository safety 562 files 모두 `PASS`.
+- Current terminal state: crop repair `COMPLETED`, representative strict-reuse gate `PASSED`,
+  full discovery `PASSED`, HWP 94 rollout `BLOCKED_BY_REVIEWED_GOLD`,
+  실제 OCR/caption `BLOCKED_BY_PINNED_MODEL_WEIGHT`.
+
 ## 원샷딜 플로우폼
 
 ### 0. Scope Intake
