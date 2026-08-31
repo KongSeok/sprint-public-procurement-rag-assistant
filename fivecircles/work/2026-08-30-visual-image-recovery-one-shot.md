@@ -188,3 +188,17 @@
 - Never treat PDF geometry candidates or stale artifacts as verified semantic objects.
 - Keep source text/table/page identities immutable and add v2 records rather than rewriting v1.
 - Keep private source/crop/OCR/caption artifacts out of Git and sanitize logs to counts/status only.
+
+## 2026-08-31 private EDA golden-seed addendum
+
+- 기존 검증 풀 `resources/golden_testset__v6_.jsonl` 136행(source SHA-256
+  `2dab148e5c361f1d28facb1794a54da748b4b7da42252dbf1ad4668becbef79f`)에서 고정 ID 순서로
+  10문항을 뽑아 `resources/data_refined/private/evaluation/eda-golden-10-v1.jsonl`에 보존했다.
+- 난이도 분포는 easy 3 / medium 4 / hard 3이다. 10/10 모두 active·answerable이며 질문,
+  gold answer, source document ID가 비어 있지 않고 ID와 정규화 질문 중복이 없다.
+- subset SHA-256은 `28ebbcdd2525fec82bb7cbdc5fecab304999787d90d636b87c0c93c5fef0406d`다.
+  질문·정답·문서명은 로그와 Git에 기록하지 않았고 외부 API 호출 0회,
+  `private_egress=false`를 유지했다.
+- 이 파일은 EDA/검색 품질용 private seed다. strict runtime evaluator에 바로 넣지 않으며,
+  legacy activation/source scope 필드를 명시적으로 정규화해 해당 schema로 변환하고 named human
+  review를 완료해야 공식 평가 gold로 승격한다.

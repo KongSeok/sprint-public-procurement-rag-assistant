@@ -512,3 +512,18 @@ This file summarizes recent updates so other agents can continue without re‑di
 - correction implementation/docs commit `343e489`를
   `origin/feat/hwp-visual-corpus-rollout`에 push했다.
 - private 원문·crop·모델 출력과 `resources/**`, 다른 refined98/UI 작업은 commit에서 제외했다.
+
+## Addendum (2026-08-31) - private EDA golden seed 10
+
+### Evaluation data
+- 기존 검증 풀 136행에서 고정 ID 10개를 원문 행 그대로 선택해 private EDA seed를 만들었다.
+- 난이도는 easy 3 / medium 4 / hard 3이며 10/10 active·answerable·근거 문서 연결·정답 보유,
+  ID/정규화 질문 중복 0을 검증했다.
+- source SHA-256은 `2dab148e5c361f1d28facb1794a54da748b4b7da42252dbf1ad4668becbef79f`,
+  subset SHA-256은 `28ebbcdd2525fec82bb7cbdc5fecab304999787d90d636b87c0c93c5fef0406d`다.
+
+### Privacy and review boundary
+- 산출물은 `resources/data_refined/private/evaluation/eda-golden-10-v1.jsonl`과
+  `.metadata.json`에만 두고 질문·정답·문서명은 Git과 운영 로그에 기록하지 않았다.
+- 외부 API 호출 0회, `private_egress=false`다. source row verification을 상속한 EDA seed이며,
+  strict evaluator schema 변환과 named human review 전에는 공식 평가 gold로 승격하지 않는다.

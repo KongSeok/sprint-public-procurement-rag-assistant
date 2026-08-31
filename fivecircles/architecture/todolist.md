@@ -177,6 +177,10 @@ HWP blank-crop incident: `fivecircles/test/errorlogs/backend/2026-08-31-visual-c
 - [x] API와 GCP 로컬 스택이 공유할 요청·응답 JSON Schema와 오프라인 registry를 구현한다.
 - [x] 검색·생성·인용·기권·latency·비용 지표 설정과 `validate/score/compare` CLI를 구현한다.
 - [x] 평가 task floor·hard gate·explicit scope·안전 기권·A/B hash/shape 검사를 fail-closed로 고정한다.
+- [x] 기존 source-verified EDA 풀에서 private seed 10문항을 난이도 easy/medium/hard=3/4/3으로
+  고정하고 원본 행·source hash·subset hash를 보존한다. 질문·정답 본문은 Git과 로그에서 제외한다.
+- [ ] private EDA seed 10문항을 strict evaluator schema로 변환하면서 legacy activation/source
+  scope 필드를 명시적으로 정규화하고, named human review 뒤 공식 dev/held-out gold 편입 여부를 결정한다.
 - [ ] private corpus 근거로 dev 40문항과 held-out 20문항을 작성하고 2인 교차검토한다.
 - [ ] held-out 파일과 질문 순서를 hash로 봉인하고 실제 source block·locator hash 무결성을 검증한다.
 - 검증: 평가 테스트 31개, 오프라인 Schema 참조, split 누수, 응답·실행 기록 불변식 통과.
