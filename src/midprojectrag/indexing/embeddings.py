@@ -143,6 +143,22 @@ def _embedding_input_limit(provider: EmbeddingProvider) -> int:
     return input_limit
 
 
+def embedding_cache_namespace(provider: EmbeddingProvider, *, role: str) -> str:
+    """Return an optional provider identity while preserving legacy keys exactly."""
+
+    if role not in {"document", "query"}:
+        raise ValueError("embedding_role_not_supported")
+    namespace_builder = getattr(provider, "cache_namespace", None)
+    if namespace_builder is None:
+        return provider.model
+    if not callable(namespace_builder):
+        raise ValueError("invalid_embedding_cache_namespace")
+    namespace = namespace_builder(role=role)
+    if not isinstance(namespace, str) or not namespace:
+        raise ValueError("invalid_embedding_cache_namespace")
+    return namespace
+
+
 def embed_chunks(
     chunks: Sequence[dict[str, Any]],
     *,
@@ -169,6 +185,7 @@ def embed_chunks(
     if provider.requires_budget and budget is None:
         raise ValueError("budget_required")
     input_limit = _embedding_input_limit(provider)
+    cache_namespace = embedding_cache_namespace(provider, role="document")
     vectors: list[np.ndarray | None] = [None] * len(chunks)
     missing_by_key: dict[str, tuple[str, int, list[int]]] = {}
     cache_hits = 0
@@ -191,7 +208,7 @@ def embed_chunks(
         key = cache.key(
             corpus_manifest_sha256=corpus_manifest_sha256,
             chunk_config_sha256=config_sha256,
-            model=provider.model,
+            model=cache_namespace,
             dimensions=provider.dimensions,
             content_sha256=content_sha256,
         )
@@ -293,6 +310,7 @@ def embed_query(
     if provider.requires_budget and budget is None:
         raise ValueError("budget_required")
     input_limit = _embedding_input_limit(provider)
+    cache_namespace = embedding_cache_namespace(provider, role="query")
     require_sha256(corpus_manifest_sha256, "invalid_corpus_manifest_hash")
     token_count = counter.count(text)
     if token_count < 1 or token_count > input_limit:
@@ -301,7 +319,7 @@ def embed_query(
     key = cache.key(
         corpus_manifest_sha256=corpus_manifest_sha256,
         chunk_config_sha256=sha256_text("query-v1"),
-        model=provider.model,
+        model=cache_namespace,
         dimensions=provider.dimensions,
         content_sha256=content_sha256,
     )

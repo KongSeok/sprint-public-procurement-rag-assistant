@@ -184,9 +184,22 @@ def make_runs(cases: list[dict[str, Any]], *, stack_id: str = "api") -> list[dic
                 "eval_set_sha256": eval_hash,
                 "config_sha256": CONFIG_HASH,
                 "git_commit": "abcdef0",
-                "generator_model": "gpt-5-mini" if stack_id == "api" else "synthetic-hf-generator",
-                "embedding_model": "text-embedding-3-small" if stack_id == "api" else "synthetic-hf-embedding",
+                "generator_model": "gpt-5-mini" if stack_id == "api" else "Qwen/Qwen3-8B-AWQ",
+                "embedding_model": "text-embedding-3-small" if stack_id == "api" else "nlpai-lab/KURE-v1",
                 **({"reasoning_effort": "minimal"} if stack_id == "api" else {}),
+                **(
+                    {
+                        "embedding_dimensions": 1024,
+                        "index_config_sha256": "e" * 64,
+                        "embedding_model_revision": "4ed4540949c70b7da2c74004a915e1f2d5e46e4f",
+                        "generator_model_revision": "4da05a8edb55c6046cce958586c33b61da07bb79",
+                        "runtime": "vllm",
+                        "runtime_version": "0.8.5.post1",
+                        "quantization": "awq-int4",
+                    }
+                    if stack_id == "gcp_local"
+                    else {}
+                ),
                 "environment": {
                     "python_version": "3.12.13",
                     "platform": "synthetic-test",

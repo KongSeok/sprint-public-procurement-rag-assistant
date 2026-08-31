@@ -12,7 +12,9 @@ from midprojectrag.indexing.budget import BudgetLedger
 from midprojectrag.indexing.embeddings import (
     EmbeddingBatch,
     EmbeddingCache,
+    embed_query,
     embed_chunks,
+    embedding_cache_namespace,
 )
 
 
@@ -59,6 +61,16 @@ class _ProviderWithoutInputLimit:
         return Decimal("0")
 
 
+class _NamespacedProvider(_FakeProvider):
+    def __init__(self) -> None:
+        super().__init__()
+        self.roles: list[str] = []
+
+    def cache_namespace(self, *, role: str) -> str:
+        self.roles.append(role)
+        return f"hf-namespace:{role}"
+
+
 def _chunks() -> list[dict[str, object]]:
     config_hash = "1" * 64
     chunks: list[dict[str, object]] = []
@@ -98,6 +110,48 @@ def _chunks() -> list[dict[str, object]]:
 
 
 class EmbeddingTests(unittest.TestCase):
+    def test_legacy_provider_cache_namespace_is_byte_identical_model_fallback(self) -> None:
+        provider = _FakeProvider()
+        self.assertEqual(
+            embedding_cache_namespace(provider, role="document"),
+            provider.model,
+        )
+        expected = EmbeddingCache.key(
+            corpus_manifest_sha256="1" * 64,
+            chunk_config_sha256="2" * 64,
+            model=provider.model,
+            dimensions=provider.dimensions,
+            content_sha256="3" * 64,
+        )
+        actual = EmbeddingCache.key(
+            corpus_manifest_sha256="1" * 64,
+            chunk_config_sha256="2" * 64,
+            model=embedding_cache_namespace(provider, role="document"),
+            dimensions=provider.dimensions,
+            content_sha256="3" * 64,
+        )
+        self.assertEqual(actual, expected)
+
+    def test_chunk_and_query_paths_request_distinct_cache_roles(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            provider = _NamespacedProvider()
+            cache = EmbeddingCache(Path(directory))
+            embed_chunks(
+                _chunks(),
+                provider=provider,
+                counter=_Counter(),
+                cache=cache,
+                corpus_manifest_sha256="2" * 64,
+            )
+            embed_query(
+                "질문",
+                provider=provider,
+                counter=_Counter(),
+                cache=cache,
+                corpus_manifest_sha256="2" * 64,
+            )
+        self.assertEqual(provider.roles, ["document", "query"])
+
     def test_negative_batch_interval_fails_before_provider_call(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             provider = _FakeProvider()

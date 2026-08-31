@@ -34,6 +34,16 @@ rag = [
   "python-dotenv==1.2.3",
   "tiktoken==0.13.0",
 ]
+gcp-local = [
+  "huggingface-hub>=0.34,<2",
+  "numpy>=2,<3",
+  "sentence-transformers>=5,<6",
+  "torch>=2.8,<3; platform_system == 'Darwin'",
+  "torch==2.6.0; platform_system == 'Linux' and platform_machine == 'x86_64'",
+  "transformers>=4.55,<5",
+  "faiss-cpu==1.15.0; platform_system == 'Linux' and platform_machine == 'x86_64'",
+  "vllm==0.8.5.post1; platform_system == 'Linux' and platform_machine == 'x86_64'",
+]
 faiss = [
   "faiss-cpu==1.15.0; platform_system != 'Darwin' or platform_machine != 'arm64'",
 ]
@@ -50,6 +60,7 @@ midprojectrag = "midprojectrag.cli:main"
 midprojectrag-eval = "midprojectrag.evaluation:main"
 midprojectrag-supplemental-eval = "midprojectrag.supplemental_evaluation:main"
 midprojectrag-supplemental-baseline = "midprojectrag.supplemental_baseline:main"
+midprojectrag-gcp-local-baseline = "midprojectrag.gcp_local_baseline:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

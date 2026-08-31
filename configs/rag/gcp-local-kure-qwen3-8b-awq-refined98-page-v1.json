@@ -1,0 +1,70 @@
+{
+  "schema_version": "1.0",
+  "baseline_id": "gcp-local-kure-qwen3-8b-awq-refined98-page-v1",
+  "corpus": {
+    "manifest_path": "resources/data_refined/private/manifest.extracted.jsonl",
+    "manifest_sha256": "6c91d30a4c01b12f1aae8924c88a2e5055446c841f5eabfbf687546fdc1fe1cb",
+    "document_count": 98,
+    "chunks_path": "resources/data_refined/private/chunks.page-v1.jsonl",
+    "chunks_sha256": "bb82b593153a93f9373f0bdf7f5be7531e651fdab9c5df36b69d53df0a35b9a2",
+    "chunk_count": 9331,
+    "chunker_id": "page-v1",
+    "chunk_config_sha256": "b4dbcabc483eff0f4193e38fb8e2f3c32748543ce156a4ec0ece7a4f834721cc"
+  },
+  "evaluation": {
+    "cases_path": "golden-set-final/dev.refined.review-candidate.jsonl",
+    "cases_sha256": "abb1b0b5b4ce6aa85d98e91c7b5cefd6f76f98a4b68fef2c1f534768028fae80",
+    "eval_set_sha256": "0f2df1d9c3fdc5b4d03f6d1aafab9529281bc85ddfab308d25298b033f4b54b6",
+    "case_count": 40,
+    "review_status": "draft",
+    "tier": "provisional_non_official"
+  },
+  "embedding": {
+    "model": "nlpai-lab/KURE-v1",
+    "revision": "4ed4540949c70b7da2c74004a915e1f2d5e46e4f",
+    "dimensions": 1024,
+    "max_input_tokens": 8192,
+    "pooling": "sentence-transformers-default",
+    "prompt_version": "kure-v1-empty-prompt-v1",
+    "document_prompt": "",
+    "query_prompt": "",
+    "batch_size": 32
+  },
+  "generation": {
+    "official_model": "Qwen/Qwen3-8B-AWQ",
+    "official_revision": "4da05a8edb55c6046cce958586c33b61da07bb79",
+    "official_runtime": "vllm",
+    "quantization": "awq-int4",
+    "mac_equivalent_model": "qwen3.8:27b-mlx",
+    "mac_equivalent_digest": "5642e97495e1a088883805981563dcdc4a040c2f53388b7a41d1f24d3622cf7e",
+    "context_tokens": 8192,
+    "mac_transport_context_tokens": 32768,
+    "max_output_tokens": 1024,
+    "temperature": 0,
+    "thinking": false,
+    "logical_context_counter": "qwen3-awq-chat-template-v1"
+  },
+  "retrieval": {
+    "metric": "cosine_via_normalized_inner_product",
+    "official_engine": "faiss",
+    "mac_equivalent_engine": "numpy",
+    "top_k": 10,
+    "context_top_k": 5,
+    "max_citations": 3
+  },
+  "dependencies": {
+    "lock_path": "requirements/gcp-local-lock.txt",
+    "lock_sha256": "eb7560d74cecf21a423aef1299bdca1733f53fd40706cb774573056b1ca87ea4"
+  },
+  "storage": {
+    "hard_max_bytes": 100000000000,
+    "warning_used_bytes": 80000000000,
+    "minimum_free_bytes": 10000000000,
+    "hf_cache_path": "resources/data_refined/private/hf-cache",
+    "embedding_cache_path": "resources/data_refined/private/caches/local/kure-v1-1024/page-v1",
+    "index_path": "resources/data_refined/private/indexes/local/kure-v1-1024/page-v1",
+    "candidate_path": "resources/data_refined/private/outputs/local/gcp-local-kure-qwen3-8b-awq-refined98-page-v1/mac-local-equivalent/candidates.jsonl",
+    "private_score_path": "resources/data_refined/private/outputs/local/gcp-local-kure-qwen3-8b-awq-refined98-page-v1/mac-local-equivalent/provisional-score.json"
+  },
+  "public_receipt_path": "evaluation/baselines/gcp-local-kure-qwen3-8b-awq-refined98-page-v1/mac-local-equivalent-receipt.json"
+}

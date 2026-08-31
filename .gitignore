@@ -26,6 +26,7 @@ data/
 private/
 resources/data_midP.zip
 resources/data_refined/
+golden-set-final/
 **/data_list.csv
 **/refined_data_list.csv
 *.hwp
