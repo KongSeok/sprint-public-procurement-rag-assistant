@@ -3,6 +3,8 @@
 Status: ACTIVE — MAC_LOCAL_EQUIVALENT_PROVISIONAL
 Decision date: 2026-09-01
 
+Implementation branch: `feat/local-qwen-mini131-eval`
+
 ## 1. Goal
 
 Turn the already completed local Mini131 run into an inspectable performance evaluation. Every
@@ -17,6 +19,12 @@ rationale in one private record.
 - Candidate: Mac-local-equivalent `qwen3.8:27b-mlx` over the frozen KURE/page-v1 stack.
 - Judge: fresh blinded `gpt-5.6-sol`, rubric `gpt56-semantic-v2`.
 - Gold state: draft; named human approval remains pending.
+- Comparison reference: API `gpt-5-mini` Mini131 baseline, using the exact same 131
+  `case_id`, question, expected result and lane values.
+
+The local implementation belongs to `feat/local-qwen-mini131-eval`. Merge work for the HWP-only
+line uses `feat/hwp-visual-corpus-rollout-clean`, rooted at `4e6f04d`; the former mixed-history HWP
+branch is legacy recovery state and is not a merge source. No force push is required.
 
 ## 3. Private artifacts
 
@@ -40,9 +48,23 @@ answers, candidate answers, evidence, and judge rationales and must never be com
 4. Use the final validated primary/secondary/adjudicator judgment. Preserve all component scores,
    confidence, critical flags, matched key points, final rationale, and judgment history.
 5. Semantic score is 0–100 using the frozen rubric weights. Parser PASS/FAIL never enters this mean.
-6. Aggregate by `easy`, `medium`, `hard`, evaluation purpose, and execution lane. Every aggregate
-   carries its eligible denominator; unavailable metrics are null rather than silently treated as 0.
-7. The parser rerun receipt hash and full result must exactly match the frozen parser receipt. Every
+6. Reproduce the API Mini131 report taxonomy exactly: seven primary areas, four core RAG
+   scenarios, four HWP/PDF table/figure subgroups and the execution-lane audit table. The core
+   unknown scenario stays named `unknown`; it must not be renamed to a generic abstention bucket.
+7. Use the API companion-metric names and formulas with the same eligible populations: required
+   document micro recall, set macro/micro Precision/Recall/F1 and exact match, visual page/chunk/
+   object hit counts, analytics comparison pass counts and parser PASS/FAIL. Set metrics use the
+   candidate's persisted `selected_doc_ids`, not its full-catalog retrieval trace.
+8. Emit all five common API↔GCP metric sections (`retrieval`, `answer`, `abstention`,
+   `task_success`, `operations`) with the exact metric keyset from `evaluation.py`. A value that
+   cannot be reconstructed from the persisted run remains `null` with zero coverage and a reason;
+   a different metric must never be substituted under the missing metric's name.
+   In particular, the Mac candidate response is not normalized to the API response schema, so
+   `response_contract_error_rate` remains unavailable instead of being hardcoded to zero.
+9. Preserve the Sol-v2 score items and formula used by the API baseline: correctness 35%,
+   faithfulness 25%, completeness 20%, factual-claim coverage 10%, citation validity 10%; an
+   unknown/abstain case uses abstention quality times 100. Parser PASS/FAIL never enters this mean.
+10. The parser rerun receipt hash and full result must exactly match the frozen parser receipt. Every
    one of the 136 history outputs must match its validated raw decision and its own output/history
    hashes; non-final review drift also fails closed.
 
@@ -53,9 +75,14 @@ Only a content-free receipt may be written under
 scores, artifact hashes, model/config identities, and privacy flags. It must contain no case ID,
 question, expected answer, candidate answer, evidence, private path, or rationale.
 
-The receipt is rebuilt through an explicit field allowlist. Aggregate scalars must be finite and in
-their declared ranges, runtime is the fixed `mac_ollama_numpy` enum, artifact values must be SHA-256,
-and injected summary fields are omitted or rejected before the public file is replaced.
+The receipt may include aggregate API-reference and local-candidate values only when both use an
+identical named metric and denominator. Per-case comparison rows remain private.
+
+The receipt is rebuilt through explicit top-level and nested field allowlists. Objective fields,
+deterministic metric names, display labels and unavailable-reason enums are closed sets. Aggregate
+scalars must be finite and in their declared ranges, runtime is the fixed `mac_ollama_numpy` enum,
+artifact values must be SHA-256, and injected summary fields are omitted or rejected before the
+public file is replaced.
 
 ## 6. Interpretation boundary
 
@@ -69,7 +96,12 @@ score until the corresponding gates are completed.
 - Every RAG record has question, expected result, actual answer/status, evidence, deterministic
   metrics, semantic score/verdict/rationale, and provenance hashes.
 - Difficulty counts are exactly easy 41, medium 48, hard 40.
-- Aggregate score reconciles exactly with the canonical semantic score and public receipt.
+- API and local source identity is exact for all 131 case IDs, questions, expected results and lanes.
+- The seven primary areas, four core scenarios and four visual subgroups match the API report's
+  names, counts, score rounding and PASS/FAIL semantics.
+- Common metric sections have the exact API keyset; unavailable values remain explicit nulls.
+- Primary/scenario/visual aggregates, companion/common metrics, per-case local comparisons and the
+  aggregate score are recalculated from private rows and reconcile with the public receipt.
 - Parser receipt/result, all 136 raw decisions/history outputs, and public allowlist mutation tests
   pass fail-closed checks.
 - Unit/integration tests, HTML static checks, browser smoke, mode checks, and Git privacy audit pass.
