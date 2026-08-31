@@ -507,3 +507,8 @@ This file summarizes recent updates so other agents can continue without re‑di
   diff check와 repository safety 562 files를 통과했다.
 - 외부 API 호출과 private egress는 0이다. HWP 94건 실행은 reviewed human gold와 pinned model
   weight gate가 남아 있어 `STOP_WITH_REASON`으로 유지한다.
+
+### Publication
+- correction implementation/docs commit `343e489`를
+  `origin/feat/hwp-visual-corpus-rollout`에 push했다.
+- private 원문·crop·모델 출력과 `resources/**`, 다른 refined98/UI 작업은 commit에서 제외했다.

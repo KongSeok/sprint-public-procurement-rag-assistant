@@ -27,6 +27,8 @@
   `<defs>`-image 패턴은 0건이며, 관측되지 않은 형식도 adversarial fixture로 fail closed를 검증한다.
 - Automated verification: helper focused 11/11, repository-wide discovery 505/505, focused schema
   2/2, compileall, Node syntax, diff-check, repository safety 562 files 모두 `PASS`.
+- Publication: correction implementation/docs commit `343e489`를
+  `origin/feat/hwp-visual-corpus-rollout`에 push했다. private artifact와 `resources/**`는 제외했다.
 - Current terminal state: crop repair `COMPLETED`, representative strict-reuse gate `PASSED`,
   full discovery `PASSED`, HWP 94 rollout `BLOCKED_BY_REVIEWED_GOLD`,
   실제 OCR/caption `BLOCKED_BY_PINNED_MODEL_WEIGHT`.
