@@ -416,12 +416,34 @@ HWP blank-crop incident: `fivecircles/test/errorlogs/backend/2026-08-31-visual-c
 
 ## Batch 5 — 시나리오 A GCP L4 로컬 HF 및 공정한 A/B
 
-상태: PENDING
+상태: MAC_EQUIVALENT_MINI131_DETERMINISTIC_COMPLETE_LIVE_GCP_BLOCKED
+방법론: contract-first TDD + sequential relay
 
-- [ ] `g2-standard-4`(4 vCPU/16GB/L4), 디스크 hard max 200GB(운영 목표 100GB·80GB 경고)에서 구동할 생성·임베딩 모델을 각 1개 선정한다. 기본 region은 `us-central1`, chunk4 배정은 `us-east1`로 기록한다.
-- [ ] 공통 corpus snapshot·요청/응답 계약·평가셋으로 API 스택과 비교한다.
-- [ ] 품질, cold/warm latency, GPU 시간, VRAM, 추정 비용을 기록한다.
-- 검증: 동일 검색 설정 통제 비교와 각 스택 최선 설정 end-to-end 비교.
+- [x] 첫 스택을 KURE-v1 1,024-d + CPU FAISS exact + Qwen3-8B-AWQ/vLLM로 고정한다.
+- [x] user-confirmed storage hard max 100 GB, 80 GB warning, free 10 GB abort 계약을 기록한다.
+- [x] Mac equivalent와 공식 `gcp_local` 결과의 증거 경계를 고정한다.
+- [x] **5.2 Provider/record:** pinned HF embedder, loopback vLLM generator, GCP telemetry run-record와
+  100 GB Schema/manual validator parity를 TDD로 구현한다.
+- [x] **5.3 Mac retrieval:** refined98 9,331 page chunks를 KURE로 임베딩하고 NumPy exact
+  save/load·hash와 provisional Recall@1/3/5/10, MRR@10, nDCG@10을 측정한다. GCP FAISS
+  재현은 5.5에 남긴다.
+- [x] **5.4 Local equivalent E2E:** Mac에서 가능한 생성기로 synthetic와 40 golden candidate를
+  실행하되 공식 GCP 점수와 분리된 private transcript/content-free receipt를 만든다.
+- [x] **5.4b Full local Mini131:** Core40에만 머물지 않고 RAG 129개와 parser 2개를 전부 실행한다.
+  답변형 96개는 KURE page-v1+Qwen, 집합형 13개는 98문서 14개씩 map→global reduce,
+  visual 10개는 page-text-only 한계를 명시하고, EDA 10개는 gold-free deterministic evidence와
+  Qwen 설명을 함께 기록한다. parser 2개는 live rerun하고 RAG 의미평균과 분리한다.
+- [x] Full local candidate 129행·parser 2건·lane별 결정론 점수·content-free receipt를 검증한다.
+  완료 결과는 RAG 129/129, parser 2/2이며 결정론 receipt는 `suite_complete=true`다.
+- [x] 새 로컬 후보의 fresh Sol blind ledger를 aggregate-validate한다. primary 129·secondary 4·
+  adjudicator 3, accepted 88·rejected 41, acceptance 0.682171, mean 70.135659이다.
+- [ ] Named human gold review 상태를 별도 승인한다. 완료 전에는 `mac_local_equivalent`,
+  `official=false`, provisional 상태를 유지한다.
+- [ ] **5.5 GCP live:** 정확한 `g2-standard-4`/L4에서 vLLM 8K smoke, GPU seconds, peak VRAM,
+  cold/warm latency, disk를 기록하고 가능한 provisional set을 실행한 뒤 VM을 종료한다.
+- [ ] 동일 corpus/eval/scoring hash로 API와 controlled/best-stack 두 비교를 생성한다.
+- 검증: provider/security/schema unit, shared pipeline integration, full regression/safety,
+  flow target/current report, local provisional metrics, GCP VRAM <22 GB·GPU coverage 100%.
 
 ## Batch 6 — 통합 검증·재현성·제출
 

@@ -117,6 +117,22 @@ class OllamaGeneratorTests(unittest.TestCase):
         self.assertEqual(body["options"]["temperature"], 0)
         self.assertEqual(body["options"]["seed"], 0)
 
+    def test_custom_system_contract_is_sent_exactly(self) -> None:
+        opener = _valid_opener()
+        generator = OllamaGenerator(
+            max_output_tokens=100,
+            system_instructions="custom local JSON contract",
+            opener=opener,
+        )
+        generator.generate("합성 질문")
+        request, _timeout = opener.calls[1]
+        body = json.loads(request.data.decode("utf-8"))
+        self.assertEqual(body["messages"][0]["content"], "custom local JSON contract")
+
+    def test_custom_system_contract_must_be_nonempty(self) -> None:
+        with self.assertRaisesRegex(ValueError, "invalid_ollama_system_instructions"):
+            OllamaGenerator(system_instructions=" ", opener=object())
+
     def test_context_overflow_fails_before_opening_socket(self) -> None:
         opener = _valid_opener()
         generator = OllamaGenerator(

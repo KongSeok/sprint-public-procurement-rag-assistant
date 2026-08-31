@@ -1,35 +1,47 @@
-# GCP Local Baseline Flow Validation
+# GCP Local Mini131 Baseline Flow Validation
 
-검증일: 2026-08-31
-범위: refined98 page-only, KURE, exact dense retrieval, Qwen3-8B-AWQ/vLLM contract, Mac-equivalent provisional evaluation
+검증일: 2026-09-01
+범위: refined98 page-only, KURE, exact dense retrieval, Mac Ollama Qwen equivalent, GCP Qwen3-8B-AWQ/vLLM target, Mini131 전체 자산
+
+현재 closeout은 **RAG 129/129 + parser 2/2, lane-complete 결정론 receipt, fresh Sol semantic
+aggregate 완료**를 뜻한다. Named human gold 승인과 live GCP telemetry는 아직 닫히지 않았으므로
+`mac_local_equivalent`, `official=false`, `passed=false`, provisional 경계를 유지한다.
 
 ## Target Flow
 
-![Target GCP local baseline](gcp-local-baseline-target-flow.png)
+![Target GCP local Mini131 baseline](gcp-local-baseline-target-flow.png)
 
-Target source: [`gcp-local-baseline-target-flow.mmd`](gcp-local-baseline-target-flow.mmd). 아키텍처는
-고정했고, 외부 URL 차단 간선의 표현만 실제 계약과 같게 `reject before private prompt`로
-바로잡은 뒤 target PNG를 재렌더했다.
+Target source: [`gcp-local-baseline-target-flow.mmd`](gcp-local-baseline-target-flow.mmd).
+목표는 129 RAG를 lane별로 실행하고 parser 2건을 별도 ETL 결과로 유지한 뒤, content-free
+결정론 receipt와 hash-bound blind semantic aggregate를 각각 닫는 것이다. 공식 비교는 live
+L4/vLLM/FAISS telemetry가 있는 `gcp_local` record만 허용한다.
 
 ## Current Implementation Flow
 
-![Current local implementation](gcp-local-baseline-current-flow.png)
+![Current local Mini131 implementation](gcp-local-baseline-current-flow.png)
 
 Current source: [`gcp-local-baseline-current-flow.mmd`](gcp-local-baseline-current-flow.mmd).
+Aggregate semantic evidence: [content-free public semantic receipt](../../../evaluation/baselines/gcp-local-kure-qwen3-8b-awq-mini131-v1/mac-local-equivalent-semantic-receipt.json).
+
+현재 `candidate_output_visible_to_reviewer=false`는 raw candidate artifact·파일 경로·case ID·lineage를
+reviewer에게 직접 노출하지 않는다는 뜻이다. frozen rubric 적용에 필요한 answer/status, 대화 문맥,
+retrieved/cited evidence는 sanctioned hash-bound blind projection으로 전달된다.
 
 ## Target vs Current Gap
 
 | ID | Node/edge | Status | Implementation evidence | Remaining gate |
 | --- | --- | --- | --- | --- |
-| G1 | refined98 → pinned KURE provider/cache/exact index | **MATCHED — measured** | 9,331×1,024 normalized vectors; exact index and all persisted hashes verified; document recall@10 `1.0` | reproduce with FAISS CPU on L4 host |
-| G2 | retrieval → loopback vLLM Qwen3-8B-AWQ | **MATCHED — adapter contract** | literal loopback-only URL, proxy/redirect rejection, exact served-model check, strict JSON/non-thinking contract | live L4 inference remains blocked |
-| G3 | pipeline → GCP run record / 100 GB gate | **MATCHED — implemented contract** | exact model/revision/runtime/machine constraints, 100 GB validator/schema parity, required GPU fields | populate with live `gpu_seconds` and `peak_vram_gb` |
-| G4 | Qwen generation → logical 8K guard | **MATCHED — implemented** | pinned Qwen tokenizer/chat template counts the exact transmitted messages before Ollama generation | preserve the same tokenizer/revision on GCP |
-| G5 | private golden cases → resumable runner | **MATCHED — measured** | 40/40 persisted; first completion `executed=38`, `resumed=2`; replay `executed=0`, `resumed=40`; one strict local-model contract error retained | approve draft gold before semantic labeling |
-| G6 | Mac run → public receipt | **MATCHED — measured** | content-free receipt; suite complete; recall@1 `0.833333`, recall@10 `1.0`, citation/response contract `1.0`, error rate `0.025` | official remains false by construction |
-| G7 | live L4 vLLM → official GPU telemetry | **BLOCKED** | adapter and run-record gates exist, but no L4 execution record exists | explicit VM authorization, live smoke/full run, measured telemetry |
-| G8 | official GCP result → API↔GCP comparison | **BLOCKED** | comparison rejects Mac-equivalent evidence correctly | valid same-hash `gcp_local` records with complete telemetry |
-| G9 | provisional score → semantic verdict | **PARTIAL / BLOCKED** | retrieval, citation, response-contract, abstention and latency diagnostics are implemented | named human gold approval and fixed `gpt-5.6-sol` semantic judgment |
+| G1 | refined98 → pinned KURE cache/exact index | **MATCHED — measured** | 98 documents, 9,331 chunks and 1,024-d normalized vectors are hash-validated on the Mac path | reproduce with FAISS CPU on the L4 host |
+| G2 | frozen Mini131 inventory → complete candidate coverage | **MATCHED — measured** | all 129 RAG rows closed; outcomes are 87 answered, 36 abstained and 6 retained errors | none for candidate coverage |
+| G3 | answer/set/visual/analytics lane adapters | **MATCHED — executed** | page-answer 96, set 13, visual 10 and analytics 10 all reached terminal candidate states | none for candidate execution |
+| G4 | parser C21/C22 → separate ETL result | **MATCHED — measured** | current pinned parser reran both cases at 2/2 PASS; parser is excluded from the RAG semantic mean | none for parser coverage |
+| G5 | private transcript → deterministic diagnostics | **MATCHED — measured** | Recall@1/5/10 `0.921986/0.987589/0.991135`, MRR@10 `1.0`; candidate errors remain in denominators | do not substitute diagnostics for semantic judgment |
+| G6 | deterministic diagnostics → lane-complete public receipt | **MATCHED — remediated** | metric coverage is complete: set count accuracy `0.538462`; visual document/page Recall@10 `1.0/0.6`, object `0`; analytics 10/10 and 139/139 comparisons pass | map preflight is 5,094 tokens; the 102,687-token worst-case final probe is a non-readiness stress case rejected before transport |
+| G7 | raw candidate → sanctioned blind projection | **MATCHED — contract/adapter** | raw artifact identity and lineage stay hidden while required answer/status/chat/evidence are hash-bound into the blind packet | none for projection contract |
+| G8 | blind projection → fresh Sol semantic aggregate | **MATCHED — measured** | primary 129, secondary 4, adjudicator 3; accepted 88, rejected 41, acceptance `0.682171`, mean `70.135659` | do not reuse prior API judgments or treat this as gold approval |
+| G9 | semantic aggregate + named human gold → gold-approved closeout | **BLOCKED** | semantic ledger is complete but gold remains draft | obtain named human gold approval |
+| G10 | loopback vLLM → live L4 telemetry | **BLOCKED** | adapter/run-record guards exist; the Mac Ollama/NumPy run is not L4/vLLM/FAISS evidence | explicit VM authorization, live run, `gpu_seconds` and `peak_vram_gb` |
+| G11 | official GCP result → API↔GCP comparison | **BLOCKED** | comparison correctly rejects `mac_local_equivalent` evidence | valid same-hash `gcp_local` records with complete telemetry |
 
 ## Done / Not Done Priority
 
@@ -37,44 +49,41 @@ Scoring: upstream 0–4 + connection 0–3 + safety 0–2 + validation 0–2 + r
 
 | Rank | Work unit | Score | State | Next action |
 | ---: | --- | ---: | --- | --- |
-| 1 | Local KURE preparation, exact index and 40-case provisional run | 9 | **DONE — measured** | keep the immutable receipt and treat the one generation-contract error as a baseline defect |
-| 2 | Live Qwen3-8B-AWQ/vLLM on L4 with telemetry | 7 | **BLOCKED — external execution** | start the VM only with explicit authorization; smoke two cases before the bounded/full run |
-| 3 | API↔GCP controlled comparison | 7 | **BLOCKED — depends on rank 2** | compare only valid same-hash official GCP records |
-| 4 | Human approval + fixed Sol semantic score | 6 | **PARTIAL / BLOCKED — external review** | approve the draft gold and run the fixed judge over question, answer, gold and retrieved evidence |
-
-The local executable unit is complete. The next highest-value unit is live L4/vLLM verification, but it
-is intentionally stopped because starting the VM changes paid external state and requires explicit user
-authorization. Human approval and the fixed semantic judge are a separate evidence gate.
+| 1 | Mini131 candidate + parser execution | 10 | **DONE — measured** | preserve immutable private transcript and 6 measured errors |
+| 2 | Lane-complete deterministic scorer/receipt | 9 | **DONE — measured** | preserve complete metric coverage and fail-closed global-set preflight evidence |
+| 3 | Fresh Sol semantic aggregate | 8 | **DONE — measured** | preserve exact role counts, workflow validation and content-free aggregate |
+| 4 | Named human gold approval | 7 | **BLOCKED — external review** | record approval independently from the candidate/Sol ledger |
+| 5 | Live Qwen3-8B-AWQ/vLLM on L4 | 7 | **BLOCKED — external execution** | start the VM only with explicit authorization; collect complete telemetry |
+| 6 | API↔GCP controlled comparison | 6 | **BLOCKED — depends on rank 5** | compare only same-hash official GCP records |
 
 ## Scoring Criteria
 
-- Upstream and connection value reward paths that unlock retrieval, generation and comparable evaluation.
-- Security value rewards loopback-only transport, private artifact boundaries, content-free receipts and
-  false-label prevention.
-- Validation value rewards deterministic contract/schema tests that run without model weights.
+- Upstream and connection value reward paths that unlock complete evaluation and comparable evidence.
+- Security value rewards loopback transport, raw-artifact isolation, hash-bound blind projection,
+  content-free receipts and false-label prevention.
+- Validation value rewards deterministic contract/schema tests and render/readback evidence.
 - Risk penalizes paid/live VM execution, large downloads and human-only review gates.
 
 ## Color Semantics
 
 - Green: implemented and validated normal control path.
 - Blue: selected external/cloud projected model path.
-- Amber: private, local-first or explicitly non-official evidence path.
-- Red: blocked, restricted, unsupported or fail-closed path.
+- Amber: private, local-first, blind-review or explicitly non-official evidence path.
+- Red: blocked, restricted, unsupported, fail-closed or active gap path.
 - Gray: branch, helper or exact-control input.
 
 ## Validation Evidence
 
-- Implementation sources: `stacks/local/hf_embeddings.py`, `stacks/local/qwen_tokenizer.py`,
-  `stacks/local/vllm_generation.py`, `stacks/local/run_records.py`, `gcp_local_baseline.py`, the frozen
-  baseline config and `run-record.schema.json`.
-- The frozen configuration verifies 98 manifest rows, 9,331 page chunks, 40 draft golden cases and the
-  exact corpus/evaluation/dependency hashes before model work.
-- The Mac-equivalent run completed 40/40, emitted a content-free aggregate receipt, and passed a no-new-call
-  resume replay (`executed=0`, `resumed=40`). Preflight measured a 9,169,366,585-byte working set and passed
-  the 100 GB/free-space guard.
+- Frozen coverage readback: 129/129 RAG terminal candidates and live parser C21/C22 2/2 PASS.
+- Public aggregate boundary: question, answer, source text, case ID and rationale remain absent from
+  the content-free receipt and this report.
+- Release-audit gaps and their fail-closed resolutions are recorded without private content in
+  `2026-09-01-mini131-release-audit-metric-coverage.md` and
+  `2026-09-01-mini131-semantic-adjudication-workflow.md` under the backend error-log directory.
 - Mermaid target/current source is rendered with `mmdc 11.15.0`, transparent background and scale 2.
-- Static parse QA found two images, four valid local links, no missing target, the five-color legend,
-  nine gap rows, four priority rows, seven validation items and the closeout verdict.
-- Headless Chromium `file://` QA loaded both images at non-zero natural dimensions: target
-  `1568×2104`, current `1568×2660`; the rendered page shows both charts and the closeout tables.
-- Closeout verdict: **IMPLEMENTATION MATCHED / LIVE GCP AND SEMANTIC EVIDENCE BLOCKED**.
+- Static HTML QA requires two non-empty images, five valid local artifact links, five legend items,
+  11 gap rows, six priority rows and the provisional closeout boundary.
+- Browser render QA stores screenshot evidence under `fivecircles/test/playwright-screenshots/` and
+  must show both diagrams plus the gap and priority tables.
+- Closeout verdict: **131/131 COVERAGE, LANE-COMPLETE RECEIPT AND FRESH SOL AGGREGATE MATCHED /
+  HUMAN GOLD AND LIVE GCP EVIDENCE NOT CLOSED**.

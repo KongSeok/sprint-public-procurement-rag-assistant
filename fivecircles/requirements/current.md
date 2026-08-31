@@ -72,8 +72,11 @@ corpus에 없거나 질문이 모호해 신뢰할 근거를 찾지 못하면 내
 
 ### 시나리오 A — GCP 로컬 실행
 
-- 단일 VM: 4 vCPU, 16 GB RAM, NVIDIA L4 1장, 디스크 100 GB 이하
-- 생성 모델과 임베딩 모델은 Hugging Face 계열에서 각각 1개를 선택한다.
+- 단일 VM: `g2-standard-4`(4 vCPU, 16 GB RAM), NVIDIA L4 1장
+- region: 기본 `us-central1`; `sprint-ai-chunk4-0*` 배정은 `us-east1`
+- 디스크: 사용자 확인 hard max 100 GB, 사용량 80 GB에서 경고, 여유 10 GB 미만에서 중단
+- 첫 고정 스택은 KURE-v1 1,024차원 + CPU FAISS exact + Qwen3-8B-AWQ/vLLM이며,
+  page-v1 top-10/context-5, 8K non-thinking 생성으로 실행한다.
 - 광범위한 모델 벤치마크보다 공통 계약을 만족하는 재현 가능한 1개 스택을 우선한다.
 
 ## 7. 평가 요구사항
@@ -83,6 +86,29 @@ corpus에 없거나 질문이 모호해 신뢰할 근거를 찾지 못하면 내
 - 생성: key-point coverage, 정확성, 근거 충실도
 - 인용: validity, precision, factual-claim coverage
 - 기권: precision/recall, false-answer rate
+- 의미 품질 판정기는 ChatGPT `gpt-5.6-sol`로 고정한다. 이 판정기는 기대 답변·사실,
+  먼저 저장된 후보 모델의 실제 답변과 근거를 대조하며 후보 답변을 수정·대체하지 않는다. 코드는 구조·무결성
+  검사와 검색/인용 집계만 담당하며, lexical coverage는 diagnostic-only다.
+- 후보 생성 모델과 parser·chunking·embedding·retrieval·reranking·prompt 스택은 실험마다
+  변경할 수 있으며, 같은 골든셋·corpus·Sol rubric/hash로 비교한다.
+- 현재 첫 통합 후보 기준선은 `gpt-5-mini`로 실행한다. 131개 provisional 완료본은 기존 exact
+  답변 39개(사후 복원 transcript), prospective 90개, parser 2개를 계보별로 표시한다. 엄격한
+  Version 1.2 비교에는 runtime-exact 기록만 사용한다.
+- 로컬 후보도 일부 40문항에서 멈추지 않고 전체 131자산을 다룬다. RAG 129개는 입찰 시나리오
+  40, 조항·사실 44, 조건·전체목록 13, gold/source 검수 12, 표·그림 10, EDA 10으로 분리하고,
+  parser 2건은 의미평균 밖의 ETL PASS/FAIL로 보고한다.
+- 현재 전체 로컬 실행은 KURE page-v1 + Mac Ollama Qwen의 `mac_local_equivalent` 검증이며
+  `official=false`인 provisional 실행이다. 집합형은 98문서 batch map→global reduce, visual은
+  page text only, EDA는 gold를 제외한 deterministic evidence→Qwen 설명 계약을 사용한다.
+- 2026-09-01 결정론 실행은 RAG 129/129와 parser 2/2를 닫았다. RAG 상태는 answered 87,
+  abstained 36, error 6이며 Recall@10 0.991135, MRR@10 1.0, set F1 0.630769,
+  set count accuracy/exact-match 0.538462다. visual document Recall@10은 1.0, page Recall@10은
+  0.6, object는 0이며 analytics 10건·139개 exact/tolerance 비교는 모두 통과했다.
+- Fresh Sol semantic ledger도 primary 129·secondary 4·adjudicator 3으로 닫혔다. accepted 88,
+  rejected 41, acceptance 0.682171, mean 70.135659이며 named human gold 승인은 아직 draft다.
+- Mac 결과는 GCP L4/Qwen3-8B-AWQ/vLLM/FAISS/GPU telemetry의 공식 증거를 대체하지 않는다.
+  후보·결정론 지표·parser·fresh Sol aggregate는 완료됐지만, 사람 gold 승인 전에는
+  gold-approved 의미 성능으로 발표하지 않는다.
 - 운영: error rate, p50/p95 latency, API token·비용, GPU 시간·VRAM
 - dev와 held-out을 group 단위로 분리하고, held-out은 튜닝 완료 후 한 번만 실행한다.
 - 두 스택은 동일한 corpus/eval/config hash와 질문 순서를 사용한다.

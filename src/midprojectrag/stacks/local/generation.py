@@ -66,6 +66,7 @@ class OllamaGenerator:
         max_output_tokens: int = 1200,
         context_tokens: int = 16384,
         timeout_seconds: float = 180.0,
+        system_instructions: str = LOCAL_SYSTEM_INSTRUCTIONS,
         opener: Any | None = None,
     ) -> None:
         if model not in ALLOWED_OLLAMA_GENERATOR_MODELS:
@@ -76,11 +77,14 @@ class OllamaGenerator:
             raise ValueError("invalid_ollama_context_tokens")
         if not isinstance(timeout_seconds, (int, float)) or not 1 <= timeout_seconds <= 600:
             raise ValueError("invalid_ollama_timeout")
+        if not isinstance(system_instructions, str) or not system_instructions.strip():
+            raise ValueError("invalid_ollama_system_instructions")
         self.base_url = _validated_ollama_base_url(base_url)
         self.model = model
         self.max_output_tokens = max_output_tokens
         self.context_tokens = context_tokens
         self.timeout_seconds = float(timeout_seconds)
+        self.system_instructions = system_instructions
         self.model_digest = OLLAMA_MODEL_DIGESTS[model]
         self._model_verified = False
         self._opener = opener or urllib.request.build_opener(
@@ -143,7 +147,7 @@ class OllamaGenerator:
     def generate(self, prompt: str) -> tuple[dict[str, Any], int | None, int | None]:
         if not isinstance(prompt, str) or not prompt:
             raise ValueError("invalid_generation_prompt")
-        prompt_upper_bound = len(LOCAL_SYSTEM_INSTRUCTIONS.encode("utf-8")) + len(prompt.encode("utf-8"))
+        prompt_upper_bound = len(self.system_instructions.encode("utf-8")) + len(prompt.encode("utf-8"))
         if prompt_upper_bound + self.max_output_tokens + 256 > self.context_tokens:
             raise ValueError("ollama_context_budget_exceeded")
         self._verify_model()
@@ -151,7 +155,7 @@ class OllamaGenerator:
             {
                 "model": self.model,
                 "messages": [
-                    {"role": "system", "content": LOCAL_SYSTEM_INSTRUCTIONS},
+                    {"role": "system", "content": self.system_instructions},
                     {"role": "user", "content": prompt},
                 ],
                 "stream": False,

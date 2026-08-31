@@ -1,8 +1,8 @@
 # GCP Local HF Baseline Contract
 
-Status: LOCAL_EQUIVALENT_40_EXECUTED_WITH_1_RUNTIME_ERROR
+Status: MAC_EQUIVALENT_MINI131_SEMANTIC_COMPLETE_HUMAN_GOLD_PENDING_NON_OFFICIAL
 Decision date: 2026-08-31
-Scope: refined98 page-only RAG baseline, local development proof, GCP L4 execution
+Scope: refined98 page-only RAG baseline, 129 RAG + 2 parser full-suite local proof, GCP L4 execution
 
 ## 1. Goal
 
@@ -22,6 +22,13 @@ produced 25 answered, 14 abstained, and one strict generation-contract error. Th
 receipt therefore remains `official=false`, `passed=false`, with draft gold and semantic judgment
 `not_run`; no Mac NumPy measurement is presented as FAISS or GCP evidence.
 
+That 40-case result is the retained core lane, not the complete project inventory. The separate
+Mac-equivalent Mini131 run has now closed all 129 RAG assets on the same frozen KURE/page-v1
+baseline and rerun both parser regressions at 2/2 PASS. Candidate coverage, lane-complete
+deterministic diagnostics and the fresh blinded Sol aggregate are complete. Named human gold
+approval and live GCP evidence remain separate pending gates, so no gold-approved or official GCP
+result is claimed.
+
 ## 3. In Scope
 
 - Existing refined98 `page-v1` body chunks: 98 documents and 9,331 chunks.
@@ -32,12 +39,15 @@ receipt therefore remains `official=false`, `passed=false`, with draft gold and 
 - Existing `RagPipeline`, citation validation, abstention contract, and private artifact boundaries.
 - Synthetic contract tests, Mac-local equivalent smoke, provisional refined98 golden-set scoring,
   GCP environment/GPU telemetry contract, and disk guards.
+- The complete tracked inventory: 129 RAG candidates plus two parser/ETL regressions, reported as
+  separate metric families rather than one blended semantic mean.
 
 ## 4. Out of Scope
 
 - MMR, reranking, hybrid search, multi-query, table/visual semantic lanes, or model fine-tuning.
 - Public HTTP serving, multi-user production deployment, Docker, Kubernetes, or self-hosted Langfuse.
 - Treating Mac Ollama output as an official `gcp_local` result.
+- Claiming multimodal visual understanding from the Mac page-text-only visual evaluation lane.
 - Held-out execution before tuning and human approval are complete.
 - Downloading multiple embedding or generation candidates at the same time.
 
@@ -181,6 +191,82 @@ metadata hashes. Resume and scoring fail closed on any mismatch.
 | golden case unapproved | allow only explicitly provisional evaluation |
 | fixed Sol judge unavailable | structural/retrieval score only; semantic verdict remains blocked |
 
+### 8.7 Full Mini131 Mac-equivalent Execution Contract
+
+The full local suite is a coverage expansion of the Mac-equivalent path, not a replacement for the
+official L4/vLLM profile in section 8.1.
+
+| Evaluation lane | Count | Local execution adapter |
+| --- | ---: | --- |
+| Bid RAG scenarios | 40 | retained, hash-validated Core40 candidate transcript |
+| Clause/fact answer regression | 44 | KURE page retrieval + Ollama Qwen generation |
+| Conditional/all-list retrieval | 13 | complete-catalog map-reduce + natural-language answer |
+| Gold/source alignment review | 12 | KURE page retrieval + Ollama Qwen generation; gold remains draft |
+| HWP/PDF table/figure QA | 10 | page-text retrieval + Qwen only; no pixel/object/OCR input |
+| Full-corpus analytics/EDA | 10 | deterministic case evidence + Qwen explanation |
+| **RAG subtotal** | **129** | deterministic lane metrics; semantic score is a separate post-run step |
+| Parser regression C21/C22 | 2 | live pinned-parser rerun, separate ETL PASS/FAIL |
+| **Coverage total** | **131** | never average parser PASS/FAIL into the 129-case semantic mean |
+
+The adapter rules are binding:
+
+- Page-answer lanes use the verified 9,331-row KURE index with exact top-10 retrieval and top-5
+  context. The reusable Core40 rows must match request, response, adapter, system-prompt and source
+  hashes before resume accepts them.
+- Each set case scans all 98 document catalog rows in deterministic batches of at most 14. Qwen maps
+  every batch to candidate document IDs, then a final Qwen consolidation selects the complete global
+  set. A simple union is invalid for maximum/minimum, comparison and exclusion questions. Precision,
+  recall, F1, exact match and count accuracy are deterministic companion metrics.
+- The ten visual cases exercise only searchable page text in this baseline. Image pixels, table-cell
+  matrices, object crops, OCR and visual embeddings are not provided to Qwen; a miss measures the
+  page-text baseline's capability gap and must not be described as multimodal performance.
+- Each analytics prompt receives only the case-scoped deterministic evidence needed for the frozen
+  operation and a `calculation:<case_id>` citation identity. Gold expected values, pass/fail flags and
+  prior judgments are excluded. Qwen must still produce the recorded user-facing explanation.
+- Parser cases rerun the current pinned parser and indexability checks. A historical receipt alone is
+  insufficient, and their two PASS/FAIL results remain outside RAG answer-quality aggregation.
+- Resume is candidate-atomic and fail-closed on suite, config, evaluation, source, prompt or adapter
+  drift. Runtime errors and truncations are retained as measured failures rather than silently repaired.
+- The disk guard applies before model/index work: hard maximum 100 GB, warning at 80 GB used and abort
+  below 10 GB free. The current Mac working set remains a local measurement, not GCP disk evidence.
+- All 129 candidates, deterministic scoring and the fixed-Sol ledger aggregate are now closed. Until
+  gold receives named human approval, the result remains `mac_local_equivalent`, `official=false`
+  and provisional. It is not eligible for an official API↔GCP comparison without live GCP evidence.
+- In the semantic adapter, `candidate_output_visible_to_reviewer=false` means that the reviewer
+  cannot access the raw candidate artifact, file path, case ID or lineage metadata. The sanctioned,
+  hash-bound blind projection still includes the candidate answer/status, required chat context and
+  retrieved/cited evidence because those fields are necessary to apply the frozen rubric.
+
+### 8.8 Measured Full Mini131 Mac-equivalent Evidence (2026-09-01)
+
+- Coverage closed at 129/129 RAG candidates plus 2/2 fresh parser regressions. The parser results are
+  not included in any RAG mean.
+- Candidate outcomes were 87 answered, 36 abstained and 6 runtime/contract errors. The measured error
+  rate is `0.046512`; failures remain in the denominator.
+- Document retrieval measured Recall@1/5/10 `0.921986/0.987589/0.991135` and MRR@10 `1.0`.
+- The thirteen complete-catalog set cases measured count accuracy `0.538462`, precision `0.608974`,
+  recall `0.692308`, F1 `0.630769` and exact-match rate `0.538462`.
+- Visual retrieval measured document Recall@1/5/10 and MRR@10 at `1.0`; page scores were
+  `0.35/0.6/0.6` and `0.475`, while chunk-or-block and object scores were all `0`, preserving the
+  page-text-only capability gap.
+- Analytics exact/tolerance checks passed at `1.0` for 10/10 cases and all 139 comparisons
+  (46 exact, 93 tolerance).
+- Response-contract validity and citation validity were both `1.0` for validated applicable records.
+  Median total latency was `33,405.49 ms`; p95 was `263,840.61 ms` because every set question scans
+  seven catalog batches and may run a global consolidation.
+- The frozen suite output ceiling is 1,200 tokens while the reused stack generation cap is 1,024;
+  the receipt records both values and verifies that the runtime cap stays inside the suite ceiling.
+- Set-map preflight is within context at 5,094 tokens. The 98-row × 400-character worst-case final
+  probe is 102,687 tokens and intentionally records `context_ok=false`; it is a non-readiness stress
+  probe because runtime rejects overflow before transport.
+- Fresh fixed-Sol review closed at 88 accepted and 41 rejected, acceptance `0.682171` and mean score
+  `70.135659`, with role counts primary 129, secondary 4 and adjudicator 3. The content-free evidence
+  is the [public semantic receipt](../../../evaluation/baselines/gcp-local-kure-qwen3-8b-awq-mini131-v1/mac-local-equivalent-semantic-receipt.json).
+- This evidence is a Mac Ollama/NumPy exact run, not L4/vLLM/FAISS telemetry. The content-free receipt
+  is `evaluation/baselines/gcp-local-kure-qwen3-8b-awq-mini131-v1/mac-local-equivalent-receipt.json`.
+  It remains `official=false`, `passed=false`, draft-gold and provisional while named human gold
+  approval and live GCP evidence are outstanding.
+
 ## 9. Acceptance Criteria
 
 1. Shared request/response/citation tests pass unchanged.
@@ -189,8 +275,9 @@ metadata hashes. Resume and scoring fail closed on any mismatch.
 4. The 100 GB schema/validator boundary rejects 100.1 GB and accepts 100 GB.
 5. A synthetic request completes through semantic embedder, exact index, generator, and citation gate.
 6. Mac-local equivalent smoke is labelled non-official and cannot pass API↔GCP comparison.
-7. Available provisional golden cases produce private candidate records and aggregate retrieval/
-   contract metrics without leaking content to stdout or Git.
+7. The full Mac-equivalent pass persists 129 RAG candidates and two live parser results, validates
+   every lane adapter, and produces only private transcripts plus a content-free aggregate receipt.
+   Partial checkpoints are resumable but never labelled complete.
 8. GCP execution records 100% GPU-seconds/peak-VRAM coverage and stays below 22 GB peak VRAM.
 9. Flow target/current report, tests, safety scan, work logs, and a scoped commit are produced.
 
@@ -217,9 +304,11 @@ metadata hashes. Resume and scoring fail closed on any mismatch.
 ### Batch 5.4: Local Equivalent End-to-End
 
 **Goal:** Use the existing verified Ollama model only as a Mac-equivalent generator to validate the
-full RAG contract and generate a bounded provisional candidate set.
-**Done when:** synthetic plus selected golden cases have private transcripts and aggregate receipts.
-**Checks:** response/citation/abstention, cold/warm latency, no-content stdout/Git audit.
+full RAG contract, first on Core40 and then across all 129 RAG assets plus two parser regressions.
+**Done when:** all lanes have validated private transcripts/results and a content-free provisional
+receipt; parser results are separate and the Mac label cannot enter official comparison.
+**Checks:** response/citation/abstention, complete-set map-reduce, visual page-text limitation,
+analytics evidence projection, parser live rerun, cold/warm latency, no-content stdout/Git audit.
 
 ### Batch 5.5: GCP L4 Execution
 
@@ -245,7 +334,7 @@ through vLLM, execute the provisional set, and stop the VM.
 - If Qwen3-8B-AWQ fails on the pinned vLLM/L4 combination, fallback selection requires a new recorded
   decision; it may not silently change this baseline.
 
-## 13. Measured Mac-equivalent Evidence
+## 13. Measured Mac-equivalent Core40 Evidence
 
 - Frozen inputs: refined98 `page-v1`, 9,331 chunks, KURE 1,024-d, config SHA
   `980e6777bc90d47fe8b5f1a51c007059a32aa67d4594aff2ad11628e09011f1e`.
@@ -262,13 +351,18 @@ through vLLM, execute the provisional set, and stop the VM.
 - Public receipt SHA-256:
   `c77c0aa6409b24517ae94b219148202a4bb129c21e2f6b4003a22aa1244928da`.
 
+These measurements describe only the completed 40-case core run. They must not replace or be
+presented as the aggregate result of the separately completed 131-asset coverage run.
+
 ## 14. Remaining Evidence Gates
 
 - Batch 5.5 still needs explicit VM authorization, a pinned Linux/CUDA/vLLM environment, FAISS CPU,
   a Linux-resolved dependency lock, Qwen3-8B-AWQ inference, and measured GPU telemetry. The
   committed arm64 lock is evidence for the Mac-equivalent run, not a Linux lock.
-- Human approval and the fixed semantic judge remain external. Until they run, the score is
-  provisional diagnostics rather than a semantic quality verdict.
+- The 129-RAG + 2-parser Mac-equivalent run, deterministic aggregate report and content-free receipt
+  are complete. They remain non-official Mac evidence and do not satisfy the live GCP gate.
+- The fresh fixed-Sol ledger aggregate is complete. Named human gold approval remains external, so
+  the semantic result stays provisional and cannot become a gold-approved quality verdict.
 
 ## 15. Handoff Notes for Implementation Agent
 

@@ -3,63 +3,73 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>GCP Local Baseline Flow Validation</title>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline';">
+  <title>GCP Local Mini131 Baseline Flow Validation</title>
   <style>
     :root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,sans-serif;color:#1f2933;background:#f7f8f6}
-    body{margin:0}.wrap{max-width:1200px;margin:auto;padding:32px 20px 56px}h1{margin:0 0 8px}h2{margin-top:34px}
-    .muted{color:#65717c}.verdict{margin:20px 0;padding:16px 18px;border-left:5px solid #e7c88f;background:#fff4dc;border-radius:10px}
+    body{margin:0}.wrap{max-width:1240px;margin:auto;padding:32px 20px 56px}h1{margin:0 0 8px}h2{margin-top:34px}
+    .muted{color:#65717c}.verdict{margin:20px 0;padding:16px 18px;border-left:5px solid #e7c88f;background:#fff4dc;border-radius:10px;line-height:1.55}
     .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.card{background:#fff;border:1px solid #dfe5df;border-radius:14px;padding:18px;box-shadow:0 8px 24px #2434270d}
     .links{display:flex;gap:12px;margin-bottom:12px}a{color:#245c85}img{display:block;width:100%;height:auto;background:#fff;border-radius:8px}
     .legend{display:flex;gap:10px;flex-wrap:wrap}.legend span{padding:6px 10px;border-radius:999px;border:1px solid}
     .green{background:#e8f2ea;border-color:#bdd1c2!important}.blue{background:#e8f0f7;border-color:#c2d3e0!important}.amber{background:#fff4dc;border-color:#e7c88f!important}.red{background:#fde9e6;border-color:#e8bab5!important}.gray{background:#eef1ed;border-color:#d8e0da!important}
-    table{width:100%;border-collapse:collapse;background:#fff}th,td{border:1px solid #dfe5df;padding:10px;text-align:left;vertical-align:top}th{background:#eef1ed}.matched{color:#25633a;font-weight:700}.blocked{color:#9f2f24;font-weight:700}.partial{color:#8a5b08;font-weight:700}
-    code{background:#eef1ed;padding:2px 5px;border-radius:5px}ul{line-height:1.6}@media(max-width:850px){.grid{grid-template-columns:1fr}}
+    table{width:100%;border-collapse:collapse;background:#fff;font-size:14px}th,td{border:1px solid #dfe5df;padding:10px;text-align:left;vertical-align:top}th{background:#eef1ed}.matched{color:#25633a;font-weight:700}.blocked{color:#9f2f24;font-weight:700}.partial{color:#8a5b08;font-weight:700}
+    code{background:#eef1ed;padding:2px 5px;border-radius:5px}p,li{line-height:1.6}@media(max-width:900px){.grid{grid-template-columns:1fr}}
   </style>
 </head>
 <body><main class="wrap">
-  <h1>GCP Local Baseline Flow Validation</h1>
-  <p class="muted">refined98 · KURE · exact dense retrieval · Qwen3-8B-AWQ/vLLM contract · 2026-08-31</p>
-  <p class="verdict"><strong>Closeout:</strong> the Mac-equivalent baseline completed 40/40 and its content-free receipt is measured. Live L4/GPU evidence, official API↔GCP comparison, human approval and the fixed Sol semantic verdict remain blocked.</p>
+  <h1>GCP Local Mini131 Baseline Flow Validation</h1>
+  <p class="muted">refined98 · KURE · exact dense retrieval · Mac Qwen equivalent · GCP vLLM target · 2026-09-01</p>
+  <p class="verdict"><strong>Current closeout:</strong> RAG 129/129, parser 2/2, lane-complete deterministic receipt and the fresh Sol semantic aggregate are complete. Named human gold approval and live L4 telemetry are not closed. The result remains <code>mac_local_equivalent</code>, <code>official=false</code>, <code>passed=false</code> and provisional.</p>
   <section class="legend" aria-label="Color semantics">
-    <span class="green">implemented / validated</span><span class="blue">external model / comparison</span><span class="amber">private / local-first / non-official</span><span class="red">blocked / fail-closed</span><span class="gray">branch / helper</span>
+    <span class="green">implemented / validated</span><span class="blue">external model / comparison</span><span class="amber">private / blind / non-official</span><span class="red">blocked / gap / fail-closed</span><span class="gray">branch / helper</span>
   </section>
-  <section class="grid">
-    <article class="card"><h2>Target Flow</h2><div class="links"><a href="gcp-local-baseline-target-flow.mmd">Mermaid source</a><a href="gcp-local-baseline-target-flow.png">PNG</a></div><img src="gcp-local-baseline-target-flow.png" alt="Target GCP local baseline flow"></article>
-    <article class="card"><h2>Current Implementation Flow</h2><div class="links"><a href="gcp-local-baseline-current-flow.mmd">Mermaid source</a><a href="gcp-local-baseline-current-flow.png">PNG</a></div><img src="gcp-local-baseline-current-flow.png" alt="Current GCP local baseline implementation flow"></article>
+
+  <section class="grid" aria-label="Target and current flow diagrams">
+    <article class="card"><h2>Target Flow</h2><div class="links"><a href="gcp-local-baseline-target-flow.mmd">Mermaid source</a><a href="gcp-local-baseline-target-flow.png">PNG</a></div><img src="gcp-local-baseline-target-flow.png" alt="Target GCP local Mini131 baseline flow"></article>
+    <article class="card"><h2>Current Implementation Flow</h2><div class="links"><a href="gcp-local-baseline-current-flow.mmd">Mermaid source</a><a href="gcp-local-baseline-current-flow.png">PNG</a></div><img src="gcp-local-baseline-current-flow.png" alt="Current local Mini131 implementation flow"></article>
   </section>
+
+  <h2>Reviewer Visibility Boundary</h2>
+  <p><code>candidate_output_visible_to_reviewer=false</code> hides the raw candidate artifact, file path, case ID and lineage metadata. The sanctioned hash-bound blind projection still exposes the answer/status, required chat context and retrieved/cited evidence needed to apply the frozen rubric.</p>
+  <p><a href="../../../evaluation/baselines/gcp-local-kure-qwen3-8b-awq-mini131-v1/mac-local-equivalent-semantic-receipt.json">Content-free public semantic receipt</a></p>
 
   <h2>Target vs Current Gap</h2>
   <table id="gap-table"><thead><tr><th>ID</th><th>Node / edge</th><th>Status</th><th>Evidence / remaining gate</th></tr></thead><tbody>
-    <tr><td>G1</td><td>KURE provider, cache and exact index</td><td class="matched">MATCHED — measured</td><td>9,331×1,024 normalized vectors and all persisted index hashes verified; document recall@10 is 1.0.</td></tr>
-    <tr><td>G2</td><td>vLLM Qwen3-8B-AWQ adapter</td><td class="matched">MATCHED — contract</td><td>Loopback/model/JSON guards implemented; live L4 inference remains blocked.</td></tr>
-    <tr><td>G3</td><td>GCP run record and 100 GB gate</td><td class="matched">MATCHED — contract</td><td>Exact IDs, environment and telemetry requirements implemented; measured telemetry absent.</td></tr>
-    <tr><td>G4</td><td>Qwen exact tokenizer logical 8K guard</td><td class="matched">MATCHED</td><td>Pinned tokenizer/chat template counts the exact transmitted messages before generation.</td></tr>
-    <tr><td>G5</td><td>Private golden runner</td><td class="matched">MATCHED — measured</td><td>40/40 persisted; replay resumed 40/40 with zero new generations. One strict local-model contract error is retained.</td></tr>
-    <tr><td>G6</td><td>Content-free Mac receipt</td><td class="matched">MATCHED — measured</td><td>Suite complete; recall@1 0.833333, recall@10 1.0, contract/citation 1.0, error rate 0.025; official is false.</td></tr>
-    <tr><td>G7</td><td>Live L4 execution and GPU telemetry</td><td class="blocked">BLOCKED</td><td>Requires explicit VM authorization and measured <code>gpu_seconds</code>/<code>peak_vram_gb</code>.</td></tr>
-    <tr><td>G8</td><td>Official API↔GCP comparison</td><td class="blocked">BLOCKED</td><td>Requires valid same-hash official GCP records; Mac receipts are rejected.</td></tr>
-    <tr><td>G9</td><td>Human approval and fixed Sol judge</td><td class="partial">PARTIAL / BLOCKED</td><td>Structural diagnostics exist; semantic evidence and gold approval do not.</td></tr>
+    <tr><td>G1</td><td>refined98 → pinned KURE cache/exact index</td><td class="matched">MATCHED — measured</td><td>98 documents, 9,331 chunks and 1,024-d normalized vectors are hash-validated on Mac; FAISS reproduction remains a live L4 gate.</td></tr>
+    <tr><td>G2</td><td>Mini131 inventory → candidate coverage</td><td class="matched">MATCHED — measured</td><td>129/129 RAG terminal rows: 87 answered, 36 abstained and 6 retained errors.</td></tr>
+    <tr><td>G3</td><td>Answer/set/visual/analytics adapters</td><td class="matched">MATCHED — executed</td><td>Page-answer 96, set 13, visual 10 and analytics 10 all reached terminal states.</td></tr>
+    <tr><td>G4</td><td>Parser C21/C22 → separate ETL result</td><td class="matched">MATCHED — measured</td><td>Fresh 2/2 PASS, kept outside the 129-case RAG semantic mean.</td></tr>
+    <tr><td>G5</td><td>Private transcript → deterministic diagnostics</td><td class="matched">MATCHED — measured</td><td>Recall@1/5/10 is 0.921986/0.987589/0.991135 and MRR@10 is 1.0; errors stay in denominators.</td></tr>
+    <tr><td>G6</td><td>Diagnostics → lane-complete receipt</td><td class="matched">MATCHED — remediated</td><td>Metric coverage complete: set count accuracy 0.538462; visual document/page Recall@10 1.0/0.6, object 0; analytics 10/10 and 139/139 comparisons pass. Map preflight is 5,094 tokens; the 102,687-token worst-case final stress probe is rejected before transport and is not a readiness gate.</td></tr>
+    <tr><td>G7</td><td>Raw candidate → sanctioned blind projection</td><td class="matched">MATCHED — contract</td><td>Raw identity/lineage is hidden while rubric-required answer/status/chat/evidence is hash-bound.</td></tr>
+    <tr><td>G8</td><td>Blind projection → fresh Sol aggregate</td><td class="matched">MATCHED — measured</td><td>Primary 129, secondary 4, adjudicator 3; accepted 88, rejected 41, acceptance 0.682171, mean 70.135659.</td></tr>
+    <tr><td>G9</td><td>Semantic aggregate + named human gold</td><td class="blocked">BLOCKED</td><td>The semantic ledger is complete but gold remains draft; named approval is required.</td></tr>
+    <tr><td>G10</td><td>Loopback vLLM → live L4 telemetry</td><td class="blocked">BLOCKED</td><td>Requires explicit VM authorization plus measured <code>gpu_seconds</code> and <code>peak_vram_gb</code>.</td></tr>
+    <tr><td>G11</td><td>Official GCP result → API↔GCP comparison</td><td class="blocked">BLOCKED</td><td>Requires valid same-hash <code>gcp_local</code> records; Mac evidence is rejected.</td></tr>
   </tbody></table>
 
   <h2>Done / Not Done Priority</h2>
   <table id="priority-table"><thead><tr><th>Rank</th><th>Work unit</th><th>Score</th><th>State / next action</th></tr></thead><tbody>
-    <tr><td>1</td><td>Local KURE index + 40-case provisional run</td><td>9</td><td class="matched">DONE — recall@1 0.833333, recall@10 1.0, runtime error rate 0.025</td></tr>
-    <tr><td>2</td><td>Live Qwen3-8B-AWQ/vLLM L4 run</td><td>7</td><td class="blocked">BLOCKED — explicit authorization and telemetry</td></tr>
-    <tr><td>3</td><td>API↔GCP controlled comparison</td><td>7</td><td class="blocked">BLOCKED — depends on valid official GCP run</td></tr>
-    <tr><td>4</td><td>Human approval + fixed Sol semantic score</td><td>6</td><td class="partial">PARTIAL / BLOCKED — external review gate</td></tr>
+    <tr><td>1</td><td>Mini131 candidate + parser execution</td><td>10</td><td class="matched">DONE — preserve 129 RAG terminal records, parser 2/2 and 6 measured errors</td></tr>
+    <tr><td>2</td><td>Lane-complete deterministic scorer/receipt</td><td>9</td><td class="matched">DONE — metric coverage and global-set overflow policy validated</td></tr>
+    <tr><td>3</td><td>Fresh Sol semantic aggregate</td><td>8</td><td class="matched">DONE — exact role counts and adjudication workflow validated</td></tr>
+    <tr><td>4</td><td>Named human gold approval</td><td>7</td><td class="blocked">BLOCKED — independent external review</td></tr>
+    <tr><td>5</td><td>Live Qwen3-8B-AWQ/vLLM L4 run</td><td>7</td><td class="blocked">BLOCKED — explicit authorization and complete telemetry</td></tr>
+    <tr><td>6</td><td>API↔GCP controlled comparison</td><td>6</td><td class="blocked">BLOCKED — depends on valid official GCP records</td></tr>
   </tbody></table>
 
   <h2>Scoring Criteria</h2>
-  <p>Upstream 0–4 + connection 0–3 + safety 0–2 + validation 0–2 + risk −3–0. Security rewards loopback-only transport, private artifacts, content-free receipts and false-label prevention.</p>
+  <p>Upstream 0–4 + connection 0–3 + safety 0–2 + validation 0–2 + risk −3–0. Security rewards loopback transport, raw-artifact isolation, hash-bound blind projection, content-free receipts and false-label prevention.</p>
 
   <h2>Validation</h2>
   <ul id="validation-list">
-    <li>Target architecture was preserved; one security-edge label was corrected to <code>reject before private prompt</code> and rerendered.</li>
-    <li>Mac-equivalent execution completed 40/40; no-new-call replay returned <code>executed=0</code>, <code>resumed=40</code>.</li>
-    <li>Preflight measured a 9,169,366,585-byte private working set and passed the 100 GB/free-space guard.</li>
-    <li>Current Mermaid source was rerendered with <code>mmdc 11.15.0</code>, transparent background and scale 2.</li>
-    <li>Static parse QA found two images, four valid local links, no missing target, the five-color legend, gap table, priority table and closeout verdict.</li>
-    <li>Headless Chromium <code>file://</code> QA loads both flow images at non-zero dimensions, plus 5 legend items, 9 gap rows and 4 priority rows.</li>
-    <li>No official GCP or semantic score is claimed without live telemetry and external review.</li>
+    <li>Coverage readback is 129/129 RAG terminal candidates plus live parser C21/C22 at 2/2 PASS.</li>
+    <li>The public report contains no question, answer, source text, case ID or reviewer rationale.</li>
+    <li>Metric-coverage and semantic-adjudication audit failures and resolutions are logged content-free under the backend error-log directory.</li>
+    <li>Both Mermaid sources are rendered with <code>mmdc 11.15.0</code>, transparent background and scale 2.</li>
+    <li>Static QA checks two non-empty images, five valid local links, five legend items, 11 gap rows and 6 priority rows.</li>
+    <li>Browser QA stores screenshot evidence under <code>fivecircles/test/playwright-screenshots/</code>.</li>
+    <li>The semantic aggregate is reported as provisional; no gold-approved score, official GCP telemetry or API↔GCP winner is claimed.</li>
   </ul>
 </main></body></html>

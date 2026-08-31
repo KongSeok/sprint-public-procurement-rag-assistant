@@ -1,31 +1,40 @@
 flowchart TD
-    U["RagRequest / provisional golden case"]:::gray --> PF["frozen config / exact artifacts / dependency + 100 GB preflight"]:::green
-    PF --> K["KURE-v1 pinned provider / 1024-d / offline-only"]:::green
-    K --> C["role + revision + prompt keyed embedding cache"]:::amber
-    C --> N["Mac NumPy exact index / normalized IP / 9,331 chunks"]:::green
-    N --> R["measured top-10 / doc recall@10 1.0 / context top-5"]:::green
-    R --> QT["pinned Qwen chat tokenizer / logical 8K guard"]:::green
-    QT --> O["loopback Ollama qwen3.8:27b-mlx / non-thinking"]:::amber
-    O --> J["strict answer-plan JSON"]:::green
-    J --> P["shared RagResponse / citation / abstention gate"]:::green
-    P --> GR["locked resumable private golden runner / exact transcript"]:::amber
-    GR --> MR["40/40 + resume 40/40 / content-free receipt / official=false"]:::green
-    MR --> PS["provisional diagnostics / error 1 of 40 / semantic not_run"]:::amber
+    U["Frozen Mini131 inventory / 129 RAG + parser 2"]:::gray --> PF["exact suite/config/source checks / 100 GB preflight"]:::green
+    PF --> K["pinned KURE-v1 cache / Mac NumPy exact index / 9,331 chunks"]:::green
+    K --> D{"implemented local lane adapters"}:::gray
 
-    R -. "contract-tested cloud path" .-> VA["loopback-only vLLM Qwen3-8B-AWQ adapter"]:::green
-    VA --> L4["live L4 vLLM execution / GPU telemetry measurement"]:::red
-    L4 -. "not executed" .-> RR["GCP run-record builder / exact IDs + 100 GB + telemetry gate"]:::green
-    RR -. "no measured official records" .-> CMP["API vs GCP official comparison"]:::red
-    MR -. "official comparison rejected" .-> CMP
+    D --> P["page-answer lanes / 96 of 96 closed / top-10 + context-5"]:::green
+    D --> S["complete-set lane / 13 of 13 closed / seven maps + global Qwen reduce"]:::green
+    D --> V["table/figure lane / 10 of 10 closed / page text only"]:::amber
+    D --> A["analytics lane / 10 of 10 closed / deterministic evidence + Qwen"]:::green
 
-    PS --> H["named human gold approval"]:::red
-    PS --> S["fixed gpt-5.6-sol semantic judge"]:::red
-    H --> SV["official semantic verdict"]:::red
-    S --> SV
+    P --> O["loopback Ollama qwen3.8:27b-mlx / strict logical context guard"]:::amber
+    S --> O
+    V --> O
+    A --> O
+    O --> R["validated response/citation contract / measured errors retained"]:::green
+    R --> T["private candidates complete / answered 87 / abstained 36 / error 6"]:::amber
+    T --> M["lane-complete deterministic score/receipt / coverage complete"]:::green
+    M --> MC["set count + visual granularity + analytics checks / preflight recorded"]:::green
 
-    D["disk >100 GB / free <10 GB / dependency drift"]:::red -. "fail closed" .-> PF
-    X["external URL / proxy / redirect / model mismatch"]:::red -. "reject before private prompt" .-> VA
-    T["missing GPU seconds / peak VRAM"]:::red -. "official record rejected" .-> RR
+    U --> PR["current parser C21/C22 live rerun / 2 of 2 PASS"]:::green
+    PR --> M
+
+    T --> BP["hash-bound blind projection / sanctioned answer + status + chat + evidence"]:::amber
+    RAW["raw candidate artifact / path / case ID / lineage"]:::red -. "not reviewer-visible" .-> BP
+    BP --> SOL["fresh fixed-Sol review / primary 129 + secondary 4 + adjudicator 3"]:::blue
+    SOL --> SEM["semantic aggregate complete / accepted 88 / rejected 41"]:::green
+    SEM --> FC["gold-approved semantic closeout / pending"]:::red
+    H["named human gold approval / pending"]:::red --> FC
+
+    K -. "contract-tested cloud adapter" .-> VA["loopback vLLM Qwen3-8B-AWQ / CPU FAISS"]:::green
+    VA --> L4["live L4 execution / GPU telemetry"]:::red
+    L4 --> AB["official API vs GCP comparison"]:::red
+    M -. "Mac evidence rejected" .-> AB
+
+    X["external URL / proxy / model mismatch / overflow"]:::red -. "fail closed" .-> O
+    Z["disk >100 GB / free <10 GB / hash drift"]:::red -. "fail closed" .-> PF
+    PX["no image pixels / OCR / object crops / table-cell matrices"]:::red -. "explicit baseline limitation" .-> V
 
     classDef green fill:#e8f2ea,stroke:#bdd1c2,color:#1f2933,stroke-width:1.5px
     classDef blue fill:#e8f0f7,stroke:#c2d3e0,color:#1f2933,stroke-width:1.5px

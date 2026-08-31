@@ -1,0 +1,250 @@
+{
+  "artifact_role": "deterministic_diagnostics_snapshot",
+  "blind_judge_inputs": {
+    "blind_inputs_sha256": "b95f6fdb0f96cb0b23737a1a6c64faf6c36cc8367bc81644c69606a01d6a16ac",
+    "blind_map_sha256": "8ce66c7e9a1fbf030c042762f87af0271485bf0d3fb5649b154b8b5a5787060c",
+    "count": 129
+  },
+  "counts": {
+    "lanes": {
+      "core40": {
+        "scored": 40,
+        "selected": 40,
+        "status": {
+          "abstained": 14,
+          "answered": 25,
+          "error": 1
+        }
+      },
+      "corpus_analytics": {
+        "scored": 10,
+        "selected": 10,
+        "status": {
+          "answered": 10
+        }
+      },
+      "supplemental_answer_legacy": {
+        "scored": 39,
+        "selected": 39,
+        "status": {
+          "abstained": 7,
+          "answered": 32
+        }
+      },
+      "supplemental_answer_rerun": {
+        "scored": 17,
+        "selected": 17,
+        "status": {
+          "abstained": 11,
+          "answered": 6
+        }
+      },
+      "supplemental_set_rerun": {
+        "scored": 13,
+        "selected": 13,
+        "status": {
+          "answered": 9,
+          "error": 4
+        }
+      },
+      "visual": {
+        "scored": 10,
+        "selected": 10,
+        "status": {
+          "abstained": 4,
+          "answered": 5,
+          "error": 1
+        }
+      }
+    },
+    "parser_fresh_local_rerun": true,
+    "parser_passed": 2,
+    "parser_total": 2,
+    "rag_missing": 0,
+    "rag_scored": 129,
+    "rag_selected": 129,
+    "status": {
+      "abstained": 36,
+      "answered": 87,
+      "error": 6
+    },
+    "total_assets": 131
+  },
+  "diagnostics_completed": true,
+  "eval_set_sha256": "04bf998b75e959b498e485587c8df8116e64fee4235a1dffb5f5c76458366357",
+  "evaluation_tier": "provisional_non_official",
+  "execution_profile": "mac_local_equivalent",
+  "generation_output_contract": {
+    "stack_max_output_tokens": 1024,
+    "suite_output_ceiling_tokens": 1200,
+    "within_suite_ceiling": true
+  },
+  "gold_review_status": "draft",
+  "index_provenance": {
+    "chunk_artifact_sha256": "bb82b593153a93f9373f0bdf7f5be7531e651fdab9c5df36b69d53df0a35b9a2",
+    "count": 9331,
+    "dimensions": 1024,
+    "engine": "numpy",
+    "index_config_sha256": "5d2a83397bb08c80995817e78355ea5d34091450cf58e7f00d44095bc383d5f8",
+    "metadata_sha256": "f003b7483f6d6d1d472d4f354d9b477095b3a38de79d6c551a16198319e0b76b",
+    "rows_sha256": "da403a8dc1bd28c18354e9cedaa45df5e0dcc2dc10eb370aaaa921e787d18738",
+    "schema_version": "1.0",
+    "vectors_sha256": "a9aa5e8553cc2533101fd050ae48b5af8804ab85c000e57b677bb6a319542556"
+  },
+  "limitations": {
+    "execution": "mac_local_equivalent_not_live_l4_vllm_faiss_stack_generation_cap_1024_tokens",
+    "set": "seven_full_catalog_batches_plus_global_qwen_consolidation_not_deterministic_filtering",
+    "visual": "page_text_only_no_image_ocr_caption_or_structured_table_lane"
+  },
+  "metric_coverage": {
+    "analytics": {
+      "complete": true,
+      "expected_cases": 10,
+      "expected_comparisons": 139,
+      "expected_exact_comparisons": 46,
+      "expected_tolerance_comparisons": 93,
+      "scored_cases": 10,
+      "scored_comparisons": 139,
+      "scored_exact_comparisons": 46,
+      "scored_tolerance_comparisons": 93
+    },
+    "complete": true,
+    "parser": {
+      "complete": true,
+      "expected_cases": 2,
+      "scored_cases": 2
+    },
+    "rag": {
+      "complete": true,
+      "expected_cases": 129,
+      "scored_cases": 129
+    },
+    "retrieval": {
+      "complete": true,
+      "expected_cases": 94,
+      "scored_cases": 94
+    },
+    "set": {
+      "complete": true,
+      "count_accuracy_cases": 13,
+      "expected_cases": 13,
+      "scored_cases": 13
+    },
+    "visual": {
+      "complete": true,
+      "expected_cases": 10,
+      "granularity_cases": {
+        "chunk_or_block": {
+          "expected": 3,
+          "scored": 3
+        },
+        "document": {
+          "expected": 10,
+          "scored": 10
+        },
+        "object": {
+          "expected": 10,
+          "scored": 10
+        },
+        "page": {
+          "expected": 10,
+          "scored": 10
+        }
+      },
+      "scored_cases": 10
+    }
+  },
+  "metrics": {
+    "analytics": {
+      "case_pass_rate": 1.0,
+      "cases_checked": 10,
+      "comparison_match_rate": 1.0,
+      "comparisons_checked": 139,
+      "exact_comparison_match_rate": 1.0,
+      "exact_comparisons_checked": 46,
+      "tolerance_comparison_match_rate": 1.0,
+      "tolerance_comparisons_checked": 93
+    },
+    "behavior": {
+      "expected_behavior_match": 0.75969
+    },
+    "contract": {
+      "citation_validity": 1.0,
+      "response_contract_validity": 1.0
+    },
+    "operations": {
+      "latency_generation_p50_ms": 33348.7315,
+      "latency_total_p50_ms": 33405.485917,
+      "latency_total_p95_ms": 263840.608834,
+      "runtime_error_rate": 0.046512,
+      "total_cost_usd": 0.0
+    },
+    "retrieval": {
+      "document_recall_at_1": 0.921986,
+      "document_recall_at_10": 0.991135,
+      "document_recall_at_5": 0.987589,
+      "mrr_at_10": 1.0
+    },
+    "set": {
+      "count_accuracy": 0.538462,
+      "exact_match_rate": 0.538462,
+      "f1": 0.630769,
+      "precision": 0.608974,
+      "recall": 0.692308
+    },
+    "visual": {
+      "chunk_or_block": {
+        "cases_scored": 3,
+        "mrr_at_10": 0.0,
+        "recall_at_1": 0.0,
+        "recall_at_10": 0.0,
+        "recall_at_5": 0.0,
+        "target_count": 4
+      },
+      "document": {
+        "cases_scored": 10,
+        "mrr_at_10": 1.0,
+        "recall_at_1": 1.0,
+        "recall_at_10": 1.0,
+        "recall_at_5": 1.0,
+        "target_count": 10
+      },
+      "object": {
+        "cases_scored": 10,
+        "mrr_at_10": 0.0,
+        "recall_at_1": 0.0,
+        "recall_at_10": 0.0,
+        "recall_at_5": 0.0,
+        "target_count": 11
+      },
+      "page": {
+        "cases_scored": 10,
+        "mrr_at_10": 0.475,
+        "recall_at_1": 0.35,
+        "recall_at_10": 0.6,
+        "recall_at_5": 0.6,
+        "target_count": 11
+      }
+    }
+  },
+  "official": false,
+  "passed": false,
+  "privacy": {
+    "contains_answers": false,
+    "contains_case_ids": false,
+    "contains_questions": false,
+    "contains_source_text": false,
+    "private_artifacts_tracked": false
+  },
+  "run_id": "local-mini131-508b518e1400-04bf998b75e9-a9aa5e8553cc",
+  "schema_version": "local-mini131.v1",
+  "semantic_blocker": "new_local_candidate_requires_fixed_gpt_5_6_sol_review",
+  "semantic_judgment": "not_run",
+  "semantic_judgment_scope": "deterministic_scoring_phase_only",
+  "semantic_receipt": "mac-local-equivalent-semantic-receipt.json",
+  "stack_baseline_id": "gcp-local-kure-qwen3-8b-awq-refined98-page-v1",
+  "stack_config_sha256": "980e6777bc90d47fe8b5f1a51c007059a32aa67d4594aff2ad11628e09011f1e",
+  "suite_complete": true,
+  "suite_config_sha256": "508b518e14002e21842c958808329f45b8bc5b9dfc336e20abd823e6b27363ee",
+  "suite_id": "gcp-local-kure-qwen3-8b-awq-mini131-v1"
+}

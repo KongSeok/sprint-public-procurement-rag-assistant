@@ -1,0 +1,30 @@
+{
+  "schema_version": "local-mini131-semantic-adapter.v1",
+  "adapter_id": "gcp-local-kure-qwen3-8b-awq-mini131-sol-v2",
+  "suite_id": "gcp-local-kure-qwen3-8b-awq-mini131-v1",
+  "inherits": {
+    "judge_config": "evaluation/baselines/mini131-bundle-v1/judge-config.json",
+    "judge_config_sha256": "337cfe6c5a6b587448754c86e1f8cfdba27ce15947367679520a706ae40c6519",
+    "rubric": "evaluation/rubric.md",
+    "rubric_sha256": "e881bbf55fabc5d6067569ae02df7d34661b4eb35ad8dcf6619fb4f73189de30",
+    "model": "gpt-5.6-sol",
+    "reasoning_effort": "high",
+    "semantic_policy_overrides": []
+  },
+  "review_io": {
+    "primary_source": "evaluation/private/local-mini131/gcp-local-kure-qwen3-8b-awq-mini131-v1/semantic-review-v2/primary-inputs.jsonl",
+    "private_identity_map": "evaluation/private/local-mini131/gcp-local-kure-qwen3-8b-awq-mini131-v1/semantic-review-v2/review-map.jsonl",
+    "identity_map_visible_to_reviewer": false,
+    "candidate_output_visible_to_reviewer": false,
+    "past_judgments_reusable": false,
+    "fresh_binding": "sha256(candidate_sha256, source_judge_input_sha256, suite_config_sha256, rubric_sha256, semantic_adapter_sha256)",
+    "decision_schema_version": "mini131-blind-decision.v1",
+    "review_history_schema_version": "mini131-blind-review-history.v1"
+  },
+  "merge": {
+    "deterministic_score_policy": "read_only_preserve",
+    "semantic_output": "resources/data_refined/private/outputs/local/gcp-local-kure-qwen3-8b-awq-mini131-v1/mac-local-equivalent/semantic-score.json",
+    "requires_complete_primary_ledger": true,
+    "requires_triggered_secondary_and_adjudicator_resolution": true
+  }
+}

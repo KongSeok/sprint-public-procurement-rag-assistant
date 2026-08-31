@@ -1,21 +1,39 @@
 flowchart TD
-    U["RagRequest / golden case"]:::gray --> G["100 GB disk + dependency + revision preflight"]:::green
-    G --> K["KURE-v1 pinned 1024-d"]:::green
-    K --> C["content-addressed embedding cache"]:::amber
-    C --> F["CPU FAISS IndexFlatIP exact"]:::green
-    F --> R["top-10 retrieval / context top-5"]:::green
-    R --> V["loopback vLLM / Qwen3-8B-AWQ / 8K / non-thinking"]:::blue
-    V --> J["strict answer-plan JSON"]:::green
-    J --> P["shared RagResponse / citation / abstention gate"]:::green
-    P --> RR["gcp_local run record / GPU seconds / peak VRAM"]:::amber
-    RR --> E["same-hash provisional golden scoring"]:::green
-    E --> AB["API vs GCP controlled comparison"]:::blue
+    U["Frozen Mini131 inventory / 129 RAG + parser 2"]:::gray --> G["dependency / revision / 100 GB preflight"]:::green
+    G --> C["refined98 page-v1 / 9,331 chunks / pinned KURE-v1"]:::green
+    C --> F["CPU FAISS IndexFlatIP exact / top-10 / context top-5"]:::green
+    F --> D{"RAG lane dispatch"}:::gray
 
-    M["Mac without CUDA/L4"]:::amber --> ME["mac_local_equivalent smoke"]:::gray
-    ME -. "official comparison forbidden" .-> E
-    D["disk >100 GB or free <10 GB"]:::red -. "fail closed" .-> G
-    X["external URL / proxy / redirect / model mismatch"]:::red -. "reject before private prompt" .-> V
-    T["missing GPU telemetry"]:::red -. "run record reject" .-> RR
+    D --> P["page-answer lanes / 96 cases"]:::green
+    D --> S["complete-set lane / 13 cases / 98-doc batch map + global reduce"]:::green
+    D --> V["table/figure lane / 10 cases / page-text-only baseline"]:::amber
+    D --> A["analytics lane / 10 cases / gold-free deterministic evidence"]:::green
+
+    P --> Q["loopback vLLM / Qwen3-8B-AWQ / logical 8K guard"]:::blue
+    S --> Q
+    V --> Q
+    A --> Q
+    Q --> R["strict response / citation / abstention contract"]:::green
+    R --> T["locked private candidate transcript / 129 rows"]:::amber
+    T --> M["lane-specific deterministic metrics / content-free receipt"]:::green
+
+    U --> PR["live parser C21/C22 rerun / ETL PASS-FAIL kept separate"]:::green
+    PR --> M
+
+    T --> BP["sanctioned blind projection / answer + status + chat + evidence"]:::amber
+    RAW["raw candidate artifact / path / case ID / lineage"]:::red -. "hidden from reviewer" .-> BP
+    BP --> SOL["fixed gpt-5.6-sol review / secondary + adjudication when triggered"]:::blue
+    SOL --> SR["hash-validated semantic aggregate"]:::green
+    SR --> FC["gold-approved semantic closeout"]:::green
+    H["named human gold approval"]:::red --> FC
+
+    Q --> RR["gcp_local run record / GPU seconds / peak VRAM"]:::amber
+    RR --> AB["same-hash API vs GCP controlled comparison"]:::blue
+    ME["Mac-equivalent execution"]:::amber -. "never official comparison evidence" .-> AB
+
+    X["external URL / model mismatch / context overflow"]:::red -. "fail closed before transport" .-> Q
+    Z["disk >100 GB / free <10 GB / artifact drift"]:::red -. "fail closed" .-> G
+    PX["image pixels / OCR / object crops / cell matrices absent"]:::red -. "capability gap retained" .-> V
 
     classDef green fill:#e8f2ea,stroke:#bdd1c2,color:#1f2933,stroke-width:1.5px
     classDef blue fill:#e8f0f7,stroke:#c2d3e0,color:#1f2933,stroke-width:1.5px

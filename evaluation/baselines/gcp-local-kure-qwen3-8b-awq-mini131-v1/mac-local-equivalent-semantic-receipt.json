@@ -1,0 +1,75 @@
+{
+  "counts": {
+    "accepted": 88,
+    "judge_roles": {
+      "adjudicator": 3,
+      "primary": 129,
+      "secondary": 4
+    },
+    "lanes": {
+      "core40": {
+        "accepted": 28,
+        "rejected": 12
+      },
+      "corpus_analytics": {
+        "accepted": 10
+      },
+      "supplemental_answer_legacy": {
+        "accepted": 30,
+        "rejected": 9
+      },
+      "supplemental_answer_rerun": {
+        "accepted": 6,
+        "rejected": 11
+      },
+      "supplemental_set_rerun": {
+        "accepted": 9,
+        "rejected": 4
+      },
+      "visual": {
+        "accepted": 5,
+        "rejected": 5
+      }
+    },
+    "rag_total": 129,
+    "rejected": 41
+  },
+  "evaluation_tier": "provisional_non_official",
+  "gold_review_status": "draft",
+  "hashes": {
+    "decisions_sha256": "c7b76661c2e9c59bb3366cb476ca3f86c532b4eb0883c1f84153d18439e45628",
+    "deterministic_score_sha256": "18b79d01a2fe0ff40e899480244635abd980d22060bebc8415b8db34365d7e73",
+    "eval_set_sha256": "04bf998b75e959b498e485587c8df8116e64fee4235a1dffb5f5c76458366357",
+    "private_semantic_score_sha256": "1ccd6ef19547aa32826c9609852a5dfaed2c3d342361414258b3c0e852cfaf7b",
+    "review_history_sha256": "f75da26f0ceba69d0e117e542fbb0dab5106ca6f2511c6c6ecb1efeb48522ddb",
+    "review_inputs_sha256": "7f5ea56bc8208c7869b5394446de2998cbe4b2dc5414544cda39e053064865ee",
+    "review_map_sha256": "038ed7ac20bf8a69aa1a0615a3b40bda9df304a9c2b6e113bfe39432811b3105",
+    "suite_config_sha256": "508b518e14002e21842c958808329f45b8bc5b9dfc336e20abd823e6b27363ee"
+  },
+  "judge": {
+    "inherited_judge_config_sha256": "337cfe6c5a6b587448754c86e1f8cfdba27ce15947367679520a706ae40c6519",
+    "model": "gpt-5.6-sol",
+    "reasoning_effort": "high",
+    "review_config_sha256": "70d759fb425d81c18cdb121d548acaee782400294f9a43ce288874b5dd512051",
+    "rubric_sha256": "e881bbf55fabc5d6067569ae02df7d34661b4eb35ad8dcf6619fb4f73189de30",
+    "rubric_version": "gpt56-semantic-v2"
+  },
+  "metrics": {
+    "acceptance_rate": 0.682171,
+    "mean_semantic_score": 70.135659
+  },
+  "official": false,
+  "privacy": {
+    "contains_answers": false,
+    "contains_blind_ids": false,
+    "contains_case_ids": false,
+    "contains_judge_rationales": false,
+    "contains_private_paths": false,
+    "contains_questions": false,
+    "contains_source_text": false,
+    "private": false
+  },
+  "schema_version": "local-mini131-semantic-receipt.v1",
+  "semantic_judgment": "complete",
+  "suite_id": "gcp-local-kure-qwen3-8b-awq-mini131-v1"
+}

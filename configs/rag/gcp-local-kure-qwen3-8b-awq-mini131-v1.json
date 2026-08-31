@@ -1,0 +1,86 @@
+{
+  "schema_version": "1.0",
+  "suite_id": "gcp-local-kure-qwen3-8b-awq-mini131-v1",
+  "stack": {
+    "baseline_id": "gcp-local-kure-qwen3-8b-awq-refined98-page-v1",
+    "config_path": "configs/rag/gcp-local-kure-qwen3-8b-awq-refined98-page-v1.json",
+    "config_sha256": "2af236e3c5ebf7b3988b8ee5b13d24fb5cef9a94ea1cf223afadd82f6a46d8f4",
+    "execution_profile": "mac_local_equivalent",
+    "official": false
+  },
+  "sources": {
+    "core40": {
+      "path": "golden-set-final/dev.refined.review-candidate.jsonl",
+      "sha256": "abb1b0b5b4ce6aa85d98e91c7b5cefd6f76f98a4b68fef2c1f534768028fae80",
+      "count": 40
+    },
+    "supplemental_answers": {
+      "path": "evaluation/private/supplemental/build-v1/rag-56.draft.jsonl",
+      "sha256": "29325e96483e8c29f41fc42df9fa279ba02dcd9b8ff8cdaf4309f3a75ae217cb",
+      "count": 56
+    },
+    "supplemental_sets": {
+      "path": "evaluation/private/supplemental/build-v1/set-13.draft.jsonl",
+      "sha256": "e96727baac3180d5bc65d4fd964bbdc47111a5e8abc542b6e1d8e609336f6f2c",
+      "count": 13
+    },
+    "visual": {
+      "path": "golden-set-final/document-structure-visual-qa.jsonl",
+      "sha256": "949bba9e2afa4d8e34345edacaf5014234070734cdd626ba1f4d4448bc9f9756",
+      "count": 10
+    },
+    "analytics": {
+      "path": "golden-set-final/corpus-analytics-qa.jsonl",
+      "sha256": "e2324fea2cac26520ba371183675f933ab997b0ff5d54c796a608f6f44c37c2f",
+      "count": 10
+    },
+    "analytics_calculations": {
+      "path": "evaluation/private/corpus-analytics/corpus-analytics-deterministic-v1/case-results.jsonl",
+      "sha256": "4c24b3929050fc150768153320ca413e27f9738c8b5a40f5042f888a3626d35c",
+      "count": 10
+    },
+    "integrated_ledger": {
+      "path": "evaluation/private/supplemental/runs/provisional-v1/case-records.jsonl",
+      "sha256": "6d8b0cb9c1b393ad5b7bfc749e6f69bc2e3dbcff9f759860296d3ad4948fa87e",
+      "count": 131
+    },
+    "parser_receipt": {
+      "path": "evaluation/baselines/parser-regression-rhwp-v1/receipt.json",
+      "sha256": "d3551b4778cbfb112200fc6f4d8528e5902aa8f98fe6b1f26a0bde0ee7e45ae6",
+      "count": 2
+    }
+  },
+  "expected_counts": {
+    "rag": 129,
+    "parser": 2,
+    "total": 131,
+    "lanes": {
+      "core40": 40,
+      "supplemental_answer_legacy": 39,
+      "supplemental_answer_rerun": 17,
+      "supplemental_set_rerun": 13,
+      "visual": 10,
+      "corpus_analytics": 10
+    }
+  },
+  "execution": {
+    "reuse_core40": true,
+    "page_rag_top_k": 10,
+    "page_rag_context_top_k": 5,
+    "set_catalog_batch_size": 14,
+    "set_catalog_document_count": 98,
+    "max_citations": 3,
+    "logical_context_tokens": 8192,
+    "max_output_tokens": 1200,
+    "temperature": 0,
+    "thinking": false,
+    "semantic_judge": "gpt-5.6-sol",
+    "semantic_rubric": "gpt56-semantic-v2"
+  },
+  "outputs": {
+    "candidate_path": "resources/data_refined/private/outputs/local/gcp-local-kure-qwen3-8b-awq-mini131-v1/mac-local-equivalent/candidates.jsonl",
+    "private_score_path": "resources/data_refined/private/outputs/local/gcp-local-kure-qwen3-8b-awq-mini131-v1/mac-local-equivalent/provisional-score.json",
+    "private_judge_input_path": "evaluation/private/local-mini131/gcp-local-kure-qwen3-8b-awq-mini131-v1/blind-judge-inputs.jsonl",
+    "public_receipt_path": "evaluation/baselines/gcp-local-kure-qwen3-8b-awq-mini131-v1/mac-local-equivalent-receipt.json"
+  }
+}

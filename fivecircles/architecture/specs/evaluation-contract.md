@@ -196,6 +196,42 @@ values plus order-sensitive combined/dev/held-out sequence hashes. Exact-questio
 Unicode NFC, collapsed whitespace and case-folding before hashing; semantic paraphrases still
 require human review.
 
+### 8.1 Local Mini131 adapter and evidence boundaries
+
+The Mac-equivalent full-suite runner covers exactly the table above: 129 RAG candidates and two
+parser regressions. It does not redefine the dataset, upgrade draft gold or create an official GCP
+result. The following lane adapters preserve the original scoring purpose:
+
+- The 40 bid scenarios, 44 clause/fact cases and 12 source-alignment cases use the frozen refined98
+  page-v1 KURE index and local Qwen generation. Previously persisted Core40 candidates may be reused
+  only after exact request, response, source, adapter and prompt-hash validation.
+- The 13 conditional/all-list cases use deterministic 98-document catalog batches of at most 14.
+  Every batch is mapped by Qwen, then a separate global Qwen consolidation resolves maximum,
+  minimum, comparison, exclusion and union semantics. Concatenating or unioning batch selections
+  without global consolidation is not a valid complete-set answer.
+- The ten HWP/PDF table/figure cases are explicitly a page-text-only local baseline. Qwen receives no
+  image pixels, object crops, OCR, table-cell matrices or visual embeddings. Object/visual scores may
+  diagnose this limitation but must not be described as multimodal capability.
+- The ten analytics cases receive a case-scoped deterministic evidence projection and still require
+  Qwen to generate the recorded explanation. The projection excludes gold expected values,
+  comparison verdicts, `passed` flags and prior judgments; the deterministic citation identity is
+  exactly `calculation:<case_id>`.
+- Parser C21/C22 are executed live against the pinned current parser and indexability invariants. A
+  prior receipt is not execution evidence, and the 2/2 lane remains separate ETL PASS/FAIL.
+
+Candidate/runtime errors remain visible and score as failures under their lane contract. Scoring
+may produce deterministic retrieval, set, numeric, citation, latency and error diagnostics after all
+129 RAG rows close. A fixed Sol judgment is a separate blinded step; until it and named gold review
+are complete, every Mac result remains `mac_local_equivalent`, `official=false` and provisional. It is
+ineligible for the official API↔GCP comparison, regardless of deterministic score quality.
+
+The 2026-09-01 Mac-equivalent run closed 129/129 RAG records and reran parser C21/C22 at 2/2 PASS.
+Its content-free deterministic receipt reports Recall@10 `0.991135`, MRR@10 `1.0`, set F1
+`0.630769`, set exact match `0.538462` and runtime error rate `0.046512`. These values do not imply a
+semantic pass by itself. The fresh blind Sol ledger subsequently closed at 88 accepted, 41 rejected,
+acceptance `0.682171` and mean score `70.135659`; the result still remains `official=false`,
+`passed=false`, draft-gold and provisional until named human gold approval and live GCP evidence close.
+
 ## 9. Run record and reproducibility
 
 Every answer-level private experiment artifact set includes:
@@ -262,7 +298,9 @@ Document Recall@k uses the document IDs present in the first k ranked chunk hits
 from one document do not increase recall and do not pull a document below rank k into the set.
 
 Latency is a comparison metric until the team freezes an SLO. The API USD 20 cap and GCP
-4 vCPU/16 GB/L4/100 GB limits remain hard assignment constraints.
+`g2-standard-4`/4 vCPU/16 GB/L4/100 GB limits remain hard constraints after the user's storage
+clarification. Disk usage warns at 80 GB and new downloads/evaluation stop below 10 GB free. Run records use `us-central1`
+by default and `us-east1` for `sprint-ai-chunk4-0*` allocations.
 
 ## 11. Initial acceptance targets
 
@@ -330,6 +368,11 @@ The semantic reviewer receives only an opaque `blind_id`, a signed judge-input h
 non-identifying `question_kind` with the review content. Case IDs, source execution lanes and
 candidate lineage stay exclusively in the private local merge envelope; local code restores them
 only after validating the opaque binding.
+
+The adapter field `candidate_output_visible_to_reviewer=false` refers to direct access to the raw
+candidate artifact, transcript file, path and lineage metadata. It does not remove the candidate
+answer from the sanctioned review packet: the hash-bound blind projection includes answer/status,
+required chat context and retrieved/cited evidence so the reviewer can apply the frozen rubric.
 
 Primary review may use deterministic blind-row slices. Secondary review receives only the
 locally computed primary-trigger subset and no prior judgment content. Adjudication receives a
