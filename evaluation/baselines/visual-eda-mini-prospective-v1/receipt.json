@@ -1,0 +1,44 @@
+{
+  "artifact_sha256s": {
+    "chat_transcripts": "14a0cd8fa07e4ddeb8aecfb5e0b548028e384c1e06238d9fbea805f2134ae62d",
+    "private_summary": "89e69f7700f5869e7d8c5f866bb33637f034667b4d0ceb4d0046166efec5d7da",
+    "run_records": "b867185328fea9ba132889a7a1e84d1a21a5640fffd20bbff9f8b235030c5af9"
+  },
+  "baseline_id": "visual-eda-mini-prospective-v1",
+  "candidate_stack": {
+    "analytics": "deterministic computed evidence + gpt-5-mini",
+    "visual": "text-embedding-3-small + page-v1 + gpt-5-mini"
+  },
+  "config_sha256": "dc495da6bd805b5712cb414b84f380e05257b54d28c6946364b2ee593096ec61",
+  "counts": {
+    "by_status": {
+      "abstained": 5,
+      "answered": 15
+    },
+    "by_suite": {
+      "analytics": 10,
+      "visual": 10
+    },
+    "completed": 20,
+    "remaining": 0,
+    "total": 20
+  },
+  "eval_set_sha256": "4596c24b0d18b949c1868271e4eef0ac9f8e53fd660955e277790f041d4eb0b5",
+  "evaluation_tier": "provisional",
+  "judge_status": "pending_fixed_gpt_5_6_sol",
+  "passed": true,
+  "privacy": {
+    "contains_answers": false,
+    "contains_computed_values": false,
+    "contains_provider_payloads": false,
+    "contains_questions": false,
+    "contains_source_text": false
+  },
+  "provider_budget": {
+    "breached": false,
+    "committed_usd": 0.01424955,
+    "limit_usd": 1.0,
+    "reserved_usd": 0.0
+  },
+  "schema_version": "1.0"
+}

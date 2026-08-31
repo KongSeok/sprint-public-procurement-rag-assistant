@@ -1,0 +1,137 @@
+{
+  "blinding": {
+    "binding": "judge_input_sha256",
+    "hidden_fields": [
+      "candidate_model",
+      "candidate_stack",
+      "case_id",
+      "execution_lane",
+      "provider",
+      "lineage"
+    ],
+    "visible_fields": [
+      "question_kind",
+      "question",
+      "expected",
+      "candidate_status",
+      "candidate_answer",
+      "retrieval_evidence"
+    ]
+  },
+  "config_id": "mini131-fixed-sol-v2",
+  "decision_policy": {
+    "acceptance": {
+      "critical_flags": "none",
+      "minimum_confidence": 0.7,
+      "score_operator": "greater_than",
+      "score_threshold": 85
+    },
+    "final_acceptance": {
+      "allowed_final_roles": [
+        "adjudicator",
+        "primary",
+        "secondary"
+      ],
+      "critical_flags": "none",
+      "minimum_confidence": 0.7,
+      "score_operator": "greater_than",
+      "score_threshold": 85,
+      "unresolved_needs_human": false,
+      "unresolved_needs_review": false
+    },
+    "primary_precedence": [
+      "hard_rejection",
+      "score_below_60",
+      "needs_review_60_through_85_or_low_confidence",
+      "accepted_above_85"
+    ],
+    "role_decisions": {
+      "adjudicator": [
+        "accepted",
+        "needs_human",
+        "rejected"
+      ],
+      "primary": [
+        "accepted",
+        "needs_review",
+        "rejected"
+      ],
+      "secondary": [
+        "accepted",
+        "needs_review",
+        "rejected"
+      ]
+    },
+    "secondary_triggers": [
+      "needs_review",
+      "confidence_below_0_70",
+      "boundary_case"
+    ]
+  },
+  "model": "gpt-5.6-sol",
+  "reasoning_effort": "high",
+  "review_io": {
+    "allowed_inputs": {
+      "adjudicator": {
+        "prior_decisions": [
+          "primary",
+          "secondary"
+        ],
+        "schema_version": "mini131-blind-adjudication-input.v1",
+        "selection": "validated_adjudication_trigger_subset_or_deterministic_slice",
+        "source": "locally_validated_blind_adjudication_subset"
+      },
+      "common": [
+        "evaluation/rubric.md",
+        "evaluation/baselines/mini131-bundle-v1/judge-config.json"
+      ],
+      "primary": {
+        "prior_decisions": [],
+        "schema_version": "mini131-blind-judge-input.v1",
+        "selection": "all_rows_or_deterministic_slice",
+        "source": "evaluation/private/mini131/runs/baseline-v1/blind-judge-inputs.jsonl"
+      },
+      "secondary": {
+        "prior_decisions": [],
+        "schema_version": "mini131-blind-judge-input.v1",
+        "selection": "validated_secondary_trigger_subset_or_deterministic_slice",
+        "source": "evaluation/private/mini131/runs/baseline-v1/blind-judge-inputs.jsonl"
+      }
+    },
+    "blind_decision_schema_version": "mini131-blind-decision.v1",
+    "forbidden_inputs": [
+      "evaluation/private/mini131/runs/baseline-v1/judge-packets.jsonl"
+    ],
+    "review_history_schema_version": "mini131-blind-review-history.v1"
+  },
+  "reviewer_type": "llm",
+  "roles": {
+    "adjudicator": {
+      "independent": true,
+      "model": "gpt-5.6-sol",
+      "sees_prior_judgment": true
+    },
+    "primary": {
+      "independent": true,
+      "model": "gpt-5.6-sol",
+      "sees_prior_judgment": false
+    },
+    "secondary": {
+      "independent": true,
+      "model": "gpt-5.6-sol",
+      "sees_prior_judgment": false
+    }
+  },
+  "rubric": {
+    "sha256": "e881bbf55fabc5d6067569ae02df7d34661b4eb35ad8dcf6619fb4f73189de30",
+    "version": "gpt56-semantic-v2"
+  },
+  "schema_version": "mini131-judge-config.v1",
+  "weights": {
+    "citation_validity": 0.1,
+    "completeness": 0.2,
+    "correctness": 0.35,
+    "factual_claim_coverage": 0.1,
+    "faithfulness": 0.25
+  }
+}

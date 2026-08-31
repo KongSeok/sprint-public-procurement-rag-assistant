@@ -21,14 +21,20 @@ from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Any, Iterator, Mapping, Sequence
 
+from midprojectrag.answering.generation import SYSTEM_INSTRUCTIONS
+from midprojectrag.answering.pipeline import _build_prompt, _select_context_hits
 from midprojectrag.indexing.exact_index import ExactDenseIndex
 from midprojectrag.ingest.common import (
     canonical_json,
     read_jsonl,
+    sha256_bytes,
     sha256_file,
     sha256_text,
     write_jsonl as write_runtime_jsonl,
 )
+from midprojectrag.indexing.embeddings import EmbeddingCache
+from midprojectrag.stacks.api.config import api_config_sha256
+from midprojectrag.stacks.api.generation import build_openai_answer_plan_schema
 from midprojectrag.supplemental_evaluation import (
     dataset_sha256,
     score_answer_cases,
@@ -280,6 +286,156 @@ def _recorded_answer_cost(answer_runs: Sequence[Mapping[str, Any]]) -> Decimal:
     return total
 
 
+def _reconstruction_contract_sha256s(runtime: Mapping[str, Any]) -> dict[str, str]:
+    provider_schema = build_openai_answer_plan_schema(runtime["max_citations"])
+    return {
+        "system_instructions": sha256_text(SYSTEM_INSTRUCTIONS),
+        "transcript_export_module": sha256_file(Path(__file__)),
+        "answering_pipeline_module": sha256_file(
+            Path(_build_prompt.__code__.co_filename)
+        ),
+        "exact_dense_index_module": sha256_file(
+            Path(ExactDenseIndex.search.__code__.co_filename)
+        ),
+        "provider_generation_module": sha256_file(
+            Path(build_openai_answer_plan_schema.__code__.co_filename)
+        ),
+        "provider_response_schema": sha256_text(canonical_json(provider_schema)),
+        "selection_runtime": sha256_text(
+            canonical_json(
+                {
+                    "retrieval_top_k": runtime["retrieval_top_k"],
+                    "context_top_k": runtime["context_top_k"],
+                    "table_context_cap": None,
+                }
+            )
+        ),
+    }
+
+
+def _attach_existing_transcript_receipt(
+    verified: VerifiedBaseline,
+    paths: Mapping[str, Path],
+    receipt: dict[str, Any],
+    answer_runs: Sequence[Mapping[str, Any]],
+    set_runs: Sequence[Mapping[str, Any]],
+) -> None:
+    transcript_path = paths.get("chat_transcripts")
+    if transcript_path is None or not transcript_path.is_file():
+        return
+    rows = read_jsonl(transcript_path)
+    answer_hash = dataset_sha256(verified.answer_cases)
+    set_hash = dataset_sha256(verified.set_cases)
+    expected_cases = {
+        **{("answer", case["case_id"]): case for case in verified.answer_cases},
+        **{("set", case["case_id"]): case for case in verified.set_cases},
+    }
+    expected_runs = {
+        **{("answer", row["case_id"]): row for row in answer_runs},
+        **{("set", row["case_id"]): row for row in set_runs},
+    }
+    expected_source_hashes = {
+        "answer_cases": answer_hash,
+        "set_cases": set_hash,
+        "answer_runs": dataset_sha256(answer_runs),
+        "set_runs": dataset_sha256(set_runs),
+        "manifest": verified.config["artifacts"]["manifest_sha256"],
+        "chunks": verified.config["artifacts"]["chunks_sha256"],
+        "index_metadata": verified.config["artifacts"][
+            "index_metadata_sha256"
+        ],
+    }
+    expected_contract_hashes = _reconstruction_contract_sha256s(
+        verified.config["runtime"]
+    )
+    actual: set[tuple[str, str]] = set()
+    exact_persisted_answers = 0
+    for row in rows:
+        lane, case_id = row.get("lane"), row.get("case_id")
+        key = (lane, case_id)
+        record_hash = row.get("record_sha256")
+        unhashed = dict(row)
+        unhashed.pop("record_sha256", None)
+        expected_request = _request(
+            expected_cases[key],
+            max_citations=verified.config["runtime"]["max_citations"],
+        )
+        expected_assistant, expected_unavailable = (
+            _assistant_transcript_projection(lane, expected_runs[key])
+        )
+        expected_execution = (
+            {
+                "timing_ms": expected_runs[key].get("timing_ms"),
+                "usage": expected_runs[key].get("usage"),
+                "cache_hit": expected_runs[key].get("cache_hit"),
+            }
+            if lane == "answer"
+            else {"timing_ms": None, "usage": None, "cache_hit": None}
+        )
+        if (
+            lane not in {"answer", "set"}
+            or not isinstance(case_id, str)
+            or key in actual
+            or key not in expected_cases
+            or key not in expected_runs
+            or row.get("schema_version") != SCHEMA_VERSION
+            or row.get("baseline_id") != verified.config["baseline_id"]
+            or row.get("config_sha256") != verified.config_sha256
+            or row.get("capture_mode") != "posthoc_reconstructed"
+            or row.get("eval_set_sha256")
+            != (answer_hash if lane == "answer" else set_hash)
+            or row.get("source_artifact_sha256s") != expected_source_hashes
+            or row.get("source_run_record_sha256")
+            != sha256_text(canonical_json(expected_runs[key]))
+            or row.get("reconstruction_contract_sha256s")
+            != expected_contract_hashes
+            or row.get("request") != expected_request
+            or row.get("assistant") != expected_assistant
+            or row.get("execution") != expected_execution
+            or row.get("unavailable_fields")
+            != sorted(set(expected_unavailable))
+            or row.get("runtime_equivalence")
+            != {
+                "verification_level": "retrieved_doc_id_projection_only",
+                "retrieved_chunk_ids": "runtime_unverified_not_persisted",
+                "context_selection": "deterministic_replay_runtime_unverified",
+                "provider_request": "reconstructed_not_runtime_captured",
+            }
+            or record_hash != sha256_text(canonical_json(unhashed))
+        ):
+            raise ValueError("baseline_transcript_artifact_invalid")
+        vector, cache_key, retrieval_query = _cached_query_vector(
+            verified, paths, expected_request
+        )
+        if (
+            row.get("query_cache_key") != cache_key
+            or row.get("retrieval_query") != retrieval_query
+            or row.get("query_vector_sha256")
+            != sha256_bytes(vector.tobytes(order="C"))
+        ):
+            raise ValueError("baseline_transcript_artifact_invalid")
+        if (
+            lane == "answer"
+            and expected_runs[key].get("status") == "answered"
+        ):
+            exact_persisted_answers += 1
+        actual.add(key)
+    if actual != set(expected_cases):
+        raise ValueError("baseline_transcript_artifact_invalid")
+    receipt["artifact_sha256s"]["chat_transcripts"] = sha256_file(
+        transcript_path
+    )
+    receipt["counts"]["chat_transcripts"] = len(rows)
+    receipt["counts"]["chat_transcripts_posthoc_reconstructed"] = len(rows)
+    receipt["counts"]["chat_transcripts_runtime_exact"] = 0
+    receipt["counts"]["chat_transcripts_exact_persisted_answers"] = (
+        exact_persisted_answers
+    )
+    receipt["counts"]["chat_transcripts_answers_unavailable_or_elided"] = (
+        len(rows) - exact_persisted_answers
+    )
+
+
 def _score_existing_locked(
     verified: VerifiedBaseline, paths: Mapping[str, Path]
 ) -> dict[str, Any]:
@@ -341,6 +497,9 @@ def _score_existing_locked(
             "reserved_usd": float(budget_snapshot.reserved_usd),
             "breached": budget_snapshot.breached,
         }
+    _attach_existing_transcript_receipt(
+        verified, paths, receipt, answer_runs, set_runs
+    )
     write_json(paths["receipt"], receipt)
     return receipt
 
@@ -383,6 +542,7 @@ def _private_run_paths(verified: VerifiedBaseline) -> dict[str, Path]:
         "budget_ledger": run_dir / "budget-ledger.json",
         "case_checkpoints": run_dir / "case-checkpoints",
         "run_lock": run_dir / ".run.lock",
+        "chat_transcripts": run_dir / "chat-transcripts.jsonl",
     }
 
 
@@ -882,6 +1042,345 @@ def run_openai_baseline(
         return _run_openai_baseline_locked(verified, paths)
 
 
+def _load_transcript_index(verified: VerifiedBaseline) -> ExactDenseIndex:
+    artifacts = verified.config["artifacts"]
+    runtime = verified.config["runtime"]
+    chunks = read_jsonl(_relative_path(verified.repo_root, artifacts["chunks"]))
+    index_dir = _relative_path(verified.repo_root, artifacts["index_dir"])
+    metadata = json.loads(
+        (index_dir / "metadata.json").read_text(encoding="utf-8")
+    )
+    index_config = json.loads(
+        (index_dir / "index-config.json").read_text(encoding="utf-8")
+    )
+    index_config_sha256 = api_config_sha256(index_config)
+    if index_config_sha256 != metadata.get("index_config_sha256"):
+        raise ValueError("baseline_index_config_hash_mismatch")
+    return ExactDenseIndex._load_unlocked(
+        index_dir,
+        chunks,
+        expected_embedding_model=runtime["embedding_model"],
+        expected_dimensions=runtime["embedding_dimensions"],
+        expected_api_profile=runtime["api_profile"],
+        expected_index_config_sha256=index_config_sha256,
+    )
+
+
+def _cached_query_vector(
+    verified: VerifiedBaseline,
+    paths: Mapping[str, Path],
+    request: Mapping[str, Any],
+) -> tuple[Any, str, str]:
+    """Load the content-addressed cached query vector without a provider."""
+
+    if request.get("history") != []:
+        raise ValueError("baseline_transcript_history_not_frozen")
+    query_text = f"user: {request['question']}"
+    runtime = verified.config["runtime"]
+    key = EmbeddingCache.key(
+        corpus_manifest_sha256=verified.config["artifacts"]["manifest_sha256"],
+        chunk_config_sha256=sha256_text("query-v1"),
+        model=runtime["embedding_model"],
+        dimensions=runtime["embedding_dimensions"],
+        content_sha256=sha256_text(query_text),
+    )
+    vector = EmbeddingCache(paths["query_cache"]).get(
+        key, runtime["embedding_dimensions"]
+    )
+    if vector is None:
+        raise ValueError("baseline_transcript_query_cache_missing")
+    return vector, key, query_text
+
+
+def _transcript_source(hit: Any, *, retrieval_rank: int) -> dict[str, Any]:
+    chunk = hit.chunk
+    source = {
+        "retrieval_rank": retrieval_rank,
+        "score": float(hit.score),
+        "doc_id": chunk["doc_id"],
+        "chunk_id": chunk["chunk_id"],
+        "source_text": chunk["text"],
+    }
+    for field in (
+        "page",
+        "page_start",
+        "page_end",
+        "section_path",
+        "source_locator",
+        "retrieval_role",
+        "chunker_id",
+        "occurrence_id",
+        "evidence_type",
+    ):
+        if field in chunk:
+            source[field] = chunk[field]
+    return source
+
+
+def _assistant_transcript_projection(
+    lane: str, run: Mapping[str, Any]
+) -> tuple[dict[str, Any], list[str]]:
+    unavailable = [
+        "provider.raw_request_envelope",
+        "provider.raw_response_envelope",
+        "assistant.abstention_reason",
+        "assistant.citation_chunk_ids",
+        "assistant.full_citations",
+        "assistant.trace_id",
+    ]
+    if lane == "answer":
+        status = run.get("status")
+        answered = status == "answered"
+        if not answered:
+            unavailable.append("assistant.rendered_answer")
+        return (
+            {
+                "persisted_status": status,
+                "persisted_answer": run.get("answer"),
+                "persisted_answer_semantics": (
+                    "exact_final_answer"
+                    if answered
+                    else "empty_placeholder_non_answered_text_not_persisted"
+                ),
+                "persisted_cited_doc_ids": run.get("cited_doc_ids"),
+                "persisted_error": run.get("error"),
+            },
+            unavailable,
+        )
+    unavailable.extend(
+        [
+            "assistant.status",
+            "assistant.rendered_answer",
+            "assistant.cited_doc_ids",
+            "execution.timing_ms",
+            "execution.usage",
+            "execution.cache_hit",
+        ]
+    )
+    return (
+        {
+            "persisted_status": None,
+            "persisted_answer": None,
+            "persisted_answer_semantics": "not_persisted_for_set_lane",
+            "persisted_cited_doc_ids": None,
+            "persisted_error": run.get("error"),
+        },
+        unavailable,
+    )
+
+
+def _build_chat_transcripts_locked(
+    verified: VerifiedBaseline, paths: Mapping[str, Path]
+) -> dict[str, Any]:
+    answer_runs, set_runs = _load_or_initialize_runs(
+        verified, paths, initialize=False
+    )
+    expected_total = len(verified.answer_cases) + len(verified.set_cases)
+    if len(answer_runs) + len(set_runs) != expected_total:
+        raise ValueError("baseline_transcript_run_incomplete")
+    receipt_path = paths["receipt"]
+    if not receipt_path.is_file():
+        raise ValueError("baseline_transcript_receipt_missing")
+    receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+    if (
+        not isinstance(receipt, dict)
+        or receipt.get("baseline_id") != verified.config["baseline_id"]
+        or receipt.get("config_sha256") != verified.config_sha256
+        or not isinstance(receipt.get("artifact_sha256s"), dict)
+        or not isinstance(receipt.get("counts"), dict)
+    ):
+        raise ValueError("baseline_transcript_receipt_invalid")
+
+    index = _load_transcript_index(verified)
+    runtime = verified.config["runtime"]
+    answer_hash = dataset_sha256(verified.answer_cases)
+    set_hash = dataset_sha256(verified.set_cases)
+    run_by_key = {
+        **{("answer", row["case_id"]): row for row in answer_runs},
+        **{("set", row["case_id"]): row for row in set_runs},
+    }
+    provider_schema = build_openai_answer_plan_schema(runtime["max_citations"])
+    source_artifact_sha256s = {
+        "answer_cases": answer_hash,
+        "set_cases": set_hash,
+        "answer_runs": dataset_sha256(answer_runs),
+        "set_runs": dataset_sha256(set_runs),
+        "manifest": verified.config["artifacts"]["manifest_sha256"],
+        "chunks": verified.config["artifacts"]["chunks_sha256"],
+        "index_metadata": verified.config["artifacts"][
+            "index_metadata_sha256"
+        ],
+    }
+    reconstruction_contract_sha256s = _reconstruction_contract_sha256s(runtime)
+    rows: list[dict[str, Any]] = []
+    exact_answer_count = 0
+    unavailable_answer_count = 0
+    for lane, cases in (
+        ("answer", verified.answer_cases),
+        ("set", verified.set_cases),
+    ):
+        for case in cases:
+            run = run_by_key[(lane, case["case_id"])]
+            request = _request(case, max_citations=runtime["max_citations"])
+            vector, cache_key, retrieval_query = _cached_query_vector(
+                verified, paths, request
+            )
+            query_vector_sha256 = sha256_bytes(vector.tobytes(order="C"))
+            hits = index.search(
+                vector,
+                top_k=runtime["retrieval_top_k"],
+                allowed_doc_ids=None,
+            )
+            reconstructed_doc_ids = [hit.chunk["doc_id"] for hit in hits]
+            if lane == "answer":
+                if reconstructed_doc_ids != run.get("retrieved_doc_ids"):
+                    raise ValueError("baseline_transcript_retrieval_mismatch")
+            elif list(dict.fromkeys(reconstructed_doc_ids)) != run.get(
+                "returned_doc_ids"
+            ):
+                raise ValueError("baseline_transcript_retrieval_mismatch")
+
+            context_hits = _select_context_hits(
+                hits,
+                context_top_k=runtime["context_top_k"],
+                table_context_cap=None,
+            )
+            prompt = _build_prompt(request, context_hits) if context_hits else None
+            selected_ids = {hit.chunk["chunk_id"] for hit in context_hits}
+            retrieval = [
+                {
+                    "rank": rank,
+                    "score": float(hit.score),
+                    "doc_id": hit.chunk["doc_id"],
+                    "chunk_id": hit.chunk["chunk_id"],
+                    "selected_for_context": hit.chunk["chunk_id"] in selected_ids,
+                }
+                for rank, hit in enumerate(hits, start=1)
+            ]
+            rank_by_chunk_id = {
+                hit.chunk["chunk_id"]: rank
+                for rank, hit in enumerate(hits, start=1)
+            }
+            context_sources = [
+                _transcript_source(
+                    hit,
+                    retrieval_rank=rank_by_chunk_id[hit.chunk["chunk_id"]],
+                )
+                for hit in context_hits
+            ]
+            assistant, unavailable_fields = _assistant_transcript_projection(
+                lane, run
+            )
+            if lane == "answer" and run.get("status") == "answered":
+                exact_answer_count += 1
+            else:
+                unavailable_answer_count += 1
+            execution = (
+                {
+                    "timing_ms": run.get("timing_ms"),
+                    "usage": run.get("usage"),
+                    "cache_hit": run.get("cache_hit"),
+                }
+                if lane == "answer"
+                else {"timing_ms": None, "usage": None, "cache_hit": None}
+            )
+            record = {
+                "schema_version": SCHEMA_VERSION,
+                "capture_mode": "posthoc_reconstructed",
+                "baseline_id": verified.config["baseline_id"],
+                "lane": lane,
+                "case_id": case["case_id"],
+                "eval_set_sha256": answer_hash if lane == "answer" else set_hash,
+                "config_sha256": verified.config_sha256,
+                "request": request,
+                "retrieval_query": retrieval_query,
+                "query_cache_key": cache_key,
+                "query_vector_sha256": query_vector_sha256,
+                "retrieval": retrieval,
+                "context_sources": context_sources,
+                "provider_request": {
+                    "capture_status": "reconstructed_not_runtime_captured",
+                    "runtime_transmission_status": "unavailable_not_persisted",
+                    "arguments": (
+                        {
+                            "model": runtime["generator_model"],
+                            "instructions": SYSTEM_INSTRUCTIONS,
+                            "input": prompt,
+                            "store": False,
+                            "max_output_tokens": runtime["max_output_tokens"],
+                            "reasoning": {"effort": runtime["reasoning_effort"]},
+                            "text": {
+                                "format": {
+                                    "type": "json_schema",
+                                    "name": "rag_answer_plan",
+                                    "strict": True,
+                                    "schema": provider_schema,
+                                }
+                            },
+                        }
+                        if prompt is not None
+                        else None
+                    ),
+                },
+                "assistant": assistant,
+                "execution": execution,
+                "runtime_equivalence": {
+                    "verification_level": "retrieved_doc_id_projection_only",
+                    "retrieved_chunk_ids": "runtime_unverified_not_persisted",
+                    "context_selection": "deterministic_replay_runtime_unverified",
+                    "provider_request": "reconstructed_not_runtime_captured",
+                },
+                "unavailable_fields": sorted(set(unavailable_fields)),
+                "reconstruction_contract_sha256s": (
+                    reconstruction_contract_sha256s
+                ),
+                "source_artifact_sha256s": source_artifact_sha256s,
+                "source_run_record_sha256": sha256_text(canonical_json(run)),
+            }
+            record["record_sha256"] = sha256_text(canonical_json(record))
+            rows.append(record)
+
+    if len(rows) != expected_total or len({row["case_id"] for row in rows}) != len(
+        rows
+    ):
+        raise ValueError("baseline_transcript_count_invalid")
+    output_path = paths["chat_transcripts"]
+    write_runtime_jsonl(output_path, rows)
+    transcript_sha256 = sha256_file(output_path)
+    _attach_existing_transcript_receipt(
+        verified, paths, receipt, answer_runs, set_runs
+    )
+    write_json(receipt_path, receipt)
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "passed": True,
+        "baseline_id": verified.config["baseline_id"],
+        "capture_mode": "posthoc_reconstructed",
+        "runtime_equivalence": "retrieved_doc_id_projection_only",
+        "provider_calls": 0,
+        "private_corpus_egress": False,
+        "private_output": True,
+        "counts": {
+            "transcripts": len(rows),
+            "answer_lane": len(answer_runs),
+            "set_lane": len(set_runs),
+            "exact_persisted_answers": exact_answer_count,
+            "answers_unavailable_or_elided": unavailable_answer_count,
+        },
+        "chat_transcripts_sha256": transcript_sha256,
+        "chat_transcripts_dataset_sha256": dataset_sha256(rows),
+        "public_receipt_updated": True,
+    }
+
+
+def export_chat_transcripts(verified: VerifiedBaseline) -> dict[str, Any]:
+    """Reconstruct private prompts/context from frozen local artifacts only."""
+
+    paths = _private_run_paths(verified)
+    with _exclusive_run_lock(paths["run_lock"]):
+        return _build_chat_transcripts_locked(verified, paths)
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Verify or score the frozen supplemental baseline")
     parser.add_argument("--config", type=Path, default=Path("evaluation/baselines/supplemental-provisional-v1/config.json"))
@@ -889,6 +1388,7 @@ def build_parser() -> argparse.ArgumentParser:
     action.add_argument("--preflight-only", action="store_true")
     action.add_argument("--score-existing", action="store_true")
     action.add_argument("--run-openai", action="store_true")
+    action.add_argument("--export-chat-transcripts", action="store_true")
     parser.add_argument("--approve-private-corpus-egress", action="store_true")
     return parser
 
@@ -901,11 +1401,13 @@ def main(argv: Sequence[str] | None = None) -> int:
             report = preflight_report(verified)
         elif args.score_existing:
             report = score_existing(verified)
-        else:
+        elif args.run_openai:
             report = run_openai_baseline(
                 verified,
                 approve_private_corpus_egress=args.approve_private_corpus_egress,
             )
+        else:
+            report = export_chat_transcripts(verified)
         print(canonical_json(report))
         return 0 if report["passed"] else 2
     except (OSError, UnicodeError, json.JSONDecodeError, ValueError, RuntimeError) as error:

@@ -1,0 +1,71 @@
+{
+  "artifact_sha256s": {
+    "answer_cases_selected": "a84bb3ed9114bd59d235aad97a8fb17bb8e8b17ce18bb5ecb649789b7fff75b0",
+    "answer_query_cache_bundle": "e455dc08152ddeced58e4e334e8626fabc9c78713d3f83e1adb1d9cd437b645f",
+    "answer_runs": "7ed67c07ae327247ac9a473df28c95ff95902a0f6892c077f6a1000179a363a9",
+    "budget_ledger": "4d313a1e3f46dbba97d5db004842e1ebde114317b49f189fc0a24cd789f47237",
+    "catalog": "4ad41c16cb329cda5b7f9682d417ca867018c26cb03f2a6ef9dea788ae915dbc",
+    "chat_transcripts": "147610fe6323c0ed1268eef7e69660ec46fa9c09ef7a5c9a3adaa48b0513f387",
+    "manifest": "6c91d30a4c01b12f1aae8924c88a2e5055446c841f5eabfbf687546fdc1fe1cb",
+    "private_summary": "37ea275ff1b861b2a51227c9664c17b9eb0cc994e6494f7753c045f5d5019ef8",
+    "set_cases": "e96727baac3180d5bc65d4fd964bbdc47111a5e8abc542b6e1d8e609336f6f2c",
+    "set_runs": "f1446767655045d9e93ef7228b019fa511a34ac61477367b81cbde3c2a750a45"
+  },
+  "baseline_id": "supplemental-mini-gap30-v1",
+  "config_sha256": "5b88870b0e0754ad2d7b0781ef9ce5dc10e1e3837d713a1776b35ff5b23d7551",
+  "counts": {
+    "answer": 17,
+    "completed": 30,
+    "remaining": 0,
+    "set": 13,
+    "total": 30,
+    "transcripts": 30
+  },
+  "evaluation_tier": "provisional",
+  "privacy": {
+    "contains_answers": false,
+    "contains_provider_requests": false,
+    "contains_provider_responses": false,
+    "contains_questions": false,
+    "contains_source_text": false,
+    "private_artifacts_tracked": false
+  },
+  "provider_budget": {
+    "breached": false,
+    "committed_usd": 0.104647,
+    "limit_usd": 1.0,
+    "reserved_usd": 0.0
+  },
+  "runtime": {
+    "answer_context_top_k": 5,
+    "answer_max_citations": 3,
+    "answer_max_output_tokens": 2000,
+    "answer_retrieval_top_k": 10,
+    "api_profile": "personal_experimental",
+    "budget_limit_usd": 1.0,
+    "case_interval_seconds": 0.5,
+    "embedding_dimensions": 1536,
+    "embedding_model": "text-embedding-3-small",
+    "generator_model": "gpt-5-mini",
+    "openai_max_retries": 0,
+    "per_call_reservation_usd": 0.025,
+    "reasoning_effort": "minimal",
+    "set_catalog_document_count": 98,
+    "set_max_output_tokens": 2500
+  },
+  "runtime_contract_amendment": {
+    "amendment_id": "gap30-set-schema-unique-items-400-v1",
+    "failed_case_retried": false,
+    "failed_provider_attempt_preserved": true,
+    "private_amendment_sha256": "05c76b7af2d87e28a2023e8d60859cd87e82967593e45d44dc81d682334f3e0d",
+    "source_runtime_contract_sha256": "4866659da09e6a30fb868a95023c80b3192c58889dd4e9fcaa39259e25c71086",
+    "target_runtime_contract_sha256": "d2eb83165fc38cfb6572c189f594edf4d06ecd502d6808e2e426adb4d70d6347"
+  },
+  "schema_version": "1.0",
+  "status_counts": {
+    "abstained": 16,
+    "answered": 11,
+    "error": 3
+  },
+  "suite_complete": true
+}

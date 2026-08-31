@@ -103,3 +103,24 @@
   - Commit: `df72d69` — `feat(ingest): recover and index local visual evidence`.
   - Push: `origin/feat/hwp-visual-corpus-rollout` 신규 추적 브랜치 publication 성공.
   - Evidence: private/resources/scoring/apps/configs-rag 제외, stale v1 report screenshot 제외.
+
+- [2026-08-31 19:11] Stage=Implementation/Test (Methodology=TDD)
+  - Summary: Mini131 실행·Sol 판정·parser·private HTML 하네스와 blind/hash/resume/budget gate를 고정했다.
+  - Decisions: corpus vector는 재사용하고 query만 임베딩한다; candidate와 judge를 분리하고 판정 이력을 보존한다.
+  - Blocker: 이번 90문항 private OpenAI payload와 최대 140회/$4에 대한 명시 승인이 필요하다.
+  - Evidence: preflight 40/30/20, parser 2/2, 평가 90/90 PASS; 최초 full 679/679 뒤 concurrent visual fixture 1건 분리.
+
+- [2026-08-31 21:30] Stage=Execute/Evaluate (Methodology=Frozen-candidate + blind LLM judge)
+  - Summary: 승인된 `gpt-5-mini` Mini131 기준선을 완료하고 RAG 129개를 고정 Sol 5.6으로 판정했다.
+  - Decisions: 후보 답변은 수정하지 않는다; 39 legacy reconstructed와 90 prospective를 분리한다;
+    parser 2개는 의미 평균에 섞지 않는다; 모든 채팅·검색·provider·판정 이력을 private로 보존한다.
+  - Incidents: Core 연결 오류 2건과 Gap Schema 400 1건을 재시도 없이 보존했고, secondary 2건의
+    timestamp 순서는 semantic hash 불변을 입증한 metadata-only 감사 보정으로 닫았다.
+  - Evidence: 평균 54.845, accepted 58/129, rejected 71/129, unresolved 0, parser 2/2,
+    transcript 129/129, judgment 155행, candidate USD 0.21345322.
+
+- [2026-08-31 21:31] Stage=Test/Integrate
+  - Summary: final receipt·private ledger·HTML의 수량, SHA-256, 권한과 전체 회귀를 재검증했다.
+  - Evidence: preflight 28/28·129/129, private 0600, public 0644, evaluation 210/210,
+    전체 unittest 728/728, staged clean-checkout 614/614 PASS(비공개 통합 8 expected skip).
+    private 산출물은 Git 대상에서 제외한다.

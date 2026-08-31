@@ -185,6 +185,59 @@ HWP blank-crop incident: `fivecircles/test/errorlogs/backend/2026-08-31-visual-c
 - [ ] held-out 파일과 질문 순서를 hash로 봉인하고 실제 source block·locator hash 무결성을 검증한다.
 - 검증: 평가 테스트 31개, 오프라인 Schema 참조, split 누수, 응답·실행 기록 불변식 통과.
 
+### 2026-08-31 — 보조 평가 69문항 실행 자산화
+
+상태: PROVISIONAL_BASELINE_GPT56_SCORED
+
+- [x] 문서 조항·사실 44, 조건·카탈로그 13, 정답·원문 검수 12의 용도와 수량을 고정한다.
+- [x] 기존 dev40 floor와 점수 계약을 유지하고 supplemental evaluator를 분리한다.
+- [x] source/disposition/refined manifest hash와 11개 정정 fail-closed gate를 계약한다.
+- [x] set case/run 및 LLM review decision schema와 offline registry를 구현한다.
+- [x] 69문항을 56 answer draft + 13 set draft로 변환하는 CLI를 구현한다.
+- [x] source SHA 112개를 refined doc ID로 전수 변환하고 문서별 근거 후보를 생성한다.
+- [x] 집합 검색 Precision/Recall/F1·exact match·count accuracy scorer를 구현한다.
+- [x] 실제 private draft와 evidence review queue를 결정적으로 생성한다.
+- [x] 정정 override·legacy CSV를 hash로 고정하고 CSV 7문항의 행·필드·값 hash 근거를 분리한다.
+- [x] LLM decision을 case hash에 결합하고 official gold 승격을 차단한다.
+- [x] 56 answer + 13 set을 LLM 검수 전 `provisional` 평가 입력으로 실행 가능하게 연다.
+- [x] refined 98·small+mini·top-10/context-5 config, offline preflight, case별 resume와 USD 2.00
+  ledger를 고정하고 egress flag가 없으면 provider 생성 전에 차단한다.
+- [x] refined 98 page-only small+mini 고정 기준선으로 69문항 평가를 실행하고 hash·점수를 남긴다.
+- [x] 답변형 56문항을 고정된 ChatGPT `gpt-5.6-sol`이 직접 의미 판정하고, 경계 5문항은
+  독립 재심과 3차 판정을 거쳐 집계한다. 결과는 평균 46.70점, accepted 19, rejected 35,
+  needs human 2이며 품질 gate는 실패했다.
+- [x] 실행 계약·코드·합성 테스트·비민감 집계 영수증만 선별 커밋·푸시한다.
+- [ ] 생성답변 품질 판정과 별도로 골든 정답·qrel을 검수한 뒤 승인된 문항만 `official` asset으로 finalize한다.
+- [ ] 제품의 `selected_doc_ids` 집합 응답 DTO는 core RAG 안정화 뒤 별도 batch로 구현한다.
+- 구현 계약: `fivecircles/architecture/specs/supplemental-evaluation-contract.md`
+- 검증: evaluation 83/83, 전체 546/546, provider gate와 fake resume, private build 5종
+  byte-identical 재실행, provisional 69/69 validation PASS. official gate는 승인 0/69로 의도대로 실패한다.
+- 실행 계약: 골든 정답·qrel 승인이 0/69이어도 `provisional` 평가·점수 산출은 허용한다.
+  `--require-approved`는 별도 official gate로 69건 전부를 `case_not_approved` 차단해야 한다.
+
+### 2026-08-31 — gpt-5-mini 131개 통합 기준선
+
+상태: COMPLETED_PROVISIONAL_MINI_BASELINE
+
+- [x] Mini131 실행·판정·보고서 계약과 세 live suite preflight를 고정하고 전체 회귀를 통과한다.
+- [x] 현재 정본 `rhwp` parser 회귀 C21/C22를 재실행하고 2/2 PASS 영수증을 교차검증한다.
+
+- [x] 기존 supplemental 39개 정확 답변은 보존하고, 최종 답변 누락·생략 30개를 Mini로 재실행해
+  runtime-exact transcript를 남긴다.
+- [x] 나머지 62개를 처리한다: core40 40, HWP/PDF 표·그림 10, EDA 10,
+  parser-fallback ETL 회귀 2.
+- [x] RAG 129개 후보 답변을 고정 `gpt-5.6-sol`/`gpt56-semantic-v2`로 판정하고,
+  목록 집합·EDA 수치·파서 PASS/FAIL 객관 지표를 별도 병기한다.
+- [x] 기존 `gpt56-baseline-score.html`에 131개 통합 결과와 문항별 채팅 기록을 누적한다.
+- [x] private 원문·답변을 Git에서 제외한 채 aggregate receipt/report만 선별하고, 회귀검증·
+  logall 후 현재 branch에 커밋·푸시한다.
+- 승인·실행: 사용자가 OpenAI 목적지, private payload, 최대 140회와 USD 4 상한을 명시 승인했다.
+  corpus vector 재임베딩 없이 query embedding과 생성만 실행했고 후보 비용은 총 USD 0.21345322다.
+- 최종 결과: RAG 129개 평균 54.845/100, accepted 58, rejected 71, 미해결 0;
+  parser C21/C22 2/2 PASS. 후보 계보는 legacy reconstructed 39와 prospective 90으로 분리한다.
+- 보존 증거: source transcript 129/129, primary 129·secondary 13·adjudicator 13 판정 이력,
+  private HTML 131카드, 전체 회귀 728/728 PASS. public receipt는 본문 없이 집계·hash만 포함한다.
+
 ## Batch 3 — 시나리오 B API naive 기준선
 
 상태: PROVISIONAL_API_2X2_COMPLETE_PENDING_HUMAN_REVIEW_AND_GCP_FAISS_SMOKE

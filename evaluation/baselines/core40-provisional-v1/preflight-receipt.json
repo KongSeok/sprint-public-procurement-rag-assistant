@@ -1,0 +1,131 @@
+{
+  "artifact_sha256s": {
+    "cases_dataset": "0f2df1d9c3fdc5b4d03f6d1aafab9529281bc85ddfab308d25298b033f4b54b6",
+    "cases_file": "abb1b0b5b4ce6aa85d98e91c7b5cefd6f76f98a4b68fef2c1f534768028fae80",
+    "cases_jsonl_canonical": "e5056e7e4e4eeeccf1c7a90a9ad162050f379beeabefaffbbe611d1ed2c7dde9",
+    "chunks": "bb82b593153a93f9373f0bdf7f5be7531e651fdab9c5df36b69d53df0a35b9a2",
+    "index_config": "b341f6dfd9c993c80964536ad0aea74c272f8dac7a6bb8e35ff4efb9e9b8f61b",
+    "index_config_file": "cedb53499e3d3b7dc5df0150019f27999dcfc02379e0d476b845a4117743beb7",
+    "index_metadata": "57849491470f389a581656ed32ac21fc1be2693ca101a523f3126cdb5af23e94",
+    "manifest": "6c91d30a4c01b12f1aae8924c88a2e5055446c841f5eabfbf687546fdc1fe1cb"
+  },
+  "baseline_id": "core40-provisional-v1",
+  "blockers": [
+    "Explicit OpenAI egress approval is required before live execution.",
+    "The 40 draft cases remain provisional until named human review approves them."
+  ],
+  "config_sha256": "e4a960f524028acd76d4f3c6cc28683b5d29b97c55cfdf7d858d01b42d729ada",
+  "counts": {
+    "cases": 40,
+    "chunks": 9331,
+    "documents": 98,
+    "explicit_scope_cases": 30,
+    "follow_up": 10,
+    "history_cases": 10,
+    "multi_doc_compare": 10,
+    "single_doc": 10,
+    "unknown": 10
+  },
+  "estimated_live_requests": {
+    "corpus_embedding_calls": 0,
+    "generation_calls": 40,
+    "query_embedding_calls_upper_bound": 40,
+    "total_provider_requests_upper_bound": 80
+  },
+  "evaluation_tier": "provisional",
+  "execution_contract": {
+    "explicit_egress_approval_required": true,
+    "external_destination": "OpenAI API",
+    "external_payload_classes": [
+      "golden_set_questions",
+      "conversation_history",
+      "retrieved_rfp_excerpts"
+    ],
+    "private_output_policy": {
+      "chat_transcripts": "evaluation/private/",
+      "directory_mode": "0700",
+      "file_mode": "0600",
+      "run_records": "evaluation/private/",
+      "tracked_receipts_must_exclude": [
+        "questions",
+        "answers",
+        "conversation_history",
+        "source_text",
+        "provider_request",
+        "provider_response"
+      ]
+    },
+    "provider_attempt_policy": {
+      "maximum_attempts_per_case": 1,
+      "maximum_suite_calls": 80,
+      "openai_sdk_max_retries": 0
+    },
+    "provider_execution": "explicit_approval_required",
+    "resume_policy": {
+      "case_identity_field": "case_id",
+      "checkpoint": "atomic_private_json_after_each_case",
+      "checkpoint_identity_fields": [
+        "cases_dataset_sha256",
+        "config_sha256",
+        "manifest_sha256",
+        "index_metadata_sha256"
+      ],
+      "completed_cases_are_reused": true,
+      "reject_mismatched_hashes": true,
+      "started_only_case_requires_budget_audit": true,
+      "unit": "case"
+    },
+    "transcript_contract": {
+      "assistant_final_response": "exact",
+      "assistant_structured_plan": "exact",
+      "capture_time": "prospective_runtime",
+      "embedding_vectors": "omitted_with_sha256",
+      "generation_provider_arguments": "exact",
+      "generation_provider_response": "full_model_dump_when_available",
+      "request": "exact",
+      "retrieval_query": "exact",
+      "selected_context_with_source_text": "exact",
+      "usage_timing_errors": "exact_available_runtime_values"
+    }
+  },
+  "official_gold_ready": false,
+  "passed": true,
+  "private_corpus_egress_performed": false,
+  "provider_calls_performed": 0,
+  "review_statuses": {
+    "draft": 40
+  },
+  "runtime": {
+    "api_profile": "personal_experimental",
+    "budget_limit_usd": 2.0,
+    "case_interval_seconds": 0.5,
+    "context_top_k": 5,
+    "embedding_dimensions": 1536,
+    "embedding_model": "text-embedding-3-small",
+    "generator_model": "gpt-5-mini",
+    "git_commit": "uncommitted",
+    "max_citations": 3,
+    "max_output_tokens": 2000,
+    "openai_max_retries": 0,
+    "reasoning_effort": "minimal",
+    "retrieval_top_k": 10
+  },
+  "runtime_contract_sha256": "0300fb84634ac8552a23d7958f0c704ba88bf5349e9df235f652a06243eee95b",
+  "runtime_contract_sha256s": {
+    "api_embeddings_module": "a58f29167bfdcc95d10419ded799f556bfcebecb1f98c45721307b1930d4b08d",
+    "api_generation_module": "1ff730d86ad0ae1127c68421247c585961672ac2486a03646eec8c9aa11bd4ef",
+    "budget_module": "b333902e808838ca5e338b7a7bad76f0ab5549d860841a61d5e596d761d115c9",
+    "context_selector_source": "e2efaffca8b3cb51c619f502c053140e93395c0c10b552176237f914c57576c0",
+    "core40_baseline_module": "82401412766975b6b2da67ce88960d7a0b6557a42e379bbc34aba80e0a26a7a0",
+    "exact_index_module": "66e2c44c35f6dcfdf90198263d942808a202c4269020e8ff0be4761d50456839",
+    "execution_contract": "988b1343b7079ce63ee53140036864852ca3b044a97640a2013afba1a6ae1f4b",
+    "frozen_runtime": "bb6edd184f62672e9871ed3b4567f824bc6b4e4808d930d7a163b508ba4783e9",
+    "indexing_embeddings_module": "1d650233d1c163246eac6cfc633efce6b7ed745519d3b302bb9cf8d516a62db6",
+    "prompt_builder_source": "16bd2dd9173c09151244b3d8a8ecb7c5f80747ea03c14f9f1027369b1495e62c",
+    "provider_response_schema": "9d07e68828db825398eb3cab11502374ac767a7102e0e0b0aea94e7336eeeb27",
+    "rag_pipeline_module": "025f2f971e92c88bc0065d731156da3d2b6cc1f6e9e1c908b29427b7ad6d0088",
+    "retrieval_query_source": "975871721ee0efb7a12cd053feab7df03fcd637f74b4e78cfcdc54411c9809e4",
+    "system_instructions": "4d507bd009711e430920b848def5e7e38c96f01d40adca8d288666ddbbb09219"
+  },
+  "schema_version": "1.0"
+}
