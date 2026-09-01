@@ -61,6 +61,65 @@ ANSWER_SCORE_FIELDS = (
 )
 ALL_SCORE_FIELDS = set(ANSWER_SCORE_FIELDS) | {"abstention_quality"}
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+API_REPRODUCTION_STACK = (
+    (
+        "기록된 실행 환경",
+        "macOS arm64 · Python 3.12.13 · 16 vCPU · 64 GB RAM",
+    ),
+    (
+        "파서/청킹",
+        "rhwp 기반 정제 코퍼스 · refined98 98문서 · page-v1 9,331 chunks · "
+        "페이지당 1청크, 24,000자 초과 시 마지막 줄바꿈 분할, overlap 없음",
+    ),
+    (
+        "임베딩",
+        "OpenAI text-embedding-3-small · 1536 dimensions · batch 128",
+    ),
+    (
+        "인덱스",
+        "NumPy exact dense index · float32 L2 normalization · normalized inner product cosine search",
+    ),
+    (
+        "검색",
+        "retrieval top-k 10 · generation context top-k 5 · 최대 인용 3",
+    ),
+    (
+        "생성",
+        "OpenAI gpt-5-mini · reasoning effort minimal · Structured Outputs · store=false · "
+        "SDK retry 0 · 문항당 최대 1회 · 요청 간격 0.5초",
+    ),
+    (
+        "출력 한도",
+        "일반/Core/답변형 2000 tokens · 전체 목록형 2500 · visual 1200",
+    ),
+    (
+        "평가",
+        "RAG 129 + parser 2 · fixed gpt-5.6-sol · gpt56-semantic-v2 · "
+        "API 후보 제공자 비용 합계 USD 0.21345322",
+    ),
+    (
+        "주요 의존성",
+        "Python >=3.11 · numpy >=2,<3 · openai >=3.2,<4 · "
+        "python-dotenv 1.2.3 · tiktoken 0.13.0 · pyhwp 0.1b15",
+    ),
+)
+API_REPRODUCTION_COMMANDS = (
+    "python3.12 -m venv .venv",
+    ". .venv/bin/activate",
+    "python -m pip install -e '.[rag,test,hwp]'",
+    "cp .env.example .env  # set OPENAI_API_KEY locally; never commit the value",
+    "PYTHONPATH=src python -m midprojectrag.core40_baseline --write-preflight-receipt",
+    "PYTHONPATH=src python -m midprojectrag.supplemental_gap30_baseline --preflight-only",
+    "PYTHONPATH=src python -m midprojectrag.visual_eda_mini_baseline --write-preflight-receipt",
+    "PYTHONPATH=src python -m midprojectrag.parser_regression_baseline",
+    "PYTHONPATH=src python -m midprojectrag.mini131_bundle preflight",
+    "PYTHONPATH=src python -m midprojectrag.core40_baseline --run-openai --approve-openai-egress",
+    "PYTHONPATH=src python -m midprojectrag.supplemental_gap30_baseline --run-openai --approve-openai-egress",
+    "PYTHONPATH=src python -m midprojectrag.visual_eda_mini_baseline --run-openai --approve-openai-egress",
+    "PYTHONPATH=src python -m midprojectrag.mini131_bundle prepare",
+    "PYTHONPATH=src python -m midprojectrag.mini131_bundle merge --judgments evaluation/private/mini131/runs/baseline-v1/judgments.jsonl",
+    "PYTHONPATH=src python -m midprojectrag.mini131_report --case-records evaluation/private/supplemental/runs/provisional-v1/case-records.jsonl --public-aggregate evaluation/baselines/mini131-bundle-v1/receipt.json --output evaluation/private/api/mini131-bundle-v1/golden-performance-report.html",
+)
 RFC3339_RE = re.compile(
     r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$"
 )
@@ -601,6 +660,23 @@ def _metric(value: Any) -> str:
     return "—" if value is None else html.escape(str(value))
 
 
+def _api_reproduction_stack_rows() -> str:
+    return "".join(
+        "<tr>"
+        f'<th scope="row">{html.escape(label)}</th>'
+        f'<td class="meaning">{html.escape(value)}</td>'
+        "</tr>"
+        for label, value in API_REPRODUCTION_STACK
+    )
+
+
+def _api_reproduction_commands() -> str:
+    return "".join(
+        f"<li><code>{html.escape(command)}</code></li>"
+        for command in API_REPRODUCTION_COMMANDS
+    )
+
+
 def render_html(
     records: Sequence[Mapping[str, Any]],
     *,
@@ -692,12 +768,17 @@ def render_html(
 <html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light dark"><title>gpt-5-mini 131 baseline · Sol v2 review</title>
 <style>
-:root{{font-family:Inter,ui-sans-serif,system-ui,sans-serif;line-height:1.5;color-scheme:light dark}}body{{max-width:1320px;margin:auto;padding:24px}}h1{{margin-bottom:4px}}.sub{{margin-top:0;color:GrayText}}.notice{{border:1px solid #c98b17;background:color-mix(in srgb,#eaa416 10%,Canvas);padding:14px;border-radius:10px}}.metrics{{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin:18px 0}}.metric{{border:1px solid GrayText;border-radius:10px;padding:12px}}.metric strong{{display:block;font-size:1.5rem;font-variant-numeric:tabular-nums}}table{{border-collapse:collapse;width:100%;margin:16px 0}}th,td{{border-bottom:1px solid GrayText;text-align:right;padding:7px}}th:first-child,td:first-child{{text-align:left}}.controls{{display:flex;gap:8px;flex-wrap:wrap;align-items:center;position:sticky;top:0;z-index:4;padding:12px;margin:18px 0;background:Canvas;border:1px solid GrayText;border-radius:10px}}input,select{{font:inherit;padding:7px}}input[type=search]{{min-width:260px;flex:1}}details.case{{border:1px solid GrayText;border-radius:10px;margin:10px 0;padding:10px}}summary{{cursor:pointer}}details.case>summary{{display:flex;gap:7px;align-items:center;flex-wrap:wrap}}.badge{{border:1px solid GrayText;border-radius:999px;padding:2px 7px;font-size:.8rem}}.verdict{{margin-left:auto}}.score{{font-variant-numeric:tabular-nums;font-weight:700}}.detail-grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px}}section,.group,.aggregate{{margin:13px 0}}h3{{font-size:1rem;margin-bottom:5px}}pre{{white-space:pre-wrap;overflow-wrap:anywhere;background:color-mix(in srgb,CanvasText 7%,Canvas);padding:10px;border-radius:7px}}.nested{{margin:7px 0 7px 10px;border-left:3px solid color-mix(in srgb,CanvasText 18%,Canvas);padding-left:9px}}.rationale{{padding:10px;border-left:4px solid #4f7ddc}}.muted{{color:GrayText}}.hidden{{display:none}}#count{{font-variant-numeric:tabular-nums}}@media(max-width:650px){{body{{padding:12px}}.verdict{{margin-left:0}}input[type=search]{{min-width:100%}}}}
+:root{{font-family:Inter,ui-sans-serif,system-ui,sans-serif;line-height:1.5;color-scheme:light dark}}body{{max-width:1320px;margin:auto;padding:24px}}h1{{margin-bottom:4px}}.sub{{margin-top:0;color:GrayText}}.notice{{border:1px solid #c98b17;background:color-mix(in srgb,#eaa416 10%,Canvas);padding:14px;border-radius:10px}}.notice.info{{border-color:#4f7ddc;background:color-mix(in srgb,#4f7ddc 8%,Canvas)}}.metrics{{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin:18px 0}}.metric{{border:1px solid GrayText;border-radius:10px;padding:12px}}.metric strong{{display:block;font-size:1.5rem;font-variant-numeric:tabular-nums}}table{{border-collapse:collapse;width:100%;margin:16px 0}}th,td{{border-bottom:1px solid GrayText;text-align:right;padding:7px;vertical-align:top}}th:first-child,td:first-child{{text-align:left}}td.meaning{{text-align:left}}.commands{{padding-left:1.5rem}}.commands li{{margin:.55rem 0}}.commands code{{overflow-wrap:anywhere}}.controls{{display:flex;gap:8px;flex-wrap:wrap;align-items:center;position:sticky;top:0;z-index:4;padding:12px;margin:18px 0;background:Canvas;border:1px solid GrayText;border-radius:10px}}input,select{{font:inherit;padding:7px}}input[type=search]{{min-width:260px;flex:1}}details.case{{border:1px solid GrayText;border-radius:10px;margin:10px 0;padding:10px}}summary{{cursor:pointer}}details.case>summary{{display:flex;gap:7px;align-items:center;flex-wrap:wrap}}.badge{{border:1px solid GrayText;border-radius:999px;padding:2px 7px;font-size:.8rem}}.verdict{{margin-left:auto}}.score{{font-variant-numeric:tabular-nums;font-weight:700}}.detail-grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px}}section,.group,.aggregate{{margin:13px 0}}h3{{font-size:1rem;margin-bottom:5px}}pre{{white-space:pre-wrap;overflow-wrap:anywhere;background:color-mix(in srgb,CanvasText 7%,Canvas);padding:10px;border-radius:7px}}.nested{{margin:7px 0 7px 10px;border-left:3px solid color-mix(in srgb,CanvasText 18%,Canvas);padding-left:9px}}.rationale{{padding:10px;border-left:4px solid #4f7ddc}}.muted{{color:GrayText}}.hidden{{display:none}}#count{{font-variant-numeric:tabular-nums}}@media(max-width:650px){{body{{padding:12px}}.verdict{{margin-left:0}}input[type=search]{{min-width:100%}}}}
 </style></head><body>
 <h1>gpt-5-mini 131 baseline</h1><p class="sub">Fixed semantic judge: gpt-5.6-sol · rubric gpt56-semantic-v2 · source <code>{html.escape(source_sha256)}</code></p>
 <aside class="notice"><strong>Lineage caveat</strong><br>RAG 129건 중 39건은 기존 Mini 후보 답변을 재사용한 <code>legacy_reconstructed</code>이며 원본 transcript가 명시한 범위까지만 사후 복원된 기록입니다. 90건은 provider request/response, retrieval evidence, prompt와 최종 응답을 포함한 정확한 실행 transcript를 남긴 <code>prospective_rerun</code>입니다. 모든 transcript는 case-record의 SHA-256으로 검증되며, primary/secondary/adjudicator 전체 판정 이력도 함께 표시됩니다. 나머지 2건은 LLM 채점 대상이 아닌 로컬 결정론적 parser 회귀(<code>parser_local</code>)입니다.</aside>
 <div class="metrics"><div class="metric">전체<strong>{summary["total"]}</strong></div><div class="metric">RAG / parser<strong>{summary["rag"]} / {summary["parser"]}</strong></div><div class="metric">평균 의미점수<strong>{_metric(summary["mean_semantic_score"])}</strong></div><div class="metric">accepted<strong>{summary["accepted"]}</strong></div><div class="metric">rejected<strong>{summary["rejected"]}</strong></div><div class="metric">review/human<strong>{summary["needs_review"] + summary["needs_human"]}</strong></div><div class="metric">parser pass/fail<strong>{summary["parser_passed"]}/{summary["parser_failed"]}</strong></div></div>
 <h2>Lane summary</h2><table><thead><tr><th>Lane</th><th>Cases</th><th>Mean</th><th>Accepted</th><th>Rejected</th><th>Review</th><th>Parser P/F</th></tr></thead><tbody>{lane_table}</tbody></table>
+<h2 id="api-reproduction-stack">API 재현 스택</h2>
+<aside class="notice info"><strong>재현성 범위</strong><br>고정된 private ledger로 이 HTML과 집계를 다시 만드는 과정은 SHA-256으로 검증할 수 있습니다. 그러나 원 실행 설정에는 <code>git_commit=uncommitted</code>가 기록됐고 당시 dependency SHA와 현재 브랜치가 일치하지 않으므로, API 후보를 다시 호출했을 때 답변을 바이트 단위로 동일하게 재생산한다고 보장하지 않습니다.</aside>
+<table><thead><tr><th>구성</th><th>고정값</th></tr></thead><tbody>{_api_reproduction_stack_rows()}</tbody></table>
+<h3>필수 입력과 실행 순서</h3><p>루트 <code>.env</code>의 <code>OPENAI_API_KEY</code> 값은 로컬에서만 관리합니다. 외부 전송 명령은 private 문서가 OpenAI로 전달되므로 명시적 승인 플래그가 있는 경우에만 실행합니다.</p>
+<ol class="commands">{_api_reproduction_commands()}</ol>
 {aggregate_html}
 <div class="controls"><input id="search" type="search" placeholder="case ID, 질문, 답변, 문서, evidence 검색" aria-label="검색"><select id="lane" aria-label="lane"><option value="">모든 lane</option>{lane_options}</select><select id="type" aria-label="case type"><option value="">모든 유형</option><option value="rag">rag</option><option value="parser">parser</option></select><select id="lineage" aria-label="lineage"><option value="">모든 lineage</option><option value="legacy_reconstructed">legacy reconstructed</option><option value="prospective_rerun">prospective rerun</option><option value="parser_local">parser local</option></select><select id="verdict" aria-label="verdict"><option value="">모든 판정</option><option value="accepted">accepted</option><option value="rejected">rejected</option><option value="needs_review">needs review</option><option value="needs_human">needs human</option><option value="parser_passed">parser passed</option><option value="parser_failed">parser failed</option></select><label><input id="failures" type="checkbox"> 실패/검토만</label><strong id="count">131 / 131</strong></div>
 <main>{''.join(cards)}</main>
