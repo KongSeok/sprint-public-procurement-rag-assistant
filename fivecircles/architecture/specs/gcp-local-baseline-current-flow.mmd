@@ -1,0 +1,34 @@
+flowchart TD
+    U["RagRequest / provisional golden case"]:::gray --> PF["frozen config / exact artifacts / dependency + 100 GB preflight"]:::green
+    PF --> K["KURE-v1 pinned provider / 1024-d / offline-only"]:::green
+    K --> C["role + revision + prompt keyed embedding cache"]:::amber
+    C --> N["Mac NumPy exact index / normalized IP / 9,331 chunks"]:::green
+    N --> R["measured top-10 / doc recall@10 1.0 / context top-5"]:::green
+    R --> QT["pinned Qwen chat tokenizer / logical 8K guard"]:::green
+    QT --> O["loopback Ollama qwen3.8:27b-mlx / non-thinking"]:::amber
+    O --> J["strict answer-plan JSON"]:::green
+    J --> P["shared RagResponse / citation / abstention gate"]:::green
+    P --> GR["locked resumable private golden runner / exact transcript"]:::amber
+    GR --> MR["40/40 + resume 40/40 / content-free receipt / official=false"]:::green
+    MR --> PS["provisional diagnostics / error 1 of 40 / semantic not_run"]:::amber
+
+    R -. "contract-tested cloud path" .-> VA["loopback-only vLLM Qwen3-8B-AWQ adapter"]:::green
+    VA --> L4["live L4 vLLM execution / GPU telemetry measurement"]:::red
+    L4 -. "not executed" .-> RR["GCP run-record builder / exact IDs + 100 GB + telemetry gate"]:::green
+    RR -. "no measured official records" .-> CMP["API vs GCP official comparison"]:::red
+    MR -. "official comparison rejected" .-> CMP
+
+    PS --> H["named human gold approval"]:::red
+    PS --> S["fixed gpt-5.6-sol semantic judge"]:::red
+    H --> SV["official semantic verdict"]:::red
+    S --> SV
+
+    D["disk >100 GB / free <10 GB / dependency drift"]:::red -. "fail closed" .-> PF
+    X["external URL / proxy / redirect / model mismatch"]:::red -. "reject before private prompt" .-> VA
+    T["missing GPU seconds / peak VRAM"]:::red -. "official record rejected" .-> RR
+
+    classDef green fill:#e8f2ea,stroke:#bdd1c2,color:#1f2933,stroke-width:1.5px
+    classDef blue fill:#e8f0f7,stroke:#c2d3e0,color:#1f2933,stroke-width:1.5px
+    classDef amber fill:#fff4dc,stroke:#e7c88f,color:#1f2933,stroke-width:1.5px
+    classDef red fill:#fde9e6,stroke:#e8bab5,color:#1f2933,stroke-width:1.5px
+    classDef gray fill:#eef1ed,stroke:#d8e0da,color:#1f2933,stroke-width:1.5px

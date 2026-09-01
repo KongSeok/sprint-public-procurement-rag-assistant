@@ -29,6 +29,24 @@ def _validator(relative_path: str) -> Draft202012Validator:
     return Draft202012Validator(schema, registry=registry)
 
 
+def _official_gcp_run() -> dict[str, object]:
+    run = make_runs([make_case("single_doc")], stack_id="gcp_local")[0]
+    run.update(
+        {
+            "generator_model": "Qwen/Qwen3-8B-AWQ",
+            "embedding_model": "nlpai-lab/KURE-v1",
+            "embedding_dimensions": 1024,
+            "index_config_sha256": "e" * 64,
+            "embedding_model_revision": "4ed4540949c70b7da2c74004a915e1f2d5e46e4f",
+            "generator_model_revision": "4da05a8edb55c6046cce958586c33b61da07bb79",
+            "runtime": "vllm",
+            "runtime_version": "0.8.5.post1",
+            "quantization": "awq-int4",
+        }
+    )
+    return run
+
+
 class ContractTests(unittest.TestCase):
     def assertManualSchemaParity(
         self,
@@ -176,13 +194,12 @@ class ContractTests(unittest.TestCase):
 
     def test_run_schema_and_manual_validator_match_dependent_and_stack_fields(self) -> None:
         run_validator = _validator("evaluation/schemas/run-record.schema.json")
-        local_run = make_runs([make_case("single_doc")], stack_id="gcp_local")[0]
+        local_run = _official_gcp_run()
         self.assertManualSchemaParity(local_run, validate_run_record, run_validator)
+        self.assertEqual(validate_run_record(local_run), [])
 
         api_only_values = {
             "api_profile": "assignment",
-            "embedding_dimensions": 1536,
-            "index_config_sha256": "e" * 64,
             "reasoning_effort": "minimal",
         }
         for field, field_value in api_only_values.items():
@@ -194,6 +211,59 @@ class ContractTests(unittest.TestCase):
                     "api_only_field_forbidden",
                     {issue["code"] for issue in validate_run_record(invalid)},
                 )
+
+        required_gcp_fields = (
+            "embedding_dimensions",
+            "index_config_sha256",
+            "embedding_model_revision",
+            "generator_model_revision",
+            "runtime",
+            "runtime_version",
+            "quantization",
+        )
+        for field in required_gcp_fields:
+            with self.subTest(missing_gcp_field=field):
+                invalid = copy.deepcopy(local_run)
+                del invalid[field]
+                self.assertManualSchemaParity(invalid, validate_run_record, run_validator)
+                self.assertIn(
+                    "required_field_missing",
+                    {issue["code"] for issue in validate_run_record(invalid)},
+                )
+
+        gcp_mutations = (
+            ("generator_model", lambda run: run.__setitem__("generator_model", "other")),
+            ("embedding_model", lambda run: run.__setitem__("embedding_model", "other")),
+            ("embedding_dimensions", lambda run: run.__setitem__("embedding_dimensions", 768)),
+            ("embedding_revision", lambda run: run.__setitem__("embedding_model_revision", "1" * 39)),
+            ("embedding_revision_drift", lambda run: run.__setitem__("embedding_model_revision", "1" * 40)),
+            ("generator_revision", lambda run: run.__setitem__("generator_model_revision", "2" * 41)),
+            ("generator_revision_drift", lambda run: run.__setitem__("generator_model_revision", "2" * 40)),
+            ("runtime", lambda run: run.__setitem__("runtime", "transformers")),
+            ("runtime_version", lambda run: run.__setitem__("runtime_version", "0.8.5")),
+            ("quantization", lambda run: run.__setitem__("quantization", "bf16")),
+            ("cost", lambda run: run["usage"].__setitem__("cost_usd", 0.0)),
+            ("gpu_seconds", lambda run: run["usage"].__setitem__("gpu_seconds", None)),
+            ("peak_vram", lambda run: run["usage"].__setitem__("peak_vram_gb", None)),
+        )
+        for label, mutate in gcp_mutations:
+            with self.subTest(invalid_gcp_field=label):
+                invalid = copy.deepcopy(local_run)
+                mutate(invalid)
+                self.assertManualSchemaParity(invalid, validate_run_record, run_validator)
+
+        api_metadata = make_runs([make_case("single_doc")])[0]
+        api_metadata["embedding_model_revision"] = "short"
+        self.assertManualSchemaParity(api_metadata, validate_run_record, run_validator)
+        api_metadata = make_runs([make_case("single_doc")])[0]
+        api_metadata["runtime"] = []
+        self.assertManualSchemaParity(api_metadata, validate_run_record, run_validator)
+        api_metadata = make_runs([make_case("single_doc")])[0]
+        api_metadata["runtime_version"] = "client-1.2.3"
+        self.assertManualSchemaParity(api_metadata, validate_run_record, run_validator)
+        self.assertEqual(validate_run_record(api_metadata), [])
+        api_metadata["runtime_version"] = []
+        self.assertManualSchemaParity(api_metadata, validate_run_record, run_validator)
 
         fused = make_runs([make_case("single_doc")])[0]
         fused["retrieval"][0].update(
@@ -364,27 +434,38 @@ class ContractTests(unittest.TestCase):
         run["judgment"]["reviewer_ids"] = ["r" * 129]
         self.assertIn("invalid_reviewer_ids", {issue["code"] for issue in validate_run_record(run)})
 
-        local_run = make_runs([make_case("single_doc")], stack_id="gcp_local")[0]
+        local_run = _official_gcp_run()
         local_run["environment"]["gpu_model"] = "nvidia l4"
         self.assertIn("gcp_gpu_not_l4", {issue["code"] for issue in validate_run_record(local_run)})
 
-    def test_gcp_environment_contract_records_exact_allocation_and_200gb_hard_limit(self) -> None:
-        local_run = make_runs([make_case("single_doc")], stack_id="gcp_local")[0]
+    def test_gcp_environment_contract_records_exact_allocation_and_100gb_hard_limit(self) -> None:
+        run_validator = _validator("evaluation/schemas/run-record.schema.json")
+        local_run = _official_gcp_run()
         self.assertEqual(validate_run_record(local_run), [])
 
-        local_run["environment"]["disk_gb"] = 150.0
+        local_run["environment"]["disk_gb"] = 100.0
         self.assertNotIn("gcp_disk_limit_exceeded", {issue["code"] for issue in validate_run_record(local_run)})
-        local_run["environment"]["disk_gb"] = 200.1
+        local_run["environment"]["disk_gb"] = 100.1
+        self.assertManualSchemaParity(local_run, validate_run_record, run_validator)
         self.assertIn("gcp_disk_limit_exceeded", {issue["code"] for issue in validate_run_record(local_run)})
 
-        local_run = make_runs([make_case("single_doc")], stack_id="gcp_local")[0]
+        local_run = _official_gcp_run()
         local_run["environment"]["region"] = "asia-northeast3"
         local_run["environment"]["machine_type"] = "g2-standard-8"
         codes = {issue["code"] for issue in validate_run_record(local_run)}
+        self.assertManualSchemaParity(local_run, validate_run_record, run_validator)
         self.assertIn("gcp_region_not_allowed", codes)
         self.assertIn("gcp_machine_type_mismatch", codes)
 
-        local_run = make_runs([make_case("single_doc")], stack_id="gcp_local")[0]
+        local_run = _official_gcp_run()
+        local_run["environment"]["vcpu"] = 2
+        local_run["environment"]["ram_gb"] = 8.0
+        codes = {issue["code"] for issue in validate_run_record(local_run)}
+        self.assertManualSchemaParity(local_run, validate_run_record, run_validator)
+        self.assertIn("gcp_vcpu_mismatch", codes)
+        self.assertIn("gcp_ram_mismatch", codes)
+
+        local_run = _official_gcp_run()
         del local_run["environment"]["region"]
         del local_run["environment"]["machine_type"]
         missing_paths = {
@@ -413,9 +494,35 @@ class ContractTests(unittest.TestCase):
             for item in schema["allOf"]
             if "environment" in item.get("then", {}).get("properties", {})
         )
-        self.assertEqual(local_constraints["region"]["enum"], ["us-central1", "us-east1"])
+        self.assertEqual(local_constraints["region"]["const"], "us-central1")
         self.assertEqual(local_constraints["machine_type"]["const"], "g2-standard-4")
-        self.assertEqual(local_constraints["disk_gb"]["maximum"], 200)
+        self.assertEqual(local_constraints["vcpu"]["const"], 4)
+        self.assertEqual(local_constraints["ram_gb"]["const"], 16)
+        self.assertEqual(local_constraints["disk_gb"]["maximum"], 100)
+
+        local_contract = next(
+            item["then"]
+            for item in schema["allOf"]
+            if item.get("if", {}).get("properties", {}).get("stack_id", {}).get("const")
+            == "gcp_local"
+        )
+        self.assertEqual(local_contract["properties"]["generator_model"]["const"], "Qwen/Qwen3-8B-AWQ")
+        self.assertEqual(local_contract["properties"]["embedding_model"]["const"], "nlpai-lab/KURE-v1")
+        self.assertEqual(local_contract["properties"]["embedding_dimensions"]["const"], 1024)
+        self.assertEqual(
+            local_contract["properties"]["embedding_model_revision"]["const"],
+            "4ed4540949c70b7da2c74004a915e1f2d5e46e4f",
+        )
+        self.assertEqual(
+            local_contract["properties"]["generator_model_revision"]["const"],
+            "4da05a8edb55c6046cce958586c33b61da07bb79",
+        )
+        self.assertEqual(local_contract["properties"]["runtime"]["const"], "vllm")
+        self.assertEqual(
+            local_contract["properties"]["runtime_version"]["const"],
+            "0.8.5.post1",
+        )
+        self.assertEqual(local_contract["properties"]["quantization"]["const"], "awq-int4")
 
     def test_unhashable_enum_values_return_issues_instead_of_crashing(self) -> None:
         case = make_case("single_doc")

@@ -1,0 +1,65 @@
+{
+  "baseline_id": "gcp-local-kure-qwen3-8b-awq-refined98-page-v1",
+  "config_sha256": "980e6777bc90d47fe8b5f1a51c007059a32aa67d4594aff2ad11628e09011f1e",
+  "counts": {
+    "missing": 0,
+    "runtime_errors": 1,
+    "scored": 40,
+    "selected": 40
+  },
+  "diagnostics_completed": true,
+  "eval_set_sha256": "0f2df1d9c3fdc5b4d03f6d1aafab9529281bc85ddfab308d25298b033f4b54b6",
+  "evaluation_tier": "provisional_non_official",
+  "execution_profile": "mac_local_equivalent",
+  "gold_review_status": "draft",
+  "index_provenance": {
+    "chunk_artifact_sha256": "bb82b593153a93f9373f0bdf7f5be7531e651fdab9c5df36b69d53df0a35b9a2",
+    "count": 9331,
+    "dimensions": 1024,
+    "engine": "numpy",
+    "index_config_sha256": "5d2a83397bb08c80995817e78355ea5d34091450cf58e7f00d44095bc383d5f8",
+    "metadata_sha256": "f003b7483f6d6d1d472d4f354d9b477095b3a38de79d6c551a16198319e0b76b",
+    "rows_sha256": "da403a8dc1bd28c18354e9cedaa45df5e0dcc2dc10eb370aaaa921e787d18738",
+    "schema_version": "1.0",
+    "vectors_sha256": "a9aa5e8553cc2533101fd050ae48b5af8804ab85c000e57b677bb6a319542556"
+  },
+  "metrics": {
+    "behavior": {
+      "abstention_match": 0.775
+    },
+    "contract": {
+      "citation_validity": 1.0,
+      "response_contract_validity": 1.0
+    },
+    "operations": {
+      "latency_generation_p50_ms": 34752.2825,
+      "latency_retrieval_p50_ms": 120.207625,
+      "latency_total_p50_ms": 34996.577458,
+      "latency_total_p95_ms": 65119.728166,
+      "runtime_error_rate": 0.025
+    },
+    "retrieval": {
+      "all_required_docs_recalled_at_1": 0.0,
+      "all_required_docs_recalled_at_10": 1.0,
+      "all_required_docs_recalled_at_3": 1.0,
+      "all_required_docs_recalled_at_5": 1.0,
+      "document_recall_at_1": 0.833333,
+      "document_recall_at_10": 1.0,
+      "document_recall_at_3": 1.0,
+      "document_recall_at_5": 1.0,
+      "mrr_at_10": 1.0,
+      "ndcg_at_10": 0.991972,
+      "source_block_recall_at_1": 0.578889,
+      "source_block_recall_at_10": 0.865556,
+      "source_block_recall_at_3": 0.69,
+      "source_block_recall_at_5": 0.753333
+    }
+  },
+  "official": false,
+  "passed": false,
+  "run_id": "mac-980e6777bc90-0f2df1d9c3fd-a9aa5e8553cc-f003b7483f6d",
+  "schema_version": "1.0",
+  "semantic_blocker": "fixed_gpt_5_6_sol_judge_and_human_review_not_run",
+  "semantic_judgment": "not_run",
+  "suite_complete": true
+}

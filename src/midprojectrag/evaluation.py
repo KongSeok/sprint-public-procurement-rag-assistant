@@ -134,6 +134,7 @@ VISUAL_CHUNK_ID_RE = re.compile(r"^vchunk_[0-9a-f]{24}$")
 VISUAL_OCCURRENCE_ID_RE = re.compile(r"^vocc2_[0-9a-f]{24}$")
 VISUAL_EVIDENCE_ID_RE = re.compile(r"^(?:ocr|cap)_[0-9a-f]{24}$")
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+MODEL_REVISION_RE = re.compile(r"^[0-9a-f]{40}$")
 CASE_ID_RE = re.compile(r"^(dev|heldout)-(single|multi|followup|unknown)-[0-9]{3}$")
 SAFE_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$")
 KEY_POINT_ID_RE = re.compile(r"^kp_[A-Za-z0-9._:-]{1,64}$")
@@ -1231,6 +1232,11 @@ def validate_run_record(value: Any, path: str = "run") -> list[dict[str, str]]:
         "api_profile",
         "embedding_dimensions",
         "index_config_sha256",
+        "embedding_model_revision",
+        "generator_model_revision",
+        "runtime",
+        "runtime_version",
+        "quantization",
         "reasoning_effort",
     )
     issues = _validate_required(value, required, required + optional, path)
@@ -1251,6 +1257,35 @@ def validate_run_record(value: Any, path: str = "run") -> list[dict[str, str]]:
         model = value.get(field)
         if not isinstance(model, str) or not model.strip() or len(model) > 256:
             issues.append(_issue("invalid_model_id", f"{path}.{field}", "must be a non-empty model identifier"))
+    for field in ("embedding_model_revision", "generator_model_revision"):
+        if field in value:
+            revision = value.get(field)
+            if (
+                not isinstance(revision, str)
+                or MODEL_REVISION_RE.fullmatch(revision) is None
+            ):
+                issues.append(
+                    _issue(
+                        "invalid_model_revision",
+                        f"{path}.{field}",
+                        "must be a full 40-character lowercase model revision",
+                    )
+                )
+    for field in ("runtime", "runtime_version", "quantization"):
+        if field in value:
+            metadata_value = value.get(field)
+            if (
+                not isinstance(metadata_value, str)
+                or not metadata_value.strip()
+                or len(metadata_value) > 64
+            ):
+                issues.append(
+                    _issue(
+                        "invalid_runtime_metadata",
+                        f"{path}.{field}",
+                        "must be a short non-empty runtime identifier",
+                    )
+                )
     if stack_id == "api":
         generator_model = value.get("generator_model")
         if not isinstance(generator_model, str) or generator_model not in ("gpt-5-mini", "gpt-5-nano"):
@@ -1329,7 +1364,7 @@ def validate_run_record(value: Any, path: str = "run") -> list[dict[str, str]]:
                     )
                 )
     elif stack_id == "gcp_local":
-        for field in optional:
+        for field in ("api_profile", "reasoning_effort"):
             if field in value:
                 issues.append(
                     _issue(
@@ -1338,6 +1373,97 @@ def validate_run_record(value: Any, path: str = "run") -> list[dict[str, str]]:
                         "API-only run metadata is forbidden on gcp_local records",
                     )
                 )
+        gcp_required = (
+            "embedding_dimensions",
+            "index_config_sha256",
+            "embedding_model_revision",
+            "generator_model_revision",
+            "runtime",
+            "runtime_version",
+            "quantization",
+        )
+        for field in gcp_required:
+            if field not in value:
+                issues.append(
+                    _issue(
+                        "required_field_missing",
+                        f"{path}.{field}",
+                        "official gcp_local run metadata is required",
+                    )
+                )
+        if value.get("generator_model") != "Qwen/Qwen3-8B-AWQ":
+            issues.append(
+                _issue(
+                    "gcp_generator_model_mismatch",
+                    f"{path}.generator_model",
+                    "official gcp_local runs require Qwen/Qwen3-8B-AWQ",
+                )
+            )
+        if value.get("embedding_model") != "nlpai-lab/KURE-v1":
+            issues.append(
+                _issue(
+                    "gcp_embedding_model_mismatch",
+                    f"{path}.embedding_model",
+                    "official gcp_local runs require nlpai-lab/KURE-v1",
+                )
+            )
+        if value.get("embedding_dimensions") != 1024:
+            issues.append(
+                _issue(
+                    "gcp_embedding_dimensions_mismatch",
+                    f"{path}.embedding_dimensions",
+                    "official gcp_local runs require 1024 embedding dimensions",
+                )
+            )
+        index_config_sha256 = value.get("index_config_sha256")
+        if (
+            not isinstance(index_config_sha256, str)
+            or SHA256_RE.fullmatch(index_config_sha256) is None
+        ):
+            issues.append(
+                _issue(
+                    "invalid_sha256",
+                    f"{path}.index_config_sha256",
+                    "must be a lowercase SHA-256",
+                )
+            )
+        pinned_revisions = {
+            "embedding_model_revision": "4ed4540949c70b7da2c74004a915e1f2d5e46e4f",
+            "generator_model_revision": "4da05a8edb55c6046cce958586c33b61da07bb79",
+        }
+        for field, expected_revision in pinned_revisions.items():
+            if value.get(field) != expected_revision:
+                issues.append(
+                    _issue(
+                        "gcp_model_revision_mismatch",
+                        f"{path}.{field}",
+                        "official gcp_local runs require the pinned model revision",
+                    )
+                )
+        if value.get("runtime") != "vllm":
+            issues.append(
+                _issue(
+                    "gcp_runtime_mismatch",
+                    f"{path}.runtime",
+                    "official gcp_local runs require vllm",
+                )
+            )
+        if value.get("runtime_version") != "0.8.5.post1":
+            issues.append(
+                _issue(
+                    "gcp_runtime_version_mismatch",
+                    f"{path}.runtime_version",
+                    "official gcp_local runs require vllm 0.8.5.post1",
+                )
+            )
+        if value.get("quantization") != "awq-int4":
+            issues.append(
+                _issue(
+                    "gcp_quantization_mismatch",
+                    f"{path}.quantization",
+                    "official gcp_local runs require awq-int4",
+                )
+            )
 
     environment = value.get("environment")
     environment_fields = (
@@ -1384,12 +1510,12 @@ def validate_run_record(value: Any, path: str = "run") -> list[dict[str, str]]:
         if not isinstance(dependency_hash, str) or SHA256_RE.fullmatch(dependency_hash) is None:
             issues.append(_issue("invalid_dependency_hash", f"{path}.environment.dependency_lock_sha256", "must be a lowercase SHA-256"))
         if stack_id == "gcp_local":
-            if environment.get("region") not in ("us-central1", "us-east1"):
+            if environment.get("region") != "us-central1":
                 issues.append(
                     _issue(
                         "gcp_region_not_allowed",
                         f"{path}.environment.region",
-                        "GCP scenario region must be us-central1, or us-east1 for chunk4 allocations",
+                        "official gcp_local runs require us-central1",
                     )
                 )
             if environment.get("machine_type") != "g2-standard-4":
@@ -1400,14 +1526,14 @@ def validate_run_record(value: Any, path: str = "run") -> list[dict[str, str]]:
                         "GCP scenario requires the exact g2-standard-4 machine type",
                     )
                 )
-            if isinstance(vcpu, int) and not isinstance(vcpu, bool) and vcpu > 4:
-                issues.append(_issue("gcp_vcpu_limit_exceeded", f"{path}.environment.vcpu", "GCP scenario is limited to 4 vCPU"))
-            if _is_number(environment.get("ram_gb")) and environment["ram_gb"] > 16:
-                issues.append(_issue("gcp_ram_limit_exceeded", f"{path}.environment.ram_gb", "GCP scenario is limited to 16 GB RAM"))
+            if isinstance(vcpu, int) and not isinstance(vcpu, bool) and vcpu != 4:
+                issues.append(_issue("gcp_vcpu_mismatch", f"{path}.environment.vcpu", "official gcp_local runs require exactly 4 vCPU"))
+            if _is_number(environment.get("ram_gb")) and environment["ram_gb"] != 16:
+                issues.append(_issue("gcp_ram_mismatch", f"{path}.environment.ram_gb", "official gcp_local runs require exactly 16 GB RAM"))
             if not isinstance(gpu_model, str) or "L4" not in gpu_model:
                 issues.append(_issue("gcp_gpu_not_l4", f"{path}.environment.gpu_model", "GCP scenario requires an NVIDIA L4"))
-            if _is_number(environment.get("disk_gb")) and environment["disk_gb"] > 200:
-                issues.append(_issue("gcp_disk_limit_exceeded", f"{path}.environment.disk_gb", "GCP scenario is limited to 200 GB disk"))
+            if _is_number(environment.get("disk_gb")) and environment["disk_gb"] > 100:
+                issues.append(_issue("gcp_disk_limit_exceeded", f"{path}.environment.disk_gb", "GCP scenario is limited to 100 GB disk"))
     git_commit = value.get("git_commit")
     if git_commit != "uncommitted" and (
         not isinstance(git_commit, str) or re.fullmatch(r"^[0-9a-f]{7,64}$", git_commit) is None
@@ -1545,6 +1671,25 @@ def validate_run_record(value: Any, path: str = "run") -> list[dict[str, str]]:
                 issues.append(_issue("invalid_usage_value", f"{path}.usage.{field}", "must be null or a non-negative number"))
             elif field in ("input_tokens", "output_tokens", "embedding_tokens") and item is not None and not isinstance(item, int):
                 issues.append(_issue("invalid_token_count", f"{path}.usage.{field}", "token counts must be integers"))
+        if stack_id == "gcp_local":
+            if usage.get("cost_usd") is not None:
+                issues.append(
+                    _issue(
+                        "gcp_cost_must_be_null",
+                        f"{path}.usage.cost_usd",
+                        "official gcp_local runs do not record API cost",
+                    )
+                )
+            for field in ("gpu_seconds", "peak_vram_gb"):
+                measurement = usage.get(field)
+                if not _is_number(measurement) or measurement < 0:
+                    issues.append(
+                        _issue(
+                            "gcp_gpu_measurement_required",
+                            f"{path}.usage.{field}",
+                            "official gcp_local runs require a measured non-negative GPU value",
+                        )
+                    )
     judgment = value.get("judgment")
     judgment_fields = (
         "matched_key_point_ids",

@@ -27,58 +27,38 @@ from pathlib import Path
 from statistics import median
 from typing import Any, Iterable, Mapping, Sequence
 
-from midprojectrag.eval_contracts.mini131.judge import (
-    ALLOWED_COMPONENT_SCORES,
-    BANNED_JUDGE_KEYS,
-    BLIND_ADJUDICATION_INPUT_SCHEMA_VERSION,
-    BLIND_DECISION_SCHEMA_VERSION,
-    BLIND_JUDGE_INPUT_SCHEMA_VERSION,
-    BLIND_REVIEW_HISTORY_SCHEMA_VERSION,
-    EXPECTED_BEHAVIORS,
-    JUDGE_MODEL,
-    JUDGE_ROLES,
-    JUDGE_RUBRIC,
-    JUDGE_WEIGHTS,
-    JUDGMENT_SCORE_FIELDS,
-    ROLE_DECISIONS,
-    assert_blind as _assert_blind,
-    binary_recommendation as _binary_recommendation,
-    blind_id as _blind_id,
-    expected_judge_config as _neutral_expected_judge_config,
-    judgment_id as _judgment_id,
-    judgment_semantic_score as _judgment_semantic_score,
-    secondary_triggered as _secondary_triggered,
-    valid_rfc3339 as _valid_rfc3339,
-    validate_judgment_decision as _validate_judgment_decision,
-    validate_judgment_scores as _validate_judgment_scores,
-)
-from midprojectrag.eval_contracts.mini131.scorecard import (
-    SCORECARD_CONTRACT_PATH,
-    validate_contract as validate_scorecard_contract,
-)
-from midprojectrag.eval_contracts.mini131.suite import (
-    EXPECTED_COUNTS as NEUTRAL_EXPECTED_COUNTS,
-)
 from midprojectrag.ingest.common import canonical_json, read_jsonl, sha256_file, sha256_text
 from midprojectrag.mini131_report import CASE_SCHEMA_VERSION, validate_records
 
 
 SCHEMA_VERSION = "mini131-bundle.v1"
 JUDGE_PACKET_SCHEMA_VERSION = "mini131-judge-packet.v1"
+BLIND_JUDGE_INPUT_SCHEMA_VERSION = "mini131-blind-judge-input.v1"
+BLIND_DECISION_SCHEMA_VERSION = "mini131-blind-decision.v1"
+BLIND_ADJUDICATION_INPUT_SCHEMA_VERSION = (
+    "mini131-blind-adjudication-input.v1"
+)
+BLIND_REVIEW_HISTORY_SCHEMA_VERSION = "mini131-blind-review-history.v1"
 BASELINE_ID = "mini131-bundle-v1"
 EXPECTED_COUNTS = {
-    "rag": NEUTRAL_EXPECTED_COUNTS["rag"],
-    "legacy_reconstructed": NEUTRAL_EXPECTED_COUNTS["lanes"][
-        "supplemental_answer_legacy"
-    ],
-    "prospective_rerun": (
-        NEUTRAL_EXPECTED_COUNTS["rag"]
-        - NEUTRAL_EXPECTED_COUNTS["lanes"]["supplemental_answer_legacy"]
-    ),
-    "parser_local": NEUTRAL_EXPECTED_COUNTS["parser"],
-    "total": NEUTRAL_EXPECTED_COUNTS["total"],
+    "rag": 129,
+    "legacy_reconstructed": 39,
+    "prospective_rerun": 90,
+    "parser_local": 2,
+    "total": 131,
 }
-EXPECTED_LANES = dict(NEUTRAL_EXPECTED_COUNTS["lanes"])
+EXPECTED_LANES = {
+    "supplemental_answer_legacy": 39,
+    "supplemental_answer_rerun": 17,
+    "supplemental_set_rerun": 13,
+    "core40": 40,
+    "visual": 10,
+    "corpus_analytics": 10,
+}
+JUDGE_MODEL = "gpt-5.6-sol"
+JUDGE_RUBRIC = "gpt56-semantic-v2"
+JUDGE_CONFIG_SCHEMA_VERSION = "mini131-judge-config.v1"
+JUDGE_CONFIG_ID = "mini131-fixed-sol-v2"
 CORE_RUNTIME_CONTRACT_AMENDMENT_ID = "core40-mixed-runtime-recovery-v1"
 CORE_RECOVERED_CAPTURE_MODE = "prospective_runtime_with_offline_recovery"
 GAP_RUNTIME_CONTRACT_AMENDMENT_ID = "gap30-set-schema-unique-items-400-v1"
@@ -86,6 +66,28 @@ GAP_RECOVERED_CAPTURE_MODE = (
     "prospective_runtime_exact_recovered_provider_rejection"
 )
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+RFC3339_RE = re.compile(
+    r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$"
+)
+BANNED_JUDGE_KEYS = {
+    "api_profile",
+    "baseline_id",
+    "case_id",
+    "candidate_stack",
+    "config_sha256",
+    "embedding_model",
+    "generator_model",
+    "git_commit",
+    "lane",
+    "lineage",
+    "model",
+    "provider",
+    "provider_exchange",
+    "reasoning_effort",
+    "run_id",
+    "stack",
+    "stack_id",
+}
 JUDGE_IDENTITY_KEYS = frozenset({"case_id", "lane", "lineage"})
 
 # Expose only task semantics to the reviewer. Source case identity, execution
@@ -100,6 +102,14 @@ JUDGE_QUESTION_KINDS = {
     "corpus_analytics": "corpus_analytics_qa",
 }
 
+JUDGE_WEIGHTS = {
+    "correctness": 0.35,
+    "faithfulness": 0.25,
+    "completeness": 0.20,
+    "factual_claim_coverage": 0.10,
+    "citation_validity": 0.10,
+}
+JUDGMENT_SCORE_FIELDS = frozenset((*JUDGE_WEIGHTS, "abstention_quality"))
 JUDGMENT_FIELDS = frozenset(
     {
         "schema_version",
@@ -126,7 +136,15 @@ JUDGMENT_FIELDS = frozenset(
         "reviewed_at",
     }
 )
+JUDGE_ROLES = frozenset({"primary", "secondary", "adjudicator"})
+EXPECTED_BEHAVIORS = frozenset({"answer", "abstain", "source_conflict"})
 OBSERVED_STATUSES = frozenset({"answered", "abstained", "error"})
+ROLE_DECISIONS = {
+    "primary": frozenset({"accepted", "needs_review", "rejected"}),
+    "secondary": frozenset({"accepted", "needs_review", "rejected"}),
+    "adjudicator": frozenset({"accepted", "rejected", "needs_human"}),
+}
+ALLOWED_COMPONENT_SCORES = frozenset({0, 0.5, 1})
 
 
 @dataclass(frozen=True)
@@ -159,7 +177,6 @@ class BundlePaths:
     parser_receipt: Path
     rubric: Path
     judge_config: Path
-    scorecard_contract: Path
     judge_packets: Path
     blind_judge_inputs: Path
     case_records: Path
@@ -201,7 +218,6 @@ def default_paths(repo_root: Path) -> BundlePaths:
         parser_receipt=p("evaluation/baselines/parser-regression-rhwp-v1/receipt.json"),
         rubric=p("evaluation/rubric.md"),
         judge_config=p("evaluation/baselines/mini131-bundle-v1/judge-config.json"),
-        scorecard_contract=p(SCORECARD_CONTRACT_PATH),
         judge_packets=p("evaluation/private/mini131/runs/baseline-v1/judge-packets.jsonl"),
         blind_judge_inputs=p("evaluation/private/mini131/runs/baseline-v1/blind-judge-inputs.jsonl"),
         case_records=p("evaluation/private/supplemental/runs/provisional-v1/case-records.jsonl"),
@@ -238,7 +254,6 @@ INPUT_FIELDS = (
     "parser_receipt",
     "rubric",
     "judge_config",
-    "scorecard_contract",
 )
 
 
@@ -417,6 +432,18 @@ def _retrieval(run: Mapping[str, Any], transcript: Mapping[str, Any], lane: str)
     }
 
 
+def _assert_blind(value: Any) -> None:
+    if isinstance(value, Mapping):
+        for key, nested in value.items():
+            normalized = str(key).lower()
+            if normalized in BANNED_JUDGE_KEYS or normalized.endswith("_model") or normalized.endswith("_stack"):
+                raise ValueError("mini131_judge_identity_leak")
+            _assert_blind(nested)
+    elif isinstance(value, list):
+        for nested in value:
+            _assert_blind(nested)
+
+
 def _without_judge_identity(value: Any) -> Any:
     """Remove source identifiers from a reviewer-visible projection."""
 
@@ -490,52 +517,119 @@ def _frozen_config_sha256(path: Path, expected_baseline_id: str) -> str:
     return sha256_file(path)
 
 
-def _scorecard_contract_sha256(paths: BundlePaths) -> str:
-    contract = _read_json(
-        paths.scorecard_contract,
-        "mini131_scorecard_contract_invalid",
-    )
-    try:
-        validate_scorecard_contract(contract)
-    except ValueError as error:
-        raise ValueError("mini131_scorecard_contract_mismatch") from error
-    return sha256_file(paths.scorecard_contract)
-
-
 def _expected_judge_config(rubric_sha256: str) -> dict[str, Any]:
-    config = _neutral_expected_judge_config(rubric_sha256)
-    config["review_io"] = {
-        "allowed_inputs": {
-            "common": [
-                "evaluation/rubric.md",
-                "evaluation/baselines/mini131-bundle-v1/judge-config.json",
+    if not SHA256_RE.fullmatch(rubric_sha256):
+        raise ValueError("mini131_rubric_sha256_invalid")
+    return {
+        "schema_version": JUDGE_CONFIG_SCHEMA_VERSION,
+        "config_id": JUDGE_CONFIG_ID,
+        "reviewer_type": "llm",
+        "model": JUDGE_MODEL,
+        "reasoning_effort": "high",
+        "review_io": {
+            "allowed_inputs": {
+                "common": [
+                    "evaluation/rubric.md",
+                    "evaluation/baselines/mini131-bundle-v1/judge-config.json",
+                ],
+                "primary": {
+                    "schema_version": BLIND_JUDGE_INPUT_SCHEMA_VERSION,
+                    "source": "evaluation/private/mini131/runs/baseline-v1/blind-judge-inputs.jsonl",
+                    "selection": "all_rows_or_deterministic_slice",
+                    "prior_decisions": [],
+                },
+                "secondary": {
+                    "schema_version": BLIND_JUDGE_INPUT_SCHEMA_VERSION,
+                    "source": "evaluation/private/mini131/runs/baseline-v1/blind-judge-inputs.jsonl",
+                    "selection": "validated_secondary_trigger_subset_or_deterministic_slice",
+                    "prior_decisions": [],
+                },
+                "adjudicator": {
+                    "schema_version": BLIND_ADJUDICATION_INPUT_SCHEMA_VERSION,
+                    "source": "locally_validated_blind_adjudication_subset",
+                    "selection": "validated_adjudication_trigger_subset_or_deterministic_slice",
+                    "prior_decisions": ["primary", "secondary"],
+                },
+            },
+            "forbidden_inputs": [
+                "evaluation/private/mini131/runs/baseline-v1/judge-packets.jsonl",
             ],
-            "primary": {
-                "schema_version": BLIND_JUDGE_INPUT_SCHEMA_VERSION,
-                "source": "evaluation/private/mini131/runs/baseline-v1/blind-judge-inputs.jsonl",
-                "selection": "all_rows_or_deterministic_slice",
-                "prior_decisions": [],
+            "blind_decision_schema_version": BLIND_DECISION_SCHEMA_VERSION,
+            "review_history_schema_version": BLIND_REVIEW_HISTORY_SCHEMA_VERSION,
+        },
+        "rubric": {
+            "version": JUDGE_RUBRIC,
+            "sha256": rubric_sha256,
+        },
+        "weights": copy.deepcopy(JUDGE_WEIGHTS),
+        "decision_policy": {
+            "role_decisions": {
+                role: sorted(decisions) for role, decisions in ROLE_DECISIONS.items()
             },
-            "secondary": {
-                "schema_version": BLIND_JUDGE_INPUT_SCHEMA_VERSION,
-                "source": "evaluation/private/mini131/runs/baseline-v1/blind-judge-inputs.jsonl",
-                "selection": "validated_secondary_trigger_subset_or_deterministic_slice",
-                "prior_decisions": [],
+            "primary_precedence": [
+                "hard_rejection",
+                "score_below_60",
+                "needs_review_60_through_85_or_low_confidence",
+                "accepted_above_85",
+            ],
+            "acceptance": {
+                "score_operator": "greater_than",
+                "score_threshold": 85,
+                "minimum_confidence": 0.70,
+                "critical_flags": "none",
             },
-            "adjudicator": {
-                "schema_version": BLIND_ADJUDICATION_INPUT_SCHEMA_VERSION,
-                "source": "locally_validated_blind_adjudication_subset",
-                "selection": "validated_adjudication_trigger_subset_or_deterministic_slice",
-                "prior_decisions": ["primary", "secondary"],
+            "secondary_triggers": [
+                "needs_review",
+                "confidence_below_0_70",
+                "boundary_case",
+            ],
+            "final_acceptance": {
+                "score_operator": "greater_than",
+                "score_threshold": 85,
+                "minimum_confidence": 0.70,
+                "critical_flags": "none",
+                "unresolved_needs_human": False,
+                "allowed_final_roles": ["adjudicator", "primary", "secondary"],
+                "unresolved_needs_review": False,
             },
         },
-        "forbidden_inputs": [
-            "evaluation/private/mini131/runs/baseline-v1/judge-packets.jsonl",
-        ],
-        "blind_decision_schema_version": BLIND_DECISION_SCHEMA_VERSION,
-        "review_history_schema_version": BLIND_REVIEW_HISTORY_SCHEMA_VERSION,
+        "blinding": {
+            "hidden_fields": [
+                "candidate_model",
+                "candidate_stack",
+                "case_id",
+                "execution_lane",
+                "provider",
+                "lineage",
+            ],
+            "visible_fields": [
+                "question_kind",
+                "question",
+                "expected",
+                "candidate_status",
+                "candidate_answer",
+                "retrieval_evidence",
+            ],
+            "binding": "judge_input_sha256",
+        },
+        "roles": {
+            "primary": {
+                "model": JUDGE_MODEL,
+                "independent": True,
+                "sees_prior_judgment": False,
+            },
+            "secondary": {
+                "model": JUDGE_MODEL,
+                "independent": True,
+                "sees_prior_judgment": False,
+            },
+            "adjudicator": {
+                "model": JUDGE_MODEL,
+                "independent": True,
+                "sees_prior_judgment": True,
+            },
+        },
     }
-    return config
 
 
 def _judge_config_sha256(paths: BundlePaths) -> str:
@@ -954,7 +1048,6 @@ def _validate_prospective_identity(
 
 
 def _source_packets(paths: BundlePaths) -> tuple[list[dict[str, Any]], dict[str, Any]]:
-    _scorecard_contract_sha256(paths)
     config_sha256s = _validate_source_integrity(paths)
     gap_config_sha256 = config_sha256s["gap"]
     core_config_sha256 = config_sha256s["core"]
@@ -1134,13 +1227,18 @@ def _validate_packets(packets: Sequence[Mapping[str, Any]]) -> None:
         lineages[str(lineage)] += 1
     if dict(lanes) != EXPECTED_LANES:
         raise ValueError("mini131_lane_ledger_mismatch")
-    if lineages != Counter(
-        {
-            "prospective_rerun": EXPECTED_COUNTS["prospective_rerun"],
-            "legacy_reconstructed": EXPECTED_COUNTS["legacy_reconstructed"],
-        }
-    ):
+    if lineages != Counter({"prospective_rerun": 90, "legacy_reconstructed": 39}):
         raise ValueError("mini131_lineage_ledger_mismatch")
+
+
+def _blind_id(judge_input_sha256: str) -> str:
+    """Return a stable opaque key that reveals neither case order nor lineage."""
+
+    if not SHA256_RE.fullmatch(judge_input_sha256):
+        raise ValueError("mini131_judge_input_hash_invalid")
+    return sha256_text(
+        f"{BLIND_JUDGE_INPUT_SCHEMA_VERSION}\n{judge_input_sha256}"
+    )
 
 
 def _blind_judge_rows(
@@ -1473,7 +1571,6 @@ def _public_receipt(
     records: Sequence[Mapping[str, Any]] | None = None,
 ) -> dict[str, Any]:
     review_config_sha256 = _judge_config_sha256(paths)
-    scorecard_contract_sha256 = _scorecard_contract_sha256(paths)
     lineages = Counter(str(row["lineage"]) for row in packets)
     lanes = Counter(str(row["lane"]) for row in packets)
     status_counts = Counter(str(row["judge_input"]["candidate"]["status"]) for row in packets)
@@ -1515,7 +1612,6 @@ def _public_receipt(
             "contains_provider_payloads": False,
             "private_artifacts_tracked": False,
         },
-        "scorecard_contract_sha256": scorecard_contract_sha256,
     }
     if judgments_path is not None:
         receipt["artifact_sha256s"]["judgments"] = sha256_file(judgments_path)
@@ -1584,6 +1680,20 @@ def build_judge_packets(paths: BundlePaths) -> dict[str, Any]:
     return receipt
 
 
+def _judgment_semantic_score(judgment: Mapping[str, Any]) -> float:
+    scores = judgment.get("scores")
+    if not isinstance(scores, Mapping):
+        raise ValueError("mini131_judge_scores_invalid")
+    abstention = scores.get("abstention_quality")
+    if abstention is not None:
+        return round(100.0 * float(abstention), 2)
+    return round(
+        100.0
+        * sum(float(scores[field]) * weight for field, weight in JUDGE_WEIGHTS.items()),
+        2,
+    )
+
+
 def _expected_behavior(packet: Mapping[str, Any]) -> str:
     if packet.get("lane") == "supplemental_set_rerun":
         return "answer"
@@ -1594,6 +1704,117 @@ def _expected_behavior(packet: Mapping[str, Any]) -> str:
     if decision not in EXPECTED_BEHAVIORS:
         raise ValueError("mini131_expected_behavior_invalid")
     return str(decision)
+
+
+def _valid_rfc3339(value: Any) -> bool:
+    if not isinstance(value, str) or not RFC3339_RE.fullmatch(value):
+        return False
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return False
+    return parsed.tzinfo is not None
+
+
+def _judgment_id(row: Mapping[str, Any]) -> str:
+    payload = {key: copy.deepcopy(value) for key, value in row.items() if key != "judgment_id"}
+    return sha256_text(canonical_json(payload))
+
+
+def _validate_judgment_scores(value: Any, *, expected_behavior: str) -> None:
+    if not isinstance(value, Mapping) or set(value) != JUDGMENT_SCORE_FIELDS:
+        raise ValueError("mini131_judge_score_fields_invalid")
+    for score in value.values():
+        if score is not None and (
+            isinstance(score, bool) or score not in ALLOWED_COMPONENT_SCORES
+        ):
+            raise ValueError("mini131_judge_score_value_invalid")
+    abstention = value.get("abstention_quality")
+    if expected_behavior == "abstain":
+        if abstention is None:
+            raise ValueError("mini131_abstention_quality_missing")
+        if any(value.get(field) is not None for field in JUDGE_WEIGHTS):
+            raise ValueError("mini131_abstention_answer_components_forbidden")
+        return
+    if expected_behavior not in {"answer", "source_conflict"}:
+        raise ValueError("mini131_expected_behavior_invalid")
+    if abstention is not None:
+        raise ValueError("mini131_answer_abstention_quality_forbidden")
+    if any(value.get(field) is None for field in JUDGE_WEIGHTS):
+        raise ValueError("mini131_answer_component_missing")
+
+
+def _judgment_hard_rejection(row: Mapping[str, Any]) -> bool:
+    expected_behavior = str(row["expected_behavior"])
+    observed_status = str(row["observed_status"])
+    safe_abstention = row.get("safe_abstention")
+    if expected_behavior == "abstain":
+        if not isinstance(safe_abstention, bool):
+            raise ValueError("mini131_safe_abstention_required")
+        behavior_failure = observed_status != "abstained" or safe_abstention is not True
+    else:
+        if safe_abstention is not None:
+            raise ValueError("mini131_safe_abstention_scope_invalid")
+        behavior_failure = observed_status != "answered"
+    return (
+        behavior_failure
+        or observed_status == "error"
+        or bool(row["critical_flags"])
+    )
+
+
+def _validate_judgment_decision(row: Mapping[str, Any]) -> None:
+    role = str(row["judge_role"])
+    decision = str(row["judge_decision"])
+    semantic_score = _judgment_semantic_score(row)
+    confidence = float(row["confidence"])
+    hard_rejection = _judgment_hard_rejection(row)
+    if role == "adjudicator":
+        final_accept = (
+            not hard_rejection
+            and semantic_score > 85
+            and confidence >= 0.70
+        )
+        allowed = (
+            {"accepted", "needs_human"}
+            if final_accept
+            else {"rejected", "needs_human"}
+        )
+    elif hard_rejection or semantic_score < 60:
+        allowed = {"rejected"}
+    elif semantic_score <= 85 or confidence < 0.70:
+        allowed = {"needs_review"}
+    else:
+        allowed = {"accepted"}
+    if decision not in allowed:
+        raise ValueError("mini131_judge_decision_inconsistent")
+
+
+def _secondary_triggered(primary: Mapping[str, Any]) -> bool:
+    semantic_score = _judgment_semantic_score(primary)
+    return (
+        primary.get("judge_decision") == "needs_review"
+        or float(primary["confidence"]) < 0.70
+        or semantic_score in {60.0, 85.0}
+    )
+
+
+def _binary_recommendation(row: Mapping[str, Any]) -> str:
+    """Reduce a review to the pass/fail recommendation used for agreement.
+
+    A primary boundary row can legitimately carry ``needs_review`` while its
+    component scores still imply a provisional pass/fail recommendation.  The
+    independent secondary resolves that boundary without an adjudicator only
+    when its *resolved* decision agrees with this recommendation and its
+    critical flags agree exactly.
+    """
+
+    passes = (
+        not _judgment_hard_rejection(row)
+        and _judgment_semantic_score(row) > 85
+        and float(row["confidence"]) >= 0.70
+    )
+    return "accepted" if passes else "rejected"
 
 
 def _validate_string_list(value: Any, *, code: str) -> None:

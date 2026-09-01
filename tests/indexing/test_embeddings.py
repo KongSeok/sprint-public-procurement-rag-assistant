@@ -68,7 +68,7 @@ class _NamespacedProvider(_FakeProvider):
 
     def cache_namespace(self, *, role: str) -> str:
         self.roles.append(role)
-        return f"provider-namespace:{role}"
+        return f"hf-namespace:{role}"
 
 
 def _chunks() -> list[dict[str, object]]:
@@ -110,12 +110,27 @@ def _chunks() -> list[dict[str, object]]:
 
 
 class EmbeddingTests(unittest.TestCase):
-    def test_legacy_provider_cache_namespace_preserves_model_key(self) -> None:
+    def test_legacy_provider_cache_namespace_is_byte_identical_model_fallback(self) -> None:
         provider = _FakeProvider()
         self.assertEqual(
             embedding_cache_namespace(provider, role="document"),
             provider.model,
         )
+        expected = EmbeddingCache.key(
+            corpus_manifest_sha256="1" * 64,
+            chunk_config_sha256="2" * 64,
+            model=provider.model,
+            dimensions=provider.dimensions,
+            content_sha256="3" * 64,
+        )
+        actual = EmbeddingCache.key(
+            corpus_manifest_sha256="1" * 64,
+            chunk_config_sha256="2" * 64,
+            model=embedding_cache_namespace(provider, role="document"),
+            dimensions=provider.dimensions,
+            content_sha256="3" * 64,
+        )
+        self.assertEqual(actual, expected)
 
     def test_chunk_and_query_paths_request_distinct_cache_roles(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -129,7 +144,7 @@ class EmbeddingTests(unittest.TestCase):
                 corpus_manifest_sha256="2" * 64,
             )
             embed_query(
-                "question",
+                "질문",
                 provider=provider,
                 counter=_Counter(),
                 cache=cache,

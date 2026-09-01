@@ -49,6 +49,17 @@
     "api_profile": {"enum": ["assignment", "personal_experimental"]},
     "embedding_dimensions": {"type": "integer", "minimum": 1},
     "index_config_sha256": {"$ref": "#/$defs/sha256"},
+    "embedding_model_revision": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "generator_model_revision": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "runtime": {"type": "string", "minLength": 1, "maxLength": 64},
+    "runtime_version": {"type": "string", "minLength": 1, "maxLength": 64},
+    "quantization": {"type": "string", "minLength": 1, "maxLength": 64},
     "reasoning_effort": {"const": "minimal"},
     "environment": {"$ref": "#/$defs/environment"},
     "retrieval": {
@@ -335,23 +346,49 @@
     {
       "if": {"properties": {"stack_id": {"const": "gcp_local"}}},
       "then": {
+        "required": [
+          "embedding_dimensions",
+          "index_config_sha256",
+          "embedding_model_revision",
+          "generator_model_revision",
+          "runtime",
+          "runtime_version",
+          "quantization"
+        ],
         "not": {
           "anyOf": [
             {"required": ["api_profile"]},
-            {"required": ["embedding_dimensions"]},
-            {"required": ["index_config_sha256"]},
             {"required": ["reasoning_effort"]}
           ]
         },
         "properties": {
+          "generator_model": {"const": "Qwen/Qwen3-8B-AWQ"},
+          "embedding_model": {"const": "nlpai-lab/KURE-v1"},
+          "embedding_dimensions": {"const": 1024},
+          "embedding_model_revision": {
+            "const": "4ed4540949c70b7da2c74004a915e1f2d5e46e4f"
+          },
+          "generator_model_revision": {
+            "const": "4da05a8edb55c6046cce958586c33b61da07bb79"
+          },
+          "runtime": {"const": "vllm"},
+          "runtime_version": {"const": "0.8.5.post1"},
+          "quantization": {"const": "awq-int4"},
+          "usage": {
+            "properties": {
+              "cost_usd": {"const": null},
+              "gpu_seconds": {"type": "number", "minimum": 0},
+              "peak_vram_gb": {"type": "number", "minimum": 0}
+            }
+          },
           "environment": {
             "properties": {
-              "region": {"enum": ["us-central1", "us-east1"]},
+              "region": {"const": "us-central1"},
               "machine_type": {"const": "g2-standard-4"},
-              "vcpu": {"maximum": 4},
-              "ram_gb": {"maximum": 16},
+              "vcpu": {"const": 4},
+              "ram_gb": {"const": 16},
               "gpu_model": {"type": "string", "pattern": "L4"},
-              "disk_gb": {"maximum": 200}
+              "disk_gb": {"maximum": 100}
             }
           }
         }

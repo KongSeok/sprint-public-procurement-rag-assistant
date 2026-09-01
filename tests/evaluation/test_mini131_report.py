@@ -147,7 +147,6 @@ def _write_jsonl(path: Path, rows: list[dict[str, object]]) -> None:
 
 
 def _public_aggregate(case_records: Path) -> dict[str, object]:
-    scorecard_contract_sha256 = "f" * 64
     return {
         "baseline_id": "mini131-bundle-v1",
         "stage": "case_records_ready",
@@ -158,11 +157,7 @@ def _public_aggregate(case_records: Path) -> dict[str, object]:
             "total": 131,
             "full_source_transcripts": 129,
         },
-        "artifact_sha256s": {
-            "case_records": sha256_file(case_records),
-            "inputs": {"scorecard_contract": scorecard_contract_sha256},
-        },
-        "scorecard_contract_sha256": scorecard_contract_sha256,
+        "artifact_sha256s": {"case_records": sha256_file(case_records)},
         "semantic_judge": {
             "status": "complete",
             "history_validated": True,
@@ -285,20 +280,6 @@ class Mini131ReportTests(unittest.TestCase):
             output.write_text("keep this", encoding="utf-8")
             with self.assertRaisesRegex(
                 ValueError, "mini131_public_aggregate_case_records_mismatch"
-            ):
-                generate_report(
-                    case_records_path=case_records,
-                    public_aggregate_path=aggregate,
-                    output_path=output,
-                )
-            self.assertEqual(output.read_text(encoding="utf-8"), "keep this")
-
-            public = _public_aggregate(case_records)
-            public["scorecard_contract_sha256"] = "0" * 64
-            aggregate.write_text(json.dumps(public), encoding="utf-8")
-            with self.assertRaisesRegex(
-                ValueError,
-                "mini131_public_aggregate_scorecard_contract_mismatch",
             ):
                 generate_report(
                     case_records_path=case_records,

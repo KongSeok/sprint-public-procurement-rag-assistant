@@ -26,7 +26,6 @@
       "parser_config": "f8853d9f76919cd44a40fd08610cf091509052451834a40f149951024082cfdd",
       "parser_receipt": "d3551b4778cbfb112200fc6f4d8528e5902aa8f98fe6b1f26a0bde0ee7e45ae6",
       "rubric": "e881bbf55fabc5d6067569ae02df7d34661b4eb35ad8dcf6619fb4f73189de30",
-      "scorecard_contract": "fd7d7f863e026f309509425fea77e43840b5c944275aa04475aa1452cd688b08",
       "visual_cases": "949bba9e2afa4d8e34345edacaf5014234070734cdd626ba1f4d4448bc9f9756",
       "visual_eda_config": "dc495da6bd805b5712cb414b84f380e05257b54d28c6946364b2ee593096ec61",
       "visual_eda_receipt": "54d88a7803d79aad405d98491997bed8f0eff1caa407ea8136cbf75c3836e853",
@@ -158,7 +157,6 @@
     "private_artifacts_tracked": false
   },
   "schema_version": "mini131-bundle.v1",
-  "scorecard_contract_sha256": "fd7d7f863e026f309509425fea77e43840b5c944275aa04475aa1452cd688b08",
   "semantic_judge": {
     "history_validated": true,
     "mean_semantic_score": 54.845,
