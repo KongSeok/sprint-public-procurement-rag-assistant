@@ -1,0 +1,36 @@
+flowchart TB
+    GOLD["Private Mini131 gold suite<br/>129 RAG + 2 parser assets"]:::amber --> SCORE["Provider-neutral scorecard contract<br/>same case identity, metric names, formulas, judge rubric"]:::green
+
+    SCORE --> API_ENTRY["API evaluation entrypoint"]:::blue
+    SCORE --> LOCAL_ENTRY["Local evaluation entrypoint"]:::amber
+
+    subgraph API_DOMAIN["API-only evaluation domain"]
+        API_ENTRY --> API_RUN["OpenAI API runner<br/>allowed models and API runtime config"]:::blue
+        API_RUN --> API_PRIVATE["Private API candidates and judgments<br/>API provenance only"]:::blue
+        API_PRIVATE --> API_PUBLIC["Public API receipt<br/>content-free aggregate and hashes"]:::blue
+        API_PUBLIC --> API_REPORT["API-only result and report<br/>no local values or paths"]:::blue
+    end
+
+    subgraph LOCAL_DOMAIN["Local-only evaluation domain"]
+        LOCAL_ENTRY --> LOCAL_RUN["KURE and Qwen local runner<br/>local hardware and runtime config"]:::amber
+        LOCAL_RUN --> LOCAL_PRIVATE["Private local candidates and judgments<br/>local provenance only"]:::amber
+        LOCAL_PRIVATE --> LOCAL_PUBLIC["Public local receipt<br/>content-free aggregate and hashes"]:::amber
+        LOCAL_PUBLIC --> LOCAL_REPORT["Local-only result and report<br/>no API values or paths"]:::amber
+    end
+
+    API_REPORT -. "direct local read forbidden" .-> CROSS_BLOCK["Provider report cross-reference blocked"]:::red
+    LOCAL_REPORT -. "direct API read forbidden" .-> CROSS_BLOCK
+    API_PRIVATE -. "private artifacts forbidden" .-> PRIVATE_BLOCK["Comparison cannot read private candidates, judgments, or runtime state"]:::red
+    LOCAL_PRIVATE -. "private artifacts forbidden" .-> PRIVATE_BLOCK
+
+    API_PUBLIC --> COMPARE_GATE{"Explicit optional comparison requested?"}:::gray
+    LOCAL_PUBLIC --> COMPARE_GATE
+    COMPARE_GATE -->|"yes"| COMPARE["Third comparison domain<br/>reads only both public receipts"]:::gray
+    COMPARE --> COMPARE_REPORT["Separate API-vs-local comparison artifact<br/>never stored in either provider report"]:::green
+    COMPARE_GATE -->|"no"| SEPARATE["Keep API and local artifacts independent"]:::green
+
+    classDef green fill:#e8f2ea,stroke:#bdd1c2,color:#1f2933,stroke-width:1.5px
+    classDef blue fill:#e8f0f7,stroke:#c2d3e0,color:#1f2933,stroke-width:1.5px
+    classDef amber fill:#fff4dc,stroke:#e7c88f,color:#1f2933,stroke-width:1.5px
+    classDef red fill:#fde9e6,stroke:#e8bab5,color:#1f2933,stroke-width:1.5px
+    classDef gray fill:#eef1ed,stroke:#d8e0da,color:#1f2933,stroke-width:1.5px

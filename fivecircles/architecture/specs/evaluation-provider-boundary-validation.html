@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>API / Local evaluation provider boundary validation</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink:#172033; --muted:#5f6b7e; --line:#d8deea; --panel:#f8fafc;
+      --green:#e8f2ea; --green-line:#bdd1c2; --blue:#e8f0f7; --blue-line:#c2d3e0;
+      --amber:#fff4dc; --amber-line:#e7c88f; --red:#fde9e6; --red-line:#e8bab5;
+      --gray:#eef1ed; --gray-line:#d8e0da;
+    }
+    * { box-sizing:border-box; }
+    body { margin:0; font:15px/1.6 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif; color:var(--ink); background:#eef2f7; }
+    main { width:min(1500px,96vw); margin:24px auto; background:#fff; padding:30px; border:1px solid var(--line); border-radius:16px; box-shadow:0 12px 32px #18203318; }
+    h1 { margin:0 0 8px; font-size:clamp(26px,4vw,40px); letter-spacing:-.03em; }
+    h2 { margin:34px 0 14px; padding-top:22px; border-top:1px solid var(--line); }
+    h3 { margin:24px 0 10px; }
+    p { max-width:1120px; }
+    .meta { color:var(--muted); margin:0 0 18px; }
+    .chips { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 22px; }
+    .chip { padding:6px 10px; border-radius:999px; font-size:13px; font-weight:750; border:1px solid; }
+    .done { background:var(--green); border-color:var(--green-line); color:#14532d; }
+    .api { background:var(--blue); border-color:var(--blue-line); color:#1e3a8a; }
+    .wait { background:var(--amber); border-color:var(--amber-line); color:#78350f; }
+    .gap { background:var(--red); border-color:var(--red-line); color:#7f1d1d; }
+    .metrics { display:grid; grid-template-columns:repeat(4,minmax(150px,1fr)); gap:12px; margin:20px 0; }
+    .metric { border:1px solid var(--line); border-radius:12px; padding:15px; background:var(--panel); }
+    .metric strong { display:block; font-size:25px; line-height:1.2; color:#1d4ed8; }
+    .metric span { color:var(--muted); font-size:13px; }
+    .boundary { border-left:5px solid #b45309; background:#fffbeb; padding:15px 17px; border-radius:8px; max-width:1120px; }
+    .flows { display:grid; grid-template-columns:1fr 1fr; gap:18px; align-items:start; }
+    figure { margin:0; padding:14px; border:1px solid var(--line); border-radius:12px; background:var(--panel); min-width:0; }
+    figcaption { display:flex; justify-content:space-between; gap:12px; align-items:center; font-weight:750; margin-bottom:10px; }
+    .links { font-size:12px; font-weight:600; white-space:nowrap; }
+    img { width:100%; height:auto; display:block; background:#fff; border-radius:7px; }
+    a { color:#1d4ed8; }
+    table { width:100%; border-collapse:collapse; table-layout:fixed; }
+    th,td { border:1px solid var(--line); padding:9px 11px; text-align:left; vertical-align:top; overflow-wrap:anywhere; }
+    th { background:#edf3ff; }
+    code { background:#eef2f7; padding:2px 5px; border-radius:4px; overflow-wrap:anywhere; word-break:break-all; }
+    .legend { display:grid; grid-template-columns:repeat(5,minmax(130px,1fr)); gap:10px; }
+    .legend div { padding:12px; border-radius:10px; border:1px solid; }
+    .legend strong { display:block; }
+    .green { background:var(--green); border-color:var(--green-line)!important; }
+    .blue { background:var(--blue); border-color:var(--blue-line)!important; }
+    .amber { background:var(--amber); border-color:var(--amber-line)!important; }
+    .red { background:var(--red); border-color:var(--red-line)!important; }
+    .gray { background:var(--gray); border-color:var(--gray-line)!important; }
+    .verdict { margin-top:24px; padding:18px; border:1px solid var(--red-line); border-radius:12px; background:var(--red); }
+    @media (max-width:1050px) { .flows { grid-template-columns:1fr; } .legend { grid-template-columns:repeat(2,1fr); } }
+    @media (max-width:760px) { main { margin:0; width:100%; border-radius:0; padding:18px; } .metrics { grid-template-columns:repeat(2,1fr); } table { table-layout:auto; display:block; overflow-x:auto; } }
+    @media (max-width:480px) { .metrics,.legend { grid-template-columns:1fr; } figcaption { display:block; } .links { display:block; margin-top:5px; } }
+  </style>
+</head>
+<body>
+<main>
+  <h1>API / Local evaluation provider boundary</h1>
+  <p class="meta">2026-09-01 · Mini131 scorecard ownership and artifact isolation validation</p>
+  <div class="chips" aria-label="현재 상태">
+    <span class="chip api">API CLEAN</span>
+    <span class="chip wait">LOCAL CLEAN IN PROGRESS</span>
+    <span class="chip gap">LEGACY MIXED NON-CANONICAL</span>
+    <span class="chip wait">OVERALL PARTIAL</span>
+  </div>
+
+  <div class="metrics" aria-label="핵심 검증 수치">
+    <div class="metric"><strong>5 / 5</strong><span>local Mini131 commits excluded from API ancestry</span></div>
+    <div class="metric"><strong>0</strong><span>local-only path/token matches in API diff</span></div>
+    <div class="metric"><strong>568</strong><span>repository tests passed</span></div>
+    <div class="metric"><strong>2</strong><span>provider reports that must stay independent</span></div>
+  </div>
+
+  <div class="boundary">
+    공통 영역은 case identity, metric key, 산식, judge rubric, taxonomy만 소유한다. API와 local은
+    runner, provider 설정, private 결과, public receipt, 결과 JSON과 HTML을 각각 소유한다.
+    비교는 필요할 때만 제3영역에서 양쪽 public receipt 두 개를 읽어 별도 artifact로 생성한다.
+  </div>
+
+  <h2>Target Flow</h2>
+  <div class="flows">
+    <figure>
+      <figcaption>Target provider boundary <span class="links"><a href="evaluation-provider-boundary-target-flow.mmd">MMD</a> · <a href="evaluation-provider-boundary-target-flow.png">PNG</a></span></figcaption>
+      <img id="target-flow" src="evaluation-provider-boundary-target-flow.png" alt="API와 local 평가의 목표 provider 경계 흐름">
+    </figure>
+    <figure>
+      <figcaption>Target 핵심 규칙</figcaption>
+      <ul>
+        <li>동일 scorecard contract, 서로 다른 provider 실행과 결과</li>
+        <li>provider 보고서 간 직접 참조 금지</li>
+        <li>private candidate·judgment·checkpoint 교차 사용 금지</li>
+        <li>optional comparison은 public receipt만 읽는 별도 영역</li>
+      </ul>
+    </figure>
+  </div>
+
+  <h2>Current Implementation Flow</h2>
+  <div class="flows">
+    <figure>
+      <figcaption>Current provider boundary <span class="links"><a href="evaluation-provider-boundary-current-flow.mmd">MMD</a> · <a href="evaluation-provider-boundary-current-flow.png">PNG</a></span></figcaption>
+      <img id="current-flow" src="evaluation-provider-boundary-current-flow.png" alt="현재 API와 local 평가 provider 경계 흐름">
+    </figure>
+    <figure>
+      <figcaption>Current 판정</figcaption>
+      <ul>
+        <li>clean API branch와 API-only 평가 artifact는 검증 완료</li>
+        <li>clean local branch는 neutral 계약만 import하도록 재구성 중</li>
+        <li>Mini131 pure scorecard module은 아직 API assembly/report에서 추출되지 않음</li>
+        <li>legacy mixed local report는 API receipt와 private API ledger를 직접 읽어 비정상</li>
+      </ul>
+    </figure>
+  </div>
+
+  <h2>Target vs Current Gap</h2>
+  <table id="gap-table">
+    <thead><tr><th>ID</th><th>Target</th><th>Current evidence</th><th>Status</th><th>Catch-up proof</th></tr></thead>
+    <tbody>
+      <tr><td>B1</td><td>API 전용 runner/result/receipt/report</td><td>clean API branch; local Mini131 ancestry와 전용 diff 없음</td><td>MATCHED</td><td>focused/full tests와 branch audit 유지</td></tr>
+      <tr><td>B2</td><td>provider-neutral Mini131 scorecard</td><td>base metrics는 공통이나 judge·taxonomy·score helper가 API assembly/report에 결합</td><td>GAP</td><td>pure contract 추출 + 양 provider parity test</td></tr>
+      <tr><td>B3</td><td>Local 전용 runner/result/receipt/report</td><td>clean local rebuild 진행 중</td><td>IN PROGRESS</td><td>API path·receipt·private ledger 참조 0건</td></tr>
+      <tr><td>B4</td><td>provider report 직접 참조 금지</td><td>legacy mixed local report가 API public/private 결과를 직접 읽음</td><td>GAP / LEGACY</td><td>clean local을 canonical로 지정</td></tr>
+      <tr><td>B5</td><td>public receipt 전용 제3 comparison 영역</td><td>미구현</td><td>OPTIONAL GAP</td><td>독립 입력 schema와 artifact path</td></tr>
+      <tr><td>B6</td><td>evaluation provider CI guard</td><td>stack import guard만 있고 evaluation I/O/report guard는 없음</td><td>GAP</td><td>forbidden import/path/field 정적 검사</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Done / Not Done Priority</h2>
+  <p>Score = upstream(0–4) + isolation(0–4) + validation(0–2) + delivery(0–2) + risk penalty(0~-3).</p>
+  <table id="priority-table">
+    <thead><tr><th>Rank</th><th>Unit</th><th>Status</th><th>U</th><th>I</th><th>V</th><th>D</th><th>R</th><th>Score</th><th>Next action</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>clean API-only branch</td><td>DONE</td><td>4</td><td>4</td><td>2</td><td>2</td><td>0</td><td>12</td><td>API canonical candidate 유지</td></tr>
+      <tr><td>2</td><td>provider-neutral scorecard extraction</td><td>NOT DONE</td><td>4</td><td>4</td><td>2</td><td>2</td><td>0</td><td>12</td><td>pure contract와 parity test</td></tr>
+      <tr><td>3</td><td>clean local-only evaluation</td><td>IN PROGRESS</td><td>4</td><td>4</td><td>2</td><td>2</td><td>-1</td><td>11</td><td>API reference 제거 후 독립 검증</td></tr>
+      <tr><td>4</td><td>evaluation provider CI guard</td><td>NOT DONE</td><td>3</td><td>4</td><td>2</td><td>1</td><td>0</td><td>10</td><td>import/path/report 금지 규칙 자동화</td></tr>
+      <tr><td>5</td><td>legacy mixed non-canonical marker</td><td>NOT DONE</td><td>2</td><td>4</td><td>1</td><td>1</td><td>0</td><td>8</td><td>replacement handoff 명시</td></tr>
+      <tr><td>6</td><td>optional comparison domain</td><td>OPTIONAL</td><td>1</td><td>2</td><td>1</td><td>2</td><td>-2</td><td>4</td><td>양 provider 완료 후 별도 구현</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Scoring Criteria</h2>
+  <table id="scoring-table">
+    <thead><tr><th>Criterion</th><th>Range</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td>Upstream weight</td><td>0–4</td><td>후속 실행·평가·보고서의 의존도</td></tr>
+      <tr><td>Isolation value</td><td>0–4</td><td>provider와 private artifact 경계를 보호하는 정도</td></tr>
+      <tr><td>Validation value</td><td>0–2</td><td>자동 회귀 검출과 재현성</td></tr>
+      <tr><td>Delivery value</td><td>0–2</td><td>팀이 독립 결과를 실행하고 읽을 수 있는 정도</td></tr>
+      <tr><td>Risk penalty</td><td>0~-3</td><td>private 결합, 결과 재작성, 비교 오해 위험</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Color Semantics</h2>
+  <div id="color-legend" class="legend">
+    <div class="green"><strong>Green</strong>validated common control path</div>
+    <div class="blue"><strong>Blue</strong>API/external provider-owned path</div>
+    <div class="amber"><strong>Amber</strong>local/private/review/in-progress path</div>
+    <div class="red"><strong>Red</strong>blocked, forbidden, legacy, or gap</div>
+    <div class="gray"><strong>Gray</strong>decision or optional comparison helper</div>
+  </div>
+
+  <h2>Validation</h2>
+  <ul id="validation-evidence">
+    <li>API branch HEAD: <code>514e5d2cfb5d97d60da58d7f0f62ae893f8e1666</code></li>
+    <li>Excluded local Mini131 commits: 5/5</li>
+    <li>API stack: 23/23 PASS; API matrix + boundary: 15/15 PASS</li>
+    <li>Evaluation: 177/177 PASS; repository: 568/568 PASS; private fixture 8 SKIP</li>
+    <li><code>git diff --check</code>: PASS</li>
+    <li>Mermaid CLI 11.15.0: target 1568×1476, current 1568×1580 PNG render PASS</li>
+    <li>Headless Chromium: 7/7 headings, 2/2 images, legend and all required tables visible</li>
+    <li>Horizontal overflow: false; page errors: 0; full-page screenshot: 1440×4266</li>
+  </ul>
+
+  <div class="verdict">
+    <strong>Overall verdict: PARTIAL.</strong>
+    API 전용 경계는 검증됐다. 전체 MATCHED 전환은 provider-neutral Mini131 scorecard 추출,
+    clean local branch 완료, evaluation provider CI guard가 모두 통과한 뒤에만 가능하다.
+    Optional comparison 구현은 필수 gate가 아니다.
+  </div>
+</main>
+</body>
+</html>
