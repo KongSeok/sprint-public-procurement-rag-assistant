@@ -112,6 +112,68 @@ FINAL_DECISIONS = {"accepted", "rejected"}
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 LOCAL_GENERATOR = "qwen3.8:27b-mlx"
 LOCAL_EMBEDDING = "nlpai-lab/KURE-v1"
+LOCAL_REPRODUCTION_STACK = (
+    (
+        "이 보고서의 실행 프로필",
+        "mac_local_equivalent · macOS/Apple Silicon · Python 3.12 · "
+        "Ollama loopback · NumPy exact dense index (공식 GCP 점수 아님)",
+    ),
+    (
+        "임베딩",
+        "nlpai-lab/KURE-v1 @ 4ed4540949c70b7da2c74004a915e1f2d5e46e4f · "
+        "1024 dimensions · batch 32 · max input 8192 tokens · empty query/document prompt",
+    ),
+    (
+        "실제 생성 모델",
+        "Ollama qwen3.8:27b-mlx @ "
+        "5642e97495e1a088883805981563dcdc4a040c2f53388b7a41d1f24d3622cf7e",
+    ),
+    (
+        "GCP 목표 생성 스택",
+        "Qwen/Qwen3-8B-AWQ @ 4da05a8edb55c6046cce958586c33b61da07bb79 · "
+        "AWQ int4 · vLLM 0.8.5.post1; 이 HTML의 점수에는 사용하지 않음",
+    ),
+    (
+        "GCP 목표 자원",
+        "us-central1 · g2-standard-4 (4 vCPU, 16 GB RAM) · NVIDIA L4 24 GB · "
+        "디스크 100 GB 이하, 80 GB 경고, 최소 10 GB 여유",
+    ),
+    (
+        "코퍼스/청킹",
+        "refined98 98문서 · page-v1 9,331 chunks · 설정과 입력 SHA-256 일치 필수",
+    ),
+    (
+        "검색",
+        "L2 정규화 내적(코사인) · top-k 10 · context top-k 5 · 최대 인용 3",
+    ),
+    (
+        "생성",
+        "logical context 8192 · Ollama transport context 32768 · max output 1024 "
+        "(suite ceiling 1200) · temperature 0 · thinking off",
+    ),
+    (
+        "평가",
+        "RAG 129 + parser 2 · fixed gpt-5.6-sol / gpt56-semantic-v2 · "
+        "Mini131 scorecard v1; 사람 골드 승인은 아직 pending",
+    ),
+    (
+        "고정 파일",
+        "configs/rag/gcp-local-kure-qwen3-8b-awq-mini131-v1.json · "
+        "configs/rag/gcp-local-kure-qwen3-8b-awq-refined98-page-v1.json · "
+        "requirements/gcp-local-lock.txt",
+    ),
+)
+LOCAL_REPRODUCTION_COMMANDS = (
+    "python3.12 -m venv .venv",
+    ". .venv/bin/activate",
+    "python -m pip install -e '.[test,gcp-local]'",
+    "ollama pull qwen3.8:27b-mlx",
+    "PYTHONPATH=src python -m midprojectrag.local_mini131_baseline --repo-root . preflight",
+    "PYTHONPATH=src python -m midprojectrag.local_mini131_baseline --repo-root . all --embedding-device cpu",
+    "PYTHONPATH=src python -m midprojectrag.local_mini131_semantic --repo-root . prepare --slice-count 1",
+    "PYTHONPATH=src python -m midprojectrag.local_mini131_semantic --repo-root . merge --decisions <review-decisions.jsonl>",
+    "PYTHONPATH=src python -m midprojectrag.local_mini131_performance --repo-root . --rebuild-from-records",
+)
 PRIMARY_CATEGORY_KEYS = tuple(PRIMARY_CATEGORY_ORDER)
 SCENARIO_KEYS = tuple(SCENARIO_PURPOSES)
 VISUAL_SUBGROUP_KEYS = tuple(VISUAL_SUBGROUP_DEFINITIONS)
@@ -2002,6 +2064,23 @@ def _common_metric_rows(
     return "".join(rows)
 
 
+def _local_reproduction_stack_rows() -> str:
+    return "".join(
+        "<tr>"
+        f'<th scope="row">{html.escape(label)}</th>'
+        f'<td class="meaning">{html.escape(value)}</td>'
+        "</tr>"
+        for label, value in LOCAL_REPRODUCTION_STACK
+    )
+
+
+def _local_reproduction_commands() -> str:
+    return "".join(
+        f"<li><code>{html.escape(command)}</code></li>"
+        for command in LOCAL_REPRODUCTION_COMMANDS
+    )
+
+
 def render_html(report: Mapping[str, Any]) -> str:
     validate_performance_evaluation(report, require_complete=False)
     records = report["records"]
@@ -2073,7 +2152,7 @@ def render_html(report: Mapping[str, Any]) -> str:
     return f'''<!doctype html>
 <html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Local Qwen Mini131 성능평가</title><style>
-:root{{font-family:Inter,system-ui,sans-serif;line-height:1.55;color-scheme:light dark}}body{{max-width:1440px;margin:auto;padding:24px}}h1{{margin-bottom:4px}}h2{{margin-top:30px}}.sub{{color:GrayText;margin-top:0}}.notice{{border:1px solid #d18b18;border-radius:10px;padding:12px;background:color-mix(in srgb,#d18b18 10%,Canvas)}}.notice.info{{border-color:#4f7ddc;background:color-mix(in srgb,#4f7ddc 8%,Canvas)}}.metrics,.grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin:16px 0}}.metric,section,details.case{{border:1px solid GrayText;border-radius:10px;padding:11px}}.metric strong{{display:block;font-size:1.5rem}}table{{width:100%;border-collapse:collapse;margin:12px 0}}th,td{{padding:8px;border-bottom:1px solid GrayText;text-align:right;vertical-align:top}}th:first-child,td:first-child{{text-align:left}}td.meaning{{text-align:left;min-width:320px}}.controls{{position:sticky;top:0;z-index:2;display:flex;gap:8px;flex-wrap:wrap;padding:10px;background:Canvas;border:1px solid GrayText;border-radius:10px}}input,select{{font:inherit;padding:7px}}input[type=search]{{flex:1;min-width:260px}}details.case{{margin:10px 0}}details.case>summary{{display:flex;gap:8px;align-items:center;flex-wrap:wrap;cursor:pointer}}details.case>summary strong{{margin-left:auto}}details.case>summary span{{border:1px solid GrayText;border-radius:999px;padding:2px 7px;font-size:.8rem}}pre{{white-space:pre-wrap;overflow-wrap:anywhere;background:color-mix(in srgb,CanvasText 7%,Canvas);padding:10px;border-radius:7px}}.hidden{{display:none!important}}@media(max-width:760px){{body{{padding:12px}}table{{display:block;overflow-x:auto}}td.meaning{{min-width:260px}}}}
+:root{{font-family:Inter,system-ui,sans-serif;line-height:1.55;color-scheme:light dark}}body{{max-width:1440px;margin:auto;padding:24px}}h1{{margin-bottom:4px}}h2{{margin-top:30px}}.sub{{color:GrayText;margin-top:0}}.notice{{border:1px solid #d18b18;border-radius:10px;padding:12px;background:color-mix(in srgb,#d18b18 10%,Canvas)}}.notice.info{{border-color:#4f7ddc;background:color-mix(in srgb,#4f7ddc 8%,Canvas)}}.metrics,.grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin:16px 0}}.metric,section,details.case{{border:1px solid GrayText;border-radius:10px;padding:11px}}.metric strong{{display:block;font-size:1.5rem}}table{{width:100%;border-collapse:collapse;margin:12px 0}}th,td{{padding:8px;border-bottom:1px solid GrayText;text-align:right;vertical-align:top}}th:first-child,td:first-child{{text-align:left}}td.meaning{{text-align:left;min-width:320px}}.commands{{padding-left:1.5rem}}.commands li{{margin:.55rem 0}}.commands code{{overflow-wrap:anywhere}}.controls{{position:sticky;top:0;z-index:2;display:flex;gap:8px;flex-wrap:wrap;padding:10px;background:Canvas;border:1px solid GrayText;border-radius:10px}}input,select{{font:inherit;padding:7px}}input[type=search]{{flex:1;min-width:260px}}details.case{{margin:10px 0}}details.case>summary{{display:flex;gap:8px;align-items:center;flex-wrap:wrap;cursor:pointer}}details.case>summary strong{{margin-left:auto}}details.case>summary span{{border:1px solid GrayText;border-radius:999px;padding:2px 7px;font-size:.8rem}}pre{{white-space:pre-wrap;overflow-wrap:anywhere;background:color-mix(in srgb,CanvasText 7%,Canvas);padding:10px;border-radius:7px}}.hidden{{display:none!important}}@media(max-width:760px){{body{{padding:12px}}table{{display:block;overflow-x:auto}}td.meaning{{min-width:260px}}}}
 </style></head><body>
 <h1>Local Qwen Mini131 성능평가</h1><p class="sub">qwen3.8:27b-mlx · KURE-v1 · fixed gpt-5.6-sol rubric · Mini131 131 assets</p>
 <aside class="notice"><strong>잠정 로컬 성능평가</strong> 로컬 실행의 129개 RAG 답변과 parser 2건을 모두 기록·채점했습니다. 골드는 아직 사람 승인 전이고 이 실행은 Mac Ollama/NumPy이므로 공식 GCP 점수가 아닙니다.</aside>
@@ -2093,6 +2172,11 @@ def render_html(report: Mapping[str, Any]) -> str:
 <h2>채점 구성요소</h2><table><thead><tr><th>요소</th><th>적용 문항</th><th>평균</th></tr></thead><tbody>{_component_rows(overall['components'])}</tbody></table>
 <h2>행동 검증</h2><table><thead><tr><th>검증</th><th>적용 문항</th><th>통과</th><th>통과율</th></tr></thead><tbody>{_behavior_rows(overall['behavior_checks'])}</tbody></table>
 <h2>난이도별</h2><table><thead><tr><th>난이도</th><th>문항</th><th>승인</th><th>반려</th><th>평균점수</th><th>승인율</th></tr></thead><tbody>{_table_rows(summary['by_difficulty'])}</tbody></table>
+<h2 id="reproduction-stack">재현 스택</h2>
+<aside class="notice info"><strong>재현 범위</strong> 아래 절차는 이 HTML의 <code>mac_local_equivalent</code> 결과를 재현합니다. GCP L4/vLLM 항목은 다음 공식 실행의 목표 계약이며, 현재 점수의 실행 환경으로 주장하지 않습니다.</aside>
+<table><thead><tr><th>구성</th><th>고정값</th></tr></thead><tbody>{_local_reproduction_stack_rows()}</tbody></table>
+<h3>필수 입력과 실행 순서</h3><p>refined98 manifest/chunks, Mini131 골든셋과 private supplemental 입력이 설정 파일의 SHA-256과 일치해야 합니다. 후보 생성은 OpenAI API 키가 필요 없지만, 고정 Sol 의미평가는 별도 reviewer 실행과 decision JSONL이 필요합니다.</p>
+<ol class="commands">{_local_reproduction_commands()}</ol>
 <h2 id="per-case-records">문항별 상세 기록</h2><div class="controls"><input id="search" type="search" placeholder="case ID, 질문, 답변, evidence 검색"><select id="purpose"><option value="">모든 평가 목적</option>{purpose_options}</select><select id="lane"><option value="">모든 실행 lane</option>{lane_options}</select><select id="asset-type"><option value="">모든 자산 유형</option><option value="rag">rag</option><option value="parser">parser</option></select><select id="execution-lineage"><option value="">모든 실행 계보</option>{lineage_options}</select><select id="difficulty"><option value="">모든 난이도</option><option>easy</option><option>medium</option><option>hard</option><option>not_applicable</option></select><select id="verdict"><option value="">모든 판정</option><option>accepted</option><option>rejected</option><option>parser_passed</option></select><label><input id="failures" type="checkbox"> 실패만</label><strong id="visible">131 / 131</strong></div>
 <div id="cases">{''.join(cards)}</div>
 <script>const q=id=>document.getElementById(id);const cards=[...document.querySelectorAll('.case')];function filter(){{let n=0;for(const c of cards){{const ok=(!q('search').value||c.dataset.search.includes(q('search').value.toLowerCase()))&&(!q('difficulty').value||c.dataset.difficulty===q('difficulty').value)&&(!q('lane').value||c.dataset.lane===q('lane').value)&&(!q('purpose').value||c.dataset.purpose===q('purpose').value)&&(!q('asset-type').value||c.dataset.type===q('asset-type').value)&&(!q('execution-lineage').value||c.dataset.lineage===q('execution-lineage').value)&&(!q('verdict').value||c.dataset.verdict===q('verdict').value)&&(!q('failures').checked||c.dataset.failure==='1');c.classList.toggle('hidden',!ok);if(ok)n++}}q('visible').textContent=`${{n}} / ${{cards.length}}`;}}for(const id of ['search','difficulty','lane','purpose','asset-type','execution-lineage','verdict','failures'])q(id).addEventListener('input',filter);filter();</script>

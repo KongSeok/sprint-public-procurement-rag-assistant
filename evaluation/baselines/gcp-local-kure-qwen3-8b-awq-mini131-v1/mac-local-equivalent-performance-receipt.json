@@ -1,7 +1,7 @@
 {
   "artifact_hashes": {
     "local_records_input_sha256": "97c4011de0f2c2127ae143743c0466b0d23273be437ab1e75e8eb9fbade9136d",
-    "private_html_sha256": "20a8e94fb8e78eeae7aa52bf477129aecee942de770f21264c7074ebbe585d7c",
+    "private_html_sha256": "28366e8485e486020146aa69640c51baf801f28d05809d8426b99bb0bec37450",
     "private_records_sha256": "97c4011de0f2c2127ae143743c0466b0d23273be437ab1e75e8eb9fbade9136d",
     "private_summary_sha256": "0421be6a2ac93f2d73b961b219885947431cd7f16bcbc624e6de9936edd2c7e5",
     "scorecard_contract_sha256": "fd7d7f863e026f309509425fea77e43840b5c944275aa04475aa1452cd688b08"
