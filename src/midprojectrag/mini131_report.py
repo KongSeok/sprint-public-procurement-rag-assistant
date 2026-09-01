@@ -21,6 +21,19 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
+from midprojectrag.eval_contracts.mini131.judge import (
+    ALLOWED_COMPONENT_SCORES as NEUTRAL_ALLOWED_COMPONENT_SCORES,
+    EXPECTED_BEHAVIORS as NEUTRAL_EXPECTED_BEHAVIORS,
+    JUDGE_MODEL,
+    JUDGE_ROLES as NEUTRAL_JUDGE_ROLES,
+    JUDGE_RUBRIC,
+    JUDGE_WEIGHTS,
+    JUDGMENT_SCORE_FIELDS,
+    ROLE_DECISIONS as NEUTRAL_ROLE_DECISIONS,
+    judgment_semantic_score,
+    valid_rfc3339,
+    validate_judgment_decision,
+)
 from midprojectrag.ingest.common import (
     canonical_json,
     read_jsonl,
@@ -42,28 +55,17 @@ EXPECTED_COUNTS = {
 RAG_LINEAGES = {"legacy_reconstructed", "prospective_rerun"}
 ALL_LINEAGES = RAG_LINEAGES | {"parser_local"}
 JUDGE_DECISIONS = {"accepted", "rejected", "needs_review", "needs_human"}
-JUDGE_ROLES = {"primary", "secondary", "adjudicator"}
+JUDGE_ROLES = set(NEUTRAL_JUDGE_ROLES)
 ROLE_DECISIONS = {
-    "primary": {"accepted", "rejected", "needs_review"},
-    "secondary": {"accepted", "rejected", "needs_review"},
-    "adjudicator": {"accepted", "rejected", "needs_human"},
+    role: set(decisions) for role, decisions in NEUTRAL_ROLE_DECISIONS.items()
 }
-EXPECTED_BEHAVIORS = {"answer", "abstain", "source_conflict"}
+EXPECTED_BEHAVIORS = set(NEUTRAL_EXPECTED_BEHAVIORS)
 RAG_STATUSES = {"answered", "abstained", "error"}
 CASE_TYPES = {"rag", "parser"}
-ALLOWED_COMPONENT_SCORES = {0, 0.5, 1}
-ANSWER_SCORE_FIELDS = (
-    "correctness",
-    "faithfulness",
-    "completeness",
-    "factual_claim_coverage",
-    "citation_validity",
-)
-ALL_SCORE_FIELDS = set(ANSWER_SCORE_FIELDS) | {"abstention_quality"}
+ALLOWED_COMPONENT_SCORES = set(NEUTRAL_ALLOWED_COMPONENT_SCORES)
+ANSWER_SCORE_FIELDS = tuple(JUDGE_WEIGHTS)
+ALL_SCORE_FIELDS = set(JUDGMENT_SCORE_FIELDS)
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
-RFC3339_RE = re.compile(
-    r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$"
-)
 JUDGMENT_FIELDS = {
     "schema_version",
     "judgment_id",
@@ -140,41 +142,14 @@ def _json_collection(value: Any, code: str) -> list[Any]:
 
 
 def _score_from_judgment(judgment: Mapping[str, Any]) -> float | None:
-    scores = judgment.get("scores")
-    if not isinstance(scores, Mapping):
+    try:
+        return judgment_semantic_score(judgment)
+    except (KeyError, TypeError, ValueError):
         return None
-    abstention = scores.get("abstention_quality")
-    if isinstance(abstention, (int, float)) and not isinstance(abstention, bool):
-        derived = round(100.0 * float(abstention), 2)
-    else:
-        values = [scores.get(key) for key in ANSWER_SCORE_FIELDS]
-        if not all(
-            isinstance(value, (int, float)) and not isinstance(value, bool)
-            for value in values
-        ):
-            return None
-        correctness, faithfulness, completeness, coverage, citations = map(float, values)
-        derived = round(
-            100.0
-            * (
-                0.35 * correctness
-                + 0.25 * faithfulness
-                + 0.20 * completeness
-                + 0.10 * coverage
-                + 0.10 * citations
-            ),
-            2,
-        )
-    return derived
 
 
 def _valid_rfc3339(value: Any) -> bool:
-    if not isinstance(value, str) or not RFC3339_RE.fullmatch(value):
-        return False
-    try:
-        return datetime.fromisoformat(value.replace("Z", "+00:00")).tzinfo is not None
-    except ValueError:
-        return False
+    return valid_rfc3339(value)
 
 
 def _validate_judgment(
@@ -198,9 +173,9 @@ def _validate_judgment(
     ):
         if not isinstance(value.get(field), str) or not SHA256_RE.fullmatch(value[field]):
             raise ValueError(f"mini131_judgment_{field}_invalid")
-    if value.get("model") != "gpt-5.6-sol":
+    if value.get("model") != JUDGE_MODEL:
         raise ValueError("mini131_judge_model_mismatch")
-    if value.get("rubric_version") != "gpt56-semantic-v2":
+    if value.get("rubric_version") != JUDGE_RUBRIC:
         raise ValueError("mini131_judge_rubric_mismatch")
     if value.get("reviewer_type") != "llm":
         raise ValueError("mini131_judge_reviewer_type_mismatch")
@@ -264,38 +239,9 @@ def _validate_judgment(
     semantic_score = _score_from_judgment(value)
     if semantic_score is None:
         raise ValueError("mini131_judge_semantic_score_unavailable")
-    decision = value["judge_decision"]
-    safe_abstention = value.get("safe_abstention")
     if not _valid_rfc3339(value.get("reviewed_at")):
         raise ValueError("mini131_judgment_reviewed_at_invalid")
-    if expected_behavior == "abstain":
-        hard_rejection = candidate_status != "abstained" or safe_abstention is not True
-    else:
-        if safe_abstention is not None:
-            raise ValueError("mini131_safe_abstention_scope_invalid")
-        # An answerable/source-conflict case that abstained (or errored) is a
-        # false abstention even when its component scores are otherwise high.
-        hard_rejection = candidate_status != "answered"
-    hard_rejection = hard_rejection or candidate_status == "error" or bool(critical_flags)
-    if role == "adjudicator":
-        final_accept = (
-            not hard_rejection
-            and semantic_score > 85
-            and confidence >= 0.70
-        )
-        allowed_decisions = (
-            {"accepted", "needs_human"}
-            if final_accept
-            else {"rejected", "needs_human"}
-        )
-    elif hard_rejection or semantic_score < 60:
-        allowed_decisions = {"rejected"}
-    elif semantic_score <= 85 or confidence < 0.70:
-        allowed_decisions = {"needs_review"}
-    else:
-        allowed_decisions = {"accepted"}
-    if decision not in allowed_decisions:
-        raise ValueError("mini131_judge_decision_inconsistent")
+    validate_judgment_decision(value)
     if value.get("case_id") not in (None, case_id):
         raise ValueError("mini131_judgment_case_mismatch")
     return value
@@ -807,6 +753,15 @@ def _validate_public_aggregate(
         or artifacts.get("case_records") != case_records_sha256
     ):
         raise ValueError("mini131_public_aggregate_case_records_mismatch")
+    scorecard_contract_sha256 = value.get("scorecard_contract_sha256")
+    inputs = artifacts.get("inputs")
+    if (
+        not isinstance(scorecard_contract_sha256, str)
+        or not SHA256_RE.fullmatch(scorecard_contract_sha256)
+        or not isinstance(inputs, Mapping)
+        or inputs.get("scorecard_contract") != scorecard_contract_sha256
+    ):
+        raise ValueError("mini131_public_aggregate_scorecard_contract_mismatch")
     privacy = value.get("privacy")
     expected_privacy_fields = {
         "contains_case_ids",

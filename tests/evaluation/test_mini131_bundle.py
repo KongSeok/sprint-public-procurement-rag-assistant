@@ -10,6 +10,7 @@ from collections import Counter
 from contextlib import redirect_stdout
 from pathlib import Path
 
+from midprojectrag.eval_contracts.mini131.scorecard import expected_contract
 from midprojectrag.ingest.common import canonical_json, read_jsonl, sha256_file, sha256_text
 from midprojectrag.mini131_bundle import (
     BANNED_JUDGE_KEYS,
@@ -164,6 +165,7 @@ class Mini131Fixture:
             parser_receipt=root / "parser-receipt.json",
             rubric=root / "rubric.md",
             judge_config=root / "judge-config.json",
+            scorecard_contract=root / "scorecard-v1.json",
             judge_packets=root / "private" / "judge-packets.jsonl",
             blind_judge_inputs=root / "private" / "blind-judge-inputs.jsonl",
             case_records=root / "private" / "case-records.jsonl",
@@ -174,6 +176,7 @@ class Mini131Fixture:
 
     def _write(self) -> None:
         self.paths.rubric.write_text("synthetic fixed rubric\n", encoding="utf-8")
+        _write_json(self.paths.scorecard_contract, expected_contract())
         _write_json(
             self.paths.judge_config,
             _expected_judge_config(sha256_file(self.paths.rubric)),
@@ -807,6 +810,10 @@ class Mini131BundleTests(unittest.TestCase):
                 receipt["semantic_judge"]["rubric_sha256"],
                 sha256_file(fixture.paths.rubric),
             )
+            self.assertEqual(
+                receipt["scorecard_contract_sha256"],
+                sha256_file(fixture.paths.scorecard_contract),
+            )
             for field in (
                 "legacy_receipt",
                 "gap_receipt",
@@ -814,6 +821,7 @@ class Mini131BundleTests(unittest.TestCase):
                 "visual_eda_receipt",
                 "judge_config",
                 "rubric",
+                "scorecard_contract",
             ):
                 self.assertEqual(
                     receipt["artifact_sha256s"]["inputs"][field],
@@ -879,6 +887,22 @@ class Mini131BundleTests(unittest.TestCase):
             self.assertNotIn("private gold", public_text)
             self.assertNotIn("candidate legacy", public_text)
             self.assertNotIn("private generation prompt", public_text)
+
+    def test_prepare_rejects_scorecard_contract_drift_before_private_outputs(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            fixture = Mini131Fixture(Path(directory))
+            contract = expected_contract()
+            contract["contract_id"] = "drifted"
+            _write_json(fixture.paths.scorecard_contract, contract)
+
+            with self.assertRaisesRegex(
+                ValueError, "mini131_scorecard_contract_mismatch"
+            ):
+                build_judge_packets(fixture.paths)
+
+            self.assertFalse(fixture.paths.judge_packets.exists())
+            self.assertFalse(fixture.paths.blind_judge_inputs.exists())
+            self.assertFalse(fixture.paths.receipt.exists())
 
     def test_merge_enforces_fixed_sol_v2_and_builds_report_compatible_131_records(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
