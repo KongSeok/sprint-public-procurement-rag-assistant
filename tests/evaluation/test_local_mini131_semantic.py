@@ -26,11 +26,11 @@ from midprojectrag.local_mini131_semantic import (
     select_secondary_inputs,
     validate_decisions,
 )
-from midprojectrag.mini131_bundle import (
+from midprojectrag.eval_contracts.mini131.judge import (
     BLIND_ADJUDICATION_INPUT_SCHEMA_VERSION,
     BLIND_DECISION_SCHEMA_VERSION,
     BLIND_JUDGE_INPUT_SCHEMA_VERSION,
-    _blind_id,
+    blind_id as _blind_id,
 )
 
 

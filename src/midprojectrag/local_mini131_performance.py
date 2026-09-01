@@ -34,6 +34,22 @@ from midprojectrag.ingest.common import (
     sha256_text,
 )
 from midprojectrag.evaluation import EXPECTED_METRIC_KEYS
+from midprojectrag.eval_contracts.mini131.judge import (
+    JUDGE_MODEL,
+    JUDGE_RUBRIC,
+    binary_recommendation as _binary_recommendation,
+    judgment_semantic_score as _judgment_semantic_score,
+    secondary_triggered as _secondary_triggered,
+)
+from midprojectrag.eval_contracts.mini131.scorecard import (
+    SCORECARD_CONTRACT_PATH,
+)
+from midprojectrag.eval_contracts.mini131.taxonomy import (
+    PRIMARY_CATEGORY_ORDER,
+    PURPOSE_DEFINITIONS,
+    SCENARIO_PURPOSES,
+    VISUAL_SUBGROUP_DEFINITIONS,
+)
 from midprojectrag.local_mini131_baseline import (
     DEFAULT_CONFIG,
     EXPECTED_COUNTS,
@@ -49,26 +65,12 @@ from midprojectrag.local_mini131_semantic import (
     load_ledger,
     validate_decisions,
 )
-from midprojectrag.mini131_bundle import (
-    JUDGE_MODEL,
-    JUDGE_RUBRIC,
-    _binary_recommendation,
-    _judgment_semantic_score,
-    _secondary_triggered,
-)
-from midprojectrag.mini131_report import (
-    PRIMARY_CATEGORY_ORDER,
-    PURPOSE_DEFINITIONS,
-    SCENARIO_PURPOSES,
-    VISUAL_SUBGROUP_DEFINITIONS,
-    validate_records as validate_api_case_records,
-)
 
 
 RECORD_SCHEMA_VERSION = "local-mini131-golden-evaluation-record.v1"
-SUMMARY_SCHEMA_VERSION = "local-mini131-golden-performance-summary.v2"
-REPORT_SCHEMA_VERSION = "local-mini131-golden-performance-report.v2"
-RECEIPT_SCHEMA_VERSION = "local-mini131-golden-performance-receipt.v2"
+SUMMARY_SCHEMA_VERSION = "local-mini131-golden-performance-summary.v3"
+REPORT_SCHEMA_VERSION = "local-mini131-golden-performance-report.v3"
+RECEIPT_SCHEMA_VERSION = "local-mini131-golden-performance-receipt.v3"
 PERFORMANCE_DIRNAME = "performance-v1"
 RECORDS_FILENAME = "golden-evaluation-records.jsonl"
 SUMMARY_FILENAME = "golden-performance-summary.json"
@@ -108,11 +110,6 @@ COMPONENT_FIELDS = (
 RAG_STATUSES = {"answered", "abstained", "error"}
 FINAL_DECISIONS = {"accepted", "rejected"}
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
-API_BASELINE_ID = "mini131-bundle-v1"
-API_RECEIPT_RELATIVE_PATH = Path("evaluation/baselines/mini131-bundle-v1/receipt.json")
-API_RECEIPT_SHA256 = "dabae64574285bd0efc7bfd31a280ba573ca375f38037a713abae261c36b2c2b"
-API_CASE_RECORDS_SHA256 = "6d8b0cb9c1b393ad5b7bfc749e6f69bc2e3dbcff9f759860296d3ad4948fa87e"
-API_GENERATOR = "gpt-5-mini"
 LOCAL_GENERATOR = "qwen3.8:27b-mlx"
 LOCAL_EMBEDDING = "nlpai-lab/KURE-v1"
 PRIMARY_CATEGORY_KEYS = tuple(PRIMARY_CATEGORY_ORDER)
@@ -122,7 +119,7 @@ PUBLIC_COMMON_UNAVAILABLE_REASONS = {
     "metric_not_captured_by_frozen_local_run",
     "metric_not_applicable_to_local_candidate",
     "mac_local_equivalent_run_did_not_capture_gcp_gpu_telemetry",
-    "local_candidate_response_not_normalized_to_api_contract",
+    "response_contract_metric_not_captured_by_frozen_local_run",
 }
 PUBLIC_DETERMINISTIC_METRIC_NAMES = {
     "analytics_calculation.case_passed",
@@ -687,16 +684,12 @@ def _parser_records(
     *,
     parser_rerun_sha256: str,
 ) -> list[dict[str, Any]]:
-    ledger_rows = {
-        case_id: row
-        for case_id, row in ledger.suite.ledger_rows.items()
-        if row.get("case_type") == "parser"
-    }
-    if set(ledger_rows) != set(parser_by_id):
+    parser_cases = ledger.suite.parser_cases
+    if set(parser_cases) != set(parser_by_id):
         raise ValueError("local_mini131_performance_parser_ledger_mismatch")
     records: list[dict[str, Any]] = []
     for case_id in sorted(parser_by_id):
-        source = ledger_rows[case_id]
+        source = parser_cases[case_id]
         result = copy.deepcopy(dict(parser_by_id[case_id]))
         if result.get("passed") is not True:
             raise ValueError("local_mini131_performance_parser_failed")
@@ -835,8 +828,8 @@ def _group_summary(records: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
     }
 
 
-def _api_display_mean(value: int | float | None) -> float | None:
-    """Match the API report's conventional two-decimal, half-up score display."""
+def _scorecard_display_mean(value: int | float | None) -> float | None:
+    """Use the scorecard's conventional two-decimal, half-up score display."""
 
     if value is None:
         return None
@@ -1149,9 +1142,9 @@ def _common_evaluation_metrics(
     precision_denominator = true_positive_abstain + false_positive_abstain
     recall_denominator = true_positive_abstain + false_negative_abstain
     unavailable_gpu = "mac_local_equivalent_run_did_not_capture_gcp_gpu_telemetry"
-    unavailable_api = "metric_not_applicable_to_local_candidate"
+    not_applicable_to_local = "metric_not_applicable_to_local_candidate"
     unavailable_response_contract = (
-        "local_candidate_response_not_normalized_to_api_contract"
+        "response_contract_metric_not_captured_by_frozen_local_run"
     )
     values: dict[str, dict[str, dict[str, Any]]] = {
         "retrieval": {},
@@ -1246,7 +1239,9 @@ def _common_evaluation_metrics(
         "total_gpu_seconds": _metric_entry(None, eligible=0, reason=unavailable_gpu),
         "mean_gpu_seconds": _metric_entry(None, eligible=0, reason=unavailable_gpu),
         "peak_vram_gb": _metric_entry(None, eligible=0, reason=unavailable_gpu),
-        "api_cost_coverage": _metric_entry(None, eligible=0, reason=unavailable_api),
+        "api_cost_coverage": _metric_entry(
+            None, eligible=0, reason=not_applicable_to_local
+        ),
         "local_gpu_usage_coverage": _metric_entry(
             None, eligible=0, reason=unavailable_gpu
         ),
@@ -1460,194 +1455,12 @@ def _objective_companion_metrics(
     return metrics
 
 
-def _read_api_receipt(path: Path) -> dict[str, Any]:
-    if (
-        not path.is_file()
-        or path.is_symlink()
-        or stat.S_IMODE(path.stat().st_mode) != 0o644
-        or sha256_file(path) != API_RECEIPT_SHA256
-    ):
-        raise ValueError("local_mini131_performance_api_receipt_invalid")
-    try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError) as error:
-        raise ValueError("local_mini131_performance_api_receipt_invalid") from error
-    if not isinstance(value, dict):
-        raise ValueError("local_mini131_performance_api_receipt_invalid")
-    return value
-
-
-def _load_api_baseline(
-    ledger: SemanticLedger,
-    local_records: Sequence[Mapping[str, Any]],
-) -> tuple[dict[str, dict[str, Any]], dict[str, Any], dict[str, Any]]:
-    sources = ledger.suite.config.get("sources")
-    integrated = sources.get("integrated_ledger") if isinstance(sources, Mapping) else None
-    if not isinstance(integrated, Mapping):
-        raise ValueError("local_mini131_performance_api_case_records_invalid")
-    relative = integrated.get("path")
-    expected_sha256 = integrated.get("sha256")
-    if (
-        not isinstance(relative, str)
-        or expected_sha256 != API_CASE_RECORDS_SHA256
-    ):
-        raise ValueError("local_mini131_performance_api_case_records_invalid")
-    case_path = ledger.suite.repo_root / relative
-    if (
-        not case_path.is_file()
-        or case_path.is_symlink()
-        or stat.S_IMODE(case_path.stat().st_mode) != 0o600
-        or sha256_file(case_path) != expected_sha256
-    ):
-        raise ValueError("local_mini131_performance_api_case_records_invalid")
-    try:
-        api_records = validate_api_case_records(read_jsonl(case_path))
-    except (OSError, UnicodeError, json.JSONDecodeError, ValueError) as error:
-        raise ValueError("local_mini131_performance_api_case_records_invalid") from error
-    receipt_path = ledger.suite.repo_root / API_RECEIPT_RELATIVE_PATH
-    receipt = _read_api_receipt(receipt_path)
-    artifacts = receipt.get("artifact_sha256s")
-    counts = receipt.get("counts")
-    semantic = receipt.get("semantic_judge")
-    if (
-        receipt.get("schema_version") != "mini131-bundle.v1"
-        or receipt.get("baseline_id") != API_BASELINE_ID
-        or receipt.get("stage") != "case_records_ready"
-        or receipt.get("passed") is not True
-        or not isinstance(artifacts, Mapping)
-        or artifacts.get("case_records") != expected_sha256
-        or not isinstance(counts, Mapping)
-        or counts.get("total") != 131
-        or counts.get("rag") != 129
-        or counts.get("parser") != 2
-        or not isinstance(semantic, Mapping)
-        or semantic.get("status") != "complete"
-        or semantic.get("model") != JUDGE_MODEL
-        or semantic.get("rubric_version") != JUDGE_RUBRIC
-    ):
-        raise ValueError("local_mini131_performance_api_receipt_invalid")
-    api_by_id = {str(row["case_id"]): row for row in api_records}
-    local_by_id = {str(row["case_id"]): row for row in local_records}
-    if set(api_by_id) != set(local_by_id) or len(api_by_id) != 131:
-        raise ValueError("local_mini131_performance_api_case_identity_mismatch")
-    for case_id in api_by_id:
-        api = api_by_id[case_id]
-        local = local_by_id[case_id]
-        if (
-            api.get("question") != local.get("question")
-            or canonical_json(api.get("expected"))
-            != canonical_json(local.get("expected"))
-            or api.get("lane") != local.get("lane")
-            or api.get("case_type") != local.get("asset_type")
-        ):
-            raise ValueError("local_mini131_performance_api_case_identity_mismatch")
-    reference = {
-        "baseline_id": API_BASELINE_ID,
-        "generator": API_GENERATOR,
-        "mean_semantic_score": semantic.get("mean_semantic_score"),
-        "accepted": int(counts.get("judge_decisions", {}).get("accepted", 0)),
-        "rejected": int(counts.get("judge_decisions", {}).get("rejected", 0)),
-        "rag_count": int(counts["rag"]),
-        "parser_count": int(counts["parser"]),
-        "case_records_sha256": expected_sha256,
-        "receipt_sha256": API_RECEIPT_SHA256,
-    }
-    identity = {
-        "validated": True,
-        "case_count": 131,
-        "rag_case_count": 129,
-        "parser_case_count": 2,
-        "question_expected_lane_exact_match": True,
-        "api_case_records_sha256": expected_sha256,
-        "api_receipt_sha256": API_RECEIPT_SHA256,
-    }
-    return api_by_id, reference, identity
-
-
-def _same_item_comparison(
-    records: Sequence[Mapping[str, Any]],
-    api_by_id: Mapping[str, Mapping[str, Any]],
-) -> dict[str, Any]:
-    cases: list[dict[str, Any]] = []
-    score_deltas: list[float] = []
-    local_higher = 0
-    api_higher = 0
-    equal_score = 0
-    verdict_same = 0
-    status_same = 0
-    for local in sorted(records, key=lambda item: str(item["case_id"])):
-        case_id = str(local["case_id"])
-        api = api_by_id[case_id]
-        if local["asset_type"] == "rag":
-            api_judgment = api.get("judgment")
-            if not isinstance(api_judgment, Mapping):
-                raise ValueError("local_mini131_performance_api_judgment_missing")
-            api_score = float(_judgment_semantic_score(api_judgment))
-            local_score = float(local["semantic_evaluation"]["score"])
-            api_verdict = str(api_judgment["judge_decision"])
-            local_verdict = str(local["semantic_evaluation"]["verdict"])
-            delta = round(local_score - api_score, 6)
-            score_deltas.append(delta)
-            local_higher += int(delta > 0)
-            api_higher += int(delta < 0)
-            equal_score += int(delta == 0)
-        else:
-            api_score = None
-            local_score = None
-            api_verdict = (
-                "parser_passed"
-                if api.get("parser_result", {}).get("passed") is True
-                else "parser_failed"
-            )
-            local_verdict = (
-                "parser_passed"
-                if local.get("deterministic_metrics", {}).get("passed") is True
-                else "parser_failed"
-            )
-            delta = None
-        api_status = str(api.get("candidate", {}).get("status"))
-        local_status = str(local.get("candidate", {}).get("status"))
-        verdict_same += int(api_verdict == local_verdict)
-        status_same += int(api_status == local_status)
-        cases.append(
-            {
-                "case_id": case_id,
-                "asset_type": str(local["asset_type"]),
-                "lane": str(local["lane"]),
-                "purpose": str(local["purpose"]),
-                "api_score": api_score,
-                "local_score": local_score,
-                "score_delta_local_minus_api": delta,
-                "api_verdict": api_verdict,
-                "local_verdict": local_verdict,
-                "verdict_changed": api_verdict != local_verdict,
-                "api_status": api_status,
-                "local_status": local_status,
-                "status_changed": api_status != local_status,
-            }
-        )
-    return {
-        "case_count": len(cases),
-        "rag_case_count": len(score_deltas),
-        "parser_case_count": len(cases) - len(score_deltas),
-        "mean_score_delta": round(fmean(score_deltas), 6),
-        "local_higher_score": local_higher,
-        "api_higher_score": api_higher,
-        "equal_score": equal_score,
-        "verdict_same": verdict_same,
-        "verdict_changed": len(cases) - verdict_same,
-        "status_same": status_same,
-        "status_changed": len(cases) - status_same,
-        "cases": cases,
-    }
-
-
 def _labeled_group_summary(
     key: str, records: Sequence[Mapping[str, Any]]
 ) -> dict[str, Any]:
     definition = PURPOSE_DEFINITIONS[key]
     summary = _group_summary(records)
-    summary["mean_semantic_score"] = _api_display_mean(
+    summary["mean_semantic_score"] = _scorecard_display_mean(
         summary["mean_semantic_score"]
     )
     return {
@@ -1709,7 +1522,7 @@ def _visual_subgroup_summaries(
     for key in VISUAL_SUBGROUP_KEYS:
         definition = VISUAL_SUBGROUP_DEFINITIONS[key]
         summary = _group_summary(grouped[key])
-        summary["mean_semantic_score"] = _api_display_mean(
+        summary["mean_semantic_score"] = _scorecard_display_mean(
             summary["mean_semantic_score"]
         )
         result[key] = {
@@ -1724,11 +1537,8 @@ def _visual_subgroup_summaries(
 def build_summary(
     records: Sequence[Mapping[str, Any]],
     *,
-    deterministic_report: Mapping[str, Any],
-    semantic_report: Mapping[str, Any],
-    api_by_id: Mapping[str, Mapping[str, Any]],
-    api_reference: Mapping[str, Any],
-    case_identity: Mapping[str, Any],
+    deterministic_report: Mapping[str, Any] | None = None,
+    semantic_report: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     rag = [row for row in records if row.get("asset_type") == "rag"]
     parser = [row for row in records if row.get("asset_type") == "parser"]
@@ -1736,21 +1546,20 @@ def build_summary(
     if dict(difficulty_counts) != EXPECTED_DIFFICULTY_COUNTS:
         raise ValueError("local_mini131_performance_difficulty_partition_mismatch")
     overall = _group_summary(records)
-    if (
+    if semantic_report is not None and (
         overall["mean_semantic_score"]
         != semantic_report.get("metrics", {}).get("mean_semantic_score")
         or overall["accepted"] != semantic_report.get("counts", {}).get("accepted")
         or overall["rejected"] != semantic_report.get("counts", {}).get("rejected")
     ):
         raise ValueError("local_mini131_performance_semantic_aggregate_mismatch")
-    comparison = _same_item_comparison(records, api_by_id)
-    api_parity = {
+    scorecard = {
+        "contract_version": "mini131-scorecard.v1",
         "primary_categories": _primary_category_summaries(records),
         "scenario_breakdown": _scenario_summaries(records),
         "visual_subgroups": _visual_subgroup_summaries(records),
         "objective_companion_metrics": _objective_companion_metrics(records),
         "common_evaluation_metrics": _common_evaluation_metrics(records),
-        "api_reference": copy.deepcopy(dict(api_reference)),
         "local_candidate": {
             "suite_id": SUITE_ID,
             "generator": LOCAL_GENERATOR,
@@ -1762,8 +1571,6 @@ def build_summary(
             "rag_count": len(rag),
             "parser_count": len(parser),
         },
-        "case_identity": copy.deepcopy(dict(case_identity)),
-        "same_item_comparison": comparison,
     }
     return {
         "schema_version": SUMMARY_SCHEMA_VERSION,
@@ -1790,7 +1597,7 @@ def build_summary(
         "by_difficulty": _partition_summary(rag, "difficulty"),
         "by_purpose": _partition_summary(records, "purpose"),
         "by_lane": _partition_summary(records, "lane"),
-        "api_parity": api_parity,
+        "scorecard": scorecard,
         "failure_case_ids": {
             "runtime_error": [
                 str(row["case_id"])
@@ -1805,6 +1612,8 @@ def build_summary(
         },
         "frozen_aggregate_metrics": copy.deepcopy(
             deterministic_report.get("metrics", {})
+            if deterministic_report is not None
+            else {}
         ),
         "limitations": {
             "human_gold_approved": False,
@@ -1817,155 +1626,30 @@ def build_summary(
     }
 
 
-def _validate_same_item_comparison(
-    comparison: Any, records: Sequence[Mapping[str, Any]]
-) -> None:
-    aggregate_fields = {
-        "case_count",
-        "rag_case_count",
-        "parser_case_count",
-        "mean_score_delta",
-        "local_higher_score",
-        "api_higher_score",
-        "equal_score",
-        "verdict_same",
-        "verdict_changed",
-        "status_same",
-        "status_changed",
-        "cases",
-    }
-    case_fields = {
-        "case_id",
-        "asset_type",
-        "lane",
-        "purpose",
-        "api_score",
-        "local_score",
-        "score_delta_local_minus_api",
-        "api_verdict",
-        "local_verdict",
-        "verdict_changed",
-        "api_status",
-        "local_status",
-        "status_changed",
-    }
-    if not isinstance(comparison, Mapping) or set(comparison) != aggregate_fields:
-        raise ValueError("local_mini131_performance_same_item_comparison_invalid")
-    cases = comparison["cases"]
-    if not isinstance(cases, list) or len(cases) != len(records):
-        raise ValueError("local_mini131_performance_same_item_comparison_invalid")
-    local_by_id = {str(row["case_id"]): row for row in records}
-    seen: set[str] = set()
-    deltas: list[float] = []
-    local_higher = 0
-    api_higher = 0
-    equal = 0
-    verdict_same = 0
-    status_same = 0
-    for item in cases:
-        if not isinstance(item, Mapping) or set(item) != case_fields:
-            raise ValueError("local_mini131_performance_same_item_case_invalid")
-        case_id = item["case_id"]
-        if not isinstance(case_id, str) or case_id in seen or case_id not in local_by_id:
-            raise ValueError("local_mini131_performance_same_item_case_invalid")
-        seen.add(case_id)
-        record = local_by_id[case_id]
-        if (
-            item["asset_type"] != record["asset_type"]
-            or item["lane"] != record["lane"]
-            or item["purpose"] != record["purpose"]
-            or item["local_status"] != record["candidate"]["status"]
-            or not isinstance(item["status_changed"], bool)
-            or item["status_changed"]
-            != (item["api_status"] != item["local_status"])
-            or not isinstance(item["verdict_changed"], bool)
-            or item["verdict_changed"]
-            != (item["api_verdict"] != item["local_verdict"])
-        ):
-            raise ValueError("local_mini131_performance_same_item_case_invalid")
-        if record["asset_type"] == "rag":
-            semantic = record["semantic_evaluation"]
-            local_score = float(semantic["score"])
-            api_score = item["api_score"]
-            if (
-                not isinstance(api_score, (int, float))
-                or isinstance(api_score, bool)
-                or not math.isfinite(float(api_score))
-                or not 0 <= float(api_score) <= 100
-                or item["local_score"] != local_score
-                or item["local_verdict"] != semantic["verdict"]
-                or item["api_verdict"] not in FINAL_DECISIONS
-            ):
-                raise ValueError("local_mini131_performance_same_item_case_invalid")
-            delta = round(local_score - float(api_score), 6)
-            if item["score_delta_local_minus_api"] != delta:
-                raise ValueError("local_mini131_performance_same_item_case_invalid")
-            deltas.append(delta)
-            local_higher += int(delta > 0)
-            api_higher += int(delta < 0)
-            equal += int(delta == 0)
-        elif (
-            item["api_score"] is not None
-            or item["local_score"] is not None
-            or item["score_delta_local_minus_api"] is not None
-            or item["local_verdict"]
-            != (
-                "parser_passed"
-                if record["deterministic_metrics"].get("passed") is True
-                else "parser_failed"
-            )
-            or item["api_verdict"] not in {"parser_passed", "parser_failed"}
-        ):
-            raise ValueError("local_mini131_performance_same_item_case_invalid")
-        verdict_same += int(not item["verdict_changed"])
-        status_same += int(not item["status_changed"])
-    if seen != set(local_by_id):
-        raise ValueError("local_mini131_performance_same_item_comparison_invalid")
-    expected = {
-        "case_count": len(records),
-        "rag_case_count": len(deltas),
-        "parser_case_count": len(records) - len(deltas),
-        "mean_score_delta": round(fmean(deltas), 6),
-        "local_higher_score": local_higher,
-        "api_higher_score": api_higher,
-        "equal_score": equal,
-        "verdict_same": verdict_same,
-        "verdict_changed": len(records) - verdict_same,
-        "status_same": status_same,
-        "status_changed": len(records) - status_same,
-    }
-    if any(comparison.get(key) != value for key, value in expected.items()):
-        raise ValueError("local_mini131_performance_same_item_reconciliation_failed")
-
-
-def _validate_api_parity(
-    api_parity: Any,
+def _validate_scorecard(
+    scorecard: Any,
     *,
     records: Sequence[Mapping[str, Any]],
 ) -> None:
-    if not isinstance(api_parity, Mapping) or set(api_parity) != {
+    if not isinstance(scorecard, Mapping) or set(scorecard) != {
+        "contract_version",
         "primary_categories",
         "scenario_breakdown",
         "visual_subgroups",
         "objective_companion_metrics",
         "common_evaluation_metrics",
-        "api_reference",
         "local_candidate",
-        "case_identity",
-        "same_item_comparison",
     }:
-        raise ValueError("local_mini131_performance_api_parity_invalid")
-    primary = api_parity["primary_categories"]
-    scenarios = api_parity["scenario_breakdown"]
-    visual = api_parity["visual_subgroups"]
+        raise ValueError("local_mini131_performance_scorecard_invalid")
+    if scorecard["contract_version"] != "mini131-scorecard.v1":
+        raise ValueError("local_mini131_performance_scorecard_invalid")
+    primary = scorecard["primary_categories"]
+    scenarios = scorecard["scenario_breakdown"]
+    visual = scorecard["visual_subgroups"]
     if (
         not isinstance(primary, Mapping)
         or set(primary) != set(PRIMARY_CATEGORY_KEYS)
-        or {
-            key: primary[key].get("count")
-            for key in PRIMARY_CATEGORY_KEYS
-            if isinstance(primary[key], Mapping)
-        }
+        or {key: primary[key].get("count") for key in PRIMARY_CATEGORY_KEYS}
         != EXPECTED_PRIMARY_COUNTS
         or not isinstance(scenarios, Mapping)
         or set(scenarios) != set(SCENARIO_KEYS)
@@ -1976,26 +1660,20 @@ def _validate_api_parity(
         )
         or not isinstance(visual, Mapping)
         or set(visual) != set(VISUAL_SUBGROUP_KEYS)
-        or {
-            key: visual[key].get("count")
-            for key in VISUAL_SUBGROUP_KEYS
-            if isinstance(visual[key], Mapping)
-        }
+        or {key: visual[key].get("count") for key in VISUAL_SUBGROUP_KEYS}
         != EXPECTED_VISUAL_SUBGROUP_COUNTS
     ):
-        raise ValueError("local_mini131_performance_api_partition_invalid")
+        raise ValueError("local_mini131_performance_scorecard_partition_invalid")
     if (
         primary != _primary_category_summaries(records)
         or scenarios != _scenario_summaries(records)
         or visual != _visual_subgroup_summaries(records)
     ):
-        raise ValueError("local_mini131_performance_api_partition_reconciliation_failed")
-    objective = api_parity["objective_companion_metrics"]
-    if not isinstance(objective, Mapping):
-        raise ValueError("local_mini131_performance_objective_metric_mismatch")
-    if objective != _objective_companion_metrics(records):
+        raise ValueError("local_mini131_performance_scorecard_reconciliation_failed")
+    objective = scorecard["objective_companion_metrics"]
+    if not isinstance(objective, Mapping) or objective != _objective_companion_metrics(records):
         raise ValueError("local_mini131_performance_objective_reconciliation_failed")
-    common = api_parity["common_evaluation_metrics"]
+    common = scorecard["common_evaluation_metrics"]
     if not isinstance(common, Mapping) or set(common) != set(EXPECTED_METRIC_KEYS):
         raise ValueError("local_mini131_performance_common_metric_keyset_invalid")
     for section, expected_keys in EXPECTED_METRIC_KEYS.items():
@@ -2004,11 +1682,7 @@ def _validate_api_parity(
             raise ValueError("local_mini131_performance_common_metric_keyset_invalid")
         for metric in metrics.values():
             if not isinstance(metric, Mapping) or set(metric) != {
-                "value",
-                "eligible",
-                "coverage",
-                "available",
-                "reason",
+                "value", "eligible", "coverage", "available", "reason"
             }:
                 raise ValueError("local_mini131_performance_common_metric_invalid")
             value = metric.get("value")
@@ -2047,9 +1721,6 @@ def _validate_api_parity(
                 raise ValueError("local_mini131_performance_common_metric_invalid")
     if common != _common_evaluation_metrics(records):
         raise ValueError("local_mini131_performance_common_metric_reconciliation_failed")
-    reference = api_parity["api_reference"]
-    local = api_parity["local_candidate"]
-    identity = api_parity["case_identity"]
     overall = _group_summary(records)
     expected_local = {
         "suite_id": SUITE_ID,
@@ -2062,50 +1733,8 @@ def _validate_api_parity(
         "rag_count": overall["rag_count"],
         "parser_count": overall["parser_count"],
     }
-    if (
-        not isinstance(reference, Mapping)
-        or set(reference) != {
-            "baseline_id",
-            "generator",
-            "mean_semantic_score",
-            "accepted",
-            "rejected",
-            "rag_count",
-            "parser_count",
-            "case_records_sha256",
-            "receipt_sha256",
-        }
-        or reference.get("baseline_id") != API_BASELINE_ID
-        or reference.get("generator") != API_GENERATOR
-        or reference.get("mean_semantic_score") != 54.845
-        or reference.get("accepted") != 58
-        or reference.get("rejected") != 71
-        or reference.get("rag_count") != 129
-        or reference.get("parser_count") != 2
-        or reference.get("case_records_sha256") != API_CASE_RECORDS_SHA256
-        or reference.get("receipt_sha256") != API_RECEIPT_SHA256
-        or not isinstance(local, Mapping)
-        or local != expected_local
-        or not isinstance(identity, Mapping)
-        or set(identity) != {
-            "validated",
-            "case_count",
-            "rag_case_count",
-            "parser_case_count",
-            "question_expected_lane_exact_match",
-            "api_case_records_sha256",
-            "api_receipt_sha256",
-        }
-        or identity.get("validated") is not True
-        or identity.get("case_count") != 131
-        or identity.get("rag_case_count") != 129
-        or identity.get("parser_case_count") != 2
-        or identity.get("question_expected_lane_exact_match") is not True
-        or identity.get("api_case_records_sha256") != API_CASE_RECORDS_SHA256
-        or identity.get("api_receipt_sha256") != API_RECEIPT_SHA256
-    ):
-        raise ValueError("local_mini131_performance_api_reference_invalid")
-    _validate_same_item_comparison(api_parity["same_item_comparison"], records)
+    if scorecard["local_candidate"] != expected_local:
+        raise ValueError("local_mini131_performance_local_candidate_invalid")
 
 
 def validate_performance_evaluation(
@@ -2171,7 +1800,7 @@ def validate_performance_evaluation(
         purposes = Counter(str(row["purpose"]) for row in records)
         if purposes != Counter(EXPECTED_PURPOSE_COUNTS):
             raise ValueError("local_mini131_performance_purpose_partition_mismatch")
-        _validate_api_parity(summary.get("api_parity"), records=records)
+        _validate_scorecard(summary.get("scorecard"), records=records)
 
 
 def build_performance_evaluation(
@@ -2221,14 +1850,10 @@ def build_performance_evaluation(
             parser_rerun_sha256=parser_rerun_sha256,
         )
     )
-    api_by_id, api_reference, case_identity = _load_api_baseline(ledger, records)
     summary = build_summary(
         records,
         deterministic_report=deterministic_report,
         semantic_report=semantic_report,
-        api_by_id=api_by_id,
-        api_reference=api_reference,
-        case_identity=case_identity,
     )
     report = {
         "schema_version": REPORT_SCHEMA_VERSION,
@@ -2244,8 +1869,6 @@ def build_performance_evaluation(
             "semantic_score_sha256": semantic_score_sha256,
             "review_history_sha256": semantic_report["review_history_sha256"],
             "parser_rerun_sha256": parser_rerun_sha256,
-            "api_case_records_sha256": case_identity["api_case_records_sha256"],
-            "api_receipt_sha256": case_identity["api_receipt_sha256"],
         },
     }
     validate_performance_evaluation(report)
@@ -2330,7 +1953,7 @@ def _companion_text(key: str, objective: Mapping[str, Any]) -> str:
     return "정답 사실·근거·인용 품질은 동일 Sol rubric으로 판정"
 
 
-def _parity_group_rows(
+def _scorecard_group_rows(
     items: Mapping[str, Mapping[str, Any]], objective: Mapping[str, Any]
 ) -> str:
     return "".join(
@@ -2346,7 +1969,7 @@ def _parity_group_rows(
     )
 
 
-def _visual_parity_rows(items: Mapping[str, Mapping[str, Any]]) -> str:
+def _visual_scorecard_rows(items: Mapping[str, Mapping[str, Any]]) -> str:
     return "".join(
         "<tr>"
         f'<th scope="row">{html.escape(str(item["label"]))}</th>'
@@ -2384,14 +2007,10 @@ def render_html(report: Mapping[str, Any]) -> str:
     records = report["records"]
     summary = report["summary"]
     overall = summary["overall"]
-    api_parity = summary.get("api_parity")
-    if not isinstance(api_parity, Mapping):
-        raise ValueError("local_mini131_performance_api_parity_invalid")
-    objective = api_parity["objective_companion_metrics"]
-    comparison = api_parity["same_item_comparison"]
-    comparison_by_id = {
-        str(item["case_id"]): item for item in comparison["cases"]
-    }
+    scorecard = summary.get("scorecard")
+    if not isinstance(scorecard, Mapping):
+        raise ValueError("local_mini131_performance_scorecard_invalid")
+    objective = scorecard["objective_companion_metrics"]
     cards: list[str] = []
     for record in records:
         candidate = record["candidate"]
@@ -2401,7 +2020,6 @@ def render_html(report: Mapping[str, Any]) -> str:
         rationale = semantic["rationale"] if isinstance(semantic, Mapping) else "ETL deterministic PASS"
         components = semantic["component_scores"] if isinstance(semantic, Mapping) else None
         history = semantic["judgment_history"] if isinstance(semantic, Mapping) else []
-        case_comparison = comparison_by_id[str(record["case_id"])]
         execution_lineage = candidate.get("execution_lineage")
         execution_mode = (
             str(execution_lineage.get("mode"))
@@ -2427,7 +2045,7 @@ def render_html(report: Mapping[str, Any]) -> str:
 <summary><code>{html.escape(str(record['case_id']))}</code><span>{html.escape(str(record['difficulty']))}</span><span>{html.escape(str(record['purpose']))}</span><span>{html.escape(str(candidate['status']))}</span><strong>{html.escape(str(verdict))}</strong><b>{'—' if score is None else f'{float(score):.2f}'}</b></summary>
 <div class="grid"><section><h3>골든 질문</h3><pre>{html.escape(str(record['question']))}</pre></section><section><h3>정답 기준</h3><pre>{_json_pre(record['expected'])}</pre></section></div>
 <section><h3>로컬 Qwen 실제 답변</h3><pre>{html.escape(str(candidate['answer']))}</pre></section>
-<div class="grid"><section><h3>API ↔ Local 동일 문항 비교</h3><pre>{_json_pre(case_comparison)}</pre></section><section><h3>구성 점수</h3><pre>{_json_pre(components)}</pre></section><section><h3>최종 판정 사유</h3><pre>{html.escape(str(rationale))}</pre></section></div>
+<div class="grid"><section><h3>구성 점수</h3><pre>{_json_pre(components)}</pre></section><section><h3>최종 판정 사유</h3><pre>{html.escape(str(rationale))}</pre></section></div>
 <details><summary>결정론 지표</summary><pre>{_json_pre(record['deterministic_metrics'])}</pre></details>
 <details><summary>검색·인용·판정 근거</summary><pre>{_json_pre(record['retrieval'])}</pre></details>
 <details><summary>판정 이력 ({len(history)})</summary><pre>{_json_pre(history)}</pre></details>
@@ -2451,27 +2069,25 @@ def render_html(report: Mapping[str, Any]) -> str:
             }
         )
     )
-    api = api_parity["api_reference"]
-    local = api_parity["local_candidate"]
+    local = scorecard["local_candidate"]
     return f'''<!doctype html>
 <html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Local Qwen Mini131 · API 동일 기준 성능평가</title><style>
+<title>Local Qwen Mini131 성능평가</title><style>
 :root{{font-family:Inter,system-ui,sans-serif;line-height:1.55;color-scheme:light dark}}body{{max-width:1440px;margin:auto;padding:24px}}h1{{margin-bottom:4px}}h2{{margin-top:30px}}.sub{{color:GrayText;margin-top:0}}.notice{{border:1px solid #d18b18;border-radius:10px;padding:12px;background:color-mix(in srgb,#d18b18 10%,Canvas)}}.notice.info{{border-color:#4f7ddc;background:color-mix(in srgb,#4f7ddc 8%,Canvas)}}.metrics,.grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin:16px 0}}.metric,section,details.case{{border:1px solid GrayText;border-radius:10px;padding:11px}}.metric strong{{display:block;font-size:1.5rem}}table{{width:100%;border-collapse:collapse;margin:12px 0}}th,td{{padding:8px;border-bottom:1px solid GrayText;text-align:right;vertical-align:top}}th:first-child,td:first-child{{text-align:left}}td.meaning{{text-align:left;min-width:320px}}.controls{{position:sticky;top:0;z-index:2;display:flex;gap:8px;flex-wrap:wrap;padding:10px;background:Canvas;border:1px solid GrayText;border-radius:10px}}input,select{{font:inherit;padding:7px}}input[type=search]{{flex:1;min-width:260px}}details.case{{margin:10px 0}}details.case>summary{{display:flex;gap:8px;align-items:center;flex-wrap:wrap;cursor:pointer}}details.case>summary strong{{margin-left:auto}}details.case>summary span{{border:1px solid GrayText;border-radius:999px;padding:2px 7px;font-size:.8rem}}pre{{white-space:pre-wrap;overflow-wrap:anywhere;background:color-mix(in srgb,CanvasText 7%,Canvas);padding:10px;border-radius:7px}}.hidden{{display:none!important}}@media(max-width:760px){{body{{padding:12px}}table{{display:block;overflow-x:auto}}td.meaning{{min-width:260px}}}}
 </style></head><body>
-<h1>Local Qwen Mini131 · API 동일 기준 성능평가</h1><p class="sub">qwen3.8:27b-mlx · KURE-v1 · fixed gpt-5.6-sol rubric · same 131 assets as gpt-5-mini API baseline</p>
-<aside class="notice"><strong>잠정 성능평가</strong> 129개 RAG 답변과 parser 2건은 모두 기록·채점됐고 API 원장의 case ID·질문·정답·lane이 131/131 정확히 일치합니다. 다만 골드는 아직 사람 승인 전이고 이 실행은 Mac Ollama/NumPy이므로 공식 GCP 점수가 아닙니다.</aside>
-<h2 id="question-set-scope">질문셋 출처와 평가 분모</h2><p>API 기준선과 로컬 후보 모두 동일한 <strong>RAG 129건 + parser 회귀 2건 = 131자산</strong>을 사용합니다. 의미점수는 parser를 제외한 129건에만 적용하며, parser 2건은 ETL 회귀 PASS/FAIL로 별도 집계합니다. 동일성 검증 원장 SHA-256은 <code>{html.escape(str(api_parity['case_identity']['api_case_records_sha256']))}</code>입니다.</p>
-<h2 id="primary-category-results">평가 목적별 결과</h2><p>API 리포트와 같은 7개 업무 영역입니다. 서로 다른 능력을 전체 평균 하나로 섞지 않고 각 행을 독립적으로 봅니다.</p>
-<table><thead><tr><th>평가 영역</th><th>의미</th><th>문항</th><th>로컬 의미점수</th><th>통과/실패</th><th>전용 지표</th></tr></thead><tbody>{_parity_group_rows(api_parity['primary_categories'], objective)}</tbody></table>
+<h1>Local Qwen Mini131 성능평가</h1><p class="sub">qwen3.8:27b-mlx · KURE-v1 · fixed gpt-5.6-sol rubric · Mini131 131 assets</p>
+<aside class="notice"><strong>잠정 로컬 성능평가</strong> 로컬 실행의 129개 RAG 답변과 parser 2건을 모두 기록·채점했습니다. 골드는 아직 사람 승인 전이고 이 실행은 Mac Ollama/NumPy이므로 공식 GCP 점수가 아닙니다.</aside>
+<h2 id="question-set-scope">질문셋 출처와 평가 분모</h2><p><strong>RAG 129건 + parser 회귀 2건 = 131자산</strong>입니다. 의미점수는 parser를 제외한 129건에만 적용하며, parser 2건은 ETL 회귀 PASS/FAIL로 별도 집계합니다.</p>
+<h2 id="primary-category-results">평가 목적별 결과</h2><p>공통 Mini131 scorecard의 7개 업무 영역을 사용합니다. 서로 다른 능력을 전체 평균 하나로 섞지 않고 각 행을 독립적으로 봅니다.</p>
+<table><thead><tr><th>평가 영역</th><th>의미</th><th>문항</th><th>로컬 의미점수</th><th>통과/실패</th><th>전용 지표</th></tr></thead><tbody>{_scorecard_group_rows(scorecard['primary_categories'], objective)}</tbody></table>
 <h2 id="core40-scenario-results">입찰 RAG 시나리오 40 상세</h2><p>단일 문서·다중 비교·후속질문·정보 없음의 네 시나리오를 각각 10문항으로 분리했습니다.</p>
-<table><thead><tr><th>세부 유형</th><th>의미</th><th>문항</th><th>로컬 의미점수</th><th>통과/실패</th><th>전용 지표</th></tr></thead><tbody>{_parity_group_rows(api_parity['scenario_breakdown'], objective)}</tbody></table>
+<table><thead><tr><th>세부 유형</th><th>의미</th><th>문항</th><th>로컬 의미점수</th><th>통과/실패</th><th>전용 지표</th></tr></thead><tbody>{_scorecard_group_rows(scorecard['scenario_breakdown'], objective)}</tbody></table>
 <h2 id="visual-subgroup-results">HWP/PDF 표·그림 10 상세</h2><p>파일 형식과 정보 위치에 따라 네 유형으로 분리했습니다.</p>
-<table><thead><tr><th>세부 유형</th><th>무엇을 시험하나</th><th>문항</th><th>로컬 의미점수</th><th>통과/실패</th></tr></thead><tbody>{_visual_parity_rows(api_parity['visual_subgroups'])}</tbody></table>
-<h2 id="common-metric-results">공통 평가 지표</h2><p>API 평가 계약의 필드명을 그대로 사용했습니다. 측정하지 않은 값은 다른 지표로 대체하지 않고 <code>null</code>·eligible 0과 사유를 표시합니다.</p>
-<table><thead><tr><th>영역</th><th>지표</th><th>값</th><th>적용</th><th>커버리지</th><th>가용성</th><th>사유</th></tr></thead><tbody>{_common_metric_rows(api_parity['common_evaluation_metrics'])}</tbody></table>
-<h2 id="api-vs-local-results">API 기준선과 로컬 후보 동일 문항 비교</h2>
-<table><thead><tr><th>후보</th><th>RAG</th><th>parser</th><th>의미평균</th><th>accepted</th><th>rejected</th></tr></thead><tbody><tr><th>{html.escape(str(api['generator']))}</th><td>{api['rag_count']}</td><td>{api['parser_count']}</td><td>{api['mean_semantic_score']}</td><td>{api['accepted']}</td><td>{api['rejected']}</td></tr><tr><th>{html.escape(str(local['generator']))}</th><td>{local['rag_count']}</td><td>{local['parser_count']}</td><td>{local['mean_semantic_score']}</td><td>{local['accepted']}</td><td>{local['rejected']}</td></tr></tbody></table>
-<p>문항별 점수 비교: Local 우세 {comparison['local_higher_score']} / API 우세 {comparison['api_higher_score']} / 동점 {comparison['equal_score']}; 판정 변경 {comparison['verdict_changed']}건; 평균 점수 차이(Local−API) {comparison['mean_score_delta']}.</p>
+<table><thead><tr><th>세부 유형</th><th>무엇을 시험하나</th><th>문항</th><th>로컬 의미점수</th><th>통과/실패</th></tr></thead><tbody>{_visual_scorecard_rows(scorecard['visual_subgroups'])}</tbody></table>
+<h2 id="common-metric-results">공통 평가 지표</h2><p>공통 scorecard 계약의 필드명을 사용했습니다. 측정하지 않은 값은 다른 지표로 대체하지 않고 <code>null</code>·eligible 0과 사유를 표시합니다.</p>
+<table><thead><tr><th>영역</th><th>지표</th><th>값</th><th>적용</th><th>커버리지</th><th>가용성</th><th>사유</th></tr></thead><tbody>{_common_metric_rows(scorecard['common_evaluation_metrics'])}</tbody></table>
+<h2 id="local-candidate-results">로컬 후보 결과</h2>
+<table><thead><tr><th>후보</th><th>RAG</th><th>parser</th><th>의미평균</th><th>accepted</th><th>rejected</th></tr></thead><tbody><tr><th>{html.escape(str(local['generator']))}</th><td>{local['rag_count']}</td><td>{local['parser_count']}</td><td>{local['mean_semantic_score']}</td><td>{local['accepted']}</td><td>{local['rejected']}</td></tr></tbody></table>
 <h2 id="overall-reference">전체 참고 집계</h2><p>아래는 평가영역별 문항 수 차이를 그대로 반영한 참고용 문항가중 집계입니다.</p>
 <div class="metrics"><div class="metric">전체 자산<strong>{summary['counts']['total_assets']}</strong></div><div class="metric">RAG / parser<strong>{summary['counts']['rag']} / {summary['counts']['parser']}</strong></div><div class="metric">평균 의미점수<strong>{float(overall['mean_semantic_score']):.2f}</strong></div><div class="metric">승인 / 반려<strong>{overall['accepted']} / {overall['rejected']}</strong></div><div class="metric">답변 / 기권 / 오류<strong>{overall['status'].get('answered',0)} / {overall['status'].get('abstained',0)} / {overall['status'].get('error',0)}</strong></div></div>
 <h2>채점 구성요소</h2><table><thead><tr><th>요소</th><th>적용 문항</th><th>평균</th></tr></thead><tbody>{_component_rows(overall['components'])}</tbody></table>
@@ -2609,6 +2225,7 @@ def content_free_receipt(
             "execution_profile": "mac_local_equivalent",
         },
         "judge": {"model": JUDGE_MODEL, "rubric_version": JUDGE_RUBRIC},
+        "scorecard_contract_sha256": safe_hashes["scorecard_contract_sha256"],
         "counts": {
             "total_assets": int(counts["total_assets"]),
             "rag": int(counts["rag"]),
@@ -2627,7 +2244,7 @@ def content_free_receipt(
                 summary["by_purpose"], PUBLIC_PURPOSES
             ),
             "by_lane": _public_partition(summary["by_lane"], PUBLIC_LANES),
-            "api_parity": _public_api_parity(summary["api_parity"]),
+            "scorecard": _public_scorecard(summary["scorecard"]),
         },
         "artifact_hashes": dict(sorted(safe_hashes.items())),
         "limitations": {
@@ -2670,11 +2287,11 @@ def _public_required_number(
     return result
 
 
-def _public_api_group(
+def _public_scorecard_group(
     value: Mapping[str, Any], *, expected_key: str, expected_label: str
 ) -> dict[str, Any]:
     if value.get("key") != expected_key or value.get("label") != expected_label:
-        raise ValueError("local_mini131_performance_public_api_group_invalid")
+        raise ValueError("local_mini131_performance_public_scorecard_group_invalid")
     return {
         "key": expected_key,
         "label": expected_label,
@@ -2830,18 +2447,16 @@ def _public_objective_metrics(value: Mapping[str, Any]) -> dict[str, Any]:
     return {key: result[key] for key in sorted(result)}
 
 
-def _public_api_parity(value: Mapping[str, Any]) -> dict[str, Any]:
+def _public_scorecard(value: Mapping[str, Any]) -> dict[str, Any]:
     primary = value.get("primary_categories")
     scenarios = value.get("scenario_breakdown")
     visual = value.get("visual_subgroups")
     objective = value.get("objective_companion_metrics")
     common = value.get("common_evaluation_metrics")
-    reference = value.get("api_reference")
     local = value.get("local_candidate")
-    identity = value.get("case_identity")
-    comparison = value.get("same_item_comparison")
     if (
-        not isinstance(primary, Mapping)
+        value.get("contract_version") != "mini131-scorecard.v1"
+        or not isinstance(primary, Mapping)
         or set(primary) != set(PRIMARY_CATEGORY_KEYS)
         or not isinstance(scenarios, Mapping)
         or set(scenarios) != set(SCENARIO_KEYS)
@@ -2854,35 +2469,23 @@ def _public_api_parity(value: Mapping[str, Any]) -> dict[str, Any]:
         )
         or not isinstance(objective, Mapping)
         or not isinstance(common, Mapping)
-        or not isinstance(reference, Mapping)
         or not isinstance(local, Mapping)
-        or not isinstance(identity, Mapping)
-        or not isinstance(comparison, Mapping)
     ):
-        raise ValueError("local_mini131_performance_public_api_parity_invalid")
+        raise ValueError("local_mini131_performance_public_scorecard_invalid")
     safe_common: dict[str, Any] = {}
     for section, expected_keys in EXPECTED_METRIC_KEYS.items():
         metrics = common.get(section)
         if not isinstance(metrics, Mapping) or set(metrics) != set(expected_keys):
-            raise ValueError("local_mini131_performance_public_api_parity_invalid")
+            raise ValueError("local_mini131_performance_public_scorecard_invalid")
         safe_common[section] = {
             name: _public_common_metric(metric)
             for name, metric in metrics.items()
             if isinstance(metric, Mapping)
         }
         if len(safe_common[section]) != len(expected_keys):
-            raise ValueError("local_mini131_performance_public_api_parity_invalid")
+            raise ValueError("local_mini131_performance_public_scorecard_invalid")
     if (
-        reference.get("baseline_id") != API_BASELINE_ID
-        or reference.get("generator") != API_GENERATOR
-        or reference.get("mean_semantic_score") != 54.845
-        or reference.get("accepted") != 58
-        or reference.get("rejected") != 71
-        or reference.get("rag_count") != 129
-        or reference.get("parser_count") != 2
-        or reference.get("case_records_sha256") != API_CASE_RECORDS_SHA256
-        or reference.get("receipt_sha256") != API_RECEIPT_SHA256
-        or local.get("suite_id") != SUITE_ID
+        local.get("suite_id") != SUITE_ID
         or local.get("generator") != LOCAL_GENERATOR
         or local.get("embedding") != LOCAL_EMBEDDING
         or local.get("execution_profile") != "mac_local_equivalent"
@@ -2893,28 +2496,8 @@ def _public_api_parity(value: Mapping[str, Any]) -> dict[str, Any]:
         or not isinstance(local.get("rejected"), int)
         or isinstance(local.get("rejected"), bool)
         or local.get("accepted") + local.get("rejected") != 129
-        or identity.get("validated") is not True
-        or identity.get("question_expected_lane_exact_match") is not True
-        or identity.get("api_case_records_sha256") != API_CASE_RECORDS_SHA256
-        or identity.get("api_receipt_sha256") != API_RECEIPT_SHA256
-        or identity.get("case_count") != 131
-        or identity.get("rag_case_count") != 129
-        or identity.get("parser_case_count") != 2
     ):
-        raise ValueError("local_mini131_performance_public_api_parity_invalid")
-    safe_reference = {
-        "baseline_id": API_BASELINE_ID,
-        "generator": API_GENERATOR,
-        "mean_semantic_score": _public_required_number(
-            reference["mean_semantic_score"], minimum=0, maximum=100
-        ),
-        "accepted": _public_nonnegative_int(reference["accepted"]),
-        "rejected": _public_nonnegative_int(reference["rejected"]),
-        "rag_count": _public_nonnegative_int(reference["rag_count"]),
-        "parser_count": _public_nonnegative_int(reference["parser_count"]),
-        "case_records_sha256": API_CASE_RECORDS_SHA256,
-        "receipt_sha256": API_RECEIPT_SHA256,
-    }
+        raise ValueError("local_mini131_performance_public_scorecard_invalid")
     safe_local = {
         "suite_id": SUITE_ID,
         "generator": LOCAL_GENERATOR,
@@ -2928,38 +2511,10 @@ def _public_api_parity(value: Mapping[str, Any]) -> dict[str, Any]:
         "rag_count": _public_nonnegative_int(local["rag_count"]),
         "parser_count": _public_nonnegative_int(local["parser_count"]),
     }
-    safe_identity = {
-        "validated": True,
-        "case_count": 131,
-        "rag_case_count": 129,
-        "parser_case_count": 2,
-        "question_expected_lane_exact_match": True,
-        "api_case_records_sha256": API_CASE_RECORDS_SHA256,
-        "api_receipt_sha256": API_RECEIPT_SHA256,
-    }
-    safe_comparison = {
-        key: (
-            _public_required_number(comparison[key])
-            if key == "mean_score_delta"
-            else _public_nonnegative_int(comparison[key])
-        )
-        for key in (
-            "case_count",
-            "rag_case_count",
-            "parser_case_count",
-            "mean_score_delta",
-            "local_higher_score",
-            "api_higher_score",
-            "equal_score",
-            "verdict_same",
-            "verdict_changed",
-            "status_same",
-            "status_changed",
-        )
-    }
     result = {
+        "contract_version": "mini131-scorecard.v1",
         "primary_categories": {
-            key: _public_api_group(
+            key: _public_scorecard_group(
                 primary[key],
                 expected_key=key,
                 expected_label=PURPOSE_DEFINITIONS[key]["label"],
@@ -2967,7 +2522,7 @@ def _public_api_parity(value: Mapping[str, Any]) -> dict[str, Any]:
             for key in PRIMARY_CATEGORY_KEYS
         },
         "scenario_breakdown": {
-            key: _public_api_group(
+            key: _public_scorecard_group(
                 scenarios[key],
                 expected_key=key,
                 expected_label=PURPOSE_DEFINITIONS[key]["label"],
@@ -2975,7 +2530,7 @@ def _public_api_parity(value: Mapping[str, Any]) -> dict[str, Any]:
             for key in SCENARIO_KEYS
         },
         "visual_subgroups": {
-            key: _public_api_group(
+            key: _public_scorecard_group(
                 visual[key],
                 expected_key=key,
                 expected_label=VISUAL_SUBGROUP_DEFINITIONS[key]["label"],
@@ -2984,10 +2539,7 @@ def _public_api_parity(value: Mapping[str, Any]) -> dict[str, Any]:
         },
         "objective_companion_metrics": _public_objective_metrics(objective),
         "common_evaluation_metrics": safe_common,
-        "api_reference": safe_reference,
         "local_candidate": safe_local,
-        "case_identity": safe_identity,
-        "same_item_comparison": safe_comparison,
     }
     _validate_content_free_receipt(result)
     return result
@@ -3155,6 +2707,9 @@ def write_performance_outputs(
         "private_records_sha256": sha256_file(paths.records),
         "private_summary_sha256": sha256_file(paths.summary),
         "private_html_sha256": sha256_file(paths.html),
+        "scorecard_contract_sha256": sha256_file(
+            paths.receipt.parents[3] / SCORECARD_CONTRACT_PATH
+        ),
         **copy.deepcopy(report["source_hashes"]),
     }
     receipt = content_free_receipt(report, artifact_hashes)
@@ -3175,6 +2730,55 @@ def run_performance_evaluation(
     return write_performance_outputs(report, default_paths(suite))
 
 
+def rebuild_performance_from_records(*, repo_root: Path) -> dict[str, Any]:
+    """Regenerate local-only aggregates from the frozen local record ledger.
+
+    This recovery path performs no candidate or judge calls.  It is useful when
+    a reporting contract changes but the immutable per-question local results
+    must remain unchanged.
+    """
+
+    private_root = (
+        repo_root
+        / "evaluation/private/local-mini131"
+        / SUITE_ID
+        / PERFORMANCE_DIRNAME
+    )
+    records_path = private_root / RECORDS_FILENAME
+    if (
+        not records_path.is_file()
+        or records_path.is_symlink()
+        or stat.S_IMODE(records_path.stat().st_mode) != 0o600
+    ):
+        raise ValueError("local_mini131_performance_records_input_invalid")
+    rows = read_jsonl(records_path)
+    summary = build_summary(rows)
+    report = {
+        "schema_version": REPORT_SCHEMA_VERSION,
+        "suite_id": SUITE_ID,
+        "official": False,
+        "records": rows,
+        "summary": summary,
+        "source_hashes": {
+            "local_records_input_sha256": sha256_file(records_path),
+        },
+    }
+    validate_performance_evaluation(report)
+    paths = PerformancePaths(
+        root=private_root,
+        records=records_path,
+        summary=private_root / SUMMARY_FILENAME,
+        html=private_root / HTML_FILENAME,
+        receipt=(
+            repo_root
+            / "evaluation/baselines"
+            / SUITE_ID
+            / RECEIPT_FILENAME
+        ),
+    )
+    return write_performance_outputs(report, paths)
+
+
 def _safe_error(error: BaseException) -> str:
     code = str(error)
     return code if re.fullmatch(r"[a-z][a-z0-9_]{0,127}", code) else "local_mini131_performance_failed"
@@ -3185,6 +2789,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--repo-root", type=Path, default=Path.cwd())
     parser.add_argument("--config", type=Path)
     parser.add_argument("--decision", type=Path, action="append")
+    parser.add_argument(
+        "--rebuild-from-records",
+        action="store_true",
+        help="Rebuild local-only aggregates from the frozen private local records",
+    )
     return parser
 
 
@@ -3197,10 +2806,14 @@ def main(argv: Sequence[str] | None = None) -> int:
         else repo_root / DEFAULT_CONFIG
     )
     try:
-        receipt = run_performance_evaluation(
-            repo_root=repo_root,
-            config_path=config_path,
-            decision_paths=args.decision,
+        receipt = (
+            rebuild_performance_from_records(repo_root=repo_root)
+            if args.rebuild_from_records
+            else run_performance_evaluation(
+                repo_root=repo_root,
+                config_path=config_path,
+                decision_paths=args.decision,
+            )
         )
         print(
             canonical_json(
@@ -3210,9 +2823,10 @@ def main(argv: Sequence[str] | None = None) -> int:
                     "counts": receipt["counts"],
                     "overall": receipt["metrics"]["overall"],
                     "receipt_sha256": sha256_file(
-                        default_paths(
-                            verify_suite(repo_root=repo_root, config_path=config_path)
-                        ).receipt
+                        repo_root
+                        / "evaluation/baselines"
+                        / SUITE_ID
+                        / RECEIPT_FILENAME
                     ),
                     "private_content_exposed": False,
                 }

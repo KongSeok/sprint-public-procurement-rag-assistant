@@ -3,8 +3,8 @@
   "adapter_id": "gcp-local-kure-qwen3-8b-awq-mini131-sol-v2",
   "suite_id": "gcp-local-kure-qwen3-8b-awq-mini131-v1",
   "inherits": {
-    "judge_config": "evaluation/baselines/mini131-bundle-v1/judge-config.json",
-    "judge_config_sha256": "337cfe6c5a6b587448754c86e1f8cfdba27ce15947367679520a706ae40c6519",
+    "judge_config": "evaluation/contracts/mini131/judge-config.json",
+    "judge_config_sha256": "1a29db7f08bc769ade9040d3efcbbeb2743ccbe7eedbe5b0a9d8b259f837c34a",
     "rubric": "evaluation/rubric.md",
     "rubric_sha256": "e881bbf55fabc5d6067569ae02df7d34661b4eb35ad8dcf6619fb4f73189de30",
     "model": "gpt-5.6-sol",

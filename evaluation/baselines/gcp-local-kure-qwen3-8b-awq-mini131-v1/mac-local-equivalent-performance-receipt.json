@@ -1,15 +1,10 @@
 {
   "artifact_hashes": {
-    "api_case_records_sha256": "6d8b0cb9c1b393ad5b7bfc749e6f69bc2e3dbcff9f759860296d3ad4948fa87e",
-    "api_receipt_sha256": "dabae64574285bd0efc7bfd31a280ba573ca375f38037a713abae261c36b2c2b",
-    "candidates_sha256": "afd9e579c97507a0b972e6dc82e90e96ea84c1853624a5f483958a3ce0a567f3",
-    "deterministic_score_sha256": "18b79d01a2fe0ff40e899480244635abd980d22060bebc8415b8db34365d7e73",
-    "parser_rerun_sha256": "87088ddbd5421518e32ab8a7dd8e142785b52ca68f29a498377cabef0aceaedd",
-    "private_html_sha256": "ed253665a28abb2f9d1fa2d12e298f60d54bcc669f470fe059e4604d6f09c6e2",
+    "local_records_input_sha256": "97c4011de0f2c2127ae143743c0466b0d23273be437ab1e75e8eb9fbade9136d",
+    "private_html_sha256": "20a8e94fb8e78eeae7aa52bf477129aecee942de770f21264c7074ebbe585d7c",
     "private_records_sha256": "97c4011de0f2c2127ae143743c0466b0d23273be437ab1e75e8eb9fbade9136d",
-    "private_summary_sha256": "11ea02ae6fb9a987dc70ea6c94092a5e42458b4b520fa5db9de4ac74b8c4ac41",
-    "review_history_sha256": "f75da26f0ceba69d0e117e542fbb0dab5106ca6f2511c6c6ecb1efeb48522ddb",
-    "semantic_score_sha256": "1ccd6ef19547aa32826c9609852a5dfaed2c3d342361414258b3c0e852cfaf7b"
+    "private_summary_sha256": "0421be6a2ac93f2d73b961b219885947431cd7f16bcbc624e6de9936edd2c7e5",
+    "scorecard_contract_sha256": "fd7d7f863e026f309509425fea77e43840b5c944275aa04475aa1452cd688b08"
   },
   "artifact_role": "per_question_performance_evaluation_receipt",
   "candidate": {
@@ -49,1990 +44,6 @@
     "unreported_frozen_metrics_remain": true
   },
   "metrics": {
-    "api_parity": {
-      "api_reference": {
-        "accepted": 58,
-        "baseline_id": "mini131-bundle-v1",
-        "case_records_sha256": "6d8b0cb9c1b393ad5b7bfc749e6f69bc2e3dbcff9f759860296d3ad4948fa87e",
-        "generator": "gpt-5-mini",
-        "mean_semantic_score": 54.845,
-        "parser_count": 2,
-        "rag_count": 129,
-        "receipt_sha256": "dabae64574285bd0efc7bfd31a280ba573ca375f38037a713abae261c36b2c2b",
-        "rejected": 71
-      },
-      "case_identity": {
-        "api_case_records_sha256": "6d8b0cb9c1b393ad5b7bfc749e6f69bc2e3dbcff9f759860296d3ad4948fa87e",
-        "api_receipt_sha256": "dabae64574285bd0efc7bfd31a280ba573ca375f38037a713abae261c36b2c2b",
-        "case_count": 131,
-        "parser_case_count": 2,
-        "question_expected_lane_exact_match": true,
-        "rag_case_count": 129,
-        "validated": true
-      },
-      "common_evaluation_metrics": {
-        "abstention": {
-          "answerable_false_abstain_rate": {
-            "available": true,
-            "coverage": 1.0,
-            "eligible": 30,
-            "reason": null,
-            "value": 0.166667
-          },
-          "false_answer_rate": {
-            "available": true,
-            "coverage": 1.0,
-            "eligible": 10,
-            "reason": null,
-            "value": 0.4
-          },
-          "precision": {
-            "available": true,
-            "coverage": 1.0,
-            "eligible": 11,
-            "reason": null,
-            "value": 0.545455
-          },
-          "recall": {
-            "available": true,
-            "coverage": 1.0,
-            "eligible": 10,
-            "reason": null,
-            "value": 0.6
-          },
-          "safe_abstention_rate": {
-            "available": true,
-            "coverage": 1.0,
-            "eligible": 10,
-            "reason": null,
-            "value": 0.6
-          }
-        },
-        "answer": {
-          "citation_validity": {
-            "available": true,
-            "coverage": 1.0,
-            "eligible": 30,
-            "reason": null,
-            "value": 0.833333
-          },
-          "correctness": {
-            "available": true,
-            "coverage": 1.0,
-            "eligible": 30,
-            "reason": null,
-            "value": 0.733333
-          },
-          "factual_claim_coverage": {
-            "available": true,
-            "coverage": 1.0,
-            "eligible": 30,
-            "reason": null,
-            "value": 0.816667
-          },
-          "faithfulness": {
-            "available": true,
-            "coverage": 1.0,
-            "eligible": 30,
-            "reason": null,
-            "value": 0.8
-          },
-          "follow_up_success": {
-            "available": true,
-            "coverage": 1.0,
-            "eligible": 10,
-            "reason": null,
-            "value": 0.8
-          },
-          "gold_citation_precision": {
-            "available": true,
-            "coverage": 1.0,
-            "eligible": 25,
-            "reason": null,
-            "value": 0.773333
-          },
-          "judgment_coverage": {
-            "available": true,
-            "coverage": 1.0,
-            "eligible": 40,
-            "reason": null,
-            "value": 1.0
-          },
-          "key_point_coverage": {
-            "available": true,
-            "coverage": 1.0,
-            "eligible": 30,
-            "reason": null,
-            "value": 0.630556
-          }
-        },
-        "operations": {
-          "api_cost_coverage": {
-            "available": false,
-            "coverage": 0.0,
-            "eligible": 0,
-            "reason": "metric_not_applicable_to_local_candidate",
-            "value": null
-          },
-          "latency_generation_p50_ms": {
-            "available": true,
-            "coverage": 1.0,
-            "eligible": 40,
-            "reason": null,
-            "value": 34752.2825
-          },
-          "latency_retrieval_p50_ms": {
-            "available": true,
-            "coverage": 1.0,
-            "eligible": 40,
-            "reason": null,
-            "value": 120.207625
-          },
-          "latency_total_p50_ms": {
-            "available": true,
-            "coverage": 1.0,
-            "eligible": 40,
-            "reason": null,
-            "value": 34996.577458
-          },
-          "latency_total_p95_ms": {
-            "available": true,
-            "coverage": 1.0,
-            "eligible": 40,
-            "reason": null,
-            "value": 65119.728166
-          },
-          "local_gpu_usage_coverage": {
-            "available": false,
-            "coverage": 0.0,
-            "eligible": 0,
-            "reason": "mac_local_equivalent_run_did_not_capture_gcp_gpu_telemetry",
-            "value": null
-          },
-          "mean_cost_usd": {
-            "available": true,
-            "coverage": 1.0,
-            "eligible": 40,
-            "reason": null,
-            "value": 0.0
-          },
-          "mean_gpu_seconds": {
-            "available": false,
-            "coverage": 0.0,
-            "eligible": 0,
-            "reason": "mac_local_equivalent_run_did_not_capture_gcp_gpu_telemetry",
-            "value": null
-          },
-          "peak_vram_gb": {
-            "available": false,
-            "coverage": 0.0,
-            "eligible": 0,
-            "reason": "mac_local_equivalent_run_did_not_capture_gcp_gpu_telemetry",
-            "value": null
-          },
-          "response_contract_error_rate": {
-            "available": false,
-            "coverage": 0.0,
-            "eligible": 0,
-            "reason": "local_candidate_response_not_normalized_to_api_contract",
-            "value": null
-          },
-          "runtime_error_rate": {
-            "available": true,
-            "coverage": 1.0,
-            "eligible": 40,
-            "reason": null,
-            "value": 0.025
-          },
-          "total_cost_usd": {
-            "available": true,
-            "coverage": 1.0,
-            "eligible": 40,
-            "reason": null,
-            "value": 0.0
-          },
-          "total_gpu_seconds": {
-            "available": false,
-            "coverage": 0.0,
-            "eligible": 0,
-            "reason": "mac_local_equivalent_run_did_not_capture_gcp_gpu_telemetry",
-            "value": null
-          }
-        },
-        "retrieval": {
-          "all_required_docs_recalled_at_1": {
-            "available": true,
-            "coverage": 1.0,
-            "eligible": 10,
-            "reason": null,
-            "value": 0.0
-          },
-          "all_required_docs_recalled_at_10": {
-            "available": true,
-            "coverage": 1.0,
-            "eligible": 10,
-            "reason": null,
-            "value": 1.0
-          },
-          "all_required_docs_recalled_at_3": {
-            "available": true,
-            "coverage": 1.0,
-            "eligible": 10,
-            "reason": null,
-            "value": 1.0
-          },
-          "all_required_docs_recalled_at_5": {
-            "available": true,
-            "coverage": 1.0,
-            "eligible": 10,
-            "reason": null,
-            "value": 1.0
-          },
-          "document_recall_at_1": {
-            "available": true,
-            "coverage": 1.0,
-            "eligible": 30,
-            "reason": null,
-            "value": 0.833333
-          },
-          "document_recall_at_10": {
-            "available": true,
-            "coverage": 1.0,
-            "eligible": 30,
-            "reason": null,
-            "value": 1.0
-          },
-          "document_recall_at_3": {
-            "available": true,
-            "coverage": 1.0,
-            "eligible": 30,
-            "reason": null,
-            "value": 1.0
-          },
-          "document_recall_at_5": {
-            "available": true,
-            "coverage": 1.0,
-            "eligible": 30,
-            "reason": null,
-            "value": 1.0
-          },
-          "mrr_at_10": {
-            "available": true,
-            "coverage": 1.0,
-            "eligible": 30,
-            "reason": null,
-            "value": 1.0
-          },
-          "ndcg_at_10": {
-            "available": true,
-            "coverage": 1.0,
-            "eligible": 30,
-            "reason": null,
-            "value": 0.991972
-          },
-          "source_block_recall_at_1": {
-            "available": true,
-            "coverage": 1.0,
-            "eligible": 30,
-            "reason": null,
-            "value": 0.578889
-          },
-          "source_block_recall_at_10": {
-            "available": true,
-            "coverage": 1.0,
-            "eligible": 30,
-            "reason": null,
-            "value": 0.865556
-          },
-          "source_block_recall_at_3": {
-            "available": true,
-            "coverage": 1.0,
-            "eligible": 30,
-            "reason": null,
-            "value": 0.69
-          },
-          "source_block_recall_at_5": {
-            "available": true,
-            "coverage": 1.0,
-            "eligible": 30,
-            "reason": null,
-            "value": 0.753333
-          }
-        },
-        "task_success": {
-          "follow_up": {
-            "available": true,
-            "coverage": 1.0,
-            "eligible": 10,
-            "reason": null,
-            "value": 0.8
-          },
-          "multi_doc_compare": {
-            "available": true,
-            "coverage": 1.0,
-            "eligible": 10,
-            "reason": null,
-            "value": 0.7
-          },
-          "single_doc": {
-            "available": true,
-            "coverage": 1.0,
-            "eligible": 10,
-            "reason": null,
-            "value": 1.0
-          },
-          "unknown": {
-            "available": true,
-            "coverage": 1.0,
-            "eligible": 10,
-            "reason": null,
-            "value": 0.6
-          }
-        }
-      },
-      "local_candidate": {
-        "accepted": 88,
-        "embedding": "nlpai-lab/KURE-v1",
-        "execution_profile": "mac_local_equivalent",
-        "generator": "qwen3.8:27b-mlx",
-        "mean_semantic_score": 70.135659,
-        "parser_count": 2,
-        "rag_count": 129,
-        "rejected": 41,
-        "suite_id": "gcp-local-kure-qwen3-8b-awq-mini131-v1"
-      },
-      "objective_companion_metrics": {
-        "analytics_case_count": 10,
-        "analytics_deterministic_case_pass_count": 10,
-        "analytics_deterministic_case_pass_rate": 1.0,
-        "analytics_deterministic_companion_case_count": 10,
-        "analytics_deterministic_companion_complete_rate": 1.0,
-        "analytics_deterministic_companion_pass_count": 10,
-        "analytics_deterministic_field_count": 139,
-        "analytics_deterministic_field_pass_count": 139,
-        "analytics_deterministic_field_pass_rate": 1.0,
-        "analytics_numeric_evidence_availability_rate": 1.0,
-        "analytics_numeric_evidence_field_count": 93,
-        "analytics_numeric_evidence_fields_per_case": {
-          "max": 38,
-          "mean": 9.3,
-          "min": 1,
-          "observed_case_count": 10
-        },
-        "required_document_hit_count": 76,
-        "required_document_recall": 0.678571,
-        "required_document_total": 112,
-        "set_case_count": 13,
-        "set_exact_match_rate": 0.538462,
-        "set_false_negative_total": 33,
-        "set_false_positive_total": 4,
-        "set_macro_f1": 0.630769,
-        "set_macro_precision": 0.608974,
-        "set_macro_recall": 0.692308,
-        "set_micro_f1": 0.478873,
-        "set_micro_precision": 0.809524,
-        "set_micro_recall": 0.34,
-        "set_true_positive_total": 17,
-        "unknown_case_count": 10,
-        "unknown_safe_abstention_pass_count": 7,
-        "unknown_safe_abstention_rate": 0.7,
-        "visual_case_count": 10,
-        "visual_evidence_availability_rate": 1.0,
-        "visual_target_chunk": {
-          "eligible_case_count": 3,
-          "first_rank": {
-            "max": null,
-            "mean": null,
-            "median": null,
-            "min": null,
-            "observed_count": 0
-          },
-          "hit_count": 0,
-          "hit_rate": 0.0
-        },
-        "visual_target_object_bridge": {
-          "eligible_case_count": 10,
-          "first_rank": {
-            "max": null,
-            "mean": null,
-            "median": null,
-            "min": null,
-            "observed_count": 0
-          },
-          "hit_count": 0,
-          "hit_rate": 0.0
-        },
-        "visual_target_page": {
-          "eligible_case_count": 10,
-          "first_rank": {
-            "max": 4.0,
-            "mean": 1.666667,
-            "median": 1.0,
-            "min": 1.0,
-            "observed_count": 6
-          },
-          "hit_count": 6,
-          "hit_rate": 0.6
-        }
-      },
-      "primary_categories": {
-        "bid_rag_scenarios": {
-          "acceptance_rate": 0.7,
-          "accepted": 28,
-          "behavior_checks": {
-            "follow_up_success": {
-              "eligible": 10,
-              "passed": 8,
-              "rate": 0.8
-            },
-            "safe_abstention": {
-              "eligible": 10,
-              "passed": 7,
-              "rate": 0.7
-            }
-          },
-          "components": {
-            "abstention_quality": {
-              "eligible": 10,
-              "mean": 0.7
-            },
-            "citation_validity": {
-              "eligible": 30,
-              "mean": 0.833333
-            },
-            "completeness": {
-              "eligible": 30,
-              "mean": 0.633333
-            },
-            "correctness": {
-              "eligible": 30,
-              "mean": 0.733333
-            },
-            "factual_claim_coverage": {
-              "eligible": 30,
-              "mean": 0.816667
-            },
-            "faithfulness": {
-              "eligible": 30,
-              "mean": 0.8
-            }
-          },
-          "count": 40,
-          "deterministic_metrics": {
-            "citation_valid": {
-              "eligible": 25,
-              "mean": 1.0
-            },
-            "document_recall_at_1": {
-              "eligible": 30,
-              "mean": 0.833333
-            },
-            "document_recall_at_10": {
-              "eligible": 30,
-              "mean": 1.0
-            },
-            "document_recall_at_5": {
-              "eligible": 30,
-              "mean": 1.0
-            },
-            "expected_behavior_match": {
-              "eligible": 40,
-              "mean": 0.85
-            },
-            "mrr_at_10": {
-              "eligible": 30,
-              "mean": 1.0
-            }
-          },
-          "key": "bid_rag_scenarios",
-          "label": "입찰 RAG 질의응답 시나리오",
-          "mean_semantic_score": 73.63,
-          "parser_count": 0,
-          "rag_count": 40,
-          "rejected": 12,
-          "runtime_error_rate": 0.025,
-          "status": {
-            "abstained": 14,
-            "answered": 25,
-            "error": 1
-          }
-        },
-        "clause_fact_regression": {
-          "acceptance_rate": 0.545455,
-          "accepted": 24,
-          "behavior_checks": {
-            "follow_up_success": {
-              "eligible": 0,
-              "passed": 0,
-              "rate": null
-            },
-            "safe_abstention": {
-              "eligible": 2,
-              "passed": 2,
-              "rate": 1.0
-            }
-          },
-          "components": {
-            "abstention_quality": {
-              "eligible": 2,
-              "mean": 1.0
-            },
-            "citation_validity": {
-              "eligible": 42,
-              "mean": 0.607143
-            },
-            "completeness": {
-              "eligible": 42,
-              "mean": 0.535714
-            },
-            "correctness": {
-              "eligible": 42,
-              "mean": 0.547619
-            },
-            "factual_claim_coverage": {
-              "eligible": 42,
-              "mean": 0.619048
-            },
-            "faithfulness": {
-              "eligible": 42,
-              "mean": 0.583333
-            }
-          },
-          "count": 44,
-          "deterministic_metrics": {
-            "citation_valid": {
-              "eligible": 26,
-              "mean": 1.0
-            },
-            "document_recall_at_1": {
-              "eligible": 42,
-              "mean": 0.944444
-            },
-            "document_recall_at_10": {
-              "eligible": 42,
-              "mean": 0.980159
-            },
-            "document_recall_at_5": {
-              "eligible": 42,
-              "mean": 0.972222
-            },
-            "expected_behavior_match": {
-              "eligible": 44,
-              "mean": 0.636364
-            },
-            "mrr_at_10": {
-              "eligible": 42,
-              "mean": 1.0
-            }
-          },
-          "key": "clause_fact_regression",
-          "label": "문서 조항·사실 답변 회귀",
-          "mean_semantic_score": 58.69,
-          "parser_count": 0,
-          "rag_count": 44,
-          "rejected": 20,
-          "runtime_error_rate": 0.0,
-          "status": {
-            "abstained": 18,
-            "answered": 26,
-            "error": 0
-          }
-        },
-        "conditional_all_list": {
-          "acceptance_rate": 0.692308,
-          "accepted": 9,
-          "behavior_checks": {
-            "follow_up_success": {
-              "eligible": 0,
-              "passed": 0,
-              "rate": null
-            },
-            "safe_abstention": {
-              "eligible": 0,
-              "passed": 0,
-              "rate": null
-            }
-          },
-          "components": {
-            "abstention_quality": {
-              "eligible": 0,
-              "mean": null
-            },
-            "citation_validity": {
-              "eligible": 13,
-              "mean": 0.692308
-            },
-            "completeness": {
-              "eligible": 13,
-              "mean": 0.692308
-            },
-            "correctness": {
-              "eligible": 13,
-              "mean": 0.692308
-            },
-            "factual_claim_coverage": {
-              "eligible": 13,
-              "mean": 0.692308
-            },
-            "faithfulness": {
-              "eligible": 13,
-              "mean": 0.692308
-            }
-          },
-          "count": 13,
-          "deterministic_metrics": {
-            "citation_valid": {
-              "eligible": 9,
-              "mean": 1.0
-            },
-            "expected_behavior_match": {
-              "eligible": 13,
-              "mean": 0.692308
-            },
-            "set_count_match": {
-              "eligible": 13,
-              "mean": 0.538462
-            },
-            "set_exact_match": {
-              "eligible": 13,
-              "mean": 0.538462
-            },
-            "set_expected_count": {
-              "eligible": 13,
-              "mean": 3.846154
-            },
-            "set_f1": {
-              "eligible": 13,
-              "mean": 0.630769
-            },
-            "set_precision": {
-              "eligible": 13,
-              "mean": 0.608974
-            },
-            "set_recall": {
-              "eligible": 13,
-              "mean": 0.692308
-            },
-            "set_selected_count": {
-              "eligible": 13,
-              "mean": 1.615385
-            }
-          },
-          "key": "conditional_all_list",
-          "label": "조건별 공고 전체 목록 검색",
-          "mean_semantic_score": 69.23,
-          "parser_count": 0,
-          "rag_count": 13,
-          "rejected": 4,
-          "runtime_error_rate": 0.307692,
-          "status": {
-            "abstained": 0,
-            "answered": 9,
-            "error": 4
-          }
-        },
-        "corpus_analytics": {
-          "acceptance_rate": 1.0,
-          "accepted": 10,
-          "behavior_checks": {
-            "follow_up_success": {
-              "eligible": 0,
-              "passed": 0,
-              "rate": null
-            },
-            "safe_abstention": {
-              "eligible": 0,
-              "passed": 0,
-              "rate": null
-            }
-          },
-          "components": {
-            "abstention_quality": {
-              "eligible": 0,
-              "mean": null
-            },
-            "citation_validity": {
-              "eligible": 10,
-              "mean": 1.0
-            },
-            "completeness": {
-              "eligible": 10,
-              "mean": 0.8
-            },
-            "correctness": {
-              "eligible": 10,
-              "mean": 1.0
-            },
-            "factual_claim_coverage": {
-              "eligible": 10,
-              "mean": 1.0
-            },
-            "faithfulness": {
-              "eligible": 10,
-              "mean": 1.0
-            }
-          },
-          "count": 10,
-          "deterministic_metrics": {
-            "analytics_calculation.case_passed": {
-              "eligible": 10,
-              "mean": 1.0
-            },
-            "analytics_calculation.comparison_count": {
-              "eligible": 10,
-              "mean": 13.9
-            },
-            "analytics_calculation.comparison_match_rate": {
-              "eligible": 10,
-              "mean": 1.0
-            },
-            "analytics_calculation.exact_comparison_count": {
-              "eligible": 10,
-              "mean": 4.6
-            },
-            "analytics_calculation.exact_comparison_match_rate": {
-              "eligible": 5,
-              "mean": 1.0
-            },
-            "analytics_calculation.exact_matched_comparison_count": {
-              "eligible": 10,
-              "mean": 4.6
-            },
-            "analytics_calculation.matched_comparison_count": {
-              "eligible": 10,
-              "mean": 13.9
-            },
-            "analytics_calculation.tolerance_comparison_count": {
-              "eligible": 10,
-              "mean": 9.3
-            },
-            "analytics_calculation.tolerance_comparison_match_rate": {
-              "eligible": 10,
-              "mean": 1.0
-            },
-            "analytics_calculation.tolerance_matched_comparison_count": {
-              "eligible": 10,
-              "mean": 9.3
-            },
-            "citation_valid": {
-              "eligible": 10,
-              "mean": 1.0
-            },
-            "expected_behavior_match": {
-              "eligible": 10,
-              "mean": 1.0
-            }
-          },
-          "key": "corpus_analytics",
-          "label": "전체 말뭉치 통계·집계",
-          "mean_semantic_score": 96.0,
-          "parser_count": 0,
-          "rag_count": 10,
-          "rejected": 0,
-          "runtime_error_rate": 0.0,
-          "status": {
-            "abstained": 0,
-            "answered": 10,
-            "error": 0
-          }
-        },
-        "gold_source_alignment": {
-          "acceptance_rate": 1.0,
-          "accepted": 12,
-          "behavior_checks": {
-            "follow_up_success": {
-              "eligible": 0,
-              "passed": 0,
-              "rate": null
-            },
-            "safe_abstention": {
-              "eligible": 0,
-              "passed": 0,
-              "rate": null
-            }
-          },
-          "components": {
-            "abstention_quality": {
-              "eligible": 0,
-              "mean": null
-            },
-            "citation_validity": {
-              "eligible": 12,
-              "mean": 1.0
-            },
-            "completeness": {
-              "eligible": 12,
-              "mean": 0.875
-            },
-            "correctness": {
-              "eligible": 12,
-              "mean": 1.0
-            },
-            "factual_claim_coverage": {
-              "eligible": 12,
-              "mean": 1.0
-            },
-            "faithfulness": {
-              "eligible": 12,
-              "mean": 1.0
-            }
-          },
-          "count": 12,
-          "deterministic_metrics": {
-            "citation_valid": {
-              "eligible": 12,
-              "mean": 1.0
-            },
-            "document_recall_at_1": {
-              "eligible": 12,
-              "mean": 1.0
-            },
-            "document_recall_at_10": {
-              "eligible": 12,
-              "mean": 1.0
-            },
-            "document_recall_at_5": {
-              "eligible": 12,
-              "mean": 1.0
-            },
-            "expected_behavior_match": {
-              "eligible": 12,
-              "mean": 1.0
-            },
-            "mrr_at_10": {
-              "eligible": 12,
-              "mean": 1.0
-            }
-          },
-          "key": "gold_source_alignment",
-          "label": "정답·원문 일치 검수",
-          "mean_semantic_score": 97.5,
-          "parser_count": 0,
-          "rag_count": 12,
-          "rejected": 0,
-          "runtime_error_rate": 0.0,
-          "status": {
-            "abstained": 0,
-            "answered": 12,
-            "error": 0
-          }
-        },
-        "parser_regression": {
-          "acceptance_rate": null,
-          "accepted": 0,
-          "behavior_checks": {
-            "follow_up_success": {
-              "eligible": 0,
-              "passed": 0,
-              "rate": null
-            },
-            "safe_abstention": {
-              "eligible": 0,
-              "passed": 0,
-              "rate": null
-            }
-          },
-          "components": {
-            "abstention_quality": {
-              "eligible": 0,
-              "mean": null
-            },
-            "citation_validity": {
-              "eligible": 0,
-              "mean": null
-            },
-            "completeness": {
-              "eligible": 0,
-              "mean": null
-            },
-            "correctness": {
-              "eligible": 0,
-              "mean": null
-            },
-            "factual_claim_coverage": {
-              "eligible": 0,
-              "mean": null
-            },
-            "faithfulness": {
-              "eligible": 0,
-              "mean": null
-            }
-          },
-          "count": 2,
-          "deterministic_metrics": {},
-          "key": "parser_regression",
-          "label": "문서 파싱 안정성 검사",
-          "mean_semantic_score": null,
-          "parser_count": 2,
-          "rag_count": 0,
-          "rejected": 0,
-          "runtime_error_rate": null,
-          "status": {
-            "abstained": 0,
-            "answered": 0,
-            "error": 0
-          }
-        },
-        "visual_table_figure": {
-          "acceptance_rate": 0.5,
-          "accepted": 5,
-          "behavior_checks": {
-            "follow_up_success": {
-              "eligible": 0,
-              "passed": 0,
-              "rate": null
-            },
-            "safe_abstention": {
-              "eligible": 0,
-              "passed": 0,
-              "rate": null
-            }
-          },
-          "components": {
-            "abstention_quality": {
-              "eligible": 0,
-              "mean": null
-            },
-            "citation_validity": {
-              "eligible": 10,
-              "mean": 0.5
-            },
-            "completeness": {
-              "eligible": 10,
-              "mean": 0.45
-            },
-            "correctness": {
-              "eligible": 10,
-              "mean": 0.5
-            },
-            "factual_claim_coverage": {
-              "eligible": 10,
-              "mean": 0.5
-            },
-            "faithfulness": {
-              "eligible": 10,
-              "mean": 0.5
-            }
-          },
-          "count": 10,
-          "deterministic_metrics": {
-            "citation_valid": {
-              "eligible": 5,
-              "mean": 1.0
-            },
-            "document_recall_at_1": {
-              "eligible": 10,
-              "mean": 1.0
-            },
-            "document_recall_at_10": {
-              "eligible": 10,
-              "mean": 1.0
-            },
-            "document_recall_at_5": {
-              "eligible": 10,
-              "mean": 1.0
-            },
-            "expected_behavior_match": {
-              "eligible": 10,
-              "mean": 0.5
-            },
-            "mrr_at_10": {
-              "eligible": 10,
-              "mean": 1.0
-            },
-            "visual_retrieval.chunk_or_block.mrr_at_10": {
-              "eligible": 3,
-              "mean": 0.0
-            },
-            "visual_retrieval.chunk_or_block.recall_at_1": {
-              "eligible": 3,
-              "mean": 0.0
-            },
-            "visual_retrieval.chunk_or_block.recall_at_10": {
-              "eligible": 3,
-              "mean": 0.0
-            },
-            "visual_retrieval.chunk_or_block.recall_at_5": {
-              "eligible": 3,
-              "mean": 0.0
-            },
-            "visual_retrieval.chunk_or_block.target_count": {
-              "eligible": 3,
-              "mean": 1.333333
-            },
-            "visual_retrieval.document.mrr_at_10": {
-              "eligible": 10,
-              "mean": 1.0
-            },
-            "visual_retrieval.document.recall_at_1": {
-              "eligible": 10,
-              "mean": 1.0
-            },
-            "visual_retrieval.document.recall_at_10": {
-              "eligible": 10,
-              "mean": 1.0
-            },
-            "visual_retrieval.document.recall_at_5": {
-              "eligible": 10,
-              "mean": 1.0
-            },
-            "visual_retrieval.document.target_count": {
-              "eligible": 10,
-              "mean": 1.0
-            },
-            "visual_retrieval.object.mrr_at_10": {
-              "eligible": 10,
-              "mean": 0.0
-            },
-            "visual_retrieval.object.recall_at_1": {
-              "eligible": 10,
-              "mean": 0.0
-            },
-            "visual_retrieval.object.recall_at_10": {
-              "eligible": 10,
-              "mean": 0.0
-            },
-            "visual_retrieval.object.recall_at_5": {
-              "eligible": 10,
-              "mean": 0.0
-            },
-            "visual_retrieval.object.target_count": {
-              "eligible": 10,
-              "mean": 1.1
-            },
-            "visual_retrieval.page.mrr_at_10": {
-              "eligible": 10,
-              "mean": 0.475
-            },
-            "visual_retrieval.page.recall_at_1": {
-              "eligible": 10,
-              "mean": 0.35
-            },
-            "visual_retrieval.page.recall_at_10": {
-              "eligible": 10,
-              "mean": 0.6
-            },
-            "visual_retrieval.page.recall_at_5": {
-              "eligible": 10,
-              "mean": 0.6
-            },
-            "visual_retrieval.page.target_count": {
-              "eligible": 10,
-              "mean": 1.1
-            }
-          },
-          "key": "visual_table_figure",
-          "label": "HWP/PDF 표·그림 검색·답변",
-          "mean_semantic_score": 49.0,
-          "parser_count": 0,
-          "rag_count": 10,
-          "rejected": 5,
-          "runtime_error_rate": 0.1,
-          "status": {
-            "abstained": 4,
-            "answered": 5,
-            "error": 1
-          }
-        }
-      },
-      "same_item_comparison": {
-        "api_higher_score": 26,
-        "case_count": 131,
-        "equal_score": 62,
-        "local_higher_score": 41,
-        "mean_score_delta": 15.290698,
-        "parser_case_count": 2,
-        "rag_case_count": 129,
-        "status_changed": 31,
-        "status_same": 100,
-        "verdict_changed": 40,
-        "verdict_same": 91
-      },
-      "scenario_breakdown": {
-        "follow_up": {
-          "acceptance_rate": 0.8,
-          "accepted": 8,
-          "behavior_checks": {
-            "follow_up_success": {
-              "eligible": 10,
-              "passed": 8,
-              "rate": 0.8
-            },
-            "safe_abstention": {
-              "eligible": 0,
-              "passed": 0,
-              "rate": null
-            }
-          },
-          "components": {
-            "abstention_quality": {
-              "eligible": 0,
-              "mean": null
-            },
-            "citation_validity": {
-              "eligible": 10,
-              "mean": 0.8
-            },
-            "completeness": {
-              "eligible": 10,
-              "mean": 0.7
-            },
-            "correctness": {
-              "eligible": 10,
-              "mean": 0.8
-            },
-            "factual_claim_coverage": {
-              "eligible": 10,
-              "mean": 0.8
-            },
-            "faithfulness": {
-              "eligible": 10,
-              "mean": 0.8
-            }
-          },
-          "count": 10,
-          "deterministic_metrics": {
-            "citation_valid": {
-              "eligible": 8,
-              "mean": 1.0
-            },
-            "document_recall_at_1": {
-              "eligible": 10,
-              "mean": 1.0
-            },
-            "document_recall_at_10": {
-              "eligible": 10,
-              "mean": 1.0
-            },
-            "document_recall_at_5": {
-              "eligible": 10,
-              "mean": 1.0
-            },
-            "expected_behavior_match": {
-              "eligible": 10,
-              "mean": 0.8
-            },
-            "mrr_at_10": {
-              "eligible": 10,
-              "mean": 1.0
-            }
-          },
-          "key": "follow_up",
-          "label": "후속 질문 문맥 유지",
-          "mean_semantic_score": 78.0,
-          "parser_count": 0,
-          "rag_count": 10,
-          "rejected": 2,
-          "runtime_error_rate": 0.0,
-          "status": {
-            "abstained": 2,
-            "answered": 8,
-            "error": 0
-          }
-        },
-        "multi_doc_compare": {
-          "acceptance_rate": 0.5,
-          "accepted": 5,
-          "behavior_checks": {
-            "follow_up_success": {
-              "eligible": 0,
-              "passed": 0,
-              "rate": null
-            },
-            "safe_abstention": {
-              "eligible": 0,
-              "passed": 0,
-              "rate": null
-            }
-          },
-          "components": {
-            "abstention_quality": {
-              "eligible": 0,
-              "mean": null
-            },
-            "citation_validity": {
-              "eligible": 10,
-              "mean": 0.7
-            },
-            "completeness": {
-              "eligible": 10,
-              "mean": 0.4
-            },
-            "correctness": {
-              "eligible": 10,
-              "mean": 0.55
-            },
-            "factual_claim_coverage": {
-              "eligible": 10,
-              "mean": 0.65
-            },
-            "faithfulness": {
-              "eligible": 10,
-              "mean": 0.6
-            }
-          },
-          "count": 10,
-          "deterministic_metrics": {
-            "citation_valid": {
-              "eligible": 7,
-              "mean": 1.0
-            },
-            "document_recall_at_1": {
-              "eligible": 10,
-              "mean": 0.5
-            },
-            "document_recall_at_10": {
-              "eligible": 10,
-              "mean": 1.0
-            },
-            "document_recall_at_5": {
-              "eligible": 10,
-              "mean": 1.0
-            },
-            "expected_behavior_match": {
-              "eligible": 10,
-              "mean": 0.7
-            },
-            "mrr_at_10": {
-              "eligible": 10,
-              "mean": 1.0
-            }
-          },
-          "key": "multi_doc_compare",
-          "label": "다중 문서 비교·종합",
-          "mean_semantic_score": 55.75,
-          "parser_count": 0,
-          "rag_count": 10,
-          "rejected": 5,
-          "runtime_error_rate": 0.0,
-          "status": {
-            "abstained": 3,
-            "answered": 7,
-            "error": 0
-          }
-        },
-        "single_doc": {
-          "acceptance_rate": 0.8,
-          "accepted": 8,
-          "behavior_checks": {
-            "follow_up_success": {
-              "eligible": 0,
-              "passed": 0,
-              "rate": null
-            },
-            "safe_abstention": {
-              "eligible": 0,
-              "passed": 0,
-              "rate": null
-            }
-          },
-          "components": {
-            "abstention_quality": {
-              "eligible": 0,
-              "mean": null
-            },
-            "citation_validity": {
-              "eligible": 10,
-              "mean": 1.0
-            },
-            "completeness": {
-              "eligible": 10,
-              "mean": 0.8
-            },
-            "correctness": {
-              "eligible": 10,
-              "mean": 0.85
-            },
-            "factual_claim_coverage": {
-              "eligible": 10,
-              "mean": 1.0
-            },
-            "faithfulness": {
-              "eligible": 10,
-              "mean": 1.0
-            }
-          },
-          "count": 10,
-          "deterministic_metrics": {
-            "citation_valid": {
-              "eligible": 10,
-              "mean": 1.0
-            },
-            "document_recall_at_1": {
-              "eligible": 10,
-              "mean": 1.0
-            },
-            "document_recall_at_10": {
-              "eligible": 10,
-              "mean": 1.0
-            },
-            "document_recall_at_5": {
-              "eligible": 10,
-              "mean": 1.0
-            },
-            "expected_behavior_match": {
-              "eligible": 10,
-              "mean": 1.0
-            },
-            "mrr_at_10": {
-              "eligible": 10,
-              "mean": 1.0
-            }
-          },
-          "key": "single_doc",
-          "label": "단일 문서 근거 답변",
-          "mean_semantic_score": 90.75,
-          "parser_count": 0,
-          "rag_count": 10,
-          "rejected": 2,
-          "runtime_error_rate": 0.0,
-          "status": {
-            "abstained": 0,
-            "answered": 10,
-            "error": 0
-          }
-        },
-        "unknown": {
-          "acceptance_rate": 0.7,
-          "accepted": 7,
-          "behavior_checks": {
-            "follow_up_success": {
-              "eligible": 0,
-              "passed": 0,
-              "rate": null
-            },
-            "safe_abstention": {
-              "eligible": 10,
-              "passed": 7,
-              "rate": 0.7
-            }
-          },
-          "components": {
-            "abstention_quality": {
-              "eligible": 10,
-              "mean": 0.7
-            },
-            "citation_validity": {
-              "eligible": 0,
-              "mean": null
-            },
-            "completeness": {
-              "eligible": 0,
-              "mean": null
-            },
-            "correctness": {
-              "eligible": 0,
-              "mean": null
-            },
-            "factual_claim_coverage": {
-              "eligible": 0,
-              "mean": null
-            },
-            "faithfulness": {
-              "eligible": 0,
-              "mean": null
-            }
-          },
-          "count": 10,
-          "deterministic_metrics": {
-            "expected_behavior_match": {
-              "eligible": 10,
-              "mean": 0.9
-            }
-          },
-          "key": "unknown",
-          "label": "정보 없음·범위 밖 기권",
-          "mean_semantic_score": 70.0,
-          "parser_count": 0,
-          "rag_count": 10,
-          "rejected": 3,
-          "runtime_error_rate": 0.1,
-          "status": {
-            "abstained": 9,
-            "answered": 0,
-            "error": 1
-          }
-        }
-      },
-      "visual_subgroups": {
-        "hwp_figure": {
-          "acceptance_rate": 0.0,
-          "accepted": 0,
-          "behavior_checks": {
-            "follow_up_success": {
-              "eligible": 0,
-              "passed": 0,
-              "rate": null
-            },
-            "safe_abstention": {
-              "eligible": 0,
-              "passed": 0,
-              "rate": null
-            }
-          },
-          "components": {
-            "abstention_quality": {
-              "eligible": 0,
-              "mean": null
-            },
-            "citation_validity": {
-              "eligible": 2,
-              "mean": 0.0
-            },
-            "completeness": {
-              "eligible": 2,
-              "mean": 0.0
-            },
-            "correctness": {
-              "eligible": 2,
-              "mean": 0.0
-            },
-            "factual_claim_coverage": {
-              "eligible": 2,
-              "mean": 0.0
-            },
-            "faithfulness": {
-              "eligible": 2,
-              "mean": 0.0
-            }
-          },
-          "count": 2,
-          "deterministic_metrics": {
-            "document_recall_at_1": {
-              "eligible": 2,
-              "mean": 1.0
-            },
-            "document_recall_at_10": {
-              "eligible": 2,
-              "mean": 1.0
-            },
-            "document_recall_at_5": {
-              "eligible": 2,
-              "mean": 1.0
-            },
-            "expected_behavior_match": {
-              "eligible": 2,
-              "mean": 0.0
-            },
-            "mrr_at_10": {
-              "eligible": 2,
-              "mean": 1.0
-            },
-            "visual_retrieval.document.mrr_at_10": {
-              "eligible": 2,
-              "mean": 1.0
-            },
-            "visual_retrieval.document.recall_at_1": {
-              "eligible": 2,
-              "mean": 1.0
-            },
-            "visual_retrieval.document.recall_at_10": {
-              "eligible": 2,
-              "mean": 1.0
-            },
-            "visual_retrieval.document.recall_at_5": {
-              "eligible": 2,
-              "mean": 1.0
-            },
-            "visual_retrieval.document.target_count": {
-              "eligible": 2,
-              "mean": 1.0
-            },
-            "visual_retrieval.object.mrr_at_10": {
-              "eligible": 2,
-              "mean": 0.0
-            },
-            "visual_retrieval.object.recall_at_1": {
-              "eligible": 2,
-              "mean": 0.0
-            },
-            "visual_retrieval.object.recall_at_10": {
-              "eligible": 2,
-              "mean": 0.0
-            },
-            "visual_retrieval.object.recall_at_5": {
-              "eligible": 2,
-              "mean": 0.0
-            },
-            "visual_retrieval.object.target_count": {
-              "eligible": 2,
-              "mean": 1.0
-            },
-            "visual_retrieval.page.mrr_at_10": {
-              "eligible": 2,
-              "mean": 0.0
-            },
-            "visual_retrieval.page.recall_at_1": {
-              "eligible": 2,
-              "mean": 0.0
-            },
-            "visual_retrieval.page.recall_at_10": {
-              "eligible": 2,
-              "mean": 0.0
-            },
-            "visual_retrieval.page.recall_at_5": {
-              "eligible": 2,
-              "mean": 0.0
-            },
-            "visual_retrieval.page.target_count": {
-              "eligible": 2,
-              "mean": 1.0
-            }
-          },
-          "key": "hwp_figure",
-          "label": "HWP 그림·도식",
-          "mean_semantic_score": 0.0,
-          "parser_count": 0,
-          "rag_count": 2,
-          "rejected": 2,
-          "runtime_error_rate": 0.0,
-          "status": {
-            "abstained": 2,
-            "answered": 0,
-            "error": 0
-          }
-        },
-        "hwp_table": {
-          "acceptance_rate": 0.666667,
-          "accepted": 2,
-          "behavior_checks": {
-            "follow_up_success": {
-              "eligible": 0,
-              "passed": 0,
-              "rate": null
-            },
-            "safe_abstention": {
-              "eligible": 0,
-              "passed": 0,
-              "rate": null
-            }
-          },
-          "components": {
-            "abstention_quality": {
-              "eligible": 0,
-              "mean": null
-            },
-            "citation_validity": {
-              "eligible": 3,
-              "mean": 0.666667
-            },
-            "completeness": {
-              "eligible": 3,
-              "mean": 0.666667
-            },
-            "correctness": {
-              "eligible": 3,
-              "mean": 0.666667
-            },
-            "factual_claim_coverage": {
-              "eligible": 3,
-              "mean": 0.666667
-            },
-            "faithfulness": {
-              "eligible": 3,
-              "mean": 0.666667
-            }
-          },
-          "count": 3,
-          "deterministic_metrics": {
-            "citation_valid": {
-              "eligible": 2,
-              "mean": 1.0
-            },
-            "document_recall_at_1": {
-              "eligible": 3,
-              "mean": 1.0
-            },
-            "document_recall_at_10": {
-              "eligible": 3,
-              "mean": 1.0
-            },
-            "document_recall_at_5": {
-              "eligible": 3,
-              "mean": 1.0
-            },
-            "expected_behavior_match": {
-              "eligible": 3,
-              "mean": 0.666667
-            },
-            "mrr_at_10": {
-              "eligible": 3,
-              "mean": 1.0
-            },
-            "visual_retrieval.chunk_or_block.mrr_at_10": {
-              "eligible": 3,
-              "mean": 0.0
-            },
-            "visual_retrieval.chunk_or_block.recall_at_1": {
-              "eligible": 3,
-              "mean": 0.0
-            },
-            "visual_retrieval.chunk_or_block.recall_at_10": {
-              "eligible": 3,
-              "mean": 0.0
-            },
-            "visual_retrieval.chunk_or_block.recall_at_5": {
-              "eligible": 3,
-              "mean": 0.0
-            },
-            "visual_retrieval.chunk_or_block.target_count": {
-              "eligible": 3,
-              "mean": 1.333333
-            },
-            "visual_retrieval.document.mrr_at_10": {
-              "eligible": 3,
-              "mean": 1.0
-            },
-            "visual_retrieval.document.recall_at_1": {
-              "eligible": 3,
-              "mean": 1.0
-            },
-            "visual_retrieval.document.recall_at_10": {
-              "eligible": 3,
-              "mean": 1.0
-            },
-            "visual_retrieval.document.recall_at_5": {
-              "eligible": 3,
-              "mean": 1.0
-            },
-            "visual_retrieval.document.target_count": {
-              "eligible": 3,
-              "mean": 1.0
-            },
-            "visual_retrieval.object.mrr_at_10": {
-              "eligible": 3,
-              "mean": 0.0
-            },
-            "visual_retrieval.object.recall_at_1": {
-              "eligible": 3,
-              "mean": 0.0
-            },
-            "visual_retrieval.object.recall_at_10": {
-              "eligible": 3,
-              "mean": 0.0
-            },
-            "visual_retrieval.object.recall_at_5": {
-              "eligible": 3,
-              "mean": 0.0
-            },
-            "visual_retrieval.object.target_count": {
-              "eligible": 3,
-              "mean": 1.333333
-            },
-            "visual_retrieval.page.mrr_at_10": {
-              "eligible": 3,
-              "mean": 0.666667
-            },
-            "visual_retrieval.page.recall_at_1": {
-              "eligible": 3,
-              "mean": 0.5
-            },
-            "visual_retrieval.page.recall_at_10": {
-              "eligible": 3,
-              "mean": 0.666667
-            },
-            "visual_retrieval.page.recall_at_5": {
-              "eligible": 3,
-              "mean": 0.666667
-            },
-            "visual_retrieval.page.target_count": {
-              "eligible": 3,
-              "mean": 1.333333
-            }
-          },
-          "key": "hwp_table",
-          "label": "HWP 표",
-          "mean_semantic_score": 66.67,
-          "parser_count": 0,
-          "rag_count": 3,
-          "rejected": 1,
-          "runtime_error_rate": 0.0,
-          "status": {
-            "abstained": 1,
-            "answered": 2,
-            "error": 0
-          }
-        },
-        "pdf_figure": {
-          "acceptance_rate": 0.0,
-          "accepted": 0,
-          "behavior_checks": {
-            "follow_up_success": {
-              "eligible": 0,
-              "passed": 0,
-              "rate": null
-            },
-            "safe_abstention": {
-              "eligible": 0,
-              "passed": 0,
-              "rate": null
-            }
-          },
-          "components": {
-            "abstention_quality": {
-              "eligible": 0,
-              "mean": null
-            },
-            "citation_validity": {
-              "eligible": 2,
-              "mean": 0.0
-            },
-            "completeness": {
-              "eligible": 2,
-              "mean": 0.0
-            },
-            "correctness": {
-              "eligible": 2,
-              "mean": 0.0
-            },
-            "factual_claim_coverage": {
-              "eligible": 2,
-              "mean": 0.0
-            },
-            "faithfulness": {
-              "eligible": 2,
-              "mean": 0.0
-            }
-          },
-          "count": 2,
-          "deterministic_metrics": {
-            "document_recall_at_1": {
-              "eligible": 2,
-              "mean": 1.0
-            },
-            "document_recall_at_10": {
-              "eligible": 2,
-              "mean": 1.0
-            },
-            "document_recall_at_5": {
-              "eligible": 2,
-              "mean": 1.0
-            },
-            "expected_behavior_match": {
-              "eligible": 2,
-              "mean": 0.0
-            },
-            "mrr_at_10": {
-              "eligible": 2,
-              "mean": 1.0
-            },
-            "visual_retrieval.document.mrr_at_10": {
-              "eligible": 2,
-              "mean": 1.0
-            },
-            "visual_retrieval.document.recall_at_1": {
-              "eligible": 2,
-              "mean": 1.0
-            },
-            "visual_retrieval.document.recall_at_10": {
-              "eligible": 2,
-              "mean": 1.0
-            },
-            "visual_retrieval.document.recall_at_5": {
-              "eligible": 2,
-              "mean": 1.0
-            },
-            "visual_retrieval.document.target_count": {
-              "eligible": 2,
-              "mean": 1.0
-            },
-            "visual_retrieval.object.mrr_at_10": {
-              "eligible": 2,
-              "mean": 0.0
-            },
-            "visual_retrieval.object.recall_at_1": {
-              "eligible": 2,
-              "mean": 0.0
-            },
-            "visual_retrieval.object.recall_at_10": {
-              "eligible": 2,
-              "mean": 0.0
-            },
-            "visual_retrieval.object.recall_at_5": {
-              "eligible": 2,
-              "mean": 0.0
-            },
-            "visual_retrieval.object.target_count": {
-              "eligible": 2,
-              "mean": 1.0
-            },
-            "visual_retrieval.page.mrr_at_10": {
-              "eligible": 2,
-              "mean": 0.25
-            },
-            "visual_retrieval.page.recall_at_1": {
-              "eligible": 2,
-              "mean": 0.0
-            },
-            "visual_retrieval.page.recall_at_10": {
-              "eligible": 2,
-              "mean": 0.5
-            },
-            "visual_retrieval.page.recall_at_5": {
-              "eligible": 2,
-              "mean": 0.5
-            },
-            "visual_retrieval.page.target_count": {
-              "eligible": 2,
-              "mean": 1.0
-            }
-          },
-          "key": "pdf_figure",
-          "label": "PDF 그림·도식",
-          "mean_semantic_score": 0.0,
-          "parser_count": 0,
-          "rag_count": 2,
-          "rejected": 2,
-          "runtime_error_rate": 0.5,
-          "status": {
-            "abstained": 1,
-            "answered": 0,
-            "error": 1
-          }
-        },
-        "pdf_table": {
-          "acceptance_rate": 1.0,
-          "accepted": 3,
-          "behavior_checks": {
-            "follow_up_success": {
-              "eligible": 0,
-              "passed": 0,
-              "rate": null
-            },
-            "safe_abstention": {
-              "eligible": 0,
-              "passed": 0,
-              "rate": null
-            }
-          },
-          "components": {
-            "abstention_quality": {
-              "eligible": 0,
-              "mean": null
-            },
-            "citation_validity": {
-              "eligible": 3,
-              "mean": 1.0
-            },
-            "completeness": {
-              "eligible": 3,
-              "mean": 0.833333
-            },
-            "correctness": {
-              "eligible": 3,
-              "mean": 1.0
-            },
-            "factual_claim_coverage": {
-              "eligible": 3,
-              "mean": 1.0
-            },
-            "faithfulness": {
-              "eligible": 3,
-              "mean": 1.0
-            }
-          },
-          "count": 3,
-          "deterministic_metrics": {
-            "citation_valid": {
-              "eligible": 3,
-              "mean": 1.0
-            },
-            "document_recall_at_1": {
-              "eligible": 3,
-              "mean": 1.0
-            },
-            "document_recall_at_10": {
-              "eligible": 3,
-              "mean": 1.0
-            },
-            "document_recall_at_5": {
-              "eligible": 3,
-              "mean": 1.0
-            },
-            "expected_behavior_match": {
-              "eligible": 3,
-              "mean": 1.0
-            },
-            "mrr_at_10": {
-              "eligible": 3,
-              "mean": 1.0
-            },
-            "visual_retrieval.document.mrr_at_10": {
-              "eligible": 3,
-              "mean": 1.0
-            },
-            "visual_retrieval.document.recall_at_1": {
-              "eligible": 3,
-              "mean": 1.0
-            },
-            "visual_retrieval.document.recall_at_10": {
-              "eligible": 3,
-              "mean": 1.0
-            },
-            "visual_retrieval.document.recall_at_5": {
-              "eligible": 3,
-              "mean": 1.0
-            },
-            "visual_retrieval.document.target_count": {
-              "eligible": 3,
-              "mean": 1.0
-            },
-            "visual_retrieval.object.mrr_at_10": {
-              "eligible": 3,
-              "mean": 0.0
-            },
-            "visual_retrieval.object.recall_at_1": {
-              "eligible": 3,
-              "mean": 0.0
-            },
-            "visual_retrieval.object.recall_at_10": {
-              "eligible": 3,
-              "mean": 0.0
-            },
-            "visual_retrieval.object.recall_at_5": {
-              "eligible": 3,
-              "mean": 0.0
-            },
-            "visual_retrieval.object.target_count": {
-              "eligible": 3,
-              "mean": 1.0
-            },
-            "visual_retrieval.page.mrr_at_10": {
-              "eligible": 3,
-              "mean": 0.75
-            },
-            "visual_retrieval.page.recall_at_1": {
-              "eligible": 3,
-              "mean": 0.666667
-            },
-            "visual_retrieval.page.recall_at_10": {
-              "eligible": 3,
-              "mean": 1.0
-            },
-            "visual_retrieval.page.recall_at_5": {
-              "eligible": 3,
-              "mean": 1.0
-            },
-            "visual_retrieval.page.target_count": {
-              "eligible": 3,
-              "mean": 1.0
-            }
-          },
-          "key": "pdf_table",
-          "label": "PDF 표",
-          "mean_semantic_score": 96.67,
-          "parser_count": 0,
-          "rag_count": 3,
-          "rejected": 0,
-          "runtime_error_rate": 0.0,
-          "status": {
-            "abstained": 0,
-            "answered": 3,
-            "error": 0
-          }
-        }
-      }
-    },
     "by_difficulty": {
       "easy": {
         "acceptance_rate": 0.829268,
@@ -4451,6 +2462,1958 @@
         "answered": 87,
         "error": 6
       }
+    },
+    "scorecard": {
+      "common_evaluation_metrics": {
+        "abstention": {
+          "answerable_false_abstain_rate": {
+            "available": true,
+            "coverage": 1.0,
+            "eligible": 30,
+            "reason": null,
+            "value": 0.166667
+          },
+          "false_answer_rate": {
+            "available": true,
+            "coverage": 1.0,
+            "eligible": 10,
+            "reason": null,
+            "value": 0.4
+          },
+          "precision": {
+            "available": true,
+            "coverage": 1.0,
+            "eligible": 11,
+            "reason": null,
+            "value": 0.545455
+          },
+          "recall": {
+            "available": true,
+            "coverage": 1.0,
+            "eligible": 10,
+            "reason": null,
+            "value": 0.6
+          },
+          "safe_abstention_rate": {
+            "available": true,
+            "coverage": 1.0,
+            "eligible": 10,
+            "reason": null,
+            "value": 0.6
+          }
+        },
+        "answer": {
+          "citation_validity": {
+            "available": true,
+            "coverage": 1.0,
+            "eligible": 30,
+            "reason": null,
+            "value": 0.833333
+          },
+          "correctness": {
+            "available": true,
+            "coverage": 1.0,
+            "eligible": 30,
+            "reason": null,
+            "value": 0.733333
+          },
+          "factual_claim_coverage": {
+            "available": true,
+            "coverage": 1.0,
+            "eligible": 30,
+            "reason": null,
+            "value": 0.816667
+          },
+          "faithfulness": {
+            "available": true,
+            "coverage": 1.0,
+            "eligible": 30,
+            "reason": null,
+            "value": 0.8
+          },
+          "follow_up_success": {
+            "available": true,
+            "coverage": 1.0,
+            "eligible": 10,
+            "reason": null,
+            "value": 0.8
+          },
+          "gold_citation_precision": {
+            "available": true,
+            "coverage": 1.0,
+            "eligible": 25,
+            "reason": null,
+            "value": 0.773333
+          },
+          "judgment_coverage": {
+            "available": true,
+            "coverage": 1.0,
+            "eligible": 40,
+            "reason": null,
+            "value": 1.0
+          },
+          "key_point_coverage": {
+            "available": true,
+            "coverage": 1.0,
+            "eligible": 30,
+            "reason": null,
+            "value": 0.630556
+          }
+        },
+        "operations": {
+          "api_cost_coverage": {
+            "available": false,
+            "coverage": 0.0,
+            "eligible": 0,
+            "reason": "metric_not_applicable_to_local_candidate",
+            "value": null
+          },
+          "latency_generation_p50_ms": {
+            "available": true,
+            "coverage": 1.0,
+            "eligible": 40,
+            "reason": null,
+            "value": 34752.2825
+          },
+          "latency_retrieval_p50_ms": {
+            "available": true,
+            "coverage": 1.0,
+            "eligible": 40,
+            "reason": null,
+            "value": 120.207625
+          },
+          "latency_total_p50_ms": {
+            "available": true,
+            "coverage": 1.0,
+            "eligible": 40,
+            "reason": null,
+            "value": 34996.577458
+          },
+          "latency_total_p95_ms": {
+            "available": true,
+            "coverage": 1.0,
+            "eligible": 40,
+            "reason": null,
+            "value": 65119.728166
+          },
+          "local_gpu_usage_coverage": {
+            "available": false,
+            "coverage": 0.0,
+            "eligible": 0,
+            "reason": "mac_local_equivalent_run_did_not_capture_gcp_gpu_telemetry",
+            "value": null
+          },
+          "mean_cost_usd": {
+            "available": true,
+            "coverage": 1.0,
+            "eligible": 40,
+            "reason": null,
+            "value": 0.0
+          },
+          "mean_gpu_seconds": {
+            "available": false,
+            "coverage": 0.0,
+            "eligible": 0,
+            "reason": "mac_local_equivalent_run_did_not_capture_gcp_gpu_telemetry",
+            "value": null
+          },
+          "peak_vram_gb": {
+            "available": false,
+            "coverage": 0.0,
+            "eligible": 0,
+            "reason": "mac_local_equivalent_run_did_not_capture_gcp_gpu_telemetry",
+            "value": null
+          },
+          "response_contract_error_rate": {
+            "available": false,
+            "coverage": 0.0,
+            "eligible": 0,
+            "reason": "response_contract_metric_not_captured_by_frozen_local_run",
+            "value": null
+          },
+          "runtime_error_rate": {
+            "available": true,
+            "coverage": 1.0,
+            "eligible": 40,
+            "reason": null,
+            "value": 0.025
+          },
+          "total_cost_usd": {
+            "available": true,
+            "coverage": 1.0,
+            "eligible": 40,
+            "reason": null,
+            "value": 0.0
+          },
+          "total_gpu_seconds": {
+            "available": false,
+            "coverage": 0.0,
+            "eligible": 0,
+            "reason": "mac_local_equivalent_run_did_not_capture_gcp_gpu_telemetry",
+            "value": null
+          }
+        },
+        "retrieval": {
+          "all_required_docs_recalled_at_1": {
+            "available": true,
+            "coverage": 1.0,
+            "eligible": 10,
+            "reason": null,
+            "value": 0.0
+          },
+          "all_required_docs_recalled_at_10": {
+            "available": true,
+            "coverage": 1.0,
+            "eligible": 10,
+            "reason": null,
+            "value": 1.0
+          },
+          "all_required_docs_recalled_at_3": {
+            "available": true,
+            "coverage": 1.0,
+            "eligible": 10,
+            "reason": null,
+            "value": 1.0
+          },
+          "all_required_docs_recalled_at_5": {
+            "available": true,
+            "coverage": 1.0,
+            "eligible": 10,
+            "reason": null,
+            "value": 1.0
+          },
+          "document_recall_at_1": {
+            "available": true,
+            "coverage": 1.0,
+            "eligible": 30,
+            "reason": null,
+            "value": 0.833333
+          },
+          "document_recall_at_10": {
+            "available": true,
+            "coverage": 1.0,
+            "eligible": 30,
+            "reason": null,
+            "value": 1.0
+          },
+          "document_recall_at_3": {
+            "available": true,
+            "coverage": 1.0,
+            "eligible": 30,
+            "reason": null,
+            "value": 1.0
+          },
+          "document_recall_at_5": {
+            "available": true,
+            "coverage": 1.0,
+            "eligible": 30,
+            "reason": null,
+            "value": 1.0
+          },
+          "mrr_at_10": {
+            "available": true,
+            "coverage": 1.0,
+            "eligible": 30,
+            "reason": null,
+            "value": 1.0
+          },
+          "ndcg_at_10": {
+            "available": true,
+            "coverage": 1.0,
+            "eligible": 30,
+            "reason": null,
+            "value": 0.991972
+          },
+          "source_block_recall_at_1": {
+            "available": true,
+            "coverage": 1.0,
+            "eligible": 30,
+            "reason": null,
+            "value": 0.578889
+          },
+          "source_block_recall_at_10": {
+            "available": true,
+            "coverage": 1.0,
+            "eligible": 30,
+            "reason": null,
+            "value": 0.865556
+          },
+          "source_block_recall_at_3": {
+            "available": true,
+            "coverage": 1.0,
+            "eligible": 30,
+            "reason": null,
+            "value": 0.69
+          },
+          "source_block_recall_at_5": {
+            "available": true,
+            "coverage": 1.0,
+            "eligible": 30,
+            "reason": null,
+            "value": 0.753333
+          }
+        },
+        "task_success": {
+          "follow_up": {
+            "available": true,
+            "coverage": 1.0,
+            "eligible": 10,
+            "reason": null,
+            "value": 0.8
+          },
+          "multi_doc_compare": {
+            "available": true,
+            "coverage": 1.0,
+            "eligible": 10,
+            "reason": null,
+            "value": 0.7
+          },
+          "single_doc": {
+            "available": true,
+            "coverage": 1.0,
+            "eligible": 10,
+            "reason": null,
+            "value": 1.0
+          },
+          "unknown": {
+            "available": true,
+            "coverage": 1.0,
+            "eligible": 10,
+            "reason": null,
+            "value": 0.6
+          }
+        }
+      },
+      "contract_version": "mini131-scorecard.v1",
+      "local_candidate": {
+        "accepted": 88,
+        "embedding": "nlpai-lab/KURE-v1",
+        "execution_profile": "mac_local_equivalent",
+        "generator": "qwen3.8:27b-mlx",
+        "mean_semantic_score": 70.135659,
+        "parser_count": 2,
+        "rag_count": 129,
+        "rejected": 41,
+        "suite_id": "gcp-local-kure-qwen3-8b-awq-mini131-v1"
+      },
+      "objective_companion_metrics": {
+        "analytics_case_count": 10,
+        "analytics_deterministic_case_pass_count": 10,
+        "analytics_deterministic_case_pass_rate": 1.0,
+        "analytics_deterministic_companion_case_count": 10,
+        "analytics_deterministic_companion_complete_rate": 1.0,
+        "analytics_deterministic_companion_pass_count": 10,
+        "analytics_deterministic_field_count": 139,
+        "analytics_deterministic_field_pass_count": 139,
+        "analytics_deterministic_field_pass_rate": 1.0,
+        "analytics_numeric_evidence_availability_rate": 1.0,
+        "analytics_numeric_evidence_field_count": 93,
+        "analytics_numeric_evidence_fields_per_case": {
+          "max": 38,
+          "mean": 9.3,
+          "min": 1,
+          "observed_case_count": 10
+        },
+        "required_document_hit_count": 76,
+        "required_document_recall": 0.678571,
+        "required_document_total": 112,
+        "set_case_count": 13,
+        "set_exact_match_rate": 0.538462,
+        "set_false_negative_total": 33,
+        "set_false_positive_total": 4,
+        "set_macro_f1": 0.630769,
+        "set_macro_precision": 0.608974,
+        "set_macro_recall": 0.692308,
+        "set_micro_f1": 0.478873,
+        "set_micro_precision": 0.809524,
+        "set_micro_recall": 0.34,
+        "set_true_positive_total": 17,
+        "unknown_case_count": 10,
+        "unknown_safe_abstention_pass_count": 7,
+        "unknown_safe_abstention_rate": 0.7,
+        "visual_case_count": 10,
+        "visual_evidence_availability_rate": 1.0,
+        "visual_target_chunk": {
+          "eligible_case_count": 3,
+          "first_rank": {
+            "max": null,
+            "mean": null,
+            "median": null,
+            "min": null,
+            "observed_count": 0
+          },
+          "hit_count": 0,
+          "hit_rate": 0.0
+        },
+        "visual_target_object_bridge": {
+          "eligible_case_count": 10,
+          "first_rank": {
+            "max": null,
+            "mean": null,
+            "median": null,
+            "min": null,
+            "observed_count": 0
+          },
+          "hit_count": 0,
+          "hit_rate": 0.0
+        },
+        "visual_target_page": {
+          "eligible_case_count": 10,
+          "first_rank": {
+            "max": 4.0,
+            "mean": 1.666667,
+            "median": 1.0,
+            "min": 1.0,
+            "observed_count": 6
+          },
+          "hit_count": 6,
+          "hit_rate": 0.6
+        }
+      },
+      "primary_categories": {
+        "bid_rag_scenarios": {
+          "acceptance_rate": 0.7,
+          "accepted": 28,
+          "behavior_checks": {
+            "follow_up_success": {
+              "eligible": 10,
+              "passed": 8,
+              "rate": 0.8
+            },
+            "safe_abstention": {
+              "eligible": 10,
+              "passed": 7,
+              "rate": 0.7
+            }
+          },
+          "components": {
+            "abstention_quality": {
+              "eligible": 10,
+              "mean": 0.7
+            },
+            "citation_validity": {
+              "eligible": 30,
+              "mean": 0.833333
+            },
+            "completeness": {
+              "eligible": 30,
+              "mean": 0.633333
+            },
+            "correctness": {
+              "eligible": 30,
+              "mean": 0.733333
+            },
+            "factual_claim_coverage": {
+              "eligible": 30,
+              "mean": 0.816667
+            },
+            "faithfulness": {
+              "eligible": 30,
+              "mean": 0.8
+            }
+          },
+          "count": 40,
+          "deterministic_metrics": {
+            "citation_valid": {
+              "eligible": 25,
+              "mean": 1.0
+            },
+            "document_recall_at_1": {
+              "eligible": 30,
+              "mean": 0.833333
+            },
+            "document_recall_at_10": {
+              "eligible": 30,
+              "mean": 1.0
+            },
+            "document_recall_at_5": {
+              "eligible": 30,
+              "mean": 1.0
+            },
+            "expected_behavior_match": {
+              "eligible": 40,
+              "mean": 0.85
+            },
+            "mrr_at_10": {
+              "eligible": 30,
+              "mean": 1.0
+            }
+          },
+          "key": "bid_rag_scenarios",
+          "label": "입찰 RAG 핵심 시나리오",
+          "mean_semantic_score": 73.63,
+          "parser_count": 0,
+          "rag_count": 40,
+          "rejected": 12,
+          "runtime_error_rate": 0.025,
+          "status": {
+            "abstained": 14,
+            "answered": 25,
+            "error": 1
+          }
+        },
+        "clause_fact_regression": {
+          "acceptance_rate": 0.545455,
+          "accepted": 24,
+          "behavior_checks": {
+            "follow_up_success": {
+              "eligible": 0,
+              "passed": 0,
+              "rate": null
+            },
+            "safe_abstention": {
+              "eligible": 2,
+              "passed": 2,
+              "rate": 1.0
+            }
+          },
+          "components": {
+            "abstention_quality": {
+              "eligible": 2,
+              "mean": 1.0
+            },
+            "citation_validity": {
+              "eligible": 42,
+              "mean": 0.607143
+            },
+            "completeness": {
+              "eligible": 42,
+              "mean": 0.535714
+            },
+            "correctness": {
+              "eligible": 42,
+              "mean": 0.547619
+            },
+            "factual_claim_coverage": {
+              "eligible": 42,
+              "mean": 0.619048
+            },
+            "faithfulness": {
+              "eligible": 42,
+              "mean": 0.583333
+            }
+          },
+          "count": 44,
+          "deterministic_metrics": {
+            "citation_valid": {
+              "eligible": 26,
+              "mean": 1.0
+            },
+            "document_recall_at_1": {
+              "eligible": 42,
+              "mean": 0.944444
+            },
+            "document_recall_at_10": {
+              "eligible": 42,
+              "mean": 0.980159
+            },
+            "document_recall_at_5": {
+              "eligible": 42,
+              "mean": 0.972222
+            },
+            "expected_behavior_match": {
+              "eligible": 44,
+              "mean": 0.636364
+            },
+            "mrr_at_10": {
+              "eligible": 42,
+              "mean": 1.0
+            }
+          },
+          "key": "clause_fact_regression",
+          "label": "조항·사실 회귀",
+          "mean_semantic_score": 58.69,
+          "parser_count": 0,
+          "rag_count": 44,
+          "rejected": 20,
+          "runtime_error_rate": 0.0,
+          "status": {
+            "abstained": 18,
+            "answered": 26,
+            "error": 0
+          }
+        },
+        "conditional_all_list": {
+          "acceptance_rate": 0.692308,
+          "accepted": 9,
+          "behavior_checks": {
+            "follow_up_success": {
+              "eligible": 0,
+              "passed": 0,
+              "rate": null
+            },
+            "safe_abstention": {
+              "eligible": 0,
+              "passed": 0,
+              "rate": null
+            }
+          },
+          "components": {
+            "abstention_quality": {
+              "eligible": 0,
+              "mean": null
+            },
+            "citation_validity": {
+              "eligible": 13,
+              "mean": 0.692308
+            },
+            "completeness": {
+              "eligible": 13,
+              "mean": 0.692308
+            },
+            "correctness": {
+              "eligible": 13,
+              "mean": 0.692308
+            },
+            "factual_claim_coverage": {
+              "eligible": 13,
+              "mean": 0.692308
+            },
+            "faithfulness": {
+              "eligible": 13,
+              "mean": 0.692308
+            }
+          },
+          "count": 13,
+          "deterministic_metrics": {
+            "citation_valid": {
+              "eligible": 9,
+              "mean": 1.0
+            },
+            "expected_behavior_match": {
+              "eligible": 13,
+              "mean": 0.692308
+            },
+            "set_count_match": {
+              "eligible": 13,
+              "mean": 0.538462
+            },
+            "set_exact_match": {
+              "eligible": 13,
+              "mean": 0.538462
+            },
+            "set_expected_count": {
+              "eligible": 13,
+              "mean": 3.846154
+            },
+            "set_f1": {
+              "eligible": 13,
+              "mean": 0.630769
+            },
+            "set_precision": {
+              "eligible": 13,
+              "mean": 0.608974
+            },
+            "set_recall": {
+              "eligible": 13,
+              "mean": 0.692308
+            },
+            "set_selected_count": {
+              "eligible": 13,
+              "mean": 1.615385
+            }
+          },
+          "key": "conditional_all_list",
+          "label": "조건부 전체 목록",
+          "mean_semantic_score": 69.23,
+          "parser_count": 0,
+          "rag_count": 13,
+          "rejected": 4,
+          "runtime_error_rate": 0.307692,
+          "status": {
+            "abstained": 0,
+            "answered": 9,
+            "error": 4
+          }
+        },
+        "corpus_analytics": {
+          "acceptance_rate": 1.0,
+          "accepted": 10,
+          "behavior_checks": {
+            "follow_up_success": {
+              "eligible": 0,
+              "passed": 0,
+              "rate": null
+            },
+            "safe_abstention": {
+              "eligible": 0,
+              "passed": 0,
+              "rate": null
+            }
+          },
+          "components": {
+            "abstention_quality": {
+              "eligible": 0,
+              "mean": null
+            },
+            "citation_validity": {
+              "eligible": 10,
+              "mean": 1.0
+            },
+            "completeness": {
+              "eligible": 10,
+              "mean": 0.8
+            },
+            "correctness": {
+              "eligible": 10,
+              "mean": 1.0
+            },
+            "factual_claim_coverage": {
+              "eligible": 10,
+              "mean": 1.0
+            },
+            "faithfulness": {
+              "eligible": 10,
+              "mean": 1.0
+            }
+          },
+          "count": 10,
+          "deterministic_metrics": {
+            "analytics_calculation.case_passed": {
+              "eligible": 10,
+              "mean": 1.0
+            },
+            "analytics_calculation.comparison_count": {
+              "eligible": 10,
+              "mean": 13.9
+            },
+            "analytics_calculation.comparison_match_rate": {
+              "eligible": 10,
+              "mean": 1.0
+            },
+            "analytics_calculation.exact_comparison_count": {
+              "eligible": 10,
+              "mean": 4.6
+            },
+            "analytics_calculation.exact_comparison_match_rate": {
+              "eligible": 5,
+              "mean": 1.0
+            },
+            "analytics_calculation.exact_matched_comparison_count": {
+              "eligible": 10,
+              "mean": 4.6
+            },
+            "analytics_calculation.matched_comparison_count": {
+              "eligible": 10,
+              "mean": 13.9
+            },
+            "analytics_calculation.tolerance_comparison_count": {
+              "eligible": 10,
+              "mean": 9.3
+            },
+            "analytics_calculation.tolerance_comparison_match_rate": {
+              "eligible": 10,
+              "mean": 1.0
+            },
+            "analytics_calculation.tolerance_matched_comparison_count": {
+              "eligible": 10,
+              "mean": 9.3
+            },
+            "citation_valid": {
+              "eligible": 10,
+              "mean": 1.0
+            },
+            "expected_behavior_match": {
+              "eligible": 10,
+              "mean": 1.0
+            }
+          },
+          "key": "corpus_analytics",
+          "label": "코퍼스 분석",
+          "mean_semantic_score": 96.0,
+          "parser_count": 0,
+          "rag_count": 10,
+          "rejected": 0,
+          "runtime_error_rate": 0.0,
+          "status": {
+            "abstained": 0,
+            "answered": 10,
+            "error": 0
+          }
+        },
+        "gold_source_alignment": {
+          "acceptance_rate": 1.0,
+          "accepted": 12,
+          "behavior_checks": {
+            "follow_up_success": {
+              "eligible": 0,
+              "passed": 0,
+              "rate": null
+            },
+            "safe_abstention": {
+              "eligible": 0,
+              "passed": 0,
+              "rate": null
+            }
+          },
+          "components": {
+            "abstention_quality": {
+              "eligible": 0,
+              "mean": null
+            },
+            "citation_validity": {
+              "eligible": 12,
+              "mean": 1.0
+            },
+            "completeness": {
+              "eligible": 12,
+              "mean": 0.875
+            },
+            "correctness": {
+              "eligible": 12,
+              "mean": 1.0
+            },
+            "factual_claim_coverage": {
+              "eligible": 12,
+              "mean": 1.0
+            },
+            "faithfulness": {
+              "eligible": 12,
+              "mean": 1.0
+            }
+          },
+          "count": 12,
+          "deterministic_metrics": {
+            "citation_valid": {
+              "eligible": 12,
+              "mean": 1.0
+            },
+            "document_recall_at_1": {
+              "eligible": 12,
+              "mean": 1.0
+            },
+            "document_recall_at_10": {
+              "eligible": 12,
+              "mean": 1.0
+            },
+            "document_recall_at_5": {
+              "eligible": 12,
+              "mean": 1.0
+            },
+            "expected_behavior_match": {
+              "eligible": 12,
+              "mean": 1.0
+            },
+            "mrr_at_10": {
+              "eligible": 12,
+              "mean": 1.0
+            }
+          },
+          "key": "gold_source_alignment",
+          "label": "골드 근거 정렬",
+          "mean_semantic_score": 97.5,
+          "parser_count": 0,
+          "rag_count": 12,
+          "rejected": 0,
+          "runtime_error_rate": 0.0,
+          "status": {
+            "abstained": 0,
+            "answered": 12,
+            "error": 0
+          }
+        },
+        "parser_regression": {
+          "acceptance_rate": null,
+          "accepted": 0,
+          "behavior_checks": {
+            "follow_up_success": {
+              "eligible": 0,
+              "passed": 0,
+              "rate": null
+            },
+            "safe_abstention": {
+              "eligible": 0,
+              "passed": 0,
+              "rate": null
+            }
+          },
+          "components": {
+            "abstention_quality": {
+              "eligible": 0,
+              "mean": null
+            },
+            "citation_validity": {
+              "eligible": 0,
+              "mean": null
+            },
+            "completeness": {
+              "eligible": 0,
+              "mean": null
+            },
+            "correctness": {
+              "eligible": 0,
+              "mean": null
+            },
+            "factual_claim_coverage": {
+              "eligible": 0,
+              "mean": null
+            },
+            "faithfulness": {
+              "eligible": 0,
+              "mean": null
+            }
+          },
+          "count": 2,
+          "deterministic_metrics": {},
+          "key": "parser_regression",
+          "label": "파서 회귀",
+          "mean_semantic_score": null,
+          "parser_count": 2,
+          "rag_count": 0,
+          "rejected": 0,
+          "runtime_error_rate": null,
+          "status": {
+            "abstained": 0,
+            "answered": 0,
+            "error": 0
+          }
+        },
+        "visual_table_figure": {
+          "acceptance_rate": 0.5,
+          "accepted": 5,
+          "behavior_checks": {
+            "follow_up_success": {
+              "eligible": 0,
+              "passed": 0,
+              "rate": null
+            },
+            "safe_abstention": {
+              "eligible": 0,
+              "passed": 0,
+              "rate": null
+            }
+          },
+          "components": {
+            "abstention_quality": {
+              "eligible": 0,
+              "mean": null
+            },
+            "citation_validity": {
+              "eligible": 10,
+              "mean": 0.5
+            },
+            "completeness": {
+              "eligible": 10,
+              "mean": 0.45
+            },
+            "correctness": {
+              "eligible": 10,
+              "mean": 0.5
+            },
+            "factual_claim_coverage": {
+              "eligible": 10,
+              "mean": 0.5
+            },
+            "faithfulness": {
+              "eligible": 10,
+              "mean": 0.5
+            }
+          },
+          "count": 10,
+          "deterministic_metrics": {
+            "citation_valid": {
+              "eligible": 5,
+              "mean": 1.0
+            },
+            "document_recall_at_1": {
+              "eligible": 10,
+              "mean": 1.0
+            },
+            "document_recall_at_10": {
+              "eligible": 10,
+              "mean": 1.0
+            },
+            "document_recall_at_5": {
+              "eligible": 10,
+              "mean": 1.0
+            },
+            "expected_behavior_match": {
+              "eligible": 10,
+              "mean": 0.5
+            },
+            "mrr_at_10": {
+              "eligible": 10,
+              "mean": 1.0
+            },
+            "visual_retrieval.chunk_or_block.mrr_at_10": {
+              "eligible": 3,
+              "mean": 0.0
+            },
+            "visual_retrieval.chunk_or_block.recall_at_1": {
+              "eligible": 3,
+              "mean": 0.0
+            },
+            "visual_retrieval.chunk_or_block.recall_at_10": {
+              "eligible": 3,
+              "mean": 0.0
+            },
+            "visual_retrieval.chunk_or_block.recall_at_5": {
+              "eligible": 3,
+              "mean": 0.0
+            },
+            "visual_retrieval.chunk_or_block.target_count": {
+              "eligible": 3,
+              "mean": 1.333333
+            },
+            "visual_retrieval.document.mrr_at_10": {
+              "eligible": 10,
+              "mean": 1.0
+            },
+            "visual_retrieval.document.recall_at_1": {
+              "eligible": 10,
+              "mean": 1.0
+            },
+            "visual_retrieval.document.recall_at_10": {
+              "eligible": 10,
+              "mean": 1.0
+            },
+            "visual_retrieval.document.recall_at_5": {
+              "eligible": 10,
+              "mean": 1.0
+            },
+            "visual_retrieval.document.target_count": {
+              "eligible": 10,
+              "mean": 1.0
+            },
+            "visual_retrieval.object.mrr_at_10": {
+              "eligible": 10,
+              "mean": 0.0
+            },
+            "visual_retrieval.object.recall_at_1": {
+              "eligible": 10,
+              "mean": 0.0
+            },
+            "visual_retrieval.object.recall_at_10": {
+              "eligible": 10,
+              "mean": 0.0
+            },
+            "visual_retrieval.object.recall_at_5": {
+              "eligible": 10,
+              "mean": 0.0
+            },
+            "visual_retrieval.object.target_count": {
+              "eligible": 10,
+              "mean": 1.1
+            },
+            "visual_retrieval.page.mrr_at_10": {
+              "eligible": 10,
+              "mean": 0.475
+            },
+            "visual_retrieval.page.recall_at_1": {
+              "eligible": 10,
+              "mean": 0.35
+            },
+            "visual_retrieval.page.recall_at_10": {
+              "eligible": 10,
+              "mean": 0.6
+            },
+            "visual_retrieval.page.recall_at_5": {
+              "eligible": 10,
+              "mean": 0.6
+            },
+            "visual_retrieval.page.target_count": {
+              "eligible": 10,
+              "mean": 1.1
+            }
+          },
+          "key": "visual_table_figure",
+          "label": "표·그림 근거",
+          "mean_semantic_score": 49.0,
+          "parser_count": 0,
+          "rag_count": 10,
+          "rejected": 5,
+          "runtime_error_rate": 0.1,
+          "status": {
+            "abstained": 4,
+            "answered": 5,
+            "error": 1
+          }
+        }
+      },
+      "scenario_breakdown": {
+        "follow_up": {
+          "acceptance_rate": 0.8,
+          "accepted": 8,
+          "behavior_checks": {
+            "follow_up_success": {
+              "eligible": 10,
+              "passed": 8,
+              "rate": 0.8
+            },
+            "safe_abstention": {
+              "eligible": 0,
+              "passed": 0,
+              "rate": null
+            }
+          },
+          "components": {
+            "abstention_quality": {
+              "eligible": 0,
+              "mean": null
+            },
+            "citation_validity": {
+              "eligible": 10,
+              "mean": 0.8
+            },
+            "completeness": {
+              "eligible": 10,
+              "mean": 0.7
+            },
+            "correctness": {
+              "eligible": 10,
+              "mean": 0.8
+            },
+            "factual_claim_coverage": {
+              "eligible": 10,
+              "mean": 0.8
+            },
+            "faithfulness": {
+              "eligible": 10,
+              "mean": 0.8
+            }
+          },
+          "count": 10,
+          "deterministic_metrics": {
+            "citation_valid": {
+              "eligible": 8,
+              "mean": 1.0
+            },
+            "document_recall_at_1": {
+              "eligible": 10,
+              "mean": 1.0
+            },
+            "document_recall_at_10": {
+              "eligible": 10,
+              "mean": 1.0
+            },
+            "document_recall_at_5": {
+              "eligible": 10,
+              "mean": 1.0
+            },
+            "expected_behavior_match": {
+              "eligible": 10,
+              "mean": 0.8
+            },
+            "mrr_at_10": {
+              "eligible": 10,
+              "mean": 1.0
+            }
+          },
+          "key": "follow_up",
+          "label": "후속 질문",
+          "mean_semantic_score": 78.0,
+          "parser_count": 0,
+          "rag_count": 10,
+          "rejected": 2,
+          "runtime_error_rate": 0.0,
+          "status": {
+            "abstained": 2,
+            "answered": 8,
+            "error": 0
+          }
+        },
+        "multi_doc_compare": {
+          "acceptance_rate": 0.5,
+          "accepted": 5,
+          "behavior_checks": {
+            "follow_up_success": {
+              "eligible": 0,
+              "passed": 0,
+              "rate": null
+            },
+            "safe_abstention": {
+              "eligible": 0,
+              "passed": 0,
+              "rate": null
+            }
+          },
+          "components": {
+            "abstention_quality": {
+              "eligible": 0,
+              "mean": null
+            },
+            "citation_validity": {
+              "eligible": 10,
+              "mean": 0.7
+            },
+            "completeness": {
+              "eligible": 10,
+              "mean": 0.4
+            },
+            "correctness": {
+              "eligible": 10,
+              "mean": 0.55
+            },
+            "factual_claim_coverage": {
+              "eligible": 10,
+              "mean": 0.65
+            },
+            "faithfulness": {
+              "eligible": 10,
+              "mean": 0.6
+            }
+          },
+          "count": 10,
+          "deterministic_metrics": {
+            "citation_valid": {
+              "eligible": 7,
+              "mean": 1.0
+            },
+            "document_recall_at_1": {
+              "eligible": 10,
+              "mean": 0.5
+            },
+            "document_recall_at_10": {
+              "eligible": 10,
+              "mean": 1.0
+            },
+            "document_recall_at_5": {
+              "eligible": 10,
+              "mean": 1.0
+            },
+            "expected_behavior_match": {
+              "eligible": 10,
+              "mean": 0.7
+            },
+            "mrr_at_10": {
+              "eligible": 10,
+              "mean": 1.0
+            }
+          },
+          "key": "multi_doc_compare",
+          "label": "복수 문서 비교",
+          "mean_semantic_score": 55.75,
+          "parser_count": 0,
+          "rag_count": 10,
+          "rejected": 5,
+          "runtime_error_rate": 0.0,
+          "status": {
+            "abstained": 3,
+            "answered": 7,
+            "error": 0
+          }
+        },
+        "single_doc": {
+          "acceptance_rate": 0.8,
+          "accepted": 8,
+          "behavior_checks": {
+            "follow_up_success": {
+              "eligible": 0,
+              "passed": 0,
+              "rate": null
+            },
+            "safe_abstention": {
+              "eligible": 0,
+              "passed": 0,
+              "rate": null
+            }
+          },
+          "components": {
+            "abstention_quality": {
+              "eligible": 0,
+              "mean": null
+            },
+            "citation_validity": {
+              "eligible": 10,
+              "mean": 1.0
+            },
+            "completeness": {
+              "eligible": 10,
+              "mean": 0.8
+            },
+            "correctness": {
+              "eligible": 10,
+              "mean": 0.85
+            },
+            "factual_claim_coverage": {
+              "eligible": 10,
+              "mean": 1.0
+            },
+            "faithfulness": {
+              "eligible": 10,
+              "mean": 1.0
+            }
+          },
+          "count": 10,
+          "deterministic_metrics": {
+            "citation_valid": {
+              "eligible": 10,
+              "mean": 1.0
+            },
+            "document_recall_at_1": {
+              "eligible": 10,
+              "mean": 1.0
+            },
+            "document_recall_at_10": {
+              "eligible": 10,
+              "mean": 1.0
+            },
+            "document_recall_at_5": {
+              "eligible": 10,
+              "mean": 1.0
+            },
+            "expected_behavior_match": {
+              "eligible": 10,
+              "mean": 1.0
+            },
+            "mrr_at_10": {
+              "eligible": 10,
+              "mean": 1.0
+            }
+          },
+          "key": "single_doc",
+          "label": "단일 문서",
+          "mean_semantic_score": 90.75,
+          "parser_count": 0,
+          "rag_count": 10,
+          "rejected": 2,
+          "runtime_error_rate": 0.0,
+          "status": {
+            "abstained": 0,
+            "answered": 10,
+            "error": 0
+          }
+        },
+        "unknown": {
+          "acceptance_rate": 0.7,
+          "accepted": 7,
+          "behavior_checks": {
+            "follow_up_success": {
+              "eligible": 0,
+              "passed": 0,
+              "rate": null
+            },
+            "safe_abstention": {
+              "eligible": 10,
+              "passed": 7,
+              "rate": 0.7
+            }
+          },
+          "components": {
+            "abstention_quality": {
+              "eligible": 10,
+              "mean": 0.7
+            },
+            "citation_validity": {
+              "eligible": 0,
+              "mean": null
+            },
+            "completeness": {
+              "eligible": 0,
+              "mean": null
+            },
+            "correctness": {
+              "eligible": 0,
+              "mean": null
+            },
+            "factual_claim_coverage": {
+              "eligible": 0,
+              "mean": null
+            },
+            "faithfulness": {
+              "eligible": 0,
+              "mean": null
+            }
+          },
+          "count": 10,
+          "deterministic_metrics": {
+            "expected_behavior_match": {
+              "eligible": 10,
+              "mean": 0.9
+            }
+          },
+          "key": "unknown",
+          "label": "근거 부족",
+          "mean_semantic_score": 70.0,
+          "parser_count": 0,
+          "rag_count": 10,
+          "rejected": 3,
+          "runtime_error_rate": 0.1,
+          "status": {
+            "abstained": 9,
+            "answered": 0,
+            "error": 1
+          }
+        }
+      },
+      "visual_subgroups": {
+        "hwp_figure": {
+          "acceptance_rate": 0.0,
+          "accepted": 0,
+          "behavior_checks": {
+            "follow_up_success": {
+              "eligible": 0,
+              "passed": 0,
+              "rate": null
+            },
+            "safe_abstention": {
+              "eligible": 0,
+              "passed": 0,
+              "rate": null
+            }
+          },
+          "components": {
+            "abstention_quality": {
+              "eligible": 0,
+              "mean": null
+            },
+            "citation_validity": {
+              "eligible": 2,
+              "mean": 0.0
+            },
+            "completeness": {
+              "eligible": 2,
+              "mean": 0.0
+            },
+            "correctness": {
+              "eligible": 2,
+              "mean": 0.0
+            },
+            "factual_claim_coverage": {
+              "eligible": 2,
+              "mean": 0.0
+            },
+            "faithfulness": {
+              "eligible": 2,
+              "mean": 0.0
+            }
+          },
+          "count": 2,
+          "deterministic_metrics": {
+            "document_recall_at_1": {
+              "eligible": 2,
+              "mean": 1.0
+            },
+            "document_recall_at_10": {
+              "eligible": 2,
+              "mean": 1.0
+            },
+            "document_recall_at_5": {
+              "eligible": 2,
+              "mean": 1.0
+            },
+            "expected_behavior_match": {
+              "eligible": 2,
+              "mean": 0.0
+            },
+            "mrr_at_10": {
+              "eligible": 2,
+              "mean": 1.0
+            },
+            "visual_retrieval.document.mrr_at_10": {
+              "eligible": 2,
+              "mean": 1.0
+            },
+            "visual_retrieval.document.recall_at_1": {
+              "eligible": 2,
+              "mean": 1.0
+            },
+            "visual_retrieval.document.recall_at_10": {
+              "eligible": 2,
+              "mean": 1.0
+            },
+            "visual_retrieval.document.recall_at_5": {
+              "eligible": 2,
+              "mean": 1.0
+            },
+            "visual_retrieval.document.target_count": {
+              "eligible": 2,
+              "mean": 1.0
+            },
+            "visual_retrieval.object.mrr_at_10": {
+              "eligible": 2,
+              "mean": 0.0
+            },
+            "visual_retrieval.object.recall_at_1": {
+              "eligible": 2,
+              "mean": 0.0
+            },
+            "visual_retrieval.object.recall_at_10": {
+              "eligible": 2,
+              "mean": 0.0
+            },
+            "visual_retrieval.object.recall_at_5": {
+              "eligible": 2,
+              "mean": 0.0
+            },
+            "visual_retrieval.object.target_count": {
+              "eligible": 2,
+              "mean": 1.0
+            },
+            "visual_retrieval.page.mrr_at_10": {
+              "eligible": 2,
+              "mean": 0.0
+            },
+            "visual_retrieval.page.recall_at_1": {
+              "eligible": 2,
+              "mean": 0.0
+            },
+            "visual_retrieval.page.recall_at_10": {
+              "eligible": 2,
+              "mean": 0.0
+            },
+            "visual_retrieval.page.recall_at_5": {
+              "eligible": 2,
+              "mean": 0.0
+            },
+            "visual_retrieval.page.target_count": {
+              "eligible": 2,
+              "mean": 1.0
+            }
+          },
+          "key": "hwp_figure",
+          "label": "HWP 그림",
+          "mean_semantic_score": 0.0,
+          "parser_count": 0,
+          "rag_count": 2,
+          "rejected": 2,
+          "runtime_error_rate": 0.0,
+          "status": {
+            "abstained": 2,
+            "answered": 0,
+            "error": 0
+          }
+        },
+        "hwp_table": {
+          "acceptance_rate": 0.666667,
+          "accepted": 2,
+          "behavior_checks": {
+            "follow_up_success": {
+              "eligible": 0,
+              "passed": 0,
+              "rate": null
+            },
+            "safe_abstention": {
+              "eligible": 0,
+              "passed": 0,
+              "rate": null
+            }
+          },
+          "components": {
+            "abstention_quality": {
+              "eligible": 0,
+              "mean": null
+            },
+            "citation_validity": {
+              "eligible": 3,
+              "mean": 0.666667
+            },
+            "completeness": {
+              "eligible": 3,
+              "mean": 0.666667
+            },
+            "correctness": {
+              "eligible": 3,
+              "mean": 0.666667
+            },
+            "factual_claim_coverage": {
+              "eligible": 3,
+              "mean": 0.666667
+            },
+            "faithfulness": {
+              "eligible": 3,
+              "mean": 0.666667
+            }
+          },
+          "count": 3,
+          "deterministic_metrics": {
+            "citation_valid": {
+              "eligible": 2,
+              "mean": 1.0
+            },
+            "document_recall_at_1": {
+              "eligible": 3,
+              "mean": 1.0
+            },
+            "document_recall_at_10": {
+              "eligible": 3,
+              "mean": 1.0
+            },
+            "document_recall_at_5": {
+              "eligible": 3,
+              "mean": 1.0
+            },
+            "expected_behavior_match": {
+              "eligible": 3,
+              "mean": 0.666667
+            },
+            "mrr_at_10": {
+              "eligible": 3,
+              "mean": 1.0
+            },
+            "visual_retrieval.chunk_or_block.mrr_at_10": {
+              "eligible": 3,
+              "mean": 0.0
+            },
+            "visual_retrieval.chunk_or_block.recall_at_1": {
+              "eligible": 3,
+              "mean": 0.0
+            },
+            "visual_retrieval.chunk_or_block.recall_at_10": {
+              "eligible": 3,
+              "mean": 0.0
+            },
+            "visual_retrieval.chunk_or_block.recall_at_5": {
+              "eligible": 3,
+              "mean": 0.0
+            },
+            "visual_retrieval.chunk_or_block.target_count": {
+              "eligible": 3,
+              "mean": 1.333333
+            },
+            "visual_retrieval.document.mrr_at_10": {
+              "eligible": 3,
+              "mean": 1.0
+            },
+            "visual_retrieval.document.recall_at_1": {
+              "eligible": 3,
+              "mean": 1.0
+            },
+            "visual_retrieval.document.recall_at_10": {
+              "eligible": 3,
+              "mean": 1.0
+            },
+            "visual_retrieval.document.recall_at_5": {
+              "eligible": 3,
+              "mean": 1.0
+            },
+            "visual_retrieval.document.target_count": {
+              "eligible": 3,
+              "mean": 1.0
+            },
+            "visual_retrieval.object.mrr_at_10": {
+              "eligible": 3,
+              "mean": 0.0
+            },
+            "visual_retrieval.object.recall_at_1": {
+              "eligible": 3,
+              "mean": 0.0
+            },
+            "visual_retrieval.object.recall_at_10": {
+              "eligible": 3,
+              "mean": 0.0
+            },
+            "visual_retrieval.object.recall_at_5": {
+              "eligible": 3,
+              "mean": 0.0
+            },
+            "visual_retrieval.object.target_count": {
+              "eligible": 3,
+              "mean": 1.333333
+            },
+            "visual_retrieval.page.mrr_at_10": {
+              "eligible": 3,
+              "mean": 0.666667
+            },
+            "visual_retrieval.page.recall_at_1": {
+              "eligible": 3,
+              "mean": 0.5
+            },
+            "visual_retrieval.page.recall_at_10": {
+              "eligible": 3,
+              "mean": 0.666667
+            },
+            "visual_retrieval.page.recall_at_5": {
+              "eligible": 3,
+              "mean": 0.666667
+            },
+            "visual_retrieval.page.target_count": {
+              "eligible": 3,
+              "mean": 1.333333
+            }
+          },
+          "key": "hwp_table",
+          "label": "HWP 표",
+          "mean_semantic_score": 66.67,
+          "parser_count": 0,
+          "rag_count": 3,
+          "rejected": 1,
+          "runtime_error_rate": 0.0,
+          "status": {
+            "abstained": 1,
+            "answered": 2,
+            "error": 0
+          }
+        },
+        "pdf_figure": {
+          "acceptance_rate": 0.0,
+          "accepted": 0,
+          "behavior_checks": {
+            "follow_up_success": {
+              "eligible": 0,
+              "passed": 0,
+              "rate": null
+            },
+            "safe_abstention": {
+              "eligible": 0,
+              "passed": 0,
+              "rate": null
+            }
+          },
+          "components": {
+            "abstention_quality": {
+              "eligible": 0,
+              "mean": null
+            },
+            "citation_validity": {
+              "eligible": 2,
+              "mean": 0.0
+            },
+            "completeness": {
+              "eligible": 2,
+              "mean": 0.0
+            },
+            "correctness": {
+              "eligible": 2,
+              "mean": 0.0
+            },
+            "factual_claim_coverage": {
+              "eligible": 2,
+              "mean": 0.0
+            },
+            "faithfulness": {
+              "eligible": 2,
+              "mean": 0.0
+            }
+          },
+          "count": 2,
+          "deterministic_metrics": {
+            "document_recall_at_1": {
+              "eligible": 2,
+              "mean": 1.0
+            },
+            "document_recall_at_10": {
+              "eligible": 2,
+              "mean": 1.0
+            },
+            "document_recall_at_5": {
+              "eligible": 2,
+              "mean": 1.0
+            },
+            "expected_behavior_match": {
+              "eligible": 2,
+              "mean": 0.0
+            },
+            "mrr_at_10": {
+              "eligible": 2,
+              "mean": 1.0
+            },
+            "visual_retrieval.document.mrr_at_10": {
+              "eligible": 2,
+              "mean": 1.0
+            },
+            "visual_retrieval.document.recall_at_1": {
+              "eligible": 2,
+              "mean": 1.0
+            },
+            "visual_retrieval.document.recall_at_10": {
+              "eligible": 2,
+              "mean": 1.0
+            },
+            "visual_retrieval.document.recall_at_5": {
+              "eligible": 2,
+              "mean": 1.0
+            },
+            "visual_retrieval.document.target_count": {
+              "eligible": 2,
+              "mean": 1.0
+            },
+            "visual_retrieval.object.mrr_at_10": {
+              "eligible": 2,
+              "mean": 0.0
+            },
+            "visual_retrieval.object.recall_at_1": {
+              "eligible": 2,
+              "mean": 0.0
+            },
+            "visual_retrieval.object.recall_at_10": {
+              "eligible": 2,
+              "mean": 0.0
+            },
+            "visual_retrieval.object.recall_at_5": {
+              "eligible": 2,
+              "mean": 0.0
+            },
+            "visual_retrieval.object.target_count": {
+              "eligible": 2,
+              "mean": 1.0
+            },
+            "visual_retrieval.page.mrr_at_10": {
+              "eligible": 2,
+              "mean": 0.25
+            },
+            "visual_retrieval.page.recall_at_1": {
+              "eligible": 2,
+              "mean": 0.0
+            },
+            "visual_retrieval.page.recall_at_10": {
+              "eligible": 2,
+              "mean": 0.5
+            },
+            "visual_retrieval.page.recall_at_5": {
+              "eligible": 2,
+              "mean": 0.5
+            },
+            "visual_retrieval.page.target_count": {
+              "eligible": 2,
+              "mean": 1.0
+            }
+          },
+          "key": "pdf_figure",
+          "label": "PDF 그림",
+          "mean_semantic_score": 0.0,
+          "parser_count": 0,
+          "rag_count": 2,
+          "rejected": 2,
+          "runtime_error_rate": 0.5,
+          "status": {
+            "abstained": 1,
+            "answered": 0,
+            "error": 1
+          }
+        },
+        "pdf_table": {
+          "acceptance_rate": 1.0,
+          "accepted": 3,
+          "behavior_checks": {
+            "follow_up_success": {
+              "eligible": 0,
+              "passed": 0,
+              "rate": null
+            },
+            "safe_abstention": {
+              "eligible": 0,
+              "passed": 0,
+              "rate": null
+            }
+          },
+          "components": {
+            "abstention_quality": {
+              "eligible": 0,
+              "mean": null
+            },
+            "citation_validity": {
+              "eligible": 3,
+              "mean": 1.0
+            },
+            "completeness": {
+              "eligible": 3,
+              "mean": 0.833333
+            },
+            "correctness": {
+              "eligible": 3,
+              "mean": 1.0
+            },
+            "factual_claim_coverage": {
+              "eligible": 3,
+              "mean": 1.0
+            },
+            "faithfulness": {
+              "eligible": 3,
+              "mean": 1.0
+            }
+          },
+          "count": 3,
+          "deterministic_metrics": {
+            "citation_valid": {
+              "eligible": 3,
+              "mean": 1.0
+            },
+            "document_recall_at_1": {
+              "eligible": 3,
+              "mean": 1.0
+            },
+            "document_recall_at_10": {
+              "eligible": 3,
+              "mean": 1.0
+            },
+            "document_recall_at_5": {
+              "eligible": 3,
+              "mean": 1.0
+            },
+            "expected_behavior_match": {
+              "eligible": 3,
+              "mean": 1.0
+            },
+            "mrr_at_10": {
+              "eligible": 3,
+              "mean": 1.0
+            },
+            "visual_retrieval.document.mrr_at_10": {
+              "eligible": 3,
+              "mean": 1.0
+            },
+            "visual_retrieval.document.recall_at_1": {
+              "eligible": 3,
+              "mean": 1.0
+            },
+            "visual_retrieval.document.recall_at_10": {
+              "eligible": 3,
+              "mean": 1.0
+            },
+            "visual_retrieval.document.recall_at_5": {
+              "eligible": 3,
+              "mean": 1.0
+            },
+            "visual_retrieval.document.target_count": {
+              "eligible": 3,
+              "mean": 1.0
+            },
+            "visual_retrieval.object.mrr_at_10": {
+              "eligible": 3,
+              "mean": 0.0
+            },
+            "visual_retrieval.object.recall_at_1": {
+              "eligible": 3,
+              "mean": 0.0
+            },
+            "visual_retrieval.object.recall_at_10": {
+              "eligible": 3,
+              "mean": 0.0
+            },
+            "visual_retrieval.object.recall_at_5": {
+              "eligible": 3,
+              "mean": 0.0
+            },
+            "visual_retrieval.object.target_count": {
+              "eligible": 3,
+              "mean": 1.0
+            },
+            "visual_retrieval.page.mrr_at_10": {
+              "eligible": 3,
+              "mean": 0.75
+            },
+            "visual_retrieval.page.recall_at_1": {
+              "eligible": 3,
+              "mean": 0.666667
+            },
+            "visual_retrieval.page.recall_at_10": {
+              "eligible": 3,
+              "mean": 1.0
+            },
+            "visual_retrieval.page.recall_at_5": {
+              "eligible": 3,
+              "mean": 1.0
+            },
+            "visual_retrieval.page.target_count": {
+              "eligible": 3,
+              "mean": 1.0
+            }
+          },
+          "key": "pdf_table",
+          "label": "PDF 표",
+          "mean_semantic_score": 96.67,
+          "parser_count": 0,
+          "rag_count": 3,
+          "rejected": 0,
+          "runtime_error_rate": 0.0,
+          "status": {
+            "abstained": 0,
+            "answered": 3,
+            "error": 0
+          }
+        }
+      }
     }
   },
   "official": false,
@@ -4465,6 +4428,7 @@
     "contains_questions": false,
     "private_artifacts_tracked": false
   },
-  "schema_version": "local-mini131-golden-performance-receipt.v2",
+  "schema_version": "local-mini131-golden-performance-receipt.v3",
+  "scorecard_contract_sha256": "fd7d7f863e026f309509425fea77e43840b5c944275aa04475aa1452cd688b08",
   "suite_id": "gcp-local-kure-qwen3-8b-awq-mini131-v1"
 }

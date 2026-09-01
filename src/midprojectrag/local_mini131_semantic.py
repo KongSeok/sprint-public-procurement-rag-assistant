@@ -29,6 +29,30 @@ from midprojectrag.ingest.common import (
     sha256_file,
     sha256_text,
 )
+from midprojectrag.eval_contracts.mini131.judge import (
+    BLIND_ADJUDICATION_INPUT_SCHEMA_VERSION,
+    BLIND_DECISION_FIELDS,
+    BLIND_DECISION_SCHEMA_VERSION,
+    BLIND_JUDGE_INPUT_SCHEMA_VERSION,
+    BLIND_REVIEW_HISTORY_SCHEMA_VERSION,
+    EXPECTED_BEHAVIORS,
+    FORBIDDEN_BLIND_DECISION_FIELDS,
+    JUDGE_MODEL,
+    JUDGE_ROLES,
+    JUDGE_RUBRIC,
+    ROLE_DECISIONS,
+    SHA256_RE,
+    assert_blind as _assert_blind,
+    binary_recommendation as _binary_recommendation,
+    blind_id as _blind_id,
+    expected_judge_config as _expected_judge_config,
+    judgment_id as _judgment_id,
+    judgment_semantic_score as _judgment_semantic_score,
+    secondary_triggered as _secondary_triggered,
+    validate_judgment_decision as _validate_judgment_decision,
+    validate_judgment_scores as _validate_judgment_scores,
+    valid_rfc3339 as _valid_rfc3339,
+)
 from midprojectrag.local_mini131_baseline import (
     DEFAULT_CONFIG,
     EXPECTED_COUNTS,
@@ -44,32 +68,6 @@ from midprojectrag.local_mini131_baseline import (
     current_mac_index_provenance,
     validate_candidate,
     verify_suite,
-)
-from midprojectrag.mini131_blind_judge import (
-    BLIND_DECISION_FIELDS,
-    FORBIDDEN_BLIND_DECISION_FIELDS,
-)
-from midprojectrag.mini131_bundle import (
-    BLIND_ADJUDICATION_INPUT_SCHEMA_VERSION,
-    BLIND_DECISION_SCHEMA_VERSION,
-    BLIND_JUDGE_INPUT_SCHEMA_VERSION,
-    BLIND_REVIEW_HISTORY_SCHEMA_VERSION,
-    EXPECTED_BEHAVIORS,
-    JUDGE_MODEL,
-    JUDGE_ROLES,
-    JUDGE_RUBRIC,
-    ROLE_DECISIONS,
-    SHA256_RE,
-    _assert_blind,
-    _binary_recommendation,
-    _blind_id,
-    _expected_judge_config,
-    _judgment_id,
-    _judgment_semantic_score,
-    _secondary_triggered,
-    _validate_judgment_decision,
-    _validate_judgment_scores,
-    _valid_rfc3339,
 )
 
 
@@ -159,7 +157,7 @@ def default_paths(suite: VerifiedSuite) -> SemanticPaths:
         deterministic_score=suite.private_score_path,
         rubric=suite.repo_root / "evaluation/rubric.md",
         judge_config=suite.repo_root
-        / "evaluation/baselines/mini131-bundle-v1/judge-config.json",
+        / "evaluation/contracts/mini131/judge-config.json",
         adapter_config=suite.repo_root
         / f"evaluation/baselines/{SUITE_ID}/semantic-review-adapter.json",
         review_root=review_root,
@@ -299,7 +297,7 @@ def _fixed_judge_hashes(paths: SemanticPaths) -> tuple[str, str, str]:
         "adapter_id": "gcp-local-kure-qwen3-8b-awq-mini131-sol-v2",
         "suite_id": SUITE_ID,
         "inherits": {
-            "judge_config": "evaluation/baselines/mini131-bundle-v1/judge-config.json",
+            "judge_config": "evaluation/contracts/mini131/judge-config.json",
             "judge_config_sha256": inherited_hash,
             "rubric": "evaluation/rubric.md",
             "rubric_sha256": rubric_sha256,
