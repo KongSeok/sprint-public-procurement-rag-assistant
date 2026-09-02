@@ -2,6 +2,22 @@
 
 This file summarizes recent updates so other agents can continue without re‑discovering changes.
 
+## 2026-09-02: Evidence-Harness nonvisual runtime continuation
+
+- Goal: defer multimodal embedding/actual visual reading, continue the explicitly created feature worktree.
+- Changes: reuse pinned KURE page vectors with source-bound Evidence; add pre-top-k scoped enumeration;
+  bound/deduplicate verifier input; retain failed-call evidence; generate from mandatory verified support;
+  seal runtime identity in compatible v2 traces. Original corpus/gold/baseline config remains untouched.
+- Validation: full 938 tests, 920 passed, 18 private skips, 0 errors; compile PASS. Synthetic live fact and
+  exhaustive list both answered with citations. Actual corpus followup also answered with one required page
+  and one citation after routing/budget/context repairs; earlier failures are preserved in the report.
+- Status: implementation and structural regression complete; not trained/officially scored/promoted.
+- Performance caveat: the final corpus harness alone took ~142.7s (excluding planner/generator/setup);
+  the two verifier calls took ~53.4s/~58.4s. This is a smoke observation, not a benchmark percentile.
+- Next: consult the current [report](evidence-harness-report.html) and [runbook](evidence-harness-local-runbook.md)
+  for exact live receipts and unresolved model/resource/quality gates. Do not assume old empty preflight pins
+  mean existing local artifacts are absent.
+
 ## Addendum (2026-08-24) - Batch 0 foundation
 
 ### Governance

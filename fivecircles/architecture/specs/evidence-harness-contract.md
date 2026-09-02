@@ -114,3 +114,35 @@ history present; no golden fields; stable source hashes; baseline unaffected.
 New checkpoints/rerankers/KoVRE/visual reader/SFT/RL are capability gaps until paths+hash+hardware verified.
 Model-selection experiments assumed complete in plan; unsupported engines cannot silently fall back.
 Promotion requires approved gold, sealed holdout, same judge/config, measured resources and rollback.
+
+## 9. 비시각 운영 연결 — EH7–EH10
+
+- `prepare-legacy --source-root`는 지정 루트의 고정 page-v1 JSONL을 읽어 별도 private EvidenceStore를 만든다.
+  corpus·chunk·row·vector·index config hash와 source/doc/page/text alignment가 다르면 거부한다.
+  원본 index lock·벡터·chunk를 수정하지 않으며 baseline을 덮어쓰지 않는다.
+- `run --source-root`는 KURE legacy-page dense + child BM25를 RRF로 결합한다.
+  기존 9,331×1,024 벡터는 **페이지 part 임베딩**이다. split page는 max-pool하며
+  새 text child 임베딩이라고 표시하지 않는다. source-root 생략은 명시적 lexical-only다.
+- KURE revision과 로컬 snapshot weights/tokenizer/config의 SHA를 검증한다. CPU query embedding만
+  수행하며 `local_files_only=True`, `trust_remote_code=False`; 모델 다운로드·문서 재임베딩은 없다.
+  query embedding deadline은 전후 검사이며 CPU 계산 중 강제 취소를 보장하지 않는다.
+- 실제 Mac controller/verifier/generator는 동일한 pinned `qwen3.8:27b-mlx`다. 운영 verifier는
+  잠정적인 support 추론 역할이며, 공식 의미 채점자인 고정 ChatGPT `gpt-5.6-sol`과 다르다.
+- verifier는 전체 직렬화·escaping·system·output reserve를 포함한 보수적 UTF-8 byte budget으로
+  whole evidence를 준비한다. 잘린 텍스트를 원래 evidence라고 주지 않으며 실제 공급 ID를 trace한다.
+- 동일 doc/page/source block의 동일 본문은 verifier 입력에서 한 번만 사용한다. CLI는
+  `pack_verified_only=True`로 모든 필수 근거만 생성에 전달한다. library 기본 optional packing은
+  호환성을 유지하고, 실행한 context policy를 v2 config seal에 명시한다.
+- `list`는 top-k 이전에 `BoundedListEnumerator`로 분기한다. 전체 scoped 문서의 canonical 텍스트를
+  scan하고 관련·부분사실을 문서별 reduce로 합친다. 실제로 읽지 않은 문서, unknown, 초과 예산이
+  하나라도 있으면 complete가 아니다. 코드가 보증하는 것은 방문/출처/예산이며 포함 여부는 LLM 추론이다.
+- 목록형 긍정 문서의 support는 전부 mandatory context/citation이다. 초과 시 항목을 버리지 않고 기권한다.
+  전수 음성 결과는 receipt에 남기되 현재 답변 계약상 인용 없는 긍정 답변 대신 `enumeration_no_matches`로 기권한다.
+- 기본 enumeration은 128 calls, batch 6,000 chars, reduce 12,000 chars, total 500,000 chars,
+  최대 10,000 docs와 shared deadline이다. 98문서 전체에서 이 예산이 충분하다고 주장하지 않는다.
+  런타임의 자원 상한과 별개로 모든 문서 열람이 완료돼야만 목록 완전성을 표시한다.
+- v2 trace는 `config={harness,runtime}` 전체를 seal하여 retrieval lane·model identity·enumeration budget을
+  함께 고정한다. v1 호환 유지. 목록형 receipt를 가짜 행동 trajectory로 바꾸지 않으며 학습 exporter는
+  `list_trajectory_not_trainable`로 제외한다. offline SFT/RL/evolution은 여전히 준비 상태다.
+- provider/범위/계약 ERROR는 최종 표준 error DTO로 유지한다. optional 빈 그림은 텍스트 답변을 막지 않지만
+  필수 픽셀 근거·visual plan은 계속 capability gap이다. 원본 corpus·골든셋·평가 점수는 변경하지 않는다.

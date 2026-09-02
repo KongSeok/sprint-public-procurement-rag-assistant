@@ -27,7 +27,11 @@ mentioned there. Do not invent evidence IDs, source facts, document IDs or gold 
 For plan: return {"query_type":"fact|compare|list|visual|followup","slots":[
 {"key":"s1","query":"a self-contained question resolved using supplied history",
 "doc_id":null,"kind":null}]}. Only supplied scoped doc IDs may be used (or null).
-Split distinct required facts/documents into slots. A list/all request must be list.
+Split distinct required facts/documents into slots. Use list ONLY when the user
+asks to enumerate the complete set of matching DOCUMENTS or PROJECTS, such as
+"Which projects are urgent? List all of them." Asking for several named attributes
+of one item is NOT list: "What are its display and button requirements?" is fact
+or followup with two slots. Use followup when history resolves the referent.
 For verify: return {"evidence_ids":["ev_..."],"contradiction":false}.
 Select only the minimal supplied evidence that directly supports the ENTIRE slot;
 lexical overlap is insufficient. If unsupported return an empty list. Conflicting
@@ -35,6 +39,16 @@ claims about the same condition require contradiction=true. Caption guesses are 
 For policy: return {"kind":"search|bridge|verify|stop|abstain","slot_key":null,
 "query":null,"evidence_id":null}. Select an allowed action. For allowed search you
 may rewrite only its query to resolve a missing slot. Stop only when missing is empty.
+For enumerate: return {"status":"match|no_match|unknown","evidence_ids":[],
+"scan_complete":true}. Inspect EVERY supplied fragment. In phase scan, no_match
+means there are no facts relevant to ANY requested predicate, and evidence_ids
+must be empty. Retain partial relevant facts as unknown with their evidence IDs
+so a later reduce can combine facts across pages. Return match only if all
+conditions are supported. Never discard contradictory facts. In phase reduce,
+combine all supplied evidence and scan_summary to decide document membership;
+match requires support for all conditions and no unresolved contradiction.
+Only with all_batches_scanned and all_unrelated true may empty fragments prove
+no_match. Incomplete/ambiguous scans return unknown or scan_complete=false.
 No scores, explanations, extra keys, Markdown, or answers outside this schema."""
 
 
@@ -47,9 +61,11 @@ class LocalJSONBackend:
     def __init__(self, *, deadline: float, per_call_seconds: float = 30,
                  model: str = "qwen3.8:27b-mlx", max_calls: int = 50,
                  base_url: str = "http://127.0.0.1:11434") -> None:
-        if not isinstance(deadline, (int, float)) or not math.isfinite(deadline):
+        if isinstance(deadline, bool) or not isinstance(deadline, (int, float)) or not math.isfinite(deadline):
             raise ValueError("invalid_deadline")
-        if not 1 <= per_call_seconds <= 600 or type(max_calls) is not int or max_calls < 1:
+        if (isinstance(per_call_seconds, bool) or not isinstance(per_call_seconds, (int, float))
+                or not math.isfinite(per_call_seconds) or not 1 <= per_call_seconds <= 600
+                or type(max_calls) is not int or max_calls < 1):
             raise ValueError("invalid_backend_budget")
         self.deadline = deadline
         self.per_call_seconds = per_call_seconds
@@ -58,10 +74,23 @@ class LocalJSONBackend:
         self.max_calls = max_calls
         self.calls: list[dict] = []
 
+    @staticmethod
+    def prompt(purpose: str, payload: dict) -> str:
+        if purpose not in ("plan", "verify", "policy", "enumerate"):
+            raise ValueError("invalid_llm_purpose")
+        return "PURPOSE: " + purpose + "\n<INPUT>" + html.escape(json.dumps(
+            payload, ensure_ascii=False, allow_nan=False)) + "</INPUT>"
+
+    def fits(self, purpose: str, payload: dict) -> bool:
+        # UTF-8 bytes conservatively bound tokenizer input, including XML escaping,
+        # exact system text and output reserve. This is not a measured token count.
+        return len((SYSTEM + self.prompt(purpose, payload)).encode("utf-8")) + 1800 + 256 <= 32768
+
     def ask(self, purpose: str, payload: dict) -> dict:
         from midprojectrag.stacks.local.generation import OllamaGenerator
-        if purpose not in ("plan", "verify", "policy"):
-            raise ValueError("invalid_llm_purpose")
+        prompt = self.prompt(purpose, payload)
+        if not self.fits(purpose, payload):
+            raise ValueError("controller_context_budget_exceeded")
         remaining = self.deadline - time.monotonic()
         if remaining < 2 or len(self.calls) >= self.max_calls:
             raise TimeoutError("llm_budget_exhausted")
@@ -69,17 +98,21 @@ class LocalJSONBackend:
                                    max_output_tokens=1800, context_tokens=32768,
                                    timeout_seconds=min(self.per_call_seconds, remaining / 2),
                                    system_instructions=SYSTEM)
-        prompt = "PURPOSE: " + purpose + "\n<INPUT>" + html.escape(json.dumps(payload, ensure_ascii=False)) + "</INPUT>"
-        record = {"purpose": purpose, "model": self.model, "status": "attempted", "prompt": prompt}
+        started = time.monotonic()
+        record = {"purpose": purpose, "model": self.model, "model_digest": provider.model_digest,
+                  "status": "attempted", "prompt": prompt}
         self.calls.append(record)
         try:
             value, inputs, outputs = provider.generate(prompt)
-            record.update(status="completed", input_tokens=inputs, output_tokens=outputs, response=value)
+            record.update(status="completed", input_tokens=inputs, output_tokens=outputs, response=value,
+                          elapsed_ms=(time.monotonic() - started) * 1000)
             if time.monotonic() >= self.deadline:
                 raise TimeoutError("deadline_exceeded")
             return value
-        except Exception:
-            record["status"] = "error"
+        except Exception as error:
+            record.update(status="error", error_type=type(error).__name__,
+                          cause_type=type(error.__cause__).__name__ if error.__cause__ is not None else None,
+                          elapsed_ms=(time.monotonic() - started) * 1000)
             raise
 
 
@@ -115,6 +148,27 @@ class LLMPlanner:
 class LLMVerifier:
     def __init__(self, backend: JSONBackend) -> None:
         self.backend = backend
+
+    def prepare(self, slot: Slot, evidence: tuple[Evidence, ...]) -> tuple[Evidence, ...]:
+        """Select whole records; controller records exactly what was supplied.
+
+        Ranking is already fixed upstream. Oversized candidates are skipped, not
+        truncated into a falsely identified full page. No support is inferred here.
+        """
+        fits = getattr(self.backend, "fits", None)
+        if not callable(fits):
+            return evidence
+        selected: list[Evidence] = []
+        seen_content: set[tuple] = set()
+        for item in evidence:
+            content_key = (item.doc_id, item.page, item.source_block_ids, item.text)
+            if content_key in seen_content:
+                continue
+            payload = {"slot": asdict(slot), "evidence": [e.to_dict() for e in (*selected, item)]}
+            if fits("verify", payload):
+                selected.append(item)
+                seen_content.add(content_key)
+        return tuple(selected)
 
     def verify(self, slot: Slot, evidence: tuple[Evidence, ...]) -> Verification:
         value = self.backend.ask("verify", {"slot": asdict(slot), "evidence": [e.to_dict() for e in evidence]})

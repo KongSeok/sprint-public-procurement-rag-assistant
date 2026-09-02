@@ -21,7 +21,6 @@ from midprojectrag.ingest.common import (
     sha256_text,
 )
 from midprojectrag.evaluation import EXPECTED_METRIC_KEYS
-from midprojectrag.local_mini131_baseline import DEFAULT_CONFIG, verify_suite
 from midprojectrag.local_mini131_performance import (
     RECORD_SCHEMA_VERSION,
     REPORT_SCHEMA_VERSION,
@@ -45,6 +44,7 @@ from midprojectrag.local_mini131_semantic import (
     default_paths as semantic_default_paths,
     load_ledger,
 )
+from tests.evaluation.test_local_mini131_baseline import require_private_suite
 
 
 PRIVATE_QUESTION = "<script>privateQuestion()</script>"
@@ -945,18 +945,7 @@ class LocalMini131PerformancePrivateIntegrationTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.repo_root = Path(__file__).resolve().parents[2]
-        config_path = cls.repo_root / DEFAULT_CONFIG
-        if not config_path.is_file():
-            raise unittest.SkipTest("canonical private Mini131 artifacts unavailable")
-        try:
-            cls.suite = verify_suite(
-                repo_root=cls.repo_root,
-                config_path=config_path,
-            )
-        except FileNotFoundError as error:
-            raise unittest.SkipTest(
-                "canonical private Mini131 artifacts unavailable"
-            ) from error
+        cls.suite = require_private_suite(cls.repo_root)
         paths = semantic_default_paths(cls.suite)
         cls.decision_paths = [
             paths.review_root / "primary-decisions-1.jsonl",

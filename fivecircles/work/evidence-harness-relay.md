@@ -1,13 +1,37 @@
 # Evidence-Harness Relay
-## Cycle EH0 → EH4
-0. Scope Intake: Evidence-Harness transition; feat/evidence-harness-v1; preserve baseline/private data.
-1. Start Report: mermaid-flow-report; target/current: ../architecture/specs/evidence-harness-*.mmd.
-2. Relay Unit Selection: EH1 evidence substrate score 10; downstream retrieval/harness depend on stable IDs.
-3. Doc/Contract: COMPLETED — evidence-harness-transition-plan.md; evidence-harness-contract.md; TODO entry.
-4. Implementation: COMPLETED — evidence store, retrieval layers, bounded controller, generator adapter, private trace and offline diagnostics.
-5. Validation+Report: COMPLETED — scoped suites, indexing regression, safety, target/current report and target PNG.
-6. Repair: COMPLETED — preserved pre-rerank observation on provider failure; nested parent bridge walks to page; visual capability gate; CLI error exit.
-7. Push: PENDING — stage only branch-owned source/docs/tests; private smoke traces never staged.
-8. Closeout: READY_FOR_REVIEW — EH1–EH4 core path; current PNG render is environment-blocked, current Mermaid source is linked.
-9. Relay: STOP_AT_EXTERNAL_GATES — EH5 preflight reports all artifact pins absent; EH6 exporter is preparation-only. No safe in-scope code remains that can create those external artifacts.
-10. Final Ledger: core path implemented; multimodal embedding, learned policy, approved gold and GCP measurement remain gaps. Resume after those artifacts are supplied.
+
+## Earlier cycle EH0–EH6 (historical)
+
+Core interfaces, bounded loop, evidence adapter, diagnostics and offline export gates were committed
+in `bd9a991` / `876eea6` and pushed. They were predominantly synthetic-tested. The prior statement
+that empty artifact pins left no implementation work was too broad: local KURE artifacts existed,
+and the CLI had neither the dense adapter nor a real list enumeration route.
+
+## Resumed cycle EH7–EH10 — 2026-09-02
+
+0. Scope: user confirmed multimodal embedding/actual visual reader deferred; continue nonvisual runtime.
+1. Docs: updated [plan](evidence-harness-transition-plan.md),
+   [contract](../architecture/specs/evidence-harness-contract.md) and [TODO](../architecture/todolist.md).
+2. Artifact check: 98 docs / 9,331 page vectors / 18,844 Evidence verified with pinned hashes;
+   read-only original corpus/cache, no document re-embedding.
+3. Implementation: page-dense + child-lexical RRF; exhaustive scoped list scan/reduce;
+   bounded verifier preparation; mandatory-only generation context; v2 runtime config seals.
+4. Validation: full suite **938 run, 920 pass, 18 expected private skips, 0 errors**; compile PASS.
+   Baseline configs, legacy pipeline and pinned provider transport remain unchanged from the branch base.
+5. Live: synthetic fact answered; synthetic list scanned 3/3, returned/cited both matching documents.
+   Corpus followup outcomes and hashes are maintained in the [report](evidence-harness-report.html).
+6. Repairs: private fixture class-level skip narrowed; taxonomy import restored;
+   list-vs-attributes planner ambiguity corrected; verify failure input retained; call timeout explicit;
+   optional duplicate/irrelevant generation context excluded by the CLI policy.
+7. Report: both target/current PNG available and visually inspected. Local HTML browser access remains
+   policy-blocked; static structure, links and images are checked without bypassing the browser policy.
+8. Delivery: only feature-owned public source/tests/docs staged. Private corpus, requests and traces stay ignored.
+   Delivery commit is recorded on `feat/evidence-harness-v1`; remote status is checked after push.
+9. Next scope: same-gold quality/resource comparison, learned reranker/policy, GCP execution and visual activation
+   are separate unfinished experiments, not automatically approved production rollout.
+
+## Completion meaning
+
+This is nonvisual local implementation and diagnostic validation, not a trained evoHarness policy,
+full-corpus list latency guarantee, semantic-score improvement, or baseline promotion.
+Failures remain in private receipts; public docs disclose outcome and limits without source text.

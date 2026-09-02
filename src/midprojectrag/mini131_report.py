@@ -118,6 +118,99 @@ PRIVATE_HISTORY_FIELDS = (
     "judgment_workflow",
 )
 
+# Shared presentation taxonomy for the API/local comparison report. These
+# labels describe frozen categories; they do not assign scores or alter gold.
+SCENARIO_PURPOSES = (
+    "single_doc",
+    "multi_doc_compare",
+    "follow_up",
+    "unknown",
+)
+PRIMARY_CATEGORY_ORDER = (
+    "bid_rag_scenarios",
+    "clause_fact_regression",
+    "conditional_all_list",
+    "gold_source_alignment",
+    "visual_table_figure",
+    "corpus_analytics",
+    "parser_regression",
+)
+VISUAL_SUBGROUP_DEFINITIONS = {
+    "hwp_table": {
+        "label": "HWP 표",
+        "meaning": "HWP 안의 행·열·병합셀 관계로 표현된 수치와 조건을 검색하고 답하는 문항입니다.",
+    },
+    "hwp_figure": {
+        "label": "HWP 그림·도식",
+        "meaning": "HWP 본문 텍스트가 아니라 삽입된 그림·도식에 있는 정보를 찾는 문항입니다.",
+    },
+    "pdf_table": {
+        "label": "PDF 표",
+        "meaning": "PDF에서 표의 행·열 구조와 셀 내용을 복원해 검색하고 답하는 문항입니다.",
+    },
+    "pdf_figure": {
+        "label": "PDF 그림·도식",
+        "meaning": "PDF 이미지·도식에만 있는 정보를 페이지와 원본 객체에 연결해 답하는 문항입니다.",
+    },
+}
+PURPOSE_DEFINITIONS: dict[str, dict[str, str]] = {
+    "bid_rag_scenarios": {
+        "label": "입찰 RAG 질의응답 시나리오",
+        "meaning": "실제 챗봇 업무를 단일 문서, 다중 문서, 후속 대화, 정보 없음 대응으로 나눠 종합적으로 확인합니다.",
+        "failure": "낮으면 일반적인 입찰 상담 흐름에서 문서 선택, 비교, 문맥 유지 또는 안전한 기권 중 하나 이상이 불안정하다는 뜻입니다.",
+    },
+    "single_doc": {
+        "label": "단일 문서 근거 답변",
+        "meaning": "지정된 RFP 한 건에서 금액·기간·자격·요구사항 같은 정확한 사실을 찾아 근거와 함께 답하는 능력입니다.",
+        "failure": "낮으면 맞는 문서를 보고도 필요한 조항을 놓치거나, 답은 맞지만 원문 페이지·근거를 제대로 연결하지 못할 수 있습니다.",
+    },
+    "multi_doc_compare": {
+        "label": "다중 문서 비교·종합",
+        "meaning": "두 건 이상의 RFP를 모두 찾아 동일한 기준으로 나누어 비교하고, 문서별 사실을 섞지 않는 능력입니다.",
+        "failure": "낮으면 한 문서만 답하거나, 예산·기간·요구조건을 서로 뒤섞거나, 요청한 비교 축 일부를 빠뜨릴 수 있습니다.",
+    },
+    "follow_up": {
+        "label": "후속 질문 문맥 유지",
+        "meaning": "이전 사용자 질문과 이전 답변을 읽고 ‘그 사업’, ‘그 6개월’처럼 생략된 대상을 올바르게 이어서 답하는 능력입니다.",
+        "failure": "낮으면 대화 주제를 다른 사업으로 바꾸거나, 앞서 확정한 조건을 잊거나, 대명사가 가리키는 대상을 잘못 해석할 수 있습니다.",
+    },
+    "unknown": {
+        "label": "정보 없음·범위 밖 기권",
+        "meaning": "원문에 없거나 실시간 조회·외부 행동이 필요한 질문에 사실을 지어내지 않고 ‘확인 불가’라고 안전하게 답하는 능력입니다.",
+        "failure": "낮으면 낙찰업체·진행률·수주확률처럼 데이터에 없는 내용을 그럴듯하게 만들어 답할 위험이 있습니다.",
+    },
+    "clause_fact_regression": {
+        "label": "문서 조항·사실 답변 회귀",
+        "meaning": "이미 정답 근거가 확인된 금액·일정·자격·제출조건 같은 세부 사실을 스택 변경 후에도 계속 정확히 찾는지 검사합니다.",
+        "failure": "낮으면 파서·청킹·검색·프롬프트를 바꾼 뒤 예전에 맞히던 조항을 놓치는 회귀가 많다는 뜻입니다.",
+    },
+    "conditional_all_list": {
+        "label": "조건별 공고 전체 목록 검색",
+        "meaning": "조건에 맞는 공고를 한두 건만 예시로 찾는 것이 아니라, 정답 문서 집합 전체를 빠짐없이 반환하는 능력입니다.",
+        "failure": "낮으면 일부 공고만 찾거나 조건에 맞지 않는 공고를 섞습니다. 이 영역은 의미점수와 함께 Precision·Recall·F1·완전일치를 봐야 합니다.",
+    },
+    "gold_source_alignment": {
+        "label": "정답·원문 일치 검수",
+        "meaning": "후보 답변의 품질과 별개로, 골든 정답 자체가 실제 원문과 맞는지 교차 확인이 필요한 문항 묶음입니다.",
+        "failure": "점수가 낮아도 모델 문제인지 골드 문제인지 바로 단정하면 안 됩니다. 사람 원문 검수 전까지 진단용 잠정 점수입니다.",
+    },
+    "visual_table_figure": {
+        "label": "HWP/PDF 표·그림 검색·답변",
+        "meaning": "일반 본문뿐 아니라 표의 행·열 관계와 그림·도식에만 있는 정보를 찾아 해당 페이지·객체에 연결하는 능력입니다.",
+        "failure": "낮으면 페이지는 찾더라도 정답 표 청크나 그림 객체를 회수하지 못해 표 수치·도식 내용을 답하지 못할 수 있습니다.",
+    },
+    "corpus_analytics": {
+        "label": "전체 말뭉치 통계·집계",
+        "meaning": "Top-k 몇 건이 아니라 refined 전체 문서를 대상으로 평균·중앙값·분포·롱테일 같은 수치를 계산하고 설명하는 능력입니다.",
+        "failure": "낮으면 일부 검색 결과만으로 전체 통계인 것처럼 답하거나, 분모·결측·0원·VAT 처리 규칙을 잘못 적용할 수 있습니다.",
+    },
+    "parser_regression": {
+        "label": "문서 파싱 안정성 검사",
+        "meaning": "두 특수 문서를 현재 rhwp 중심 전처리기가 정상 추출하고 인덱싱 가능한지 확인하는 로컬 ETL 회귀 테스트입니다.",
+        "failure": "실패하면 질문 답변 이전 단계에서 원문이 검색 코퍼스에 들어오지 못합니다. LLM 의미점수에는 섞지 않습니다.",
+    },
+}
+
 
 def _nonempty_string(value: Any, code: str) -> str:
     if not isinstance(value, str) or not value.strip():

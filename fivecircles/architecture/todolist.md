@@ -2,7 +2,7 @@
 
 ## 2026-09-02 — Evidence-Harness 전환 (feat/evidence-harness-v1)
 
-상태: IN_PROGRESS · baseline 유지 / 새 경로 opt-in
+상태: LOCAL_NONVISUAL_VERIFIED / NOT_PROMOTED · baseline 유지 / 새 경로 opt-in
 
 계획: [전환 플랜](../work/evidence-harness-transition-plan.md) · [계약](specs/evidence-harness-contract.md) · [릴레이 기록](../work/evidence-harness-relay.md)
 
@@ -12,10 +12,19 @@
 - [x] EH3: query plan·Belief/Progress·typed action·누락 슬롯 재검색/검증/중단 루프를 구현한다.
 - [x] EH4: 기존 Generator 연결·opt-in CLI·private trajectory·offline diagnostics·rollback을 검증한다.
 - [ ] EH5: 실제 모델/체크포인트/하드웨어/승인 gold를 preflight하고 실측 promotion 가능 여부를 기록한다.
-- [ ] EH6: offline SFT/RL·policy evolution 입력/검증 연결을 준비하고 실학습 가능한 범위를 구분한다.
+- [x] EH6 준비: offline SFT/RL·policy evolution 입력/검증 연결, v1/v2 trajectory seal을 구현한다.
+- [ ] EH6 실학습: 승인된 train/holdout·reward·checkpoint로 별도 실행하고 승격한다.
 
 제약: 가정된 실험 완료를 실측으로 기록하지 않음. gold/판정기 고정. 실제 Mac=27B-MLX, GCP target=8B-AWQ.
-EH5 preflight: artifact pins 9종 미설정 → runtime promotion 불가. EH6 exporter/evolution seal gate는 preparation-only이며 학습·reward·checkpoint를 만들지 않음.
+EH5 정정: 빈 template manifest는 실제 파일 부재의 증거가 아님. 기존 KURE/로컬 generator는 확인·연결했다.
+새 정책 checkpoint·learned reranker·visual reader와 동일 조건 품질/자원 실측은 미완료다. EH6은 학습 실행 완료가 아니다.
+
+재개: 멀티모달 보류 확정. 아래 비시각 운영 연결을 계속한다.
+- [x] EH7: 저장된 KURE page index를 source-bound Evidence에 연결하고 무결성·scope를 검증한다.
+- [x] EH8: 목록형 scoped 전수 enumeration을 구현하고 unknown/예산초과를 incomplete로 처리한다.
+- [x] EH9: 로컬 합성 fact/list 및 실문서 후속 질문 답변·인용·오류 복구를 검증한다.
+- [x] EH10: 기존 평가 import/private fixture 오류와 보고서 정합을 정리하고 delivery 범위를 검증한다.
+- [ ] 후속 실험: 같은 고정 골든셋으로 새 경로의 품질·지연을 baseline과 비교한다. 검증 두 번 53/58초인 단일 실문서 호출을 일반 성능으로 확대하지 않는다.
 
 ## 실행 원칙
 

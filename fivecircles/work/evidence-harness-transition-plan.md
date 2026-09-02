@@ -1,6 +1,6 @@
 # Evidence-Harness 전환 플랜
 작성: 2026-09-02 · branch: feat/evidence-harness-v1 · base: 7ad229f
-상태: IN_PROGRESS · 실행: hybrid (독립 모듈 병렬, 통합/릴레이 순차)
+상태: LOCAL_NONVISUAL_IMPLEMENTED_AND_VERIFIED / NOT_PROMOTED · 실행: hybrid (독립 모듈 병렬, 통합/릴레이 순차)
 
 ## 목표와 범위
 한 번 검색 후 생성하는 경로를 근거 객체 + 외부 상태 + 제한된 반복 검색 경로로 전환한다.
@@ -19,13 +19,29 @@
 ## 배치와 완료 기준
 | ID | 목표·범위 | 선행 | 검증/완료 기준 | 상태 |
 | --- | --- | --- | --- | --- |
-| EH0 | 플랜·계약·TODO·target/current flow·branch 고정 | 없음 | 문서 경로 및 첫 GAP 점수표 | IN_PROGRESS |
-| EH1 | evidence 객체, page parent, text children, table/figure bridge | EH0 | identity/hash, orphan/cross-doc 거부, source adapter tests | TODO |
-| EH2 | dense/lexical/visual ports, RRF, rerank, doc-diverse context | EH1 계약 | scope 적용·중복 제거·rank trace·budget 검증 | TODO |
-| EH3 | query plan, Belief/Progress, typed actions, missing-slot loop | EH1/EH2 | 재검색→bridge→verify→stop, error/budget/contradiction tests | TODO |
-| EH4 | provider adapter·CLI·private trajectory·shadow rollback·diagnostic | EH3 | 합성 end-to-end 경로 + 기존 baseline 회귀 + lineage | PREPARED (live smoke pending) |
-| EH5 | 모델/정책/하드웨어 preflight 및 운영 승격 | EH4 | 고정 모델·승인 qrel·자원·heldout 실측 있어야 승격 | BLOCKED (pins absent) |
+| EH0 | 플랜·계약·TODO·target/current flow·branch 고정 | 없음 | 문서 경로 및 첫 GAP 점수표 | IMPLEMENTED |
+| EH1 | evidence 객체, page parent, text children, table/figure bridge | EH0 | identity/hash, orphan/cross-doc 거부, source adapter tests | IMPLEMENTED |
+| EH2 | dense/lexical/visual ports, RRF, rerank, doc-diverse context | EH1 계약 | scope 적용·중복 제거·rank trace·budget 검증 | IMPLEMENTED (learned reranker excluded) |
+| EH3 | query plan, Belief/Progress, typed actions, missing-slot loop | EH1/EH2 | 재검색→bridge→verify→stop, error/budget/contradiction tests | IMPLEMENTED (untrained policy) |
+| EH4 | provider adapter·CLI·private trajectory·shadow rollback·diagnostic | EH3 | 합성 end-to-end 경로 + 기존 baseline 회귀 + lineage | LIVE_SYNTHETIC_VERIFIED |
+| EH5 | 모델/정책/하드웨어 preflight 및 운영 승격 | EH4 | 고정 모델·승인 qrel·자원·heldout 실측 있어야 승격 | NOT_PROMOTED (local artifacts found; quality/resource comparison pending) |
 | EH6 | SFT/RL 및 offline evolution 연결 | EH4/EH5 | 승인 train/holdout·policy checkpoint; gold 누출 없는 trajectory export | PREPARATION_ONLY |
+
+## 재개 릴레이 — 비시각 경로 운영 연결
+
+사용자 확정: 멀티모달 임베딩/실제 그림 판독은 보류하고 나머지를 계속한다.
+기존 EH1–EH4의 완료는 합성 계약 테스트 범위다. CLI는 lexical lane만 사용했고 list는
+enumeration provider가 없어서 기권하므로, 실제 비시각 운영 연결을 아래 순서로 진행한다.
+
+| ID | 작업 | 검증 기준 | 상태 |
+| --- | --- | --- | --- |
+| EH7 | 기존 KURE page index와 근거 객체 연결 | 원본 chunk ID·출처·내용 해시 일치, scope 유지; page vector를 child vector로 표시 금지 | IMPLEMENTED; 98 docs / 9,331 vectors verified |
+| EH8 | 목록형 질문의 전수 enumeration 경로 | scoped 문서 전부 검사, 미처리/unknown 있으면 incomplete, LLM만 포함 여부 판정 | IMPLEMENTED; 40 unit + 14 integration PASS |
+| EH9 | 로컬 실제 호출 및 오류 재현 | 합성 fact/list와 실제 corpus 후속 질문 답변·인용, 실패/수정 이력 보존 | VERIFIED; no quality score |
+| EH10 | 기존 회귀 오류·보고서 정합 | missing private 통합만 skip, public report import 정합; 최종 범위 검증 후 push | VERIFIED; 938 run / 920 pass / 18 private skip |
+
+빈 artifact manifest만으로 외부 차단을 단정하지 않는다. 저장된 실제 artifact를 확인한 뒤
+읽기 전용으로 연결할 수 있는 작업을 수행한다. 새 checkpoint 학습·멀티모달 활성화는 별도다.
 
 EH1~4는 다운로드 없는 로컬 구현과 합성 검증부터 수행한다.
 EH5/6은 누락된 모델·policy·승인 근거를 확인하여 구현 가능한 준비 작업을 끝내고 실제 차단 사유를 기록한다.

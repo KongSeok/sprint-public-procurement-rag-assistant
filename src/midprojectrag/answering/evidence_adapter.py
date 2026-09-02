@@ -204,8 +204,10 @@ class EvidenceAnswerAdapter:
             allowed = set(request["document_scope"]["doc_ids"])
             if any(item.doc_id not in allowed for item in evidence):
                 return finish("error", "evidence_scope_violation")
-        if requires_pixels or any(not item.text.strip() for item in evidence):
+        if requires_pixels or any(not available[item].text.strip() for item in required_ids):
             return finish("abstained", "capability_gap")
+        # Unselected image candidates must not disable an otherwise textual answer.
+        evidence = tuple(item for item in evidence if item.text.strip())
         if not evidence:
             return finish("abstained", "insufficient_evidence")
         if self.generator.requires_budget and self.budget is None:

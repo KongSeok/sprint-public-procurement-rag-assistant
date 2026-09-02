@@ -195,6 +195,12 @@ def _state(value: Any, *, request: dict, store: EvidenceStore, config: HarnessCo
 
 def _harness_result(trace: dict) -> dict:
     result = trace["result"]
+    if isinstance(result, dict) and set(result) == {
+        "enumeration", "answer", "status", "reason", "context", "required_ids",
+    }:
+        # Exhaustive enumeration has no controller action snapshots. Retain it
+        # as an operational trace until a separate training contract exists.
+        raise ValueError("list_trajectory_not_trainable")
     if isinstance(result, dict) and set(result) == {"harness", "answer"}:
         answer = result["answer"]
         _shape(answer, {"response", "usage", "citation_map", "prompt_sha256", "terminal_reason"}, "trajectory_answer_invalid")
@@ -214,7 +220,7 @@ def export_training_rows(
     reconstruct missing state from the final state or infer rewards from status.
     """
     _shape(trace, _TRACE_FIELDS, "training_trace_invalid")
-    if trace["schema_version"] != "evidence-harness-trace-v1":
+    if trace["schema_version"] not in ("evidence-harness-trace-v1", "evidence-harness-trace-v2"):
         raise ValueError("training_trace_schema_unsupported")
     claimed_hash = _hash(trace["trace_sha256"], "invalid_trace_sha256")
     try:
@@ -249,9 +255,15 @@ def export_training_rows(
         raise ValueError("request_not_allowlisted_for_training")
     if not isinstance(store, EvidenceStore) or digest(store.to_dict()) != trace["evidence_sha256"]:
         raise ValueError("training_evidence_seal_mismatch")
-    _shape(trace["config"], {field.name for field in fields(HarnessConfig)}, "training_config_invalid")
+    harness_config = trace["config"]
+    if trace["schema_version"] == "evidence-harness-trace-v2":
+        _shape(trace["config"], {"harness", "runtime"}, "training_config_invalid")
+        if not isinstance(trace["config"]["runtime"], dict):
+            raise ValueError("training_config_invalid")
+        harness_config = trace["config"]["harness"]
+    _shape(harness_config, {field.name for field in fields(HarnessConfig)}, "training_config_invalid")
     try:
-        config = HarnessConfig(**trace["config"])
+        config = HarnessConfig(**harness_config)
     except (ValueError, TypeError):
         raise ValueError("training_config_invalid") from None
     if digest(trace["config"]) != trace["config_sha256"]:

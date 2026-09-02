@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import time
+import math
 from collections.abc import Callable
 from dataclasses import replace
 
@@ -21,6 +22,7 @@ class Harness:
     def __init__(self, *, store: EvidenceStore, retriever, verifier: Verifier,
                  reranker=None, policy: Policy | None = None,
                  enumeration: EnumerationVerifier | None = None,
+                 pack_verified_only: bool = False,
                  config: HarnessConfig = HarnessConfig(),
                  clock: Callable[[], float] = time.monotonic) -> None:
         self.store = store
@@ -29,12 +31,18 @@ class Harness:
         self.reranker = reranker or IdentityReranker()
         self.policy = policy or BoundedPolicy()
         self.enumeration = enumeration
+        if type(pack_verified_only) is not bool:
+            raise ValueError("invalid_context_policy")
+        self.pack_verified_only = pack_verified_only
         self.config = config
         self.clock = clock
 
     def run(self, plan: QueryPlan, *, request_deadline: float | None = None) -> HarnessResult:
         if not isinstance(plan, QueryPlan):
             raise ValueError("invalid_query_plan")
+        if request_deadline is not None and (isinstance(request_deadline, bool)
+                or not isinstance(request_deadline, (int, float)) or not math.isfinite(request_deadline)):
+            raise ValueError("invalid_request_deadline")
         started = self.clock()
         deadline = min(request_deadline, started + self.config.timeout_seconds) if request_deadline is not None else started + self.config.timeout_seconds
         verified: dict[str, tuple[str, ...]] = {}
@@ -76,7 +84,7 @@ class Harness:
                         # A learned policy can choose a bounded slot-specific rewrite.
                         options.append(Action("search", key, slot.query))
             options.append(Action("abstain"))
-            return tuple(options)
+            return tuple(dict.fromkeys(options))
 
         def snapshot() -> Snapshot:
             return Snapshot(plan, tuple(verified.items()),
@@ -150,6 +158,8 @@ class Harness:
                             return finish("ABSTAINED", "enumeration_incomplete")
                     # Repack all verified refs, even if rerank would otherwise drop a document.
                     unique = {c.evidence_id: c for cs in candidates.values() for c in cs}
+                    if self.pack_verified_only:
+                        unique = {i: c for i, c in unique.items() if i in required}
                     packed = select_context(self.store, tuple(unique.values()),
                                             max_chars=self.config.max_context_chars,
                                             max_items=self.config.max_context_items,
@@ -206,6 +216,16 @@ class Harness:
                     evs = tuple(self.store.get(c.evidence_id) for c in candidates.get(key, ()))
                     # A parent page may locate a table but does not satisfy a table-only slot.
                     supplied = tuple(e for e in evs if (slot.kind is None or e.kind == slot.kind) and e.text.strip())
+                    prepare = getattr(self.verifier, "prepare", None)
+                    if callable(prepare):
+                        prepared = prepare(slot, supplied)
+                        if (not isinstance(prepared, tuple) or any(e not in supplied for e in prepared)
+                                or len({e.evidence_id for e in prepared}) != len(prepared)):
+                            return finish("ERROR", "invalid_verifier_preparation")
+                        supplied = prepared
+                    guard()
+                    # Preserve the actual input even when the provider times out.
+                    record(Event(action, tuple(e.evidence_id for e in supplied)))
                     decision = self.verifier.verify(slot, supplied) if supplied else Verification(())
                     guard()
                     if not isinstance(decision, Verification):
@@ -215,13 +235,14 @@ class Harness:
                     pending.discard(key)
                     if decision.contradiction:
                         contradictions.append(key)
-                        record(Event(action, tuple(e.evidence_id for e in supplied), decision.evidence_ids,
-                                     elapsed_ms=(self.clock() - action_started) * 1000, contradiction=True))
+                        events[-1] = replace(events[-1], verified_ids=decision.evidence_ids,
+                                     elapsed_ms=(self.clock() - action_started) * 1000, contradiction=True,
+                                     state_after=snapshot())
                         return finish("ABSTAINED", "contradictory_evidence")
                     if decision.evidence_ids:
                         verified[key] = decision.evidence_ids
-                    record(Event(action, tuple(e.evidence_id for e in supplied), decision.evidence_ids,
-                                 elapsed_ms=(self.clock() - action_started) * 1000))
+                    events[-1] = replace(events[-1], verified_ids=decision.evidence_ids,
+                                 elapsed_ms=(self.clock() - action_started) * 1000, state_after=snapshot())
             return finish("ABSTAINED", "action_budget_exhausted")
         except _DeadlineExceeded:
             return finish("ABSTAINED", "deadline_exceeded")

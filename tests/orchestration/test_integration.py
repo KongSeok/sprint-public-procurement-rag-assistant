@@ -77,6 +77,41 @@ class IntegrationTests(unittest.TestCase):
         result = EvidenceHarnessPipeline(harness=h, answer_adapter=EvidenceAnswerAdapter(generator=g, counter=ByteUpperCounter())).query(req, plan=plan)
         self.assertEqual(result.answer.response["status"], "abstained")
         self.assertFalse(g.prompts)
+    def test_harness_provider_and_scope_errors_remain_standard_errors(self):
+        class TimeoutRetriever:
+            def search(self, query, *, limit, allowed_doc_ids):
+                raise TimeoutError("private provider message must not escape")
+
+        req = request()
+        child = self.children[0]
+        plan = QueryPlan(req["question"], (Slot("budget", "budget", child.doc_id),),
+                         history=(("user", "첫 문서"),), allowed_doc_ids=frozenset({child.doc_id}))
+        for case, retriever in (
+            ("provider_timeout", TimeoutRetriever()),
+            ("out_of_scope_candidate", ScriptedRetriever([[self.children[1]]])),
+        ):
+            with self.subTest(case=case):
+                verifier = ScriptedVerifier([])
+                harness = Harness(store=self.store, retriever=retriever, verifier=verifier)
+                generator = SyntheticGenerator()
+                pipeline = EvidenceHarnessPipeline(
+                    harness=harness,
+                    answer_adapter=EvidenceAnswerAdapter(generator=generator, counter=ByteUpperCounter()),
+                )
+                result = pipeline.query(req, plan=plan)
+                response = result.answer.response
+                self.assertEqual(result.harness.status, "ERROR")
+                self.assertEqual(response["status"], "error")
+                self.assertEqual(response["error"]["code"], result.harness.reason)
+                self.assertEqual(result.answer.terminal_reason, result.harness.reason)
+                self.assertEqual(result.harness.reason, "provider_or_contract_error")
+                self.assertEqual(response["answer"], "")
+                self.assertEqual(response["citations"], [])
+                self.assertIsNone(response["abstention"])
+                self.assertEqual(validate_response(response), [])
+                self.assertNotIn("private provider message", repr(response))
+                self.assertFalse(generator.prompts)
+                self.assertFalse(verifier.calls)
     def test_visual_plan_is_capability_gap_until_reader_exists(self):
         req = request()
         child = self.children[0]

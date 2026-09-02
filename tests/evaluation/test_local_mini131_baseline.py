@@ -2,15 +2,20 @@ from __future__ import annotations
 
 import math
 import copy
+import json
 import unittest
+from functools import cached_property
 from pathlib import Path
+from unittest.mock import patch
 
 from midprojectrag.local_mini131_baseline import (
+    DEFAULT_CONFIG,
     EXPECTED_COUNTS,
     SET_BATCH_SIZE,
     SET_BATCH_SYSTEM,
     SET_FINAL_SYSTEM,
     SourceCase,
+    VerifiedSuite,
     _analytics_case_metrics,
     _analytics_evidence,
     _generation_output_contract,
@@ -29,15 +34,69 @@ from midprojectrag.local_mini131_baseline import (
 from midprojectrag.ingest.common import canonical_json, read_jsonl, sha256_text
 
 
+def require_private_suite(repo_root: Path) -> VerifiedSuite:
+    """Skip absent ignored inputs, while keeping config and integrity failures fatal."""
+    config_path = repo_root / DEFAULT_CONFIG
+    config = json.loads(config_path.read_text(encoding="utf-8"))
+    stack = json.loads(
+        (repo_root / config["stack"]["config_path"]).read_text(encoding="utf-8")
+    )
+    inputs = [
+        stack["corpus"]["manifest_path"],
+        stack["corpus"]["chunks_path"],
+        stack["evaluation"]["cases_path"],
+        *(source["path"] for source in config["sources"].values()),
+    ]
+    private_roots = (
+        "resources/data_refined/private/",
+        "evaluation/private/",
+        "golden-set-final/",
+    )
+    if any(
+        path.startswith(private_roots) and not (repo_root / path).is_file()
+        for path in inputs
+    ):
+        raise unittest.SkipTest("canonical private Mini131 artifacts unavailable")
+    return verify_suite(repo_root=repo_root, config_path=config_path)
+
+
 class LocalMini131ContractTests(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls) -> None:
-        cls.repo_root = Path(__file__).resolve().parents[2]
-        cls.suite = verify_suite(
-            repo_root=cls.repo_root,
-            config_path=cls.repo_root
-            / "configs/rag/gcp-local-kure-qwen3-8b-awq-mini131-v1.json",
-        )
+    @cached_property
+    def suite(self) -> VerifiedSuite:
+        # Private integration cases opt in by requesting the fixture; pure
+        # contract tests below remain mandatory in a clean public checkout.
+        return require_private_suite(Path(__file__).resolve().parents[2])
+
+    def test_private_fixture_gate_preserves_integrity_errors(self) -> None:
+        config = {
+            "stack": {"config_path": "configs/rag/synthetic-stack.json"},
+            "sources": {"source": {"path": "evaluation/private/source.jsonl"}},
+        }
+        stack = {
+            "corpus": {
+                "manifest_path": "resources/data_refined/private/manifest.jsonl",
+                "chunks_path": "resources/data_refined/private/chunks.jsonl",
+            },
+            "evaluation": {"cases_path": "golden-set-final/cases.jsonl"},
+        }
+        with (
+            patch.object(Path, "read_text", side_effect=[json.dumps(config), json.dumps(stack)]),
+            patch.object(Path, "is_file", return_value=False),
+            patch(__name__ + ".verify_suite") as verify,
+        ):
+            with self.assertRaisesRegex(unittest.SkipTest, "private Mini131 artifacts unavailable"):
+                require_private_suite(Path("/synthetic-repo"))
+            verify.assert_not_called()
+        with (
+            patch.object(Path, "read_text", side_effect=[json.dumps(config), json.dumps(stack)]),
+            patch.object(Path, "is_file", return_value=True),
+            patch(__name__ + ".verify_suite", side_effect=ValueError("baseline_manifest_hash_mismatch")),
+        ):
+            with self.assertRaisesRegex(ValueError, "baseline_manifest_hash_mismatch"):
+                require_private_suite(Path("/synthetic-repo"))
+        with patch.object(Path, "read_text", side_effect=FileNotFoundError):
+            with self.assertRaises(FileNotFoundError):
+                require_private_suite(Path("/synthetic-repo"))
 
     def test_complete_129_plus_2_ledger_is_frozen(self) -> None:
         self.assertEqual(len(self.suite.cases), 129)
@@ -276,6 +335,8 @@ class LocalMini131ContractTests(unittest.TestCase):
         )
 
     def test_resume_validator_rejects_request_adapter_and_system_tampering(self) -> None:
+        if not self.suite.stack.candidate_path.is_file():
+            self.skipTest("canonical private Mini131 candidate artifact unavailable")
         source = read_jsonl(self.suite.stack.candidate_path)[0]
         provenance = source["index_provenance"]
         run_id = "unit-local-mini131"

@@ -89,6 +89,9 @@ Review this file before implementation and test execution.
 
 ## Confirmed Incidents
 
+- Harness list-vs-attribute routing and local verification deadline: `errorlogs/backend/2026-09-02-harness-live-routing-budget.md`.
+- Missing private fixtures must not disable public synthetic contracts; config/hash failures remain errors: `errorlogs/2026-09-02-evidence-harness-full-suite.md`.
+
 - Streamlit AppTest isolated globals: `errorlogs/frontend/2026-08-26-streamlit-apptest-function-globals.md`
 - Streamlit test package shadow: `errorlogs/frontend/2026-08-26-streamlit-test-package-shadow.md`
 - In-app browser localhost policy: `errorlogs/frontend/2026-08-26-in-app-browser-localhost-policy.md`

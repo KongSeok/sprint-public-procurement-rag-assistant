@@ -9,32 +9,56 @@
 </head>
 <body><main>
 <h1>Evidence-Harness v1 릴레이샷</h1>
-<p class="lead">기존 단일 검색→생성 baseline을 보존하면서, 질문 슬롯·상태·검증·근거 보존을 추가한 opt-in 전환 기록입니다.</p>
-<div class="meta"><span class="pill">branch: feat/evidence-harness-v1</span><span class="pill">base: 7ad229f</span><span class="pill green">EH1–EH4 local path implemented</span><span class="pill amber">promotion pending</span></div>
+<p class="lead">2026-09-02 · KURE 검색 재사용, 상태 기반 제어, 목록 전수 검사, private trace까지 연결한 비시각 로컬 전환 기록입니다.</p>
+<div class="meta"><span class="pill">branch: feat/evidence-harness-v1</span><span class="pill">base: 7ad229f</span><span class="pill green">938 tests · 0 errors</span><span class="pill green">fact / list / corpus live PASS</span><span class="pill amber">nonofficial / opt-in</span></div>
 
 <h2>결론</h2>
-<p>멀티모달 임베딩은 이 전환의 선행 조건이 아닙니다. evidence/retrieval/controller/generation 경계를 먼저 고정했고, visual plan은 검증된 visual reader가 주입될 때까지 <code>capability_gap</code>으로 기권합니다. 따라서 현재 구현은 fact/compare/followup와 표·텍스트 provenance 경로를 검증하며, 실제 visual 검색 품질은 아직 측정하지 않습니다.</p>
-<div class="notice"><strong>실험 완료 가정과 실측을 분리:</strong> 연구 문서상 선택안은 플랜의 가정입니다. 실제 dense/멀티모달 checkpoint·정책 학습·GCP 자원 실측은 이 브랜치에서 실행/승격하지 않았습니다.</div>
+<p>멀티모달 임베딩을 보류한 상태로 비시각 경로를 연결했습니다. 현재 질문과 대화 이력으로 계획을 세우고, KURE 페이지 검색과 child BM25를 결합한 뒤 부족한 근거를 다시 검색·검증합니다. 목록 질문은 별도 scoped scan/reduce 경로에서 문서별 판정을 모으며, 모든 대상의 판정이 끝나지 않으면 완전한 목록으로 출력하지 않습니다.</p>
+<div class="notice"><strong>현재 확인된 범위:</strong> 합성 fact, 소규모 합성 목록, 실제 corpus 후속 질문의 로컬 답변 경로가 모두 성공했습니다. 실제 corpus 실행은 검증 호출이 길어 지연 개선이 필요합니다. 정책 학습, 전체 corpus 목록 성능, 골든셋 품질 향상 점수와 운영 승격은 아직 확인되지 않았습니다.</div>
 
 <h2>오케스트레이션 변경</h2>
-<div class="grid"><div class="card"><div class="num">1</div><strong>질문 계획</strong><br><span class="small">현재 질문·history만으로 fact/compare/list/visual 슬롯 생성</span></div><div class="card"><div class="num">2</div><strong>검색·fusion</strong><br><span class="small">dense/lexical/conditional visual port와 scope-safe RRF</span></div><div class="card"><div class="num">3</div><strong>검증 루프</strong><br><span class="small">missing slot이면 targeted search/bridge 후 LLM verifier</span></div><div class="card"><div class="num">4</div><strong>생성</strong><br><span class="small">검증·패킹된 근거만 citation 가능한 기존 Generator adapter</span></div></div>
-<img class="flow" src="../architecture/specs/evidence-harness-target-flow.png" alt="Evidence-Harness target flow">
-<p class="small">PNG: target flow. Current flow 원본은 <a href="../architecture/specs/evidence-harness-current-flow.mmd">Mermaid source</a>로 보존했습니다. current PNG는 Chromium sandbox/실행 승인 제한으로 이번 릴레이에서 생성하지 못했습니다.</p>
+<div class="grid"><div class="card"><div class="num">1</div><strong>질문 계획·경로 분기</strong><br><span class="small">현재 질문·history 기반 슬롯; fact/compare/followup와 list 경로 분리</span></div><div class="card"><div class="num">2</div><strong>검색·근거 수집</strong><br><span class="small">기존 KURE page + child BM25 → RRF; 목록은 scoped scan/reduce</span></div><div class="card"><div class="num">3</div><strong>상태·검증 루프</strong><br><span class="small">미학습 local LLM policy, missing 슬롯 재검색·bridge, LLM 근거 검증</span></div><div class="card"><div class="num">4</div><strong>생성·실행 기록</strong><br><span class="small">필수 근거·인용 한도 확인 후 생성; runtime 설정까지 v2 trace로 봉인</span></div></div>
+<h3>목표 구조</h3>
+<a href="../architecture/specs/evidence-harness-target-flow.png"><img class="flow" src="../architecture/specs/evidence-harness-target-flow.png" alt="목표 흐름: 검색·검증·상태 제어와 offline 학습 연결"></a>
+<h3>현재 구현</h3>
+<a href="../architecture/specs/evidence-harness-current-flow.png"><img class="flow" src="../architecture/specs/evidence-harness-current-flow.png" alt="현재 흐름: opt-in KURE/BM25 하네스와 scoped 목록 검사"></a>
+<p class="small">Target/current PNG를 모두 생성하고 이미지를 확인했습니다. HTML의 로컬 파일 열기는 브라우저 정책으로 차단되어 정적 링크·이미지 경로만 검증했으며 브라우저 렌더 통과로 기록하지 않습니다. <a href="../architecture/specs/evidence-harness-target-flow.mmd">Target source</a> · <a href="../architecture/specs/evidence-harness-current-flow.mmd">Current source</a></p>
+
+<h2>실제 로컬 구성</h2>
+<table><thead><tr><th>항목</th><th>현재 연결과 확인 상태</th></tr></thead><tbody>
+<tr><td>Evidence</td><td>98문서 · 9,331 page + 9,513 text = 18,844개. 현재 store는 기존 corpus에서 구조화 표·그림을 새로 복원하지 않았습니다.</td></tr>
+<tr><td>Dense / lexical</td><td><code>nlpai-lab/KURE-v1</code> 기존 page-part 벡터 9,331×1,024 재사용 + 새 child BM25. KURE는 CPU에서 query만 임베딩하며 RRF k=60으로 결합합니다. 새 child dense embedding은 아닙니다.</td></tr>
+<tr><td>Reranker</td><td>Identity/no-op. 학습된 reranker는 아직 연결하지 않았습니다.</td></tr>
+<tr><td>Planner / policy / verifier / generator</td><td>실제 Mac 모델은 digest가 고정된 <code>qwen3.8:27b-mlx</code>입니다. GCP 목표 <code>Qwen3-8B-AWQ</code>의 실측으로 해석하지 않습니다. 제어 정책은 미학습 local LLM policy입니다.</td></tr>
+<tr><td>목록 처리</td><td>요청 범위 내 문서를 bounded scan/reduce합니다. unknown·예산 초과·미완료를 완전 목록으로 반환하지 않습니다. 98문서 전체 목록 실행의 지연·완전성은 미측정입니다.</td></tr>
+<tr><td>Trace / 학습 준비</td><td>v2의 <code>config={harness,runtime}</code> 전체 해시에 검색 provenance·모델·예산·visual capability를 포함합니다. v1 호환 유지. exporter는 준비 완료이며 SFT/RL 학습·reward·승격은 미실행입니다.</td></tr>
+</tbody></table>
 
 <h2>릴레이 배치 상태</h2>
 <table><thead><tr><th>배치</th><th>결과</th><th>검증/다음 조건</th></tr></thead><tbody>
 <tr><td>EH0</td><td class="done">완료</td><td>플랜·계약·TODO·target/current flow 고정</td></tr>
 <tr><td>EH1</td><td class="done">완료</td><td>immutable EvidenceStore, page→child/object bridge, source hash/provenance</td></tr>
-<tr><td>EH2</td><td class="done">완료</td><td>BM25/dense/visual port, scope-safe RRF, reranker guard, context budget</td></tr>
-<tr><td>EH3</td><td class="done">완료</td><td>bounded typed action loop, missing/contradiction/list completeness gate</td></tr>
-<tr><td>EH4</td><td class="done">준비 완료</td><td>Generator adapter, private trace, offline diagnostic/CLI; live provider smoke는 승인/환경 대기</td></tr>
-<tr><td>EH5</td><td class="todo">보류</td><td>실제 checkpoint·hardware·승인 gold·holdout·resource 측정이 모두 있어야 shadow/promotion</td></tr>
-<tr><td>EH6</td><td class="todo">준비 중</td><td>offline trajectory exporter; SFT/RL은 외부 승인 reward/학습 산출물 없이는 실행하지 않음</td></tr>
+<tr><td>EH2–EH3</td><td class="done">구현·합성 검증 완료</td><td>scope-safe 검색/fusion, bounded action loop, 필수 근거 보존, 오류/기권 구분</td></tr>
+<tr><td>EH4</td><td class="done">연결 완료</td><td>Generator adapter·private trace·offline diagnostic/CLI. 합성 데이터 실제 모델 호출 성공</td></tr>
+<tr><td>EH5</td><td class="todo">실측·승격 조건 확인 중</td><td>기존 KURE artifact와 Mac 모델 확인됨. 승인 gold·sealed holdout·동일 judge 품질 비교·자원 실측을 추가해야 승격 판단 가능</td></tr>
+<tr><td>EH6</td><td class="done">exporter·seal gate 준비 완료</td><td>학습 미실행. 명시적 train/heldout 구분 필요; action snapshot이 없는 list receipt는 <code>list_trajectory_not_trainable</code>로 제외</td></tr>
+<tr><td>EH7</td><td class="done">실제 검색 artifact 연결</td><td>98문서 Evidence 구축, 기존 KURE 인덱스 재사용, 실제 corpus query embedding·검색 확인</td></tr>
+<tr><td>EH8</td><td class="done">목록 경로 구현·소규모 live 통과</td><td>3문서 scan/reduce 실호출 성공. 전체 corpus 실측 완료를 뜻하지 않음</td></tr>
+<tr><td>EH9–EH10</td><td class="done">실호출·회귀 검증 완료</td><td>합성 fact·list와 실제 corpus 답변 성공, 전체 테스트 오류 0. commit/push 최종 상태는 릴레이 기록에 반영</td></tr>
 </tbody></table>
 
 <h2>검증 결과</h2>
-<div class="grid"><div class="card"><div class="num">40 + 36 + 39 + 36</div><span class="small">evidence / retrieval / answering / orchestration 합성 테스트</span></div><div class="card"><div class="num">36 + 71</div><span class="small">offline diagnostics/gates/training + 기존 indexing 회귀</span></div><div class="card"><div class="num">PASS</div><span class="small">repository safety (605 files scanned)</span></div><div class="card"><div class="num">0</div><span class="small">private corpus/API/gold provider 호출</span></div></div>
-<p>전체 discovery는 799건 중 789 pass, 8 private artifact skip, 기존 evaluation tree의 2개 오류가 남았습니다. 새 경로의 scoped suite는 통과했습니다. 오류는 baseline artifact를 만들어 위장하지 않고 <a href="../test/errorlogs/2026-09-02-evidence-harness-full-suite.md">error log</a>에 분리했습니다.</p>
+<div class="grid"><div class="card"><div class="num">938</div><span class="small">전체 테스트 · 920 PASS / 18 private skip · 12.018초</span></div><div class="card"><div class="num">0</div><span class="small">테스트 실패·오류 · compile PASS</span></div><div class="card"><div class="num">18,844</div><span class="small">실제 corpus의 source-bound Evidence</span></div><div class="card"><div class="num">3</div><span class="small">실제 로컬 모델 fact·list·corpus 성공</span></div></div>
+<p>이전 evaluation import 오류와 private fixture 경계를 수정했습니다. 누락된 private 자료를 요구하는 통합 검사만 skip하며 합성 계약 검사는 계속 실행합니다. Repository safety는 최근 620파일 검사에서 PASS입니다. <a href="../test/errorlogs/2026-09-02-evidence-harness-full-suite.md">전체 테스트 오류·해결</a> · <a href="../test/errorlogs/backend/2026-09-02-harness-live-routing-budget.md">실호출 분류·예산 오류와 해결</a></p>
+
+<h2>실호출 검증 기록</h2>
+<table><thead><tr><th>실행</th><th>상태</th><th>확인한 사실 / 남은 확인</th></tr></thead><tbody>
+<tr><td>합성 fact · 실제 Mac 모델</td><td class="done">PASS</td><td>계획·근거 검증·생성 성공. 품질평가 점수는 산출하지 않았습니다. Trace SHA-256: <code style="overflow-wrap:anywhere">f5c57d8c412b0fbe3c102a4e259b5b3464d1f9ccc760b88e6f1c3416b58a9466</code></td></tr>
+<tr><td>실제 corpus 후속 질문</td><td class="done">PASS</td><td>Harness READY·5 actions 후 answered. 두 요청 속성 모두 답변했고 필수 근거 1개·생성 문맥 1개·페이지 인용 1개를 사용했습니다. Trace SHA-256: <code style="overflow-wrap:anywhere">6c9827def5955e46c53463165c326aa1991487f4b8f70bf46cdec9f255a4cdeb</code></td></tr>
+<tr><td>합성 목록 · 실제 Mac 모델</td><td class="done">PASS</td><td>3문서 중 3문서 검사 완료, 조건 일치 2건·인용 2개. enumerate 6회 + planner/answer 각 1회 = 8회 호출. 전체 98문서 성능 측정은 아닙니다. Trace SHA-256: <code style="overflow-wrap:anywhere">fe421b7afbac2874e081d91b26515cc7d9b463c646d9b0cacfcfbab6efc30d73</code></td></tr>
+</tbody></table>
+
+<p class="notice"><strong>실제 corpus 지연:</strong> KURE query는 cold 3.772초 / warm 0.054초, verifier는 53.440초·58.422초였습니다. Harness 구간은 142.734초이며 planner 5.547초, generation 8.025초와 준비 시간을 제외한 값입니다. 이를 전체 E2E 지연으로 표시하지 않습니다. 생성 사용량은 input 973 / output 73 tokens입니다. 경로는 성공했지만 긴 검증 지연이 현재 제한이며 의미 품질 점수는 아직 없습니다.</p>
 
 <h2>멀티모달 임베딩 판단</h2>
 <table><thead><tr><th>항목</th><th>현재</th><th>멀티모달 완료 후</th></tr></thead><tbody>
@@ -44,8 +68,8 @@
 </tbody></table>
 
 <h2>산출물</h2>
-<ul><li><a href="evidence-harness-transition-plan.md">전환 플랜</a></li><li><a href="../architecture/specs/evidence-harness-contract.md">구현 계약</a></li><li><a href="../architecture/todolist.md">TODO</a></li><li><a href="evidence-harness-relay.md">릴레이 기록</a></li><li><a href="../architecture/specs/evidence-harness-flow-validation.md">격차·우선순위 보고서</a></li><li><a href="../architecture/specs/evidence-harness-target-flow.mmd">Target Mermaid</a> · <a href="../architecture/specs/evidence-harness-current-flow.mmd">Current Mermaid</a></li><li><a href="../../src/midprojectrag/orchestration/cli.py">opt-in CLI</a> · <a href="../../src/midprojectrag/offline_harness/cli.py">offline CLI</a></li></ul>
+<ul><li><a href="evidence-harness-transition-plan.md">전환 플랜</a> · <a href="../architecture/specs/evidence-harness-contract.md">구현 계약</a> · <a href="../architecture/todolist.md">TODO</a></li><li><a href="evidence-harness-local-runbook.md">비시각 로컬 실행 runbook</a></li><li><a href="evidence-harness-relay.md">릴레이 기록</a> · <a href="../architecture/specs/evidence-harness-flow-validation.md">격차·우선순위 보고서</a></li><li><a href="../architecture/specs/evidence-harness-target-flow.mmd">Target Mermaid</a> · <a href="../architecture/specs/evidence-harness-current-flow.mmd">Current Mermaid</a></li><li><a href="../test/errorlogs/2026-09-02-evidence-harness-full-suite.md">전체 테스트 오류·해결 이력</a> · <a href="../test/errorlogs/backend/2026-09-02-harness-live-routing-budget.md">실호출 오류·해결 이력</a></li><li><a href="../../src/midprojectrag/orchestration/cli.py">opt-in CLI</a> · <a href="../../src/midprojectrag/offline_harness/cli.py">offline CLI</a></li></ul>
 
 <h2>다음 릴레이</h2>
-<ol><li>training exporter와 trajectory snapshot 검증을 마친다.</li><li>synthetic adapter E2E와 baseline 관련 suite를 다시 확인한다.</li><li>멀티모달 checkpoint/reader가 준비되면 visual capability gate를 해제하기 전 hash·bbox·pixel fidelity를 검증한다.</li><li>승인 gold·sealed holdout·고정 judge·자원 측정이 모인 뒤에만 shadow/promotion을 검토한다.</li></ol>
+<ol><li>검증 호출 지연을 줄이고 동일한 근거 보존·오류 경계가 유지되는지 비교한다.</li><li>고정 골든셋·동일 judge로 baseline 대비 품질과 지연을 실측한다. 현재 자료만으로 예상 향상 점수를 만들지 않는다.</li><li>98문서 전체 목록의 완료율과 자원·지연을 별도 측정한다.</li><li>멀티모달 checkpoint/reader와 학습된 정책은 각각 artifact·fidelity·평가 조건이 갖춰진 후 연결한다.</li></ol>
 </main></body></html>

@@ -51,7 +51,7 @@ class _Verifier:
         return Verification((self.evidence.evidence_id,))
 
 
-def _fixture(*, status: str | None = None) -> tuple[EvidenceStore, dict]:
+def _fixture(*, status: str | None = None, runtime: dict | None = None) -> tuple[EvidenceStore, dict]:
     doc_id = "doc_000000000000000000000001"
     block_id = "block_000000000000000000000001"
     page = Evidence.create(
@@ -105,6 +105,7 @@ def _fixture(*, status: str | None = None) -> tuple[EvidenceStore, dict]:
         config=harness.config,
         policy_id=harness.policy.policy_id,
         result=trace_result,
+        runtime=runtime,
     )
     return store, trace
 
@@ -155,6 +156,60 @@ class TrainingExportTests(unittest.TestCase):
         self.assertTrue(result["sft_rows"])
         self.assertEqual(len(result["sft_rows"]), len(result["rl_rows"]))
         self.assertTrue(all(row["reward"] is None for row in result["rl_rows"]))
+
+    def test_v2_export_keeps_composite_runtime_configuration_seal(self):
+        runtime = {
+            "retrieval": {"lane": "legacy_page", "index_sha256": "b" * 64},
+            "model": "test-local-model",
+            "visual_available": False,
+        }
+        _, trace = _fixture(runtime=runtime)
+        self.assertEqual(trace["schema_version"], "evidence-harness-trace-v2")
+        result = self.export(trace)
+        self.assertEqual(result["config_sha256"], digest(trace["config"]))
+        self.assertNotEqual(result["config_sha256"], digest(trace["config"]["harness"]))
+        self.assertEqual(len(result["sft_rows"]), len(self.export()["sft_rows"]))
+
+    def test_v2_runtime_tampering_cannot_bypass_either_seal(self):
+        _, trace = _fixture(runtime={"retrieval": {"index_sha256": "b" * 64}})
+        trace["config"]["runtime"]["retrieval"]["index_sha256"] = "c" * 64
+        with self.assertRaisesRegex(ValueError, "trace_sha256_mismatch"):
+            self.export(trace)
+        _resign(trace)
+        with self.assertRaisesRegex(ValueError, "training_config_seal_mismatch"):
+            self.export(trace)
+
+    def test_v2_harness_configuration_and_runtime_shapes_are_validated(self):
+        for mutation in ("harness_missing", "harness_list", "harness_budget", "runtime_list", "extra_key"):
+            _, trace = _fixture(runtime={})
+            if mutation == "harness_missing":
+                del trace["config"]["harness"]
+            elif mutation == "harness_list":
+                trace["config"]["harness"] = []
+            elif mutation == "harness_budget":
+                trace["config"]["harness"]["max_actions"] = True
+            elif mutation == "runtime_list":
+                trace["config"]["runtime"] = []
+            else:
+                trace["config"]["unexpected"] = "value"
+            trace["config_sha256"] = digest(trace["config"])
+            _resign(trace)
+            with self.subTest(mutation=mutation), self.assertRaisesRegex(ValueError, "training_config_invalid"):
+                self.export(trace)
+
+    def test_list_route_is_explicitly_not_an_action_training_trajectory(self):
+        _, trace = _fixture(runtime={"route": "list"})
+        trace["result"] = {
+            "enumeration": {"complete": True},
+            "answer": {},
+            "status": "READY",
+            "reason": "enumeration_complete",
+            "context": trace["result"]["context"],
+            "required_ids": trace["result"]["required_ids"],
+        }
+        _resign(trace)
+        with self.assertRaisesRegex(ValueError, "list_trajectory_not_trainable"):
+            self.export(trace)
 
     def test_request_must_be_allowlisted_and_disjoint_from_heldout(self):
         with self.assertRaisesRegex(ValueError, "request_not_allowlisted"):

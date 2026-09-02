@@ -157,7 +157,10 @@ class EvidenceAnswerAdapterTests(unittest.TestCase):
         generator = SyntheticGenerator()
         adapter = self.make_adapter(generator)
         pixel = evidence(kind="figure", text="", crop_ref="/private/pixels.png")
-        self.assert_abstained(adapter.answer(request(), (pixel,)), "capability_gap")
+        self.assert_abstained(
+            adapter.answer(request(), (pixel,), required_ids=(pixel.evidence_id,)),
+            "capability_gap",
+        )
         text = evidence(kind="figure", crop_ref="/private/pixels.png")
         self.assert_abstained(adapter.answer(request(), (text,), requires_pixels=True), "capability_gap")
         self.assertEqual(generator.calls, [])
@@ -165,6 +168,44 @@ class EvidenceAnswerAdapterTests(unittest.TestCase):
         self.assertEqual(result.response["status"], "answered")
         self.assertNotIn("/private/pixels.png", generator.calls[0])
         self.assertNotIn("bbox", result.response["citations"][0]["locator"])
+
+    def test_empty_optional_figure_does_not_block_required_text_answer(self):
+        generator = SyntheticGenerator()
+        text = evidence(1)
+        pixel = evidence(2, kind="figure", text="", crop_ref="/private/optional-pixels.png")
+        result = self.make_adapter(generator).answer(
+            request(cap=1), (pixel, text), required_ids=(text.evidence_id,),
+        )
+        self.assertEqual(result.response["status"], "answered")
+        self.assertEqual(validate_response(result.response), [])
+        self.assertEqual(len(generator.calls), 1)
+        self.assertEqual(generator.calls[0].count("<SOURCE "), 1)
+        self.assertIn(text.evidence_id, generator.calls[0])
+        self.assertNotIn(pixel.evidence_id, generator.calls[0])
+        self.assertNotIn("/private/optional-pixels.png", generator.calls[0])
+        self.assertEqual(set(result.citation_map.values()), {text.evidence_id})
+        self.assertEqual(len(result.response["citations"]), 1)
+        self.assertEqual(result.response["citations"][0]["doc_id"], text.doc_id)
+
+    def test_empty_required_figure_cannot_be_replaced_by_optional_text(self):
+        generator = SyntheticGenerator()
+        text = evidence(1)
+        pixel = evidence(2, kind="figure", text="", crop_ref="/private/required-pixels.png")
+        result = self.make_adapter(generator).answer(
+            request(), (pixel, text), required_ids=(pixel.evidence_id,),
+        )
+        self.assert_abstained(result, "capability_gap")
+        self.assertEqual(generator.calls, [])
+        self.assertIsNone(result.prompt_sha256)
+
+    def test_only_empty_optional_figures_mean_insufficient_text_evidence(self):
+        generator = SyntheticGenerator()
+        pixels = tuple(evidence(i, kind="figure", text=" ", crop_ref=f"/private/pixels-{i}.png") for i in (1, 2))
+        result = self.make_adapter(generator).answer(request(), pixels)
+        self.assert_abstained(result, "insufficient_evidence")
+        self.assertEqual(generator.calls, [])
+        self.assertEqual(result.citation_map, {})
+        self.assertIsNone(result.prompt_sha256)
 
     def test_context_budget_counts_custom_system_and_output_before_call(self):
         generator = SyntheticGenerator()

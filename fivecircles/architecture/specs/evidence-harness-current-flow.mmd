@@ -5,13 +5,17 @@ flowchart TD
  C --> G["Existing generator + citations"]
  G --> T["Existing baseline run record"]
  Q -. "explicit opt-in" .-> P["Query plan / typed policy"]
- P --> H["Bounded harness state/actions"]
- H --> X["EvidenceStore + lexical/RRF ports"]
+ P -->|fact / compare / followup| H["Bounded harness state/actions"]
+ P -->|list| L["Scoped full scan + document reduce"]
+ H --> X["KURE legacy PAGE + CHILD BM25 / RRF"]
  X --> V["Verifier + targeted bridge"]
  V -->|complete| CP["Verified context pack"]
  CP --> GA["Evidence Generator adapter"]
- GA --> TT["Private versioned trace"]
- V -->|missing / contradiction| AB["Bounded abstention"]
+ GA --> TT["Private v2 trace / config seal"]
+ L -->|all documents decided| CP
+ L -->|unknown / budget / incomplete| AB
+ V -->|missing and budget remains| H
+ V -->|unresolved / contradiction / budget| AB["Bounded abstention"]
  E["Validated page/table/visual artifacts"] --> R
  E --> X
  VM["Multimodal embedding / learned policy"] -. "capability gap" .-> X
@@ -19,8 +23,10 @@ flowchart TD
  classDef green fill:#e8f2ea,stroke:#bdd1c2,color:#1f2933
  classDef blue fill:#e8f0f7,stroke:#c2d3e0,color:#1f2933
  classDef red fill:#fde9e6,stroke:#e8bab5,color:#1f2933
+ classDef amber fill:#fff4d9,stroke:#cfa13b,color:#1f2933
+ classDef gray fill:#eeeeee,stroke:#aaaaaa,color:#1f2933
  class Q,R,C,T,E green
  class D,G blue
- class P,H,X,V,CP,GA,TT amber
+ class P,H,X,V,CP,GA,TT,L amber
  class AB red
  class VM gray
