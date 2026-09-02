@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Evidence-Harness v1 릴레이샷 보고서</title>
+<style>
+:root{color-scheme:light;--ink:#17212b;--muted:#66727e;--line:#d9e0e6;--blue:#1957b8;--green:#16805b;--amber:#9a6500;--red:#a33b3b}*{box-sizing:border-box}body{margin:0;background:#f5f7fa;color:var(--ink);font:15px/1.65 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif}main{max-width:1120px;margin:0 auto;padding:42px 28px 72px}h1{margin:0 0 8px;font-size:32px}h2{margin:34px 0 12px;border-bottom:1px solid var(--line);padding-bottom:7px}h3{margin:18px 0 4px}.lead{color:var(--muted);font-size:17px}.meta{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0}.pill{padding:4px 11px;border-radius:99px;background:#e8eef8;color:var(--blue);font-weight:650}.pill.green{background:#e4f5ed;color:var(--green)}.pill.amber{background:#fff3d8;color:var(--amber)}.pill.red{background:#fbe8e8;color:var(--red)}table{border-collapse:collapse;width:100%;background:white;box-shadow:0 2px 10px #16212b0d}th,td{border:1px solid var(--line);padding:9px 10px;text-align:left;vertical-align:top}th{background:#eef2f6}code{background:#eef2f6;padding:1px 4px;border-radius:3px}a{color:var(--blue)}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}.card{background:white;border:1px solid var(--line);border-radius:9px;padding:15px}.num{font-size:25px;font-weight:750}.small{color:var(--muted);font-size:13px}.flow{max-width:100%;border:1px solid var(--line);background:white;padding:8px}.notice{border-left:4px solid var(--amber);background:#fffaf0;padding:10px 14px}.done{color:var(--green);font-weight:650}.todo{color:var(--amber);font-weight:650}@media(max-width:700px){main{padding:25px 14px}h1{font-size:26px}th,td{padding:7px;font-size:13px}}
+</style>
+</head>
+<body><main>
+<h1>Evidence-Harness v1 릴레이샷</h1>
+<p class="lead">기존 단일 검색→생성 baseline을 보존하면서, 질문 슬롯·상태·검증·근거 보존을 추가한 opt-in 전환 기록입니다.</p>
+<div class="meta"><span class="pill">branch: feat/evidence-harness-v1</span><span class="pill">base: 7ad229f</span><span class="pill green">EH1–EH4 local path implemented</span><span class="pill amber">promotion pending</span></div>
+
+<h2>결론</h2>
+<p>멀티모달 임베딩은 이 전환의 선행 조건이 아닙니다. evidence/retrieval/controller/generation 경계를 먼저 고정했고, visual plan은 검증된 visual reader가 주입될 때까지 <code>capability_gap</code>으로 기권합니다. 따라서 현재 구현은 fact/compare/followup와 표·텍스트 provenance 경로를 검증하며, 실제 visual 검색 품질은 아직 측정하지 않습니다.</p>
+<div class="notice"><strong>실험 완료 가정과 실측을 분리:</strong> 연구 문서상 선택안은 플랜의 가정입니다. 실제 dense/멀티모달 checkpoint·정책 학습·GCP 자원 실측은 이 브랜치에서 실행/승격하지 않았습니다.</div>
+
+<h2>오케스트레이션 변경</h2>
+<div class="grid"><div class="card"><div class="num">1</div><strong>질문 계획</strong><br><span class="small">현재 질문·history만으로 fact/compare/list/visual 슬롯 생성</span></div><div class="card"><div class="num">2</div><strong>검색·fusion</strong><br><span class="small">dense/lexical/conditional visual port와 scope-safe RRF</span></div><div class="card"><div class="num">3</div><strong>검증 루프</strong><br><span class="small">missing slot이면 targeted search/bridge 후 LLM verifier</span></div><div class="card"><div class="num">4</div><strong>생성</strong><br><span class="small">검증·패킹된 근거만 citation 가능한 기존 Generator adapter</span></div></div>
+<img class="flow" src="../architecture/specs/evidence-harness-target-flow.png" alt="Evidence-Harness target flow">
+<p class="small">PNG: target flow. Current flow 원본은 <a href="../architecture/specs/evidence-harness-current-flow.mmd">Mermaid source</a>로 보존했습니다. current PNG는 Chromium sandbox/실행 승인 제한으로 이번 릴레이에서 생성하지 못했습니다.</p>
+
+<h2>릴레이 배치 상태</h2>
+<table><thead><tr><th>배치</th><th>결과</th><th>검증/다음 조건</th></tr></thead><tbody>
+<tr><td>EH0</td><td class="done">완료</td><td>플랜·계약·TODO·target/current flow 고정</td></tr>
+<tr><td>EH1</td><td class="done">완료</td><td>immutable EvidenceStore, page→child/object bridge, source hash/provenance</td></tr>
+<tr><td>EH2</td><td class="done">완료</td><td>BM25/dense/visual port, scope-safe RRF, reranker guard, context budget</td></tr>
+<tr><td>EH3</td><td class="done">완료</td><td>bounded typed action loop, missing/contradiction/list completeness gate</td></tr>
+<tr><td>EH4</td><td class="done">준비 완료</td><td>Generator adapter, private trace, offline diagnostic/CLI; live provider smoke는 승인/환경 대기</td></tr>
+<tr><td>EH5</td><td class="todo">보류</td><td>실제 checkpoint·hardware·승인 gold·holdout·resource 측정이 모두 있어야 shadow/promotion</td></tr>
+<tr><td>EH6</td><td class="todo">준비 중</td><td>offline trajectory exporter; SFT/RL은 외부 승인 reward/학습 산출물 없이는 실행하지 않음</td></tr>
+</tbody></table>
+
+<h2>검증 결과</h2>
+<div class="grid"><div class="card"><div class="num">40 + 36 + 39 + 36</div><span class="small">evidence / retrieval / answering / orchestration 합성 테스트</span></div><div class="card"><div class="num">40 + 71</div><span class="small">offline/gates·diagnostics + 기존 indexing 회귀</span></div><div class="card"><div class="num">PASS</div><span class="small">repository safety (605 files scanned)</span></div><div class="card"><div class="num">0</div><span class="small">private corpus/API/gold provider 호출</span></div></div>
+<p>전체 discovery는 786건 중 776 pass, 8 private artifact skip, 기존 evaluation tree의 2개 오류가 남았습니다. 새 경로의 scoped suite는 통과했습니다. 오류는 baseline artifact를 만들어 위장하지 않고 <a href="../test/errorlogs/2026-09-02-evidence-harness-full-suite.md">error log</a>에 분리했습니다.</p>
+
+<h2>멀티모달 임베딩 판단</h2>
+<table><thead><tr><th>항목</th><th>현재</th><th>멀티모달 완료 후</th></tr></thead><tbody>
+<tr><td>인터페이스</td><td class="done">conditional visual lane·object bridge·crop/provenance 필드 고정</td><td>provider가 같은 Retriever/Verifier 계약 구현</td></tr>
+<tr><td>실행</td><td class="todo">visual query는 capability_gap; OCR/caption을 pixel 근거로 승격하지 않음</td><td>검증된 reader와 checkpoint hash·hardware preflight 후 opt-in</td></tr>
+<tr><td>평가</td><td class="todo">visual quality/score 미측정</td><td>고정 GPT-5.6 semantic judge와 frozen qrels로 별도 비교</td></tr>
+</tbody></table>
+
+<h2>산출물</h2>
+<ul><li><a href="evidence-harness-transition-plan.md">전환 플랜</a></li><li><a href="../architecture/specs/evidence-harness-contract.md">구현 계약</a></li><li><a href="../architecture/todolist.md">TODO</a></li><li><a href="evidence-harness-relay.md">릴레이 기록</a></li><li><a href="../architecture/specs/evidence-harness-flow-validation.md">격차·우선순위 보고서</a></li><li><a href="../architecture/specs/evidence-harness-target-flow.mmd">Target Mermaid</a> · <a href="../architecture/specs/evidence-harness-current-flow.mmd">Current Mermaid</a></li><li><a href="../../src/midprojectrag/orchestration/cli.py">opt-in CLI</a> · <a href="../../src/midprojectrag/offline_harness/cli.py">offline CLI</a></li></ul>
+
+<h2>다음 릴레이</h2>
+<ol><li>training exporter와 trajectory snapshot 검증을 마친다.</li><li>synthetic adapter E2E와 baseline 관련 suite를 다시 확인한다.</li><li>멀티모달 checkpoint/reader가 준비되면 visual capability gate를 해제하기 전 hash·bbox·pixel fidelity를 검증한다.</li><li>승인 gold·sealed holdout·고정 judge·자원 측정이 모인 뒤에만 shadow/promotion을 검토한다.</li></ol>
+</main></body></html>

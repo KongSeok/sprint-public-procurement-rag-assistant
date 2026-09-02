@@ -61,6 +61,7 @@ midprojectrag-eval = "midprojectrag.evaluation:main"
 midprojectrag-supplemental-eval = "midprojectrag.supplemental_evaluation:main"
 midprojectrag-supplemental-baseline = "midprojectrag.supplemental_baseline:main"
 midprojectrag-gcp-local-baseline = "midprojectrag.gcp_local_baseline:main"
+midprojectrag-evidence-harness = "midprojectrag.orchestration.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

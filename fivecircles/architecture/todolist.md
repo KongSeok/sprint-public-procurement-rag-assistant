@@ -1,5 +1,21 @@
 # MidProjectRAG Task List
 
+## 2026-09-02 — Evidence-Harness 전환 (feat/evidence-harness-v1)
+
+상태: IN_PROGRESS · baseline 유지 / 새 경로 opt-in
+
+계획: [전환 플랜](../work/evidence-harness-transition-plan.md) · [계약](specs/evidence-harness-contract.md) · [릴레이 기록](../work/evidence-harness-relay.md)
+
+- [x] EH0: plan/contract/TODO 및 target/current flow·격차 보고서를 고정한다.
+- [x] EH1: immutable evidence·page parent·child/object bridge를 구현하고 출처/직렬화 회귀를 검증한다.
+- [x] EH2: dense/lexical/visual port·RRF·rerank·coverage context packing을 구현한다.
+- [x] EH3: query plan·Belief/Progress·typed action·누락 슬롯 재검색/검증/중단 루프를 구현한다.
+- [x] EH4: 기존 Generator 연결·opt-in CLI·private trajectory·offline diagnostics·rollback을 검증한다.
+- [ ] EH5: 실제 모델/체크포인트/하드웨어/승인 gold를 preflight하고 실측 promotion 가능 여부를 기록한다.
+- [ ] EH6: offline SFT/RL·policy evolution 입력/검증 연결을 준비하고 실학습 가능한 범위를 구분한다.
+
+제약: 가정된 실험 완료를 실측으로 기록하지 않음. gold/판정기 고정. 실제 Mac=27B-MLX, GCP target=8B-AWQ.
+
 ## 실행 원칙
 
 - 프로젝트 기간: 3주

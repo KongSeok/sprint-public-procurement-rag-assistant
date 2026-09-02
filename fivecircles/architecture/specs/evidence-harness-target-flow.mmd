@@ -1,0 +1,23 @@
+flowchart TD
+ Q["Query + explicit history"] --> P["Query plan / typed policy"]
+ P --> H["Harness: Belief / Progress / Budget"]
+ H --> R["Dense + lexical + visual retrieval"]
+ R --> F["Fusion + rerank"]
+ F --> V["LLM verify / coverage"]
+ V -->|missing| H
+ H --> B["Targeted document / table / figure bridge"]
+ B --> V
+ V -->|complete| C["Pack verified evidence"]
+ C --> G["Generator + citation contract"]
+ G --> T["Private trace + offline evaluation"]
+ E["Immutable evidence-v1 + provenance"] --> R
+ E --> B
+ T -. "offline only" .-> L["SFT / RL / harness evolution"]
+ L -. "versioned frozen policy" .-> P
+ classDef green fill:#e8f2ea,stroke:#bdd1c2,color:#1f2933
+ classDef blue fill:#e8f0f7,stroke:#c2d3e0,color:#1f2933
+ classDef amber fill:#fff4dc,stroke:#e7c88f,color:#1f2933
+ classDef gray fill:#eef1ed,stroke:#d8e0da,color:#1f2933
+ class Q,P,H,C,E green
+ class R,F,V,G blue
+ class T,L,B amber

@@ -1,0 +1,14 @@
+{
+  "schema_version": "evidence-harness-artifacts-v1",
+  "artifacts": {
+    "evidence_bundle": null,
+    "dense_checkpoint_manifest": null,
+    "dense_index_manifest": null,
+    "reranker_manifest": null,
+    "visual_checkpoint_manifest": null,
+    "policy_checkpoint_manifest": null,
+    "approved_gold_receipt": null,
+    "heldout_seal": null,
+    "training_split_manifest": null
+  }
+}
