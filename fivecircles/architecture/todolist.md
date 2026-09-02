@@ -24,7 +24,12 @@ EH5 정정: 빈 template manifest는 실제 파일 부재의 증거가 아님. �
 - [x] EH8: 목록형 scoped 전수 enumeration을 구현하고 unknown/예산초과를 incomplete로 처리한다.
 - [x] EH9: 로컬 합성 fact/list 및 실문서 후속 질문 답변·인용·오류 복구를 검증한다.
 - [x] EH10: 기존 평가 import/private fixture 오류와 보고서 정합을 정리하고 delivery 범위를 검증한다.
-- [ ] 후속 실험: 같은 고정 골든셋으로 새 경로의 품질·지연을 baseline과 비교한다. 검증 두 번 53/58초인 단일 실문서 호출을 일반 성능으로 확대하지 않는다.
+- [x] EH11: 3차 인벤토리(`third-integrated-evaluation-inventory-v3`)를 검증하고, gold/qrel을 제외한 비시각 109건 request pack을 생성한다.
+- [ ] EH12: 로컬 Ollama가 준비되면 3차 비시각 109건을 새 오케스트레이션으로 실행하고 응답·trace를 private 원장에 저장한다. 현재 서버 미실행/loopback 권한 제한으로 미실행.
+- [ ] EH13: 신규 visual 10건을 pixel reader·visual retrieval pipeline으로 실행한다. 현재 `requires_pixels → capability_gap` 경계만 구현되어 실제 답변은 저장하지 않는다.
+- [ ] EH14: 신규 corpus analytics 10건을 deterministic analytics adapter로 연결하고 응답·계산 원장을 저장한다.
+- [ ] EH15: Sol(`gpt-5.6-sol`) 사용 가능 시 3차 131 lane 결과를 동일 rubric으로 semantic 채점한다. 그 전까지 점수·accepted 판정을 만들지 않는다.
+- [ ] 후속 실험: 같은 고정 3차 인벤토리로 새 경로의 품질·지연을 baseline과 비교한다. 검증 두 번 53/58초인 단일 실문서 호출을 일반 성능으로 확대하지 않는다.
 
 ## 실행 원칙
 

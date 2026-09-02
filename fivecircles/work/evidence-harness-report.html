@@ -46,7 +46,8 @@
 <tr><td>EH8</td><td class="done">목록 경로 구현·소규모 live 통과</td><td>3문서 scan/reduce 실호출 성공. 전체 corpus 실측 완료를 뜻하지 않음</td></tr>
 <tr><td>EH9–EH10</td><td class="done">실호출·회귀 검증 완료</td><td>합성 fact·list와 실제 corpus 답변 성공, 전체 테스트 오류 0. commit/push 최종 상태는 릴레이 기록에 반영</td></tr>
 <tr><td>EH11</td><td class="done">3차 inventory/request adapter 완료</td><td>lane·count·source 검증 PASS. 비시각 109건 요청 생성; 정답/필수근거는 런타임에 전달하지 않음</td></tr>
-<tr><td>EH12</td><td class="todo">3차 전체 채점 대기</td><td>새 하네스 109건 trace 실행 후 analytics/parser/visual lane과 동일 judge로 결합해야 함. 기존 API 54.845와 local Mini131 70.136은 새 하네스 점수가 아님</td></tr>
+<tr><td>EH12</td><td class="todo">3차 응답 실행 대기</td><td>로컬 Ollama loopback 서버가 준비되면 새 하네스 109건 응답·trace를 private 원장에 저장. 현재 서버 바인딩 제한으로 미실행</td></tr>
+<tr><td>EH13–EH15</td><td class="todo">visual/analytics/Sol 대기</td><td>visual 10은 pixel reader pipeline, analytics 10은 deterministic adapter, 131 lane 의미 채점은 Sol 사용 가능 후 실행. 기존 API 54.845와 local Mini131 70.136은 새 하네스 점수가 아님</td></tr>
 </tbody></table>
 
 <h2>검증 결과</h2>

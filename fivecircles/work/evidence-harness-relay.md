@@ -28,7 +28,8 @@ and the CLI had neither the dense adapter nor a real list enumeration route.
 8. Delivery: only feature-owned public source/tests/docs staged. Private corpus, requests and traces stay ignored.
    Delivery commit is recorded on `feat/evidence-harness-v1`; remote status is checked after push.
 9. Third-golden-set binding: `third-integrated-evaluation-inventory-v3` preflight now validates the lane-specific package and produces 109 nonvisual runtime requests. Gold/qrels stay outside runtime requests; visual 10, analytics 10 and parser 2 remain separate lanes. The package is provisional (approved 0/131).
-10. Next scope: same-gold quality/resource comparison, learned reranker/policy, GCP execution and visual activation
+10. Response execution is pending local Ollama availability: the attempt to bind `127.0.0.1:11434` was blocked by the current sandbox, so no fabricated answers or score were written. The private request pack is preserved; Sol semantic scoring remains a TODO.
+11. Next scope: same-gold quality/resource comparison, learned reranker/policy, GCP execution and visual activation
    are separate unfinished experiments, not automatically approved production rollout.
 
 ## Completion meaning
