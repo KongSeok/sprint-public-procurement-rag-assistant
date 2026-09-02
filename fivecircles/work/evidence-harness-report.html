@@ -33,8 +33,8 @@
 </tbody></table>
 
 <h2>검증 결과</h2>
-<div class="grid"><div class="card"><div class="num">40 + 36 + 39 + 36</div><span class="small">evidence / retrieval / answering / orchestration 합성 테스트</span></div><div class="card"><div class="num">40 + 71</div><span class="small">offline/gates·diagnostics + 기존 indexing 회귀</span></div><div class="card"><div class="num">PASS</div><span class="small">repository safety (605 files scanned)</span></div><div class="card"><div class="num">0</div><span class="small">private corpus/API/gold provider 호출</span></div></div>
-<p>전체 discovery는 786건 중 776 pass, 8 private artifact skip, 기존 evaluation tree의 2개 오류가 남았습니다. 새 경로의 scoped suite는 통과했습니다. 오류는 baseline artifact를 만들어 위장하지 않고 <a href="../test/errorlogs/2026-09-02-evidence-harness-full-suite.md">error log</a>에 분리했습니다.</p>
+<div class="grid"><div class="card"><div class="num">40 + 36 + 39 + 36</div><span class="small">evidence / retrieval / answering / orchestration 합성 테스트</span></div><div class="card"><div class="num">36 + 71</div><span class="small">offline diagnostics/gates/training + 기존 indexing 회귀</span></div><div class="card"><div class="num">PASS</div><span class="small">repository safety (605 files scanned)</span></div><div class="card"><div class="num">0</div><span class="small">private corpus/API/gold provider 호출</span></div></div>
+<p>전체 discovery는 799건 중 789 pass, 8 private artifact skip, 기존 evaluation tree의 2개 오류가 남았습니다. 새 경로의 scoped suite는 통과했습니다. 오류는 baseline artifact를 만들어 위장하지 않고 <a href="../test/errorlogs/2026-09-02-evidence-harness-full-suite.md">error log</a>에 분리했습니다.</p>
 
 <h2>멀티모달 임베딩 판단</h2>
 <table><thead><tr><th>항목</th><th>현재</th><th>멀티모달 완료 후</th></tr></thead><tbody>

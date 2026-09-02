@@ -17,9 +17,9 @@ Current diagram reflects the committed base plus this branch's opt-in implementa
 
 ## Evidence of validation
 
-- New synthetic suites: evidence 40, retrieval 36, answering 39, orchestration 36, offline 24.
+- New synthetic suites: evidence 40, retrieval 36, answering 39, orchestration 36, offline 36.
 - Existing indexing regression: 71 pass. Repository safety: 605 files scanned, PASS.
-- Full discovery: 786 run, 776 pass, 8 expected private skips, 2 pre-existing evaluation-tree errors recorded separately.
+- Full discovery: 799 run, 789 pass, 8 expected private skips, 2 pre-existing evaluation-tree errors recorded separately.
 - Local `/api/tags` confirmed the pinned Mac model name/digest. No private question or gold payload was sent; live synthetic run is pending execution approval.
 
 ## Visual gate

@@ -15,6 +15,7 @@
 - [ ] EH6: offline SFT/RL·policy evolution 입력/검증 연결을 준비하고 실학습 가능한 범위를 구분한다.
 
 제약: 가정된 실험 완료를 실측으로 기록하지 않음. gold/판정기 고정. 실제 Mac=27B-MLX, GCP target=8B-AWQ.
+EH5 preflight: artifact pins 9종 미설정 → runtime promotion 불가. EH6 exporter/evolution seal gate는 preparation-only이며 학습·reward·checkpoint를 만들지 않음.
 
 ## 실행 원칙
 

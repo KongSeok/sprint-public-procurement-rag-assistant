@@ -7,7 +7,7 @@ used the declared Python 3.12 runtime and `PYTHONPATH=src`.
 
 ## Result
 
-- 786 tests ran; 776 passed and 8 expected private-artifact skips remain.
+- 799 tests ran; 789 passed and 8 expected private-artifact skips remain.
 - Two pre-existing evaluation-tree errors are outside this branch's EH1–EH4 scope:
   `baseline_artifact_missing` in the private local-Mini131 contract setup, and an
   import mismatch for `PRIMARY_CATEGORY_ORDER` in the existing performance report.

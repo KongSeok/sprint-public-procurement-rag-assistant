@@ -23,9 +23,9 @@
 | EH1 | evidence 객체, page parent, text children, table/figure bridge | EH0 | identity/hash, orphan/cross-doc 거부, source adapter tests | TODO |
 | EH2 | dense/lexical/visual ports, RRF, rerank, doc-diverse context | EH1 계약 | scope 적용·중복 제거·rank trace·budget 검증 | TODO |
 | EH3 | query plan, Belief/Progress, typed actions, missing-slot loop | EH1/EH2 | 재검색→bridge→verify→stop, error/budget/contradiction tests | TODO |
-| EH4 | provider adapter·CLI·private trajectory·shadow rollback·diagnostic | EH3 | 합성 end-to-end CLI + 기존 baseline 회귀 + lineage | TODO |
-| EH5 | 모델/정책/하드웨어 preflight 및 운영 승격 | EH4 | 고정 모델·승인 qrel·자원·heldout 실측 있어야 승격 | TODO |
-| EH6 | SFT/RL 및 offline evolution 연결 | EH4/EH5 | 승인 train/holdout·policy checkpoint; gold 누출 없는 trajectory export | TODO |
+| EH4 | provider adapter·CLI·private trajectory·shadow rollback·diagnostic | EH3 | 합성 end-to-end 경로 + 기존 baseline 회귀 + lineage | PREPARED (live smoke pending) |
+| EH5 | 모델/정책/하드웨어 preflight 및 운영 승격 | EH4 | 고정 모델·승인 qrel·자원·heldout 실측 있어야 승격 | BLOCKED (pins absent) |
+| EH6 | SFT/RL 및 offline evolution 연결 | EH4/EH5 | 승인 train/holdout·policy checkpoint; gold 누출 없는 trajectory export | PREPARATION_ONLY |
 
 EH1~4는 다운로드 없는 로컬 구현과 합성 검증부터 수행한다.
 EH5/6은 누락된 모델·policy·승인 근거를 확인하여 구현 가능한 준비 작업을 끝내고 실제 차단 사유를 기록한다.

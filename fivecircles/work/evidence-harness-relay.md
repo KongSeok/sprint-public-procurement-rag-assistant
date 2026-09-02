@@ -9,5 +9,5 @@
 6. Repair: COMPLETED — preserved pre-rerank observation on provider failure; nested parent bridge walks to page; visual capability gate; CLI error exit.
 7. Push: PENDING — stage only branch-owned source/docs/tests; private smoke traces never staged.
 8. Closeout: READY_FOR_REVIEW — EH1–EH4 core path; current PNG render is environment-blocked, current Mermaid source is linked.
-9. Relay: CONTINUE_WITH_NEXT_FORM — EH5 preflight and EH6 offline preparation; do not promote.
-10. Final Ledger: core path implemented; multimodal embedding, learned policy, approved gold and GCP measurement remain gaps.
+9. Relay: STOP_AT_EXTERNAL_GATES — EH5 preflight reports all artifact pins absent; EH6 exporter is preparation-only. No safe in-scope code remains that can create those external artifacts.
+10. Final Ledger: core path implemented; multimodal embedding, learned policy, approved gold and GCP measurement remain gaps. Resume after those artifacts are supplied.

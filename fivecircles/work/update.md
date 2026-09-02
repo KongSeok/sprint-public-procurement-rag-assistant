@@ -571,6 +571,16 @@ This file summarizes recent updates so other agents can continue without re‑di
 - 이후 동시 변경된 visual schema fixture 1건만 전체 재실행에서 실패해 별도 로그로 분리했다.
 - 실제 90문항 실행·최종 점수·push는 명시적 OpenAI private-egress 승인 대기다.
 
+## Addendum (2026-09-02) - Evidence-Harness v1 relay
+
+### Backend
+- EH1–EH4 opt-in evidence, retrieval, bounded state loop, Generator adapter와 private trace를 구현했다.
+- EH5 artifact preflight는 9종 미설정으로 승격 차단, EH6 exporter/evolution gate는 preparation-only다.
+
+### Tests
+- evidence 40, retrieval 36, answering 39, orchestration 36, offline 36 및 indexing 71 pass.
+- 전체 799건 중 789 pass·8 private skip·기존 evaluation 오류 2건은 errorlog로 분리했다.
+
 ## Addendum (2026-08-31) - Mini131 integrated baseline completion
 
 ### Live candidate and fixed judge
