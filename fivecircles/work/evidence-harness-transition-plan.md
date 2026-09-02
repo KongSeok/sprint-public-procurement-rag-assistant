@@ -13,6 +13,7 @@
 - page-only는 기존 CLI로 재현; 새 명령은 opt-in. 실행 프로필 전환으로 rollback.
 - EvidenceStore → RetrievalTools → Harness → GeneratorAdapter. 학습/평가는 런타임 밖.
 - query/history로 계획한 slots만 사용. gold의 required-doc/required-facts는 런타임에 전달 금지.
+- 채점 입력은 3차 인벤토리 `third-integrated-evaluation-inventory-v3`로 고정한다. 이는 단일 골드 파일이 아니며 131(111 retained + 20 new), RAG 129 + parser regression 2, 제외 25건은 분모에서 제거된 lane 계약이다. 사람 승인 상태는 0/131이므로 결과는 provisional이다.
 - 기존 Mac 실측 generator는 qwen3.8:27b-mlx; Qwen3-8B-AWQ는 GCP 목표.
 - 이전 HTML의 65~70/78~82 예측은 검증된 성능 근거로 채택하지 않는다.
 
@@ -39,6 +40,8 @@ enumeration provider가 없어서 기권하므로, 실제 비시각 운영 연�
 | EH8 | 목록형 질문의 전수 enumeration 경로 | scoped 문서 전부 검사, 미처리/unknown 있으면 incomplete, LLM만 포함 여부 판정 | IMPLEMENTED; 40 unit + 14 integration PASS |
 | EH9 | 로컬 실제 호출 및 오류 재현 | 합성 fact/list와 실제 corpus 후속 질문 답변·인용, 실패/수정 이력 보존 | VERIFIED; no quality score |
 | EH10 | 기존 회귀 오류·보고서 정합 | missing private 통합만 skip, public report import 정합; 최종 범위 검증 후 push | VERIFIED; 938 run / 920 pass / 18 private skip |
+| EH11 | 3차 골든셋 inventory/request adapter | v3 index·lane·source count 검증, gold 미전달 request pack, 비시각 109건 산출 | IMPLEMENTED; preflight PASS |
+| EH12 | 새 오케스트레이션 3차 전체 채점 | 109 비시각 trace + analytics/parser lane 결과 + visual capability 조건을 동일 judge로 결합 | NOT RUN; 기존 Mini131 결과와 혼동 금지 |
 
 빈 artifact manifest만으로 외부 차단을 단정하지 않는다. 저장된 실제 artifact를 확인한 뒤
 읽기 전용으로 연결할 수 있는 작업을 수행한다. 새 checkpoint 학습·멀티모달 활성화는 별도다.

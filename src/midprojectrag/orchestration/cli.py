@@ -12,6 +12,7 @@ from midprojectrag.evidence import EvidenceStore, build_from_chunks
 from .artifacts import digest, read_json, trace_record, write_private_json
 from .controller import Harness
 from .enumeration import BoundedListEnumerator, EnumerationConfig
+from .golden_v3 import build_runtime_requests, load_inventory
 from .llm import LLMPlanner, LLMPolicy, LLMVerifier, LocalJSONBackend, SYSTEM
 from .local_runtime import DeadlineGenerator, compose_retriever, legacy_paths
 from .pipeline import EvidenceHarnessPipeline, ListPipelineResult
@@ -44,8 +45,46 @@ def main(argv=None) -> int:
     run.add_argument("--source-root", type=Path, help="Existing corpus/cache root; absent means lexical-only")
     run.add_argument("--requires-pixels", action="store_true")
     run.add_argument("--synthetic", action="store_true", help="Mark synthetic smoke; never a quality receipt")
+    v3_preflight = subs.add_parser("golden-v3-preflight", help="Validate the third lane-specific golden inventory")
+    v3_preflight.add_argument("--root", type=Path, required=True, help="Path to the unpacked golden-set-v3-share package")
+    v3_prepare = subs.add_parser("golden-v3-prepare", help="Prepare private runtime requests from the third golden inventory")
+    v3_prepare.add_argument("--root", type=Path, required=True, help="Path to the unpacked golden-set-v3-share package")
+    v3_prepare.add_argument("--output", type=Path, required=True)
+    v3_prepare.add_argument("--include-visual", action="store_true", help="Include visual questions; default is nonvisual lanes only")
     args = parser.parse_args(argv)
     root = Path.cwd() / "private" / "evidence-harness"
+    if args.command in {"golden-v3-preflight", "golden-v3-prepare"}:
+        try:
+            inventory = load_inventory(args.root)
+            if args.command == "golden-v3-preflight":
+                summary = {
+                    "status": "validated",
+                    "official": False,
+                    "set_id": inventory.set_id,
+                    "inventory_status": inventory.status,
+                    "index_sha256": inventory.index_sha256,
+                    "counts": dict(inventory.counts),
+                    "lane_counts": inventory.lane_counts,
+                    "nonvisual_request_count": inventory.nonvisual_request_count,
+                }
+                print(json.dumps(summary, ensure_ascii=False, sort_keys=True))
+                return 0
+            if not args.output.resolve().is_relative_to(root.resolve()) or args.output.exists():
+                raise ValueError("private_new_output_required")
+            requests = build_runtime_requests(inventory, include_visual=args.include_visual)
+            write_private_json(args.output, list(requests), private_root=root)
+            print(json.dumps({
+                "status": "prepared",
+                "official": False,
+                "set_id": inventory.set_id,
+                "request_count": len(requests),
+                "include_visual": bool(args.include_visual),
+                "output_sha256": digest(list(requests)),
+            }, ensure_ascii=False, sort_keys=True))
+            return 0
+        except Exception:
+            print(json.dumps({"status": "error", "reason": "golden_v3_preflight_or_prepare_failed", "official": False}))
+            return 2
     backend = None
     store = None
     config = None

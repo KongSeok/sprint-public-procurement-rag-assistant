@@ -9,12 +9,12 @@
 </head>
 <body><main>
 <h1>Evidence-Harness v1 릴레이샷</h1>
-<p class="lead">2026-09-02 · KURE 검색 재사용, 상태 기반 제어, 목록 전수 검사, private trace까지 연결한 비시각 로컬 전환 기록입니다.</p>
+<p class="lead">2026-09-02 · 3차 골든셋 인벤토리 바인딩, KURE 검색 재사용, 상태 기반 제어, 목록 전수 검사, private trace까지 연결한 비시각 로컬 전환 기록입니다.</p>
 <div class="meta"><span class="pill">branch: feat/evidence-harness-v1</span><span class="pill">base: 7ad229f</span><span class="pill green">938 tests · 0 errors</span><span class="pill green">fact / list / corpus live PASS</span><span class="pill amber">nonofficial / opt-in</span></div>
 
 <h2>결론</h2>
-<p>멀티모달 임베딩을 보류한 상태로 비시각 경로를 연결했습니다. 현재 질문과 대화 이력으로 계획을 세우고, KURE 페이지 검색과 child BM25를 결합한 뒤 부족한 근거를 다시 검색·검증합니다. 목록 질문은 별도 scoped scan/reduce 경로에서 문서별 판정을 모으며, 모든 대상의 판정이 끝나지 않으면 완전한 목록으로 출력하지 않습니다.</p>
-<div class="notice"><strong>현재 확인된 범위:</strong> 합성 fact, 소규모 합성 목록, 실제 corpus 후속 질문의 로컬 답변 경로가 모두 성공했습니다. 실제 corpus 실행은 검증 호출이 길어 지연 개선이 필요합니다. 정책 학습, 전체 corpus 목록 성능, 골든셋 품질 향상 점수와 운영 승격은 아직 확인되지 않았습니다.</div>
+<p>멀티모달 임베딩을 보류한 상태로 비시각 경로를 연결했습니다. 채점 입력은 3차 인벤토리 <code>third-integrated-evaluation-inventory-v3</code>로 고정하며, 131건은 단일 골드셋이 아니라 lane별 자산입니다. 핵심 40·보조 답변 56·보조 집합 13을 비시각 request로 준비하고, visual 10·analytics 10·parser 2는 별도 계약으로 유지합니다. 사람 승인 상태는 0/131이므로 새 결과는 provisional입니다. 질문과 대화 이력으로 계획을 세우고, KURE 페이지 검색과 child BM25를 결합한 뒤 부족한 근거를 다시 검색·검증합니다. 목록 질문은 별도 scoped scan/reduce 경로에서 문서별 판정을 모으며, 모든 대상의 판정이 끝나지 않으면 완전한 목록으로 출력하지 않습니다.</p>
+<div class="notice"><strong>현재 확인된 범위:</strong> 3차 인벤토리 preflight와 비시각 109건 request pack 생성이 성공했습니다. 합성 fact, 소규모 합성 목록, 실제 corpus 후속 질문의 로컬 답변 경로도 성공했습니다. 실제 corpus 실행은 검증 호출이 길어 지연 개선이 필요합니다. 새 오케스트레이션의 3차 전체 품질 점수, 정책 학습, 전체 corpus 목록 성능과 운영 승격은 아직 확인되지 않았습니다.</div>
 
 <h2>오케스트레이션 변경</h2>
 <div class="grid"><div class="card"><div class="num">1</div><strong>질문 계획·경로 분기</strong><br><span class="small">현재 질문·history 기반 슬롯; fact/compare/followup와 list 경로 분리</span></div><div class="card"><div class="num">2</div><strong>검색·근거 수집</strong><br><span class="small">기존 KURE page + child BM25 → RRF; 목록은 scoped scan/reduce</span></div><div class="card"><div class="num">3</div><strong>상태·검증 루프</strong><br><span class="small">미학습 local LLM policy, missing 슬롯 재검색·bridge, LLM 근거 검증</span></div><div class="card"><div class="num">4</div><strong>생성·실행 기록</strong><br><span class="small">필수 근거·인용 한도 확인 후 생성; runtime 설정까지 v2 trace로 봉인</span></div></div>
@@ -45,6 +45,8 @@
 <tr><td>EH7</td><td class="done">실제 검색 artifact 연결</td><td>98문서 Evidence 구축, 기존 KURE 인덱스 재사용, 실제 corpus query embedding·검색 확인</td></tr>
 <tr><td>EH8</td><td class="done">목록 경로 구현·소규모 live 통과</td><td>3문서 scan/reduce 실호출 성공. 전체 corpus 실측 완료를 뜻하지 않음</td></tr>
 <tr><td>EH9–EH10</td><td class="done">실호출·회귀 검증 완료</td><td>합성 fact·list와 실제 corpus 답변 성공, 전체 테스트 오류 0. commit/push 최종 상태는 릴레이 기록에 반영</td></tr>
+<tr><td>EH11</td><td class="done">3차 inventory/request adapter 완료</td><td>lane·count·source 검증 PASS. 비시각 109건 요청 생성; 정답/필수근거는 런타임에 전달하지 않음</td></tr>
+<tr><td>EH12</td><td class="todo">3차 전체 채점 대기</td><td>새 하네스 109건 trace 실행 후 analytics/parser/visual lane과 동일 judge로 결합해야 함. 기존 API 54.845와 local Mini131 70.136은 새 하네스 점수가 아님</td></tr>
 </tbody></table>
 
 <h2>검증 결과</h2>
@@ -71,5 +73,5 @@
 <ul><li><a href="evidence-harness-transition-plan.md">전환 플랜</a> · <a href="../architecture/specs/evidence-harness-contract.md">구현 계약</a> · <a href="../architecture/todolist.md">TODO</a></li><li><a href="evidence-harness-local-runbook.md">비시각 로컬 실행 runbook</a></li><li><a href="evidence-harness-relay.md">릴레이 기록</a> · <a href="../architecture/specs/evidence-harness-flow-validation.md">격차·우선순위 보고서</a></li><li><a href="../architecture/specs/evidence-harness-target-flow.mmd">Target Mermaid</a> · <a href="../architecture/specs/evidence-harness-current-flow.mmd">Current Mermaid</a></li><li><a href="../test/errorlogs/2026-09-02-evidence-harness-full-suite.md">전체 테스트 오류·해결 이력</a> · <a href="../test/errorlogs/backend/2026-09-02-harness-live-routing-budget.md">실호출 오류·해결 이력</a></li><li><a href="../../src/midprojectrag/orchestration/cli.py">opt-in CLI</a> · <a href="../../src/midprojectrag/offline_harness/cli.py">offline CLI</a></li></ul>
 
 <h2>다음 릴레이</h2>
-<ol><li>검증 호출 지연을 줄이고 동일한 근거 보존·오류 경계가 유지되는지 비교한다.</li><li>고정 골든셋·동일 judge로 baseline 대비 품질과 지연을 실측한다. 현재 자료만으로 예상 향상 점수를 만들지 않는다.</li><li>98문서 전체 목록의 완료율과 자원·지연을 별도 측정한다.</li><li>멀티모달 checkpoint/reader와 학습된 정책은 각각 artifact·fidelity·평가 조건이 갖춰진 후 연결한다.</li></ol>
+<ol><li>검증 호출 지연을 줄이고 동일한 근거 보존·오류 경계가 유지되는지 비교한다.</li><li>3차 인벤토리 request pack으로 새 하네스 109건을 실행하고, analytics/parser/visual lane은 각 계약으로 결합한다.</li><li>고정된 3차 source hash와 동일 judge로 baseline 대비 품질과 지연을 실측한다. 현재 자료만으로 예상 향상 점수를 만들지 않는다.</li><li>98문서 전체 목록의 완료율과 자원·지연을 별도 측정한다.</li><li>멀티모달 checkpoint/reader와 학습된 정책은 각각 artifact·fidelity·평가 조건이 갖춰진 후 연결한다.</li></ol>
 </main></body></html>
