@@ -5,7 +5,12 @@ from dataclasses import asdict, dataclass
 from typing import Any
 
 from .evidence import EvidenceRecord, build_evidence_records
-from .generation.generation import ABSTENTION_PHRASE, build_context, extract_cited_doc_ids
+from .generation.generation import (
+    ABSTENTION_PHRASE,
+    build_context,
+    extract_cited_doc_ids,
+    is_abstention,
+)
 from .generation.providers import AnswerGenerator
 from .retrieval.query_filters import build_metadata_filter
 
@@ -83,7 +88,7 @@ class IntegratedRAGPipeline:
             answer=answer,
             provider=self.generator.provider,
             model=self.generator.model,
-            abstained=not hits or ABSTENTION_PHRASE in answer,
+            abstained=not hits or is_abstention(answer),
             cited_doc_ids=cited,
             unsupported_citations=unsupported,
             evidence=evidence,

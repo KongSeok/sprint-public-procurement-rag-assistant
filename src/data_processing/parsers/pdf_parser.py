@@ -2,7 +2,7 @@
 
 - PyMuPDF(fitz): 페이지별 텍스트 추출 + 텍스트 밀도로 스캔본 여부 판정
 - pdfplumber: 표 구조 추출
-- 스캔본으로 판정된 페이지는 PyMuPDF로 이미지 렌더링 후 pytesseract(kor+eng)로 OCR
+- 스캔본으로 판정된 페이지는 PyMuPDF로 이미지 렌더링 후 선택한 OCR backend로 처리
 """
 from __future__ import annotations
 
@@ -11,6 +11,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 import fitz  # PyMuPDF
+
+from ..ocr import OCRBackend, get_ocr_backend
 
 # PyMuPDF는 손상되거나 표준을 살짝 벗어난 PDF(정부/스캔 시스템 산출물에 흔함)를
 # 열 때 "MuPDF error: syntax error: invalid key in dict" 같은 메시지를 C
@@ -41,6 +43,7 @@ class ParseResult:
     n_pages: int = 0
     n_scanned_pages: int = 0
     used_ocr: bool = False
+    ocr_backend: str | None = None
     source: str = "pdf"
     error: str | None = None
     mupdf_warnings: str = ""
@@ -67,17 +70,20 @@ def _extract_tables(pdf_path: Path) -> list[list[list[str]]]:
     return tables
 
 
-def _ocr_page(page: "fitz.Page") -> str:
-    import pytesseract
+def _ocr_page(page: "fitz.Page", backend: OCRBackend) -> str:
     from PIL import Image
     import io
 
     pix = page.get_pixmap(dpi=200)
     img = Image.open(io.BytesIO(pix.tobytes("png")))
-    return pytesseract.image_to_string(img, lang="kor+eng")
+    return backend.recognize(img)
 
 
-def parse_pdf(pdf_path: Path, ocr_if_scanned: bool = True) -> ParseResult:
+def parse_pdf(
+    pdf_path: Path,
+    ocr_if_scanned: bool = True,
+    ocr_backend: OCRBackend | None = None,
+) -> ParseResult:
     pdf_path = Path(pdf_path)
     if not pdf_path.exists():
         return ParseResult(error=f"파일 없음: {pdf_path}")
@@ -91,6 +97,9 @@ def parse_pdf(pdf_path: Path, ocr_if_scanned: bool = True) -> ParseResult:
     page_texts = []
     n_scanned = 0
     used_ocr = False
+    # 실제 스캔 페이지를 만났을 때만 backend를 초기화한다. 텍스트 PDF를 읽는데
+    # 선택형 Paddle 모델 경로가 없다는 이유로 실패해서는 안 된다.
+    selected_ocr = ocr_backend
 
     for page in doc:
         raw = page.get_text().strip()
@@ -98,7 +107,9 @@ def parse_pdf(pdf_path: Path, ocr_if_scanned: bool = True) -> ParseResult:
             n_scanned += 1
             if ocr_if_scanned:
                 try:
-                    raw = _ocr_page(page).strip()
+                    if selected_ocr is None:
+                        selected_ocr = get_ocr_backend()
+                    raw = _ocr_page(page, selected_ocr).strip()
                     used_ocr = True
                 except Exception as e:  # noqa: BLE001
                     raw = ""
@@ -123,6 +134,7 @@ def parse_pdf(pdf_path: Path, ocr_if_scanned: bool = True) -> ParseResult:
         n_pages=n_pages,
         n_scanned_pages=n_scanned,
         used_ocr=used_ocr,
+        ocr_backend=selected_ocr.name if used_ocr and selected_ocr else None,
         source="pdf",
         error=None,
         mupdf_warnings=warnings,
