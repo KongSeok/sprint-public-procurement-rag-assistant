@@ -1,0 +1,24 @@
+# 원본 RFP 데이터 및 파생 대용량 캐시 - README 11장(보안 및 데이터 관리) 규칙에 따라
+# git에 올리지 않는다. 공개 가능한 평가 결과 요약은 results/ 에 별도로 둔다.
+data/
+output/
+!output/.gitkeep
+
+# 벡터 인덱스/임베딩 캐시
+chroma_db/
+*.chroma/
+
+# 파이썬
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+
+# 환경변수/비밀값
+.env
+
+# OS/에디터
+.DS_Store
+.idea/
