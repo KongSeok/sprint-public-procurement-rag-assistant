@@ -1,0 +1,17 @@
+VLM / visual merge status (2026-09-03)
+
+완료:
+- visual occurrence·crop·page/bbox provenance 및 OCR/layout/caption evidence 계약
+- PP-OCRv5 한국어 OCR-only 로컬 런타임, 9개 weight checksum 고정, 격리 wrapper
+- 대표 crop 실제 OCR smoke(문자 영역 27개, evidence 1개, chunk 2개)와 반복 cache 검증
+- 기본 page-only 검색·기존 평가 profile 보존; image/VLM lane은 비활성
+
+남은 부분:
+- VLM 모델 실행·조직도/아키텍처/지도 의미 해석·관계 추론·caption grounding
+- OCR KURE 별도 index, occurrence dedup/admission, visual opt-in, object-aware qrels 및 R2-R5 gate
+- text-image dual encoder/image embedding A/B, visual gold/held-out·latency/VRAM 자원 검증
+- Streamlit/CLI visual UI와 OCR→embedding→retrieval→generation→UI 골든 E2E
+
+판정:
+이번 병합은 local OCR 전처리/provenance/안전 경계와 기술 smoke까지이며, VLM 완료·이미지 임베딩 완료·visual 성능 향상으로 해석하지 않는다.
+참조: fivecircles/architecture/specs/visual-retrieval-feature-contract.md, fivecircles/work/2026-09-03-visual-ocr-one-shot.md
