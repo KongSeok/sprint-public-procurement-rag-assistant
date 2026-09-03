@@ -1,5 +1,114 @@
 # MidProjectRAG Task List
 
+## EH-RC0 — Evidence-Harness 재귀 실행 TODO (2026-09-03)
+
+계약: `specs/bidfit-evidence-harness-v1-rc0.md`.
+재개 지점: `../work/bidfit-evidence-harness-v1-rc0-checkpoint.md`.
+원샷 전체 원장: `../work/bidfit-evidence-harness-v1-rc0-one-shot.md`.
+사용자 최신 지시: 큰 범위를 재귀적으로 쪼개고 작은 작업을 하나씩 처리한다.
+기존 아래 TODO/완료 이력은 그대로 보존한다.
+
+### 실행 규칙 — 큰 항목을 한꺼번에 구현하지 않는다
+
+- 구조: `EH-RC0 → Phase → leaf → 필요할 때 하위 leaf`. 실행 중인 leaf는 최대 1개다.
+- leaf의 기본 크기: 한 가지 동작/불변식, 주 수정 파일 1~3개, 독립 focused test 1개 묶음.
+  서로 다른 모듈/외부 의존성/판정 기준이 섞이면 `EH1.5.a`, `EH1.5.b`처럼 다시 나눈다.
+- 각 leaf는 `계약 확인 → 실패 재현/테스트 → 구현 → focused 검증 → 체크포인트`로 닫는다.
+  하위 항목이 생기면 부모는 직접 실행하지 않고 모든 자식의 검증이 끝나야 완료한다.
+- `[ ]`는 미완료다. READY/IN_PROGRESS/BLOCKED와 검증 근거는 체크포인트에 기록한다.
+  코드 구현, 실물 실행, 품질 측정은 서로 다른 항목이며 대신 완료 처리하지 않는다.
+- 다음 leaf는 선행 의존성이 끝난 것만 선택한다. 순서 변경은 이유를 원장에 기록한다.
+  구현은 순차, 별도 리뷰만 필요시 좁은 범위로 병렬 수행한다.
+- 재개 시 체크포인트 + 현재 leaf의 계약 절/대상 파일만 읽는다. 전체 첨부/감사/리서치를
+  반복 로드하지 않는다. 새 판단이 필요한 경우에만 원문 요구사항을 해당 절까지 조회한다.
+- 전체 회귀는 Phase gate/통합 경계/최종 납품 때 실행한다. 모든 leaf마다 전체 suite나
+  전체 Mermaid/HTML을 재생성하지 않는다. 실패는 해당 leaf만 재귀 분할해 수리한다.
+- 기존 artifact는 불변, 새 corpus/index/trace는 private 새 namespace에만 생성한다.
+  외부 모델/실측 불가는 BLOCKED 또는 unavailable로 남기며 synthetic PASS로 대체하지 않는다.
+
+### EH-A — 시작 기준선 (완료)
+
+- [x] **EH-A.1** 현재 checkout/dirty 소유권/다른 branch와 경계를 감사한다. 근거: `feature/visual-retrieval`, `7ad229f`, 시작 tracked 수정 39개 보존.
+- [x] **EH-A.2** 수정 전 회귀를 확보한다. 근거: `PYTHONPATH=src .venv/bin/python -m unittest discover -q -s tests -t .` → 805 tests, 실패/skip 0.
+- [x] **EH-A.3** target/current flow와 구현 계약을 만든다. PNG 생성 완료; 브라우저 검증은 EH-D.3에서 별도 수행한다.
+
+### EH-CONTEXT — 중단 복구용 보관 (별도 보조 작업)
+
+- [x] **EH-CONTEXT.1** 사용자 원문 프롬프트·핵심 문서·재개 안내를 private 새 ZIP으로 보관했다. 24파일, SHA-256/CRC/원문 동일성/Git 제외 PASS. 재개 안내: `../work/bidfit-evidence-harness-v1-rc0-resume.md`. 앱 구현 leaf는 EH0.1.a로 유지.
+
+### Phase 0 — 무결성부터 고정 (선행: EH-A)
+
+- [x] **EH0.1** runtime/evaluation DTO와 allowlist projection을 분리했다. 9 focused tests PASS; planner 통합 lineage는 EH2.G에서 재검증.
+  - [x] **EH0.1.a** runtime 입력 필드·거부 규칙 계약과 regression fixture를 작성했다. TDD red: 새 모듈 부재 ImportError 1건, 구현은 다음 b.
+  - [x] **EH0.1.b** frozen RuntimeRequest/EvaluationCase 및 projection 구현. 닫힌 nested schema·mutation 방지 포함.
+  - [x] **EH0.1.c** gold 값 metamorphic 직렬화/해시 불변 PASS. 명시적 user scope와 gold ID가 같아도 정상 입력 유지.
+- [x] **EH0.2** None/empty/nonempty scope와 모든 lane 공통 empty short-circuit 구현. scope/filter 포함 focused 16 tests PASS.
+- [x] **EH0.3** 미지원 predicate를 unsupported/unresolved로 명시. 실제 planner 실행 fail-closed 연결은 EH2.2 gate.
+- [x] **EH0.4** 금액·날짜 정규화 구현. 쉼표/한글단위/ISO·점·한국어 날짜 동치, 숫자·날짜 뒤바뀜 회귀 PASS.
+- [x] **EH0.5** 제한적 조사/괄호/어순 정규화·전체 파일명 보호 구현. entity-value association은 보존; semantic 평가는 아님.
+- [x] **EH0.6** 부분/전체 기권·error·반대 극성을 분리. 숫자 일치+반대 극성 거부 회귀 PASS.
+- [x] **EH0.7** provider-free replay CLI 구현. 실제 저장 답변 129건/source-case SHA 129건 일치, 새 private namespace, 기존 답변 불변.
+- [x] **EH0.G** focused 47·전체 852 tests PASS/skip 0. 리뷰 5항목 수리/18재현 PASS. HTML browser PASS; 앱 연결은 EH2.G의 별도 gate.
+
+### Phase 1 — Evidence와 검색 (선행: EH0.G)
+
+- [ ] **EH1.1** content-addressed Evidence/ProvenanceParent 타입을 만든다. 완료: PDF/page-v1/HWP flow/rendered page locator를 구별.
+- [ ] **EH1.2** immutable EvidenceStore를 만든다. 완료: 중복 ID·잘못된 parent/doc·cycle 거부, source block 보존.
+- [ ] **EH1.3** compatibility 1,600자 splitter를 추가한다. 완료: retrieval child와 provenance parent 분리, 기존 page chunk ID 불변.
+- [ ] **EH1.4** heading/paragraph splitter와 artifact freeze를 추가한다. 완료: chunker version/hash 분리, 기존 경로 overwrite 거부.
+- [ ] **EH1.5** KURE child vector build/load 경로를 구현한다. 완료: pinned revision/1,024차원/hash 검증; page vector를 child로 재명명하지 않음.
+- [ ] **EH1.6** legacy page control adapter를 연결한다. 완료: 기존 page index를 그대로 사용하고 child profile과 분리.
+- [ ] **EH1.7** Kiwi tokenizer/BM25를 구현한다. 완료: 실제 Kiwi version/dictionary/token artifact, scope-before-score, deterministic tie/query-token trace.
+- [ ] **EH1.8** 독립 dense/lexical budget과 RRF k=60을 연결한다. 완료: 동일 child granularity 강제, lexical-only rescue·duplicate/doc coverage trace.
+- [ ] **EH1.9** bounded parent expansion과 selector를 연결한다. 완료: budget을 지키면서 child citation·필수 근거·distinct docs 보존.
+- [ ] **EH1.10** private 새 namespace에 실제 child/lexical artifact를 만든다. 완료: old/new SHA·차원·문서 수 receipt. 모델 부재 시 이유를 별도 기록.
+- [ ] **EH1.G** Phase 1 gate: legacy/child profile 합성 통합+실물 load/search smoke+전체 회귀. 실측 성능 개선은 아직 주장하지 않음.
+
+### Phase 2 — 계획과 bounded 실행 (선행: EH1.G)
+
+- [ ] **EH2.1** QueryPlan/budget과 versioned rule registry를 만든다. 완료: fact/compare/follow_up/list/analytics/table_visual/unknown 타입 및 unresolved 명시.
+- [ ] **EH2.2** 결정론 planner를 연결한다. 완료: entity/metadata predicate/scope 출처와 config hash 추적, gold-dependent 규칙 없음.
+- [ ] **EH2.3** 실제 citation-state 기반 follow-up을 구현한다. 완료: cited doc/evidence만 상속, 부족할 때만 승인된 global fallback trace.
+- [ ] **EH2.4** compare의 doc×field slot을 구현한다. 완료: candidate/verified/missing/contradicted 및 문서 coverage, 누락 slot을 감춘 조기 종료 없음.
+- [ ] **EH2.5** Belief/Progress/typed Action을 구현한다. 완료: 상태 직렬화·허용 transition·action trace 회귀.
+- [ ] **EH2.6** E0/E1 bounded controller를 연결한다. 완료: round/action/deadline/no-progress 종료, 필수 slot 확인 후 stop/partial abstain.
+- [ ] **EH2.G** Phase 2 gate: 동일 합성 corpus의 단일/비교/후속 질의 end-to-end+gold-lineage 재검증+전체 회귀.
+
+### Phase 3 — 전문 경로 (선행: EH2.G)
+
+- [ ] **EH3.1** catalog predicate 실행기를 연결한다. 완료: 금액/날짜/기관/형식/긴급/재공고/category, unknown을 false로 숨기지 않음.
+- [ ] **EH3.2** analytics 기본 연산을 구현한다. 완료: count/group/sum/mean/median/min/max의 null 정책 및 exact test.
+- [ ] **EH3.3** analytics 확장·receipt를 구현한다. 완료: quantile/IQR/top-N share/outlier/ratio, corpus hash/formula/source/result.
+- [ ] **EH3.4** 기존 analytics 10 fixture를 실제 재검증한다. 완료: RAG 평균과 분리한 exact result receipt; 원본 fixture 불변.
+- [ ] **EH3.5** exhaustive list 전수 판정과 receipt를 구현한다. 완료: matched/rejected/unknown/visited/universe/complete 일관성, complete empty set.
+- [ ] **EH3.6** list의 동적 context/citation을 연결한다. 완료: 미방문/unknown이면 incomplete, 고정 5개 인용 cap과 문서당 2LLM scan 없음.
+- [ ] **EH3.7** table correction provenance schema/binding을 검증한다. 완료: hash/object/row-col/reviewer 승인 확인 전 수정값 사용 금지.
+- [ ] **EH3.8** table/figure bridge를 연결한다. 완료: crop/occurrence 보존, text-first; image reader 부재는 visual_unavailable/부분 기권.
+- [ ] **EH3.G** Phase 3 gate: analytics/list/table/visual 개별 결과+runtime 연동 회귀. full VLM 구현으로 표기하지 않음.
+
+### Phase 4 — 생성·대조군·평가 (선행: EH3.G)
+
+- [ ] **EH4.1** IdentityReranker와 immutable candidate replay를 구현한다. 완료: 후보 ID/순서 보존, 동일 pool A/B 가능.
+- [ ] **EH4.2** Qwen3-Reranker-0.6B optional adapter를 구현한다. 완료: score/model provenance/범위 검증, weight 없으면 unavailable. 실측은 별도.
+- [ ] **EH4.3** structured claims/citations를 검증한다. 완료: claim→실제 EvidenceStore/parent/source/locator resolve; 문자열은 compatibility projection.
+- [ ] **EH4.4** 교체형 generator profile을 연결한다. 완료: current_local/gpt5mini_api/qwen3_8b_awq 구분, 미보유 key/model은 unavailable, 무단 API 실행 없음.
+- [ ] **EH4.5** 단일 versioned config로 R0~R4/E0~E1을 조립한다. 완료: budget/registry/artifact identity를 trace에 포함, E2는 연구/미활성 표시.
+- [ ] **EH4.6** production CLI에서 opt-in harness 실행 경로를 연다. 완료: request→retrieval→harness→generator→structured result, legacy 유지.
+- [ ] **EH4.7** retrieval/context/slot 계층 evaluator를 추가한다. 완료: Recall@1/3/5/10·MRR·nDCG·lane rescue·pre/post retention 별도 출력.
+- [ ] **EH4.8** generation/list/analytics/visual 평가를 추가한다. 완료: 결정론/semantic adapter 분리, completeness/exact 검증, 혼합 평균 금지.
+- [ ] **EH4.9** frozen corpus/gold/config의 재현 가능한 실행 receipt를 남긴다. 완료: 실제/합성/미실행 구분, old/new scorer·latency·모델 가용성 별도.
+- [ ] **EH4.G** Phase 4 gate: 통합 CLI smoke+전체 회귀+privacy/hash gate. 미실행 성능을 구현 완료에 섞지 않음.
+
+### EH-D — 납품 체크포인트 (선행: EH4.G)
+
+- [ ] **EH-D.1** 구현 보고서의 요구사항↔파일↔테스트 표와 미구현/실측 미수행 경계를 작성한다.
+- [ ] **EH-D.2** compile/전체 회귀/repository safety/사용자 dirty 보존을 최종 검증한다.
+- [ ] **EH-D.3** current Mermaid/PNG/HTML을 최종 갱신하고 Playwright 렌더를 확인한다.
+- [ ] **EH-D.4** logall/TODO/원장을 실제 결과로 동기화한다. 실패/수리 근거는 별도 error log로 연결한다.
+- [ ] **EH-D.5** 이번 변경만 선택 stage/commit/push한다. 현재 브랜치 유지, 무관한 dirty·resources 제외, force 금지.
+- [ ] **EH-D.6** 13항목 최종 보고와 relay 판단을 기록한다. 전체 완료 전 전체 완료/성능 개선을 주장하지 않음.
+
+
 ## 실행 원칙
 
 - 프로젝트 기간: 3주

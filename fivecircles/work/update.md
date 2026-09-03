@@ -590,3 +590,11 @@ This file summarizes recent updates so other agents can continue without re‑di
 - Mini131 preflight `ready=true`, input 28/28, RAG 129/129.
 - evaluation 210/210, 전체 unittest 728/728, staged clean-checkout 614/614(비공개 artifact
   통합 테스트 8개 expected skip), 최종 hash·권한·line count 검증 PASS.
+
+## Addendum (2026-09-03) - EH-RC0 Phase 0 relay
+### Backend
+- runtime/evaluation 경계·empty scope·typed predicate·결정론 scorer·provider-free replay 구현. 기존 앱 경로는 유지했다.
+- 실제 저장 답변129/source hash129 검증, 최종 코드 SHA의 private replay-03. 생성/API0; 새 검색 성능 향상은 미측정.
+### Tests
+- focused47/full852 PASS, skip0. 리뷰18재현·compile·safety·flow Playwright PASS; 오류 수리 기록 연결.
+- refs: bidfit-evidence-harness-v1-rc0-implementation-report.md, bidfit-evidence-harness-v1-rc0-active-context.md.

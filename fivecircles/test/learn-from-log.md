@@ -162,3 +162,10 @@ Cause:
 
 Preventive rule:
 - Use MAX_CSV_FIELD_BYTES for every canonical-body CSV reader and keep a greater-than-default regression case
+
+### EH-RC0 runtime/scorer boundary (2026-09-03)
+
+- Leakage 검증은 금지 key 검색만 하지 말고 gold 변경 전후 runtime 직렬화/hash 불변을 확인한다.
+- TDD module-missing red와 기능 실패를 구분한다. filename suffix/숫자 association/극성 회귀를 유지한다.
+- 저장 답변 재채점은 실물 fact shape와 source-case hash를 확인하며, candidate companion을 gold로 사용하지 않는다.
+- refs: errorlogs/backend/2026-09-03-eh-rc0-tdd.md, errorlogs/backend/2026-09-03-eh-rc0-scorer-replay.md.

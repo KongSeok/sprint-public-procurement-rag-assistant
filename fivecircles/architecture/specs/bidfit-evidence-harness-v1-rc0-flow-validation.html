@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'">
+  <title>BidFit Evidence-Harness v1-rc0 Flow</title>
+  <style>
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;max-width:1180px;margin:auto;padding:28px;color:#1f2933;background:#f8faf9}h1,h2{line-height:1.25}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.card{background:white;border:1px solid #d8e0da;border-radius:14px;padding:18px;box-shadow:0 5px 18px #1f29330d}img{width:100%;height:auto}.legend span{display:inline-block;padding:5px 10px;margin:3px;border-radius:12px}.green{background:#e8f2ea}.blue{background:#e8f0f7}.amber{background:#fff4dc}.red{background:#fde9e6}.gray{background:#eef1ed}table{width:100%;border-collapse:collapse;background:white}th,td{border:1px solid #d8e0da;padding:9px;text-align:left}code{background:#eef1ed;padding:2px 5px}@media(max-width:800px){.grid{grid-template-columns:1fr}}
+  </style>
+  <style>h1,h2,p,td,th,a{overflow-wrap:anywhere}table{table-layout:fixed}.card{min-width:0}@media(max-width:800px){body{padding:16px}}</style>
+</head>
+<body>
+  <h1>BidFit Evidence-Harness v1-rc0</h1>
+  <p>Phase 0: runtime 경계·scope·결정론 scorer 구현. 전체 앱 경로 연결은 아직 GAP/PARTIAL.</p>
+  <div class="legend"><span class="green">validated path</span><span class="blue">provider</span><span class="amber">conditional</span><span class="red">gap</span><span class="gray">router/control</span></div>
+  <div class="grid">
+    <section class="card"><h2>Target Flow</h2><a href="bidfit-evidence-harness-v1-rc0-target-flow.mmd"><img src="bidfit-evidence-harness-v1-rc0-target-flow.png" alt="target flow"></a></section>
+    <section class="card"><h2>Current Implementation Flow</h2><a href="bidfit-evidence-harness-v1-rc0-current-flow.mmd"><img src="bidfit-evidence-harness-v1-rc0-current-flow.png" alt="current flow"></a></section>
+  </div>
+  <h2>Gap / Priority</h2>
+  <table><thead><tr><th>Unit</th><th>Status</th><th>Score</th><th>Action</th></tr></thead><tbody>
+    <tr><td>Runtime integrity</td><td>구현·검증 / 앱 연결 PARTIAL</td><td>11</td><td>Evidence/E1 후 연결</td></tr>
+    <tr><td>Evidence + child RRF</td><td>GAP</td><td>8</td><td>Foundation</td></tr>
+    <tr><td>E1 state loop</td><td>GAP</td><td>7</td><td>Connect after retrieval</td></tr>
+    <tr><td>Specialist lanes</td><td>PARTIAL</td><td>6</td><td>Integrate provenance</td></tr>
+    <tr><td>Reranker + layered eval</td><td>PARTIAL</td><td>5</td><td>Control/challenger contract</td></tr>
+  </tbody></table>
+  <h2>Validation</h2>
+  <p>focused 47 tests · full 852 tests PASS (skip 0). 저장 답변 129개: case hash 129/129, 생성 호출 0.</p>
+  <p>117개는 atomic fact 채점 가능, 12개는 분모 없음. 새 검색·생성 성능 향상으로 해석하지 않는다.</p>
+  <p>Priority score = upstream (0–4) + connection (0–3) + safety (0–2) + validation (0–2) + risk (−3–0).</p>
+  <p><a href="bidfit-evidence-harness-v1-rc0-target-flow.png">Target PNG</a> · <a href="bidfit-evidence-harness-v1-rc0-current-flow.png">Current PNG</a> · <a href="bidfit-evidence-harness-v1-rc0-flow-validation.md">검증 원장</a></p>
+</body>
+</html>

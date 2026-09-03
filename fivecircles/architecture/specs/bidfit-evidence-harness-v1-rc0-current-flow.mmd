@@ -1,0 +1,29 @@
+flowchart TD
+    Q["Current application query (unchanged)"] --> RP["Legacy page / existing hybrid retrieval"]
+    RP --> CTX["Top-k page context"]
+    CTX --> GEN["Current local or API generator"]
+    GEN --> CIT["Legacy citation / report"]
+    Q --> CAT["Typed catalog route"]
+    CAT --> AN["Existing deterministic catalog analytics"]
+    NQ["New RuntimeRequest API"] --> DTO["Closed frozen DTO / evaluator allowlist projection"]
+    DTO --> SC["ResolvedScope: None / empty / restricted"]
+    SC --> GUARD["scoped_search: empty returns without lane call"]
+    DTO --> FILTER["Predicate supported / unsupported / unresolved"]
+    GUARD -. "not yet wired into production query" .-> GAP["Evidence / child retrieval / E1 packages: GAP"]
+    FILTER -.-> GAP
+    CIT -.-> EVAL["Mini131 and existing deterministic evaluation"]
+    SAVED["129 stored answers + independent case assets"] --> HASH["129 exact source-case hashes verified"]
+    HASH --> SCORE["Provider-free v1-rc0 deterministic re-score"]
+    SCORE --> OUT["Private immutable output: 117 fact-scorable / 12 without atomic facts"]
+
+    class RP,CTX,CAT,AN,EVAL,DTO,SC,GUARD,FILTER,HASH,SCORE,OUT green
+    class GEN blue
+    class Q,NQ,SAVED gray
+    class GAP red
+    class CIT amber
+
+    classDef green fill:#e8f2ea,stroke:#bdd1c2,color:#1f2933,stroke-width:1.5px
+    classDef blue fill:#e8f0f7,stroke:#c2d3e0,color:#1f2933,stroke-width:1.5px
+    classDef amber fill:#fff4dc,stroke:#e7c88f,color:#1f2933,stroke-width:1.5px
+    classDef red fill:#fde9e6,stroke:#e8bab5,color:#1f2933,stroke-width:1.5px
+    classDef gray fill:#eef1ed,stroke:#d8e0da,color:#1f2933,stroke-width:1.5px
