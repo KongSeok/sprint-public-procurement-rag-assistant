@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0",
+  "pipeline": "PP-StructureV3",
+  "ocr_version": "PP-OCRv5",
+  "language": "korean",
+  "model_version": "paddle3.0.0-official",
+  "weights_sha256": "b854ed45758a1a34310f8754546941936c340400c8740b82cde57f9dbf8f4816",
+  "runtime": "paddleocr-3.3.2-ocr-only-cpu-v1",
+  "device": "cpu",
+  "text_rec_score_thresh": 0.5,
+  "use_doc_orientation_classify": false,
+  "use_textline_orientation": false,
+  "use_table_recognition": false,
+  "use_ocr_results_with_table_cells": false,
+  "max_text_items": 10000,
+  "max_table_cells": 0,
+  "model_download": "forbidden"
+}

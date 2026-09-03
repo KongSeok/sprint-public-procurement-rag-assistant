@@ -24,8 +24,8 @@ build/
 # Restricted source data and derived text
 data/
 private/
-resources/data_midP.zip
-resources/data_refined/
+# All private sources, weights, reports and team shares stay local.
+/resources/
 golden-set-final/
 **/data_list.csv
 **/refined_data_list.csv
@@ -61,3 +61,4 @@ wandb/
 
 # Local reports may be generated here; commit only reviewed, redacted exports.
 reports/private/
+.venv-ocr/

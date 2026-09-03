@@ -469,6 +469,7 @@ class PinnedLocalJsonCommandAdapter:
         network_sandbox_command: Path,
         network_sandbox_command_sha256: str,
         arguments: Sequence[str] = (),
+        pinned_files: Mapping[Path, str] | None = None,
         timeout_seconds: float = 120.0,
         max_stdout_bytes: int = MAX_ADAPTER_STDOUT_BYTES,
         max_stderr_bytes: int = MAX_ADAPTER_STDERR_BYTES,
@@ -536,6 +537,11 @@ class PinnedLocalJsonCommandAdapter:
         if self._network_sandbox_command not in allowed_paths:
             _fail("network_sandbox_command_not_allowlisted")
         self._arguments = tuple(normalized_arguments)
+        self._pinned_files = {
+            _normalized_absolute_file(path, expected_sha256=digest, executable=False,
+                                      error_prefix="local_adapter_dependency"): digest
+            for path, digest in (pinned_files or {}).items()
+        }
         self._timeout_seconds = float(timeout_seconds)
         self._max_stdout_bytes = max_stdout_bytes
         self._max_stderr_bytes = max_stderr_bytes
@@ -558,9 +564,14 @@ class PinnedLocalJsonCommandAdapter:
             "max_stdout_bytes": self._max_stdout_bytes,
             "max_stderr_bytes": self._max_stderr_bytes,
             "network": "os_sandbox_enforced",
+            **({"dependency_sha256": sorted(self._pinned_files.values())}
+               if self._pinned_files else {}),
         }
 
     def _verify_pins(self) -> None:
+        for path, digest in self._pinned_files.items():
+            _normalized_absolute_file(path, expected_sha256=digest, executable=False,
+                                      error_prefix="local_adapter_dependency")
         _normalized_absolute_file(
             self._command,
             expected_sha256=self._expected_command_sha256,

@@ -1,0 +1,6 @@
+# Tested target: CPython 3.12, macOS arm64, CPU. No change to the main RAG venv.
+paddlepaddle==3.2.2
+paddleocr==3.3.2
+paddlex[ocr]==3.3.13
+numpy==2.2.6
+Pillow==12.0.0

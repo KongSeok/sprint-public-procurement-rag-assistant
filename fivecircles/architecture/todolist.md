@@ -1,5 +1,17 @@
 # MidProjectRAG Task List
 
+## 2026-09-03 — LOCAL-VISUAL: 로컬만 통합 / LLM 교체형
+
+계약: `specs/local-visual-integration.md`. API+local 동시 병합/API-first OCR 계획을 대체한다.
+
+- [x] 로컬 파서·KURE·검색 유지, 생성 LLM만 local/API 교체로 확정. API branch 전체 병합은 제외한다.
+- [ ] 최신 local tip과 검증한 OCR/safety 변경만 `integration/local-visual`에 통합한다.
+- [ ] 공통 Generator composition과 동일 검색/인용·미승인 API 차단 회귀를 구현한다.
+- [ ] 전체 unittest·safety·흐름 보고서 검증 및 logall로 마감한다.
+- [ ] GOLDEN-E2E-OCR: 로컬 OCR 임베딩/검색/생성/인용/UI 전체 품질·자원·비그림 회귀를 후속 검증한다.
+
+resources 전체 Git 제외. 원본 dirty checkout/API/main/harness 변경·외부 API 실행은 범위 밖이다.
+
 ## 실행 원칙
 
 - 프로젝트 기간: 3주
