@@ -8,6 +8,7 @@
 - [x] 최신 local tip과 검증한 OCR/safety 변경만 `integration/local-visual`에 통합한다.
 - [x] 공통 Generator composition과 동일 검색/인용·미승인 API 차단 회귀를 구현한다.
 - [x] 전체 unittest 680건(22 skip)·흐름 보고서 Playwright 검증; safety 재검사 및 logall 기록.
+- [x] 로컬 기준 브랜치 확정 및 검증된 통합 결과를 원격 `feat/local-qwen-mini131-eval`에 푸시한다.
 - [ ] 생성 profile을 CLI/Streamlit 선택기에 연결하고 승인된 실제 모델 E2E를 검증한다. 현재 UI는 변경하지 않았다.
 - [ ] GOLDEN-E2E-OCR: 로컬 OCR 임베딩/검색/생성/인용/UI 전체 품질·자원·비그림 회귀를 후속 검증한다.
 

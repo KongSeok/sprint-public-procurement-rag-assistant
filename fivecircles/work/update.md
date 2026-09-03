@@ -603,3 +603,12 @@ This file summarizes recent updates so other agents can continue without re‑di
 
 ### Next
 - OCR KURE index/opt-in/골든 E2E 및 CLI/UI 생성 profile 연결은 후속. 실물 API/재임베딩/main/push 없음.
+## Addendum (2026-09-03) - Local 기준 확정 및 원격 푸시 준비
+### Backend
+- local branch를 기준 스택으로 확정하고 생성 LLM만 교체 가능 상태를 유지
+
+### Tests
+- 통합 브랜치 검증 결과와 비공개 fixture skip 경계를 기록
+
+### Next
+- CLI/Streamlit profile 연결 및 실제 모델 E2E는 별도 승인 후 진행
