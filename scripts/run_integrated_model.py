@@ -18,6 +18,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from src.generation.providers import create_generator  # noqa: E402
 from src.integrated_pipeline import IntegratedRAGPipeline  # noqa: E402
 from src.pipeline import run_pipeline  # noqa: E402
+from src.runtime_integrity import build_runtime_manifest  # noqa: E402
 
 
 def main() -> None:
@@ -32,6 +33,7 @@ def main() -> None:
     parser.add_argument("--bm25-weight", type=float, default=0.5)
     parser.add_argument("--rebuild", action="store_true")
     parser.add_argument("--no-auto-filter", action="store_true")
+    parser.add_argument("--output", type=Path, help="결과와 실행환경을 저장할 JSON 경로")
     args = parser.parse_args()
 
     _, _, index = run_pipeline(use_cache=not args.rebuild)
@@ -49,7 +51,16 @@ def main() -> None:
         bm25_weight=args.bm25_weight,
         auto_query_filter=not args.no_auto_filter,
     )
-    print(json.dumps(pipeline.answer(args.query, organization=args.org).to_dict(), ensure_ascii=False, indent=2))
+    result = pipeline.answer(args.query, organization=args.org).to_dict()
+    payload = {
+        "runtime": build_runtime_manifest(provider=generator.provider, model=generator.model),
+        "result": result,
+    }
+    rendered = json.dumps(payload, ensure_ascii=False, indent=2)
+    if args.output:
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(rendered + "\n", encoding="utf-8")
+    print(rendered)
 
 
 if __name__ == "__main__":

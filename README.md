@@ -113,6 +113,24 @@ PDF/HWP + 메타데이터
 
 최종 모델은 선호가 아니라 동일한 Golden Set에서 측정한 정확도, 속도, 비용을 기준으로 선택합니다.
 
+### 현재 통합 모델
+
+현재 구현은 KURE-v1 + BM25 하이브리드 검색과 Parent-Child 컨텍스트 확장을
+공통 기반으로 사용하고, 생성기만 GPT-5 mini 또는 Local Qwen(vLLM/Ollama)으로
+교체합니다. 검색 결과는 해시 기반 근거 레코드로 저장하며 답변이 검색되지 않은
+문서를 인용했는지도 검사합니다.
+
+```bash
+# GPT-5 mini API 기준선
+python scripts/run_integrated_model.py --provider openai --query "사업 예산은?"
+
+# GCP VM의 Local Qwen
+python scripts/run_integrated_model.py --provider vllm --query "사업 예산은?"
+```
+
+세부 실행법, 최신 원본 브랜치 tip, 기능별 반영 여부는
+[`docs/integrated-pipeline.md`](docs/integrated-pipeline.md)를 참고합니다.
+
 ## 7. 평가 계획
 
 Golden Set에는 기본 사실, 참가 자격, 표 정보, 위험 조항, 문서 비교, 후속 질문, 답변 불가 유형을 고르게 포함합니다.
@@ -153,6 +171,7 @@ Golden Set에는 기본 사실, 참가 자격, 표 정보, 위험 조항, 문서
 │   ├── retrieval/        # 임베딩, 인덱싱, 검색
 │   ├── generation/       # 프롬프트 및 답변 생성
 │   └── evaluation/       # 검색·생성 성능 평가
+├── scripts/              # 파이프라인·통합 모델·평가 실행 CLI
 └── tests/                # 테스트 코드
 ```
 

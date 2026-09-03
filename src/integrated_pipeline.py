@@ -25,6 +25,7 @@ class IntegratedAnswer:
     cited_doc_ids: tuple[str, ...]
     unsupported_citations: tuple[str, ...]
     evidence: tuple[EvidenceRecord, ...]
+    retrieval_config: dict[str, Any]
 
     def to_dict(self) -> dict[str, Any]:
         data = asdict(self)
@@ -92,4 +93,12 @@ class IntegratedRAGPipeline:
             cited_doc_ids=cited,
             unsupported_citations=unsupported,
             evidence=evidence,
+            retrieval_config={
+                "method": "hybrid",
+                "top_k": self.top_k,
+                "vector_weight": self.vector_weight,
+                "bm25_weight": self.bm25_weight,
+                "expand_to_parent": self.expand_to_parent,
+                "auto_query_filter": self.auto_query_filter,
+            },
         )
