@@ -27,6 +27,13 @@ from statistics import fmean
 from typing import Any
 
 from midprojectrag.evaluation import DOC_ID_RE, validate_response
+from midprojectrag.eval_contracts.mini131.suite import (
+    ANALYTICS_PROMPT_INSTRUCTION,
+    EVIDENCE_SYSTEM_INSTRUCTIONS,
+    EXPECTED_COUNTS as MINI131_EXPECTED_COUNTS,
+    PROSPECTIVE_RERUN_CASE_IDS,
+    build_catalog,
+)
 from midprojectrag.gcp_local_baseline import (
     BASELINE_ID as STACK_BASELINE_ID,
     MAC_LOCAL_EQUIVALENT,
@@ -51,30 +58,13 @@ from midprojectrag.stacks.local.generation import (
     OllamaGenerator,
 )
 from midprojectrag.stacks.local.qwen_tokenizer import PinnedQwenChatTokenCounter
-from midprojectrag.supplemental_gap30_baseline import build_catalog
-from midprojectrag.visual_eda_mini_baseline import (
-    ANALYTICS_PROMPT_INSTRUCTION,
-    SYSTEM_INSTRUCTIONS as EVIDENCE_SYSTEM_INSTRUCTIONS,
-)
 
 
 SCHEMA_VERSION = "local-mini131.v1"
 CANDIDATE_SCHEMA_VERSION = "local-mini131-candidate.v1"
 SUITE_ID = "gcp-local-kure-qwen3-8b-awq-mini131-v1"
 DEFAULT_CONFIG = "configs/rag/gcp-local-kure-qwen3-8b-awq-mini131-v1.json"
-EXPECTED_COUNTS = {
-    "rag": 129,
-    "parser": 2,
-    "total": 131,
-    "lanes": {
-        "core40": 40,
-        "supplemental_answer_legacy": 39,
-        "supplemental_answer_rerun": 17,
-        "supplemental_set_rerun": 13,
-        "visual": 10,
-        "corpus_analytics": 10,
-    },
-}
+EXPECTED_COUNTS = copy.deepcopy(MINI131_EXPECTED_COUNTS)
 PAGE_LANES = frozenset(
     {
         "core40",
@@ -131,7 +121,7 @@ class VerifiedSuite:
     stack: Any
     cases: tuple[SourceCase, ...]
     cases_by_id: dict[str, SourceCase]
-    ledger_rows: dict[str, dict[str, Any]]
+    parser_cases: dict[str, dict[str, Any]]
     analytics_calculations: dict[str, dict[str, Any]]
     catalog_rows: tuple[dict[str, str], ...]
     parser_receipt: dict[str, Any]
@@ -240,7 +230,6 @@ def verify_suite(*, repo_root: Path, config_path: Path) -> VerifiedSuite:
         "visual",
         "analytics",
         "analytics_calculations",
-        "integrated_ledger",
     ):
         spec = sources.get(name)
         if (
@@ -255,22 +244,13 @@ def verify_suite(*, repo_root: Path, config_path: Path) -> VerifiedSuite:
             spec["sha256"],
             f"local_mini131_{name}",
         )
-    ledger = _index(loaded["integrated_ledger"], "local_mini131_ledger")
-    if Counter(row.get("lane") for row in ledger.values()) != Counter(
-        {**EXPECTED_COUNTS["lanes"], "parser_regression": 2}
-    ):
-        raise ValueError("local_mini131_ledger_lane_counts_invalid")
-
     core = _index(loaded["core40"], "local_mini131_core")
     answers = _index(loaded["supplemental_answers"], "local_mini131_answers")
     sets = _index(loaded["supplemental_sets"], "local_mini131_sets")
     visual = _index(loaded["visual"], "local_mini131_visual")
     analytics = _index(loaded["analytics"], "local_mini131_analytics")
     rag_ids = set(core) | set(answers) | set(sets) | set(visual) | set(analytics)
-    if (
-        len(rag_ids) != EXPECTED_COUNTS["rag"]
-        or rag_ids != {case_id for case_id, row in ledger.items() if row.get("case_type") == "rag"}
-    ):
+    if len(rag_ids) != EXPECTED_COUNTS["rag"]:
         raise ValueError("local_mini131_rag_ledger_mismatch")
 
     cases: list[SourceCase] = []
@@ -281,7 +261,6 @@ def verify_suite(*, repo_root: Path, config_path: Path) -> VerifiedSuite:
             "document_scope": row["document_scope"],
         }))
     for row in loaded["supplemental_answers"]:
-        ledger_row = ledger[row["case_id"]]
         scope_doc_ids = row.get("scope_doc_ids")
         if not isinstance(scope_doc_ids, list) or any(
             not isinstance(doc_id, str) for doc_id in scope_doc_ids
@@ -299,7 +278,11 @@ def verify_suite(*, repo_root: Path, config_path: Path) -> VerifiedSuite:
         cases.append(
             _source_case(
                 row,
-                lane=str(ledger_row["lane"]),
+                lane=(
+                    "supplemental_answer_rerun"
+                    if str(row["case_id"]) in PROSPECTIVE_RERUN_CASE_IDS
+                    else "supplemental_answer_legacy"
+                ),
                 request_template=request,
             )
         )
@@ -340,6 +323,43 @@ def verify_suite(*, repo_root: Path, config_path: Path) -> VerifiedSuite:
         or parser_receipt.get("counts") != {"total": 2, "passed": 2, "failed": 0}
     ):
         raise ValueError("local_mini131_parser_receipt_failed")
+    parser_config_path = _relative(
+        repo_root,
+        parser_spec.get("config_path"),
+        prefix="evaluation/baselines/parser-regression-rhwp-v1/",
+    )
+    parser_config = _read_json(
+        parser_config_path, "local_mini131_parser_config_invalid"
+    )
+    parser_contract = parser_config.get("contract")
+    parser_rows = parser_config.get("cases")
+    if (
+        sha256_file(parser_config_path)
+        != parser_receipt.get("artifacts", {}).get("config_sha256")
+        or not isinstance(parser_contract, Mapping)
+        or not isinstance(parser_rows, list)
+        or len(parser_rows) != EXPECTED_COUNTS["parser"]
+    ):
+        raise ValueError("local_mini131_parser_config_invalid")
+    parser_cases: dict[str, dict[str, Any]] = {}
+    for parser_case in parser_rows:
+        if not isinstance(parser_case, Mapping):
+            raise ValueError("local_mini131_parser_config_invalid")
+        case_id = parser_case.get("case_id")
+        if not isinstance(case_id, str) or case_id in parser_cases:
+            raise ValueError("local_mini131_parser_config_invalid")
+        parser_cases[case_id] = {
+            "question": (
+                f"현재 정본 파서가 회귀 사례 {case_id}를 정상 추출하고 "
+                "인덱싱 가능한가?"
+            ),
+            "expected": {
+                "case": copy.deepcopy(dict(parser_case)),
+                "current_invariant": parser_contract.get("current_invariant"),
+            },
+        }
+    if set(parser_cases) != {"C21", "C22"}:
+        raise ValueError("local_mini131_parser_config_invalid")
 
     execution = config.get("execution")
     if not isinstance(execution, dict) or execution != {
@@ -380,7 +400,7 @@ def verify_suite(*, repo_root: Path, config_path: Path) -> VerifiedSuite:
         stack=stack,
         cases=tuple(cases),
         cases_by_id={case.case_id: case for case in cases},
-        ledger_rows=ledger,
+        parser_cases=parser_cases,
         analytics_calculations=calculations,
         catalog_rows=catalog_rows,
         parser_receipt=parser_receipt,

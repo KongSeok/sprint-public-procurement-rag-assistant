@@ -727,31 +727,28 @@ def build_mac_semantic_index(
     }
 
 
-def load_mac_pipeline(
+def load_mac_retrieval_components(
     verified: VerifiedBaseline,
     *,
     embedding_device: str = "cpu",
-) -> Any:
+) -> dict[str, Any]:
+    """Load the frozen local retrieval artifacts without loading a generator."""
     verify_dependency_lock(verified)
     _configure_hf_cache(verified.hf_cache_path, offline=True)
-    from midprojectrag.answering.pipeline import RagPipeline
     from midprojectrag.indexing.embeddings import (
         EmbeddingCache,
         embedding_cache_namespace,
     )
     from midprojectrag.indexing.exact_index import ExactDenseIndex
-    from midprojectrag.stacks.local.generation import OllamaGenerator
     from midprojectrag.stacks.local.hf_embeddings import (
         HuggingFaceTokenCounter,
         KureEmbeddingProvider,
     )
-    from midprojectrag.stacks.local.qwen_tokenizer import PinnedQwenChatTokenCounter
 
     chunks = _load_chunks(verified)
     selected_device = _resolve_embedding_device(embedding_device)
     batch_size = verified.config["embedding"]["batch_size"]
     counter = HuggingFaceTokenCounter()
-    generation_counter = PinnedQwenChatTokenCounter()
     provider = KureEmbeddingProvider(batch_size=batch_size, device=selected_device)
     index_hash = mac_index_config_sha256(verified)
     index = ExactDenseIndex.load(
@@ -762,6 +759,33 @@ def load_mac_pipeline(
         expected_api_profile=MAC_LOCAL_EQUIVALENT,
         expected_index_config_sha256=index_hash,
     )
+    retrieval = verified.config["retrieval"]
+    return dict(
+        index=index,
+        embedding_provider=provider,
+        embedding_counter=counter,
+        query_cache=EmbeddingCache(verified.embedding_cache_path),
+        corpus_manifest_sha256=verified.config["corpus"]["manifest_sha256"],
+        retrieval_top_k=retrieval["top_k"],
+        context_top_k=retrieval["context_top_k"],
+    )
+
+
+def load_mac_pipeline(
+    verified: VerifiedBaseline,
+    *,
+    embedding_device: str = "cpu",
+) -> Any:
+    # Preserve the frozen evaluation entrypoint. Application model switches use
+    # local_application instead and never inherit this profile ID.
+    from midprojectrag.answering.pipeline import RagPipeline
+    from midprojectrag.stacks.local.generation import OllamaGenerator
+    from midprojectrag.stacks.local.qwen_tokenizer import PinnedQwenChatTokenCounter
+
+    retrieval_components = load_mac_retrieval_components(
+        verified, embedding_device=embedding_device,
+    )
+    generation_counter = PinnedQwenChatTokenCounter()
     generation = verified.config["generation"]
     generator = RecordingGenerator(
         OllamaGenerator(
@@ -773,19 +797,12 @@ def load_mac_pipeline(
         system_instructions=LOCAL_SYSTEM_INSTRUCTIONS,
         logical_context_tokens=generation["context_tokens"],
     )
-    retrieval = verified.config["retrieval"]
     return RagPipeline(
-        index=index,
-        embedding_provider=provider,
-        embedding_counter=counter,
-        query_cache=EmbeddingCache(verified.embedding_cache_path),
+        **retrieval_components,
         generator=generator,
         generation_counter=generation_counter,
         budget=None,
-        corpus_manifest_sha256=verified.config["corpus"]["manifest_sha256"],
         stack_id=MAC_LOCAL_EQUIVALENT,
-        retrieval_top_k=retrieval["top_k"],
-        context_top_k=retrieval["context_top_k"],
     )
 
 

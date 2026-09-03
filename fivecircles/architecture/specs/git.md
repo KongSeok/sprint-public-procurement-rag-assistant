@@ -14,6 +14,7 @@ Git commands and safety checks run from this directory.
 
 ## Never Track
 
+- Entire root `resources/**`, regardless of extension (including team shares and model weights).
 - `.env*` except `.env.example`, API/SSH/service-account credentials
 - source HWP/PDF and `data_list.csv`
 - extracted text, rendered documents, chunks and embeddings
@@ -31,7 +32,8 @@ git status --short
 git check-ignore -v data/private/example.hwp evaluation/private/dev.jsonl .env
 ```
 
-When Git is initialized, the safety script scans tracked files. Before initialization it scans the working tree as a bootstrap check.
+When Git is initialized, the safety script scans tracked and unignored untracked files and rejects
+forced tracked `resources/**` independently of ignore rules. Before initialization it scans the working tree.
 
 ## Commit Policy
 

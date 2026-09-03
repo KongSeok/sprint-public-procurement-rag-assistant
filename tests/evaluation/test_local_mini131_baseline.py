@@ -33,11 +33,22 @@ class LocalMini131ContractTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.repo_root = Path(__file__).resolve().parents[2]
-        cls.suite = verify_suite(
+        cls._suite = None
+
+    @property
+    def suite(self):
+        # Only artifact-dependent tests skip; synthetic contract tests still run.
+        cls = type(self)
+        if cls._suite is not None:
+            return cls._suite
+        if not (cls.repo_root / "resources/data_refined/private").exists():
+            raise unittest.SkipTest("private Mini131 corpus not distributed with clean checkout")
+        cls._suite = verify_suite(
             repo_root=cls.repo_root,
             config_path=cls.repo_root
             / "configs/rag/gcp-local-kure-qwen3-8b-awq-mini131-v1.json",
         )
+        return cls._suite
 
     def test_complete_129_plus_2_ledger_is_frozen(self) -> None:
         self.assertEqual(len(self.suite.cases), 129)

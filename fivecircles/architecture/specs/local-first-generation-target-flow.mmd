@@ -1,0 +1,20 @@
+flowchart TD
+  A["Local source / parser / page chunks"] --> K["Pinned KURE / existing local index"]
+  O["Offline OCR / pinned weights"] --> V["KURE OCR index — gated follow-up"]
+  K --> R["Local retrieval / fixed context"]
+  V --> R
+  R --> S{"Generation selection"}
+  S --> L["Ollama or vLLM"]
+  S --> G["Exact payload approval + budget + tokenizer"]
+  G --> C["OpenAI nano or mini"]
+  L --> E["Shared answer / citation validation"]
+  C --> E
+  classDef green fill:#e8f2ea,stroke:#bdd1c2,color:#1f2933,stroke-width:1.5px
+  classDef blue fill:#e8f0f7,stroke:#c2d3e0,color:#1f2933,stroke-width:1.5px
+  classDef amber fill:#fff4dc,stroke:#e7c88f,color:#1f2933,stroke-width:1.5px
+  classDef red fill:#fde9e6,stroke:#e8bab5,color:#1f2933,stroke-width:1.5px
+  classDef gray fill:#eef1ed,stroke:#d8e0da,color:#1f2933,stroke-width:1.5px
+  class A,K,R,L,E green
+  class O,V,G amber
+  class C blue
+  class S gray

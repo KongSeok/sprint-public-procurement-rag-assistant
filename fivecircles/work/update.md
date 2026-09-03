@@ -590,3 +590,16 @@ This file summarizes recent updates so other agents can continue without re‑di
 - Mini131 preflight `ready=true`, input 28/28, RAG 129/129.
 - evaluation 210/210, 전체 unittest 728/728, staged clean-checkout 614/614(비공개 artifact
   통합 테스트 8개 expected skip), 최종 hash·권한·line count 검증 PASS.
+
+## Addendum (2026-09-03) - Local-only visual merge and generation adapter
+
+### Backend
+- API branch 병합 제외. local tip+선택 OCR/safety 통합; 생성기만 교체하는 local_application 추가.
+- KURE/index/cache·frozen Qwen 평가 보존. API에는 payload 승인·counter·budget 필수; 자동 fallback 없음.
+
+### Tests
+- 최종 unittest 680건: 658 PASS·22 private skip. safety 598파일 PASS·diff 검사 PASS.
+- 흐름 보고서 Playwright PASS(2 PNG/4표/오류0/모바일 overflow0). refs: ../architecture/specs/local-first-generation-flow.md
+
+### Next
+- OCR KURE index/opt-in/골든 E2E 및 CLI/UI 생성 profile 연결은 후속. 실물 API/재임베딩/main/push 없음.

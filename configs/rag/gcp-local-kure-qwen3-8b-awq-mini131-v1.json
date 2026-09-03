@@ -39,13 +39,9 @@
       "sha256": "4c24b3929050fc150768153320ca413e27f9738c8b5a40f5042f888a3626d35c",
       "count": 10
     },
-    "integrated_ledger": {
-      "path": "evaluation/private/supplemental/runs/provisional-v1/case-records.jsonl",
-      "sha256": "6d8b0cb9c1b393ad5b7bfc749e6f69bc2e3dbcff9f759860296d3ad4948fa87e",
-      "count": 131
-    },
     "parser_receipt": {
       "path": "evaluation/baselines/parser-regression-rhwp-v1/receipt.json",
+      "config_path": "evaluation/baselines/parser-regression-rhwp-v1/config.json",
       "sha256": "d3551b4778cbfb112200fc6f4d8528e5902aa8f98fe6b1f26a0bde0ee7e45ae6",
       "count": 2
     }

@@ -5,9 +5,10 @@
 계약: `specs/local-visual-integration.md`. API+local 동시 병합/API-first OCR 계획을 대체한다.
 
 - [x] 로컬 파서·KURE·검색 유지, 생성 LLM만 local/API 교체로 확정. API branch 전체 병합은 제외한다.
-- [ ] 최신 local tip과 검증한 OCR/safety 변경만 `integration/local-visual`에 통합한다.
-- [ ] 공통 Generator composition과 동일 검색/인용·미승인 API 차단 회귀를 구현한다.
-- [ ] 전체 unittest·safety·흐름 보고서 검증 및 logall로 마감한다.
+- [x] 최신 local tip과 검증한 OCR/safety 변경만 `integration/local-visual`에 통합한다.
+- [x] 공통 Generator composition과 동일 검색/인용·미승인 API 차단 회귀를 구현한다.
+- [x] 전체 unittest 680건(22 skip)·흐름 보고서 Playwright 검증; safety 재검사 및 logall 기록.
+- [ ] 생성 profile을 CLI/Streamlit 선택기에 연결하고 승인된 실제 모델 E2E를 검증한다. 현재 UI는 변경하지 않았다.
 - [ ] GOLDEN-E2E-OCR: 로컬 OCR 임베딩/검색/생성/인용/UI 전체 품질·자원·비그림 회귀를 후속 검증한다.
 
 resources 전체 Git 제외. 원본 dirty checkout/API/main/harness 변경·외부 API 실행은 범위 밖이다.

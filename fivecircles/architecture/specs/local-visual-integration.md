@@ -44,4 +44,36 @@ LLM 교체는 재임베딩 사유가 아니다. 기존 visual 계약의 API-firs
 
 ## 6. Validation
 
-PLANNED. 실제 검증 결과를 후속 기록한다.
+검증 내역은 `local-first-generation-flow.md`와 연결된 HTML에 기록한다.
+원본 API UI 서버/활성 bundle은 전환하지 않는다. 이번 완료 범위는 로컬 코드 통합과 생성기 조립 함수다.
+
+## 7. Application usage
+
+`src/midprojectrag/local_application.py`는 shared core 밖의 composition root다.
+기존 `load_mac_pipeline`은 frozen evaluation 전용으로 남기고 아래 경로를 새 application에서 사용한다.
+
+```python
+import json
+from pathlib import Path
+from midprojectrag.gcp_local_baseline import load_mac_retrieval_components
+from midprojectrag.local_application import GenerationSelection, build_local_first_pipeline
+
+# verified: 기존 load_verified_baseline으로 source/hash 확인한 로컬 baseline 객체
+retrieval = load_mac_retrieval_components(verified)
+settings = json.loads(Path("configs/rag/local-first-ollama.json").read_text())
+pipeline = build_local_first_pipeline(retrieval, generation=GenerationSelection(**settings))
+result = pipeline.query(request)
+```
+
+OpenAI profile을 선택할 때는 `ApiGenerationAccess(client, counter, budget, authorize)`를 명시적으로
+전달해야 한다. 공식 OpenAI endpoint만 허용하며 counter는 선택 모델의 offline-verified
+`TiktokenCounter`, budget은 private `BudgetLedger`를 사용한다. authorize는 실제 prompt/instructions,
+destination/model별 승인 정책을 확인하고 literal True를 반환해야 한다. 키만으로 활성화하지 않는다.
+새 API profile로 고른다고 OCR/crop 전송이 승인되는 것은 아니다. 자동 fallback은 없다.
+
+기본 generation 상한은 output 1,024, logical context 8,192 token이다. Ollama transport는 32,768이고
+별도 pinned Qwen counter로 logical 상한을 확인한다. vLLM은 기존 model revision/8K 설정을 유지한다.
+프로필은 `local-first-{ollama,vllm,openai-nano,openai-mini}.json`이다. CLI/UI 선택기는 후속 연결이다.
+
+통합 브랜치 검증 후 로컬 `feat/local-qwen-mini131-eval`을 fast-forward로 갱신한다.
+분기되어 FF가 불가능하면 덮어쓰지 않는다. 원격 push/main/API branch 변경은 하지 않는다.

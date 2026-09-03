@@ -162,3 +162,10 @@ Cause:
 
 Preventive rule:
 - Use MAX_CSV_FIELD_BYTES for every canonical-body CSV reader and keep a greater-than-default regression case
+
+### Local-only integration and generation composition — 2026-09-03
+
+- Keep concrete provider composition outside provider-neutral answering/indexing; preserve AST boundary tests.
+- Lazy-load private fixture suites only when a test needs them. Here six synthetic tests still run while nine private cases skip.
+- Match PipelineResult.retrieval and vLLM model/chat response envelopes when constructing integration fixtures.
+- Ref: errorlogs/backend/2026-09-03-local-visual-integration.md. Final full 680 tests: 658 pass/22 private skips.

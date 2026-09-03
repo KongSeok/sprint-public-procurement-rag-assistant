@@ -124,3 +124,9 @@
   - Evidence: preflight 28/28·129/129, private 0600, public 0644, evaluation 210/210,
     전체 unittest 728/728, staged clean-checkout 614/614 PASS(비공개 통합 8 expected skip).
     private 산출물은 Git 대상에서 제외한다.
+
+- [2026-09-03 12:48] Stage=Implementation/Test/Local integration
+  - Scope: local-only merge, pinned OCR runtime, provider-neutral retrieval + replaceable generation.
+  - Evidence: full 680 tests (658 pass/22 private skip), safety 598 paths, report Playwright pass.
+  - Boundary: original dirty checkout/UI unchanged; no API branch/main/push/private data copy/live model calls.
+  - Contract: architecture/specs/local-visual-integration.md; validation: architecture/specs/local-first-generation-flow.md.

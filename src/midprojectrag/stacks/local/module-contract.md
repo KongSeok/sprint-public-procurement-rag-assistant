@@ -4,6 +4,9 @@
   loopback vLLM generation, and official GCP run-record construction.
 - Public imports are exposed through `midprojectrag.stacks.local`.
 - Must not import OpenAI/Langfuse or write API stack artifacts.
+- The local-first application composition lives in `local_application.py`, outside this
+  module. It may reuse an existing OpenAI generation adapter under explicit payload/budget guards;
+  this does not replace KURE/index/search or merge the standalone API evaluation branch.
 - Network transport must disable proxies and redirects and accept literal loopback hosts only.
 - The exact GCP profile is `nlpai-lab/KURE-v1` 1024-d + `Qwen/Qwen3-8B-AWQ`/vLLM AWQ;
   full model revisions are mandatory.
