@@ -1,17 +1,19 @@
 # BidFit Evidence-Harness v1-rc0 구현 원장
 
-## 상태 (2026-09-03, Phase 1 gate)
+## 상태 (2026-09-04, Phase 2 EH2.2)
 
 전체 구현은 진행 중이다. 완료된 P0를 이후 Evidence/검색/E1 앱 연결 완료로 취급하지 않는다.
-브랜치 `feature/visual-retrieval`, 시작 HEAD `7ad229f`, 기존 사용자 dirty 변경 보존.
+현재 `feat/total-integration`(이름 변경 전 `feature/visual-retrieval`)은 후속 총통합 작업대다.
+전체 범위의 선택 commit·검증을 마친 뒤 `feat/local-qwen-mini131-eval`에 병합한다.
+새 브랜치를 만들지 않으며 기존 사용자 dirty 변경을 보존한다.
 
 | 구분 | 결과 |
 | --- | --- |
-| 구현됨 | P0 전부 + immutable EvidenceStore, 2 splitter, KURE child/legacy page/Kiwi BM25, RRF, bounded context |
-| 테스트됨 | P0 신규47 + P1 신규35 + 기존805 = 887 PASS / FAIL0 / ERROR0 / SKIP0 (34.973s) |
+| 구현됨 | P0/P1 전부 + immutable QueryPlan, versioned registry, hash-attested deterministic planner |
+| 테스트됨 | EH2.2 누적 focused 51, 전체 922 PASS / FAIL0 / ERROR0 / SKIP0 |
 | 실제 실행 | 98문서 child KURE 9,496 + Kiwi BM25, 기존 page control 9,331 load/search; 생성/API0 |
 | 별도 판정 | facts117 / atomic facts 없는12. 없는 분모를 perfect score로 바꾸지 않음 |
-| 아직 미구현 | E1 QueryPlan/controller, 전문 경로 통합, reranker, structured generation, layered evaluation |
+| 아직 미구현 | actual-citation follow-up, compare state/E1 controller, 전문 경로, reranker, structured generation, layered evaluation |
 | 실제 모델 실측 | KURE/MPS child indexing·query와 Kiwi 실제 실행. 생성 모델은 실행하지 않음 |
 | 성능 향상 주장 | 불가. 새 검색/생성 profile의 동일조건 A/B를 하지 않음 |
 
@@ -30,6 +32,10 @@
 | `src/midprojectrag/evidence/` | frozen provenance graph, extractive splitter, append-only private bundle |
 | `src/midprojectrag/retrieval/` | child KURE/Kiwi/RRF/context와 별도 legacy page control |
 | `scripts/build_evidence_harness.py` | offline 98문서 새 artifact 빌드·hash receipt·실검색 smoke |
+| `src/midprojectrag/orchestration/contracts.py` | QueryPlan/예산/required slot/rule registry의 닫힌 불변 계약과 config SHA |
+| `tests/test_query_plan.py` | budget/hash/roundtrip/unresolved/deep immutability/위조 plan 거부 회귀 |
+| `src/midprojectrag/orchestration/planner.py` | production/synthetic provenance가 분리된 결정론 routing, entity/scope/predicate trace |
+| `tests/test_deterministic_planner.py` | gold 차단, catalog attestation, alias/표현 경계, empty scope 회귀 |
 
 ## P0 수리 / 검증
 
@@ -64,5 +70,5 @@ PYTHONPATH=src .venv/bin/python -m midprojectrag.offline_harness rescore --help
 - Playwright: image2/table1/error0/mobile overflow0. UI 자체는 이번 Phase에서 변경하지 않았다.
 - 초기 TDD red1, filename regression1, 실물 fact shape1, mobile overflow1은 모두 수리·재검증했다.
 - 새 runtime DTO는 아직 기존 앱 query에 연결되지 않았다. 그 연결을 숨기지 않고 diagram에 GAP으로 표시했다.
-- 다음 작은 작업: **EH2.1 QueryPlan/budget/versioned registry**. score7의 다음 상류 의존성.
-- publication: 본 Phase 전용 source/tests/docs만 선택 stage한다. 사용자 기존 dirty와 resources는 제외한다.
+- 다음 작은 작업: **EH2.3 actual-citation follow-up**. 실제 store-bound citation만 scope로 상속하고 부족 시 승인 fallback을 trace한다.
+- publication: Phase 2 gate에서 본 Phase 전용 source/tests/docs만 선택 stage한다. 사용자 기존 dirty와 resources는 제외한다.

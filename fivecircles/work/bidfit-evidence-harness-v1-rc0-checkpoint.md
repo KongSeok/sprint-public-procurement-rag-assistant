@@ -1,6 +1,6 @@
 # EH-RC0 재개 체크포인트
 
-갱신: 2026-09-03 · Phase 0 구현·검증 완료. 토큰 절약을 위해 `bidfit-evidence-harness-v1-rc0-active-context.md`부터 읽기.
+갱신: 2026-09-04 · 총통합 브랜치 명명 및 EH2.2 완료. 토큰 절약을 위해 `bidfit-evidence-harness-v1-rc0-active-context.md`부터 읽기.
 
 ## 중단/애매함 발생 시
 
@@ -16,11 +16,14 @@
 - 전체 목표: BidFit Evidence-Harness v1-rc0. 목표 축소/완료 처리 없음.
 - 실행 방식: 사용자 요청에 따라 leaf 하나씩 순차 처리. 새 독립 책임이 나타나면 해당 leaf를 다시 분할.
 - repo: `/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG` (ambient ChatGPT 사본 사용 금지).
-- branch / 시작 HEAD: `feature/visual-retrieval` / `7ad229f8c85fb48ebb1c53f4424db4a224b562a7`.
+- branch / 시작 HEAD: 현재 Phase 2 통합 작업대 `feat/total-integration`(이름 변경 전 `feature/visual-retrieval`) /
+  `7ad229f8c85fb48ebb1c53f4424db4a224b562a7`.
+  후속 전체 범위의 선택 commit·검증이 끝난 뒤 `feat/local-qwen-mini131-eval`에 병합한다.
+  새 브랜치는 만들지 않는다.
 - 완료: EH-A.1~3 감사·기준선·계약/flow 초안. 805 tests PASS, 실패/skip 0 (변경 전).
-- 현재 IN_PROGRESS: **Phase1 publication**. EH1.G PASS; 다음 READY는 EH2.1.
-- blocker: 현재 첫 leaf에는 없음. Kiwi/child artifact/Qwen/API 실측 가용성은 해당 leaf에서 확인.
-- 코드 상태: runtime integrity/offline_harness 검증 완료. focused 47/전체 852 PASS; Evidence 타입 구현 중이며 원샷 전체는 미완료.
+- 현재 IN_PROGRESS: **Phase 2**. EH2.1~2 PASS; 다음 READY는 EH2.3 actual-citation follow-up.
+- blocker: 없음. 실제 생성/API 호출은 계속 0이며 Phase 2는 provider-free 합성 테스트로 진행한다.
+- 코드 상태: P0/P1은 origin push 완료. QueryPlan/registry/planner까지 구현됐고 전체 922 PASS; 원샷 전체는 미완료.
 
 ## 완료된 첫 leaf 참고: EH0.1.a (현재 작업 아님)
 
@@ -62,6 +65,8 @@
 | EH1.9 | COMPLETED | context.py; parent bound/mandatory/doc coverage/missing budget 3 PASS |
 | EH1.10 | COMPLETED | private v1-rc0-20260903-01: 98docs/9,496 child KURE+Kiwi; load/search/source unchanged/generation0 |
 | EH1.G | COMPLETED | focused35/full887/skip0; safety780/browser PASS; review P1 3건 수리 후 exact closure PASS |
+| EH2.1 | COMPLETED | QueryPlan/budget/registry; focused27/full898/skip0. registry-bound load+slotted predicate 수리, 독립 재리뷰 PASS |
+| EH2.2 | COMPLETED | deterministic planner; focused51/full922/skip0. catalog/alias/JSON/Korean routing adversarial repair 후 독립 감사 PASS |
 
 ## 안전/컨텍스트 규칙
 

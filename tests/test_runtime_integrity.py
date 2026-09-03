@@ -61,6 +61,24 @@ class RuntimeIntegrityTests(unittest.TestCase):
             with self.subTest(extra=extra), self.assertRaises(IntegrityError):
                 project_runtime(request(**extra))
 
+    def test_prior_citation_state_is_complete_or_rejected(self):
+        for partial in (
+            {"cited_evidence_ids": ["ev-a"]},
+            {"cited_doc_ids": []},
+        ):
+            with self.subTest(partial=partial), self.assertRaisesRegex(
+                IntegrityError, "incomplete_citation_state"
+            ):
+                RuntimeRequest(question="후속 질문", prior_citation_state=partial)
+
+    def test_runtime_and_scope_objects_have_no_mutable_instance_dictionary(self):
+        request = RuntimeRequest(question="사업 기간")
+        scope = ResolvedScope.from_allowed(frozenset())
+        self.assertFalse(hasattr(request, "__dict__"))
+        self.assertFalse(hasattr(scope, "__dict__"))
+        with self.assertRaises(AttributeError):
+            scope.__dict__["state"] = "unfiltered"
+
     def test_deeply_immutable_snapshot_and_fresh_serialization(self):
         raw = request(document_scope={"mode": "explicit", "doc_ids": ["doc-A"]},
                       history=[{"role": "assistant", "content": "답변", "cited_doc_ids": ["doc-A"]}])

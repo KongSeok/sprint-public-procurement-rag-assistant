@@ -116,13 +116,19 @@ def _validate_runtime(raw: Mapping) -> dict:
         raise IntegrityError("invalid_fallback_option")
     prior = result["prior_citation_state"]
     if prior is not None:
-        _closed(prior, {"cited_doc_ids", "cited_evidence_ids", "resolved_entities", "list_doc_ids", "comparison_doc_ids"}, "invalid_citation_state")
+        prior_fields = {
+            "cited_doc_ids", "cited_evidence_ids", "resolved_entities",
+            "list_doc_ids", "comparison_doc_ids",
+        }
+        _closed(prior, prior_fields, "invalid_citation_state")
+        if set(prior) != prior_fields:
+            raise IntegrityError("incomplete_citation_state")
         for values in prior.values():
             _ids(values)
     return result
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class RuntimeRequest:
     question: str
     request_id: str = "runtime"
@@ -161,7 +167,7 @@ def project_runtime(evaluation_row: Mapping) -> RuntimeRequest:
     return RuntimeRequest.from_dict({k: evaluation_row[k] for k in RUNTIME_FIELDS if k in evaluation_row})
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class EvaluationCase:
     runtime: RuntimeRequest
     required_doc_ids: tuple[str, ...] = ()
@@ -188,7 +194,7 @@ class EvaluationCase:
         ) if key in row})
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class ResolvedScope:
     state: str = "unfiltered"
     doc_ids: frozenset[str] = frozenset()
@@ -249,7 +255,7 @@ _TEXT_FILTERS = frozenset({"agency", "format", "title", "doc_id", "category"})
 _ORDERED_FILTERS = frozenset({"business_amount", "published_at", "bid_start_at", "bid_deadline_at"})
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class MetadataPredicate:
     field: str
     operator: str

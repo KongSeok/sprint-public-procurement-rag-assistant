@@ -419,3 +419,52 @@ parent/child 혼합, 골든 값 의존을 검출한다. 정확한 새 파일/메
   store/bundle/row/vector SHA를 저장하고 load 시 모두 확인한다. 기존 page vector 재활용 금지.
 - legacy adapter만 granularity=page를 선언하며 동일 source_chunk_ids를 실제 기존 index hit와 연결한다.
   새 child fusion은 page/child 혼합을 명시적으로 거부한다.
+
+### 16.5 QueryPlan과 rule registry — EH2.1
+
+- 공개 API는 `midprojectrag.orchestration`의 `QueryPlan`, `RetrievalBudget`, `RequiredSlot`,
+  `PlanEntity`, `PlanConstraint`, `RoutingRule`, `RuleRegistry`, `default_rule_registry`다.
+- query type은 `fact`, `compare`, `follow_up`, `exhaustive_list`, `analytics`, `table_visual`,
+  `unknown_or_out_of_scope`의 닫힌 집합이다. 알 수 없는 문자열을 `fact`로 대체하지 않는다.
+- `QueryPlan`은 schema version, normalized query, entity와 그 출처, resolved/inherited doc ID,
+  fail-closed scope state/origin, 일반 constraint, typed `MetadataPredicate`, `doc_id.field` required slot, 여섯 budget 값,
+  global fallback 허용 여부, unresolved constraint, planner version, registry config SHA를 보존한다.
+- 모든 DTO는 frozen+slots이며 중첩 sequence를 tuple로 복사한다. `to_dict/from_dict`는 정확히 닫힌
+  JSON schema와 유한 숫자를 검증하고, unknown/missing field와 중복 ID/slot을 거부한다.
+- `RetrievalBudget`의 `None`은 동적 예산을 뜻하며 JSON에서는 `null`이다. 기본값은 §8.4를 따르고
+  analytics는 catalog 전용이므로 검색 예산 0·동적 citation, unknown은 전부 0이다. exhaustive list에는
+  dense/lexical 80씩만 고정하고 rerank/final/max-per-doc/citation을 동적으로 둔다.
+- `RuleRegistry`는 query-type별 budget을 정확히 한 개씩 소유하고 rule ID를 중복 허용하지 않는다.
+  canonical JSON의 SHA-256을 `config_sha256`으로 계산하며 로드시 재검증한다.
+- provenance source는 기관/사업 alias, filename tag, domain synonym, history citation, metadata predicate,
+  일반 query expression을 구분한다. 실행 가능한 `RoutingRule` source는 history citation과 일반 query
+  expression뿐이며 alias는 content-hashed catalog, predicate는 runtime request에서 온다. registry에는
+  evaluator case ID, expected doc, qrels, 정답 문자열을 넣지 않는다. 실제 실행은 EH2.2 책임이다.
+- plan 생성은 registry factory를 거쳐 budget/planner version/config SHA를 결합한다. registry 검증은
+  임의 plan이 다른 budget이나 SHA를 주장하면 거부한다. EH2.1은 router 실행·follow-up 상속·slot 상태
+  전이·controller를 구현했다고 주장하지 않는다.
+
+### 16.6 Deterministic planner — EH2.2
+
+- `DeterministicPlanner`의 유일한 runtime 입력은 닫힌 `RuntimeRequest`다. `EvaluationCase`나 임의 mapping을
+  받지 않으며, gold/qrels/expected/source-document 필드는 planner API에 존재하지 않는다.
+- `PlanningCatalog`는 production metadata에서 `from_metadata(CatalogDocument...)`로 파생하거나, 테스트에서만
+  `synthetic(...)`으로 만드는 봉인된 불변 snapshot이다. raw constructor는 거부한다. source는 agency/business
+  alias, filename tag, domain synonym만 허용하고 catalog/source canonical JSON SHA 및 production/synthetic
+  실행 구분을 trace에 남긴다. 직렬화된 catalog 로드는 별도의 기대 source SHA를 필수 trust anchor로 받고,
+  source documents에서 entity를 다시 파생한다. 이는 평가 expected-document registry가 아니다.
+- query normalization은 NFC+공백 정리만 하며 원문의 의미 토큰을 삭제하지 않는다. 실행 planner는 현재
+  승인된 default registry SHA만 받고, query-type rule은 priority/rule ID 순으로 평가해 match ID/source를
+  trace한다. citation history rule은 실제
+  prior citation이 있으면서 등록된 follow-up signal이 일치할 때만 활성화한다. 무조건적인 history 결합은 하지 않는다.
+- 문서 scope는 `all`, `user_explicit`, `entity_resolution`, `user_explicit+entity_resolution`을 구분한다.
+  explicit empty와 explicit∩entity empty는 `empty`로 보존하고 global 검색으로 바꾸지 않는다.
+  entity의 catalog match는 scope 적용 전 후보이므로 최종 resolved scope 밖 doc ID도 provenance로 보존할 수 있다.
+  겹치는 alias는 가장 긴 실제 occurrence를 우선하고, 같은 alias의 서로 다른 binding은 union하지 않고
+  `ambiguous_entity_alias`와 empty scope로 닫는다.
+- request metadata filter는 모두 `MetadataPredicate`로 재구성한다. unsupported/unresolved 상태는 plan의
+  `unresolved_constraints`와 trace 양쪽에 남기며 조용히 버리지 않는다. predicate 실행은 EH3.1 책임이다.
+- 결과는 `PlanningResult(plan, trace)`다. trace에는 request fingerprint, registry/catalog SHA, matched rule,
+  scope state/origin/doc IDs, predicate status를 기록하고 질문/정답 본문은 복제하지 않는다.
+- EH2.2는 follow-up cited ID 상속/승인된 fallback 실행(EH2.3), compare slot 생성(EH2.4), state/action
+  transition(EH2.5), retrieval controller(EH2.6)를 구현했다고 주장하지 않는다.

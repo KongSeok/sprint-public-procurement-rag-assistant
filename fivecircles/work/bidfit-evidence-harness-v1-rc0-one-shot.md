@@ -18,10 +18,14 @@
 ### 0. Scope Intake
 
 - 요청 범위: `assembly-on-research-and-exp.md`와 사용자 원샷 요구사항을 현재 checkout의 production modules에 통합
-- 브랜치: `feature/visual-retrieval` 고정
+- 전달 브랜치: 기존 `feature/visual-retrieval`을 `feat/total-integration`으로 이름 변경해 Phase 2 통합 작업대로만 사용한다.
+  후속 전체 범위의 선택 커밋·검증을 마친 뒤 `feat/local-qwen-mini131-eval`에 병합한다.
+  새 브랜치는 만들지 않는다.
 - 사용자 제약: checkout/통째 merge/force push/dirty 변경 삭제/기존 artifact 덮어쓰기 금지
 - 완료 기준: P0 무결성, child dense+Kiwi BM25+RRF, E1 QueryPlan/Harness, Analytics/List/Table/Citation, reranker control, 분리 평가와 문서·테스트·푸시
 - 위험/확인 필요: 시작 시 tracked 수정 39개와 다수 untracked 사용자 변경이 존재하므로 신규 파일 및 의도한 최소 겹침만 선택 커밋
+- 로컬 기준: 생성기는 교체 가능한 provider adapter로 유지하되 기본 실행은 local profile이다. API profile은
+  명시적으로 선택했을 때만 교체하며 자동 API 호출을 하지 않는다.
 - 상태: COMPLETED
 
 ### 1. Start Report / Target Check
@@ -113,7 +117,7 @@
 
 ## 시작 감사 스냅샷
 
-- 현재 브랜치: `feature/visual-retrieval`
+- 현재 브랜치: `feat/total-integration` (이름 변경 전 `feature/visual-retrieval`)
 - 시작 HEAD: `7ad229f`
 - working tree: tracked 수정 39개와 다수 untracked 파일 존재; 전부 사용자 소유로 간주하고 보존
 - Python: `>=3.11`, setuptools, 기존 테스트는 `unittest discover`가 검증된 진입점
@@ -164,7 +168,8 @@
 - Doc/Implementation/Test/Repair/Report: COMPLETED (Phase 1 범위). EH1.1~10/G, focused35/full887,
   actual 98문서 child+legacy smoke, safety/browser, 독립 review closure PASS.
 - actual artifacts는 private 새 namespace이며 source unchanged/generation0. 동일 gold A/B 전이므로 성능 향상은 주장하지 않는다.
-- Publication: 선택 stage/commit/push 직전. Decision: `CONTINUE_WITH_NEXT_FORM`.
+- Publication: `ff9fa2e` (`feat(harness): add evidence-level hybrid retrieval`) origin push 완료.
+  Decision: `CONTINUE_WITH_NEXT_FORM`.
 
 ## Relay 3 — Phase 2, 첫 leaf EH2.1
 
@@ -179,5 +184,5 @@
 | 6 Repair | gold-specific 규칙/미지원 constraint silent drop/불변성 문제를 fail-closed 수리 |
 | 7 Publication | Phase2 gate 후 별도 선택 commit/push |
 | 8 Closeout | actual app wiring과 synthetic test를 분리 보고 |
-| 9 Relay | `CONTINUE_WITH_NEXT_FORM`; EH2.1 선택 |
-| 10 Ledger | Phase1 gate 완료, publication 진행; Phase2 미착수 |
+| 9 Relay | `CONTINUE_WITH_NEXT_FORM`; EH2.3 선택 |
+| 10 Ledger | 총통합 브랜치 `feat/total-integration`. EH2.1~2, focused51/full922 및 독립 adversarial review PASS |

@@ -10,7 +10,8 @@ BidFit Evidence-Harness v1-rc0 작업을 재개한다.
 ambient cwd의 /Users/pio/Documents/ChatGPT/MidProjectRAG 는 다른 사본이므로 사용하지 않는다.
 
 먼저 fivecircles/work/bidfit-evidence-harness-v1-rc0-checkpoint.md 를 읽고
-실제 branch/HEAD/dirty 상태와 대조한다. 저장 시 branch는 feature/visual-retrieval,
+실제 branch/HEAD/dirty 상태와 대조한다. 저장 시 branch는 `feature/visual-retrieval`이었고
+2026-09-04에 `feat/total-integration`으로 이름을 변경했다.
 HEAD는 7ad229f8c85fb48ebb1c53f4424db4a224b562a7 이었다.
 다르다고 checkout/reset하지 말고 변경 경위를 확인한다.
 
@@ -38,7 +39,7 @@ core implementation, 실물 모델 실행, 성능 검증은 구분해 보고한�
 
 ## 저장 당시 확정 사실
 
-- 현재 branch: `feature/visual-retrieval`, 시작 HEAD `7ad229f`.
+- 현재 branch: `feat/total-integration` (이름 변경 전 `feature/visual-retrieval`), 시작 HEAD `7ad229f`.
 - 시작 시 tracked dirty 39개와 다수 untracked 사용자 파일. 삭제/덮어쓰기 없이 보존.
 - 변경 전 테스트: `PYTHONPATH=src .venv/bin/python -m unittest discover -q -s tests -t .`
   → 805 tests, 33.493s, OK, skip 0. 보관 작업에서 다시 실행한 결과가 아니다.

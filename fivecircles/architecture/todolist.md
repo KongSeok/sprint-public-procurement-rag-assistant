@@ -66,8 +66,17 @@
 
 ### Phase 2 — 계획과 bounded 실행 (선행: EH1.G)
 
-- [ ] **EH2.1** QueryPlan/budget과 versioned rule registry를 만든다. 완료: fact/compare/follow_up/list/analytics/table_visual/unknown 타입 및 unresolved 명시.
-- [ ] **EH2.2** 결정론 planner를 연결한다. 완료: entity/metadata predicate/scope 출처와 config hash 추적, gold-dependent 규칙 없음.
+전달 원칙(2026-09-04): 기존 `feature/visual-retrieval`을 `feat/total-integration`으로 이름 변경했다.
+이 통합 작업대에서 후속 전체 범위를 구현·검증한 뒤 `feat/local-qwen-mini131-eval`에 병합한다.
+runtime은 local profile 기본·LLM provider 교체형으로 유지하며 새 브랜치를 만들거나 API를 자동 호출하지 않는다.
+
+- [x] **EH2.1** QueryPlan/budget과 versioned rule registry 구현. 닫힌 frozen/slotted DTO,
+  query-type 예산 단일 원천, registry-bound plan load/hash 검증, unresolved 명시. focused27·전체898 PASS,
+  독립 리뷰 P1 2건 수리 후 재리뷰 PASS.
+- [x] **EH2.2** 결정론 planner 구현. production metadata에서만 파생되는 hash-attested catalog,
+  gold-free rule routing, entity/predicate/scope provenance, fail-closed empty/ambiguity, Korean 표현 경계를 연결했다.
+  focused51·전체922 PASS; 독립 감사에서 catalog 위조·alias 겹침/모호성·DTO 변조·JSON 배열
+  shape·실제 list/count/table 문장 P1을 재현해 수리한 뒤 최종 PASS.
 - [ ] **EH2.3** 실제 citation-state 기반 follow-up을 구현한다. 완료: cited doc/evidence만 상속, 부족할 때만 승인된 global fallback trace.
 - [ ] **EH2.4** compare의 doc×field slot을 구현한다. 완료: candidate/verified/missing/contradicted 및 문서 coverage, 누락 slot을 감춘 조기 종료 없음.
 - [ ] **EH2.5** Belief/Progress/typed Action을 구현한다. 완료: 상태 직렬화·허용 transition·action trace 회귀.
