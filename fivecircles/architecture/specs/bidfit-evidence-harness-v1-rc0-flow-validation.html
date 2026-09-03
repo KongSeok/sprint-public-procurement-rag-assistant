@@ -12,7 +12,7 @@
 </head>
 <body>
   <h1>BidFit Evidence-Harness v1-rc0</h1>
-  <p>Phase 0: runtime 경계·scope·결정론 scorer 구현. 전체 앱 경로 연결은 아직 GAP/PARTIAL.</p>
+  <p>Phase 1: immutable evidence, KURE child dense, Kiwi BM25, RRF와 bounded context를 실제 98문서 artifact로 검증. QueryPlan/E1/app 연결은 다음 GAP.</p>
   <div class="legend"><span class="green">validated path</span><span class="blue">provider</span><span class="amber">conditional</span><span class="red">gap</span><span class="gray">router/control</span></div>
   <div class="grid">
     <section class="card"><h2>Target Flow</h2><a href="bidfit-evidence-harness-v1-rc0-target-flow.mmd"><img src="bidfit-evidence-harness-v1-rc0-target-flow.png" alt="target flow"></a></section>
@@ -20,15 +20,15 @@
   </div>
   <h2>Gap / Priority</h2>
   <table><thead><tr><th>Unit</th><th>Status</th><th>Score</th><th>Action</th></tr></thead><tbody>
-    <tr><td>Runtime integrity</td><td>구현·검증 / 앱 연결 PARTIAL</td><td>11</td><td>Evidence/E1 후 연결</td></tr>
-    <tr><td>Evidence + child RRF</td><td>GAP</td><td>8</td><td>Foundation</td></tr>
-    <tr><td>E1 state loop</td><td>GAP</td><td>7</td><td>Connect after retrieval</td></tr>
+    <tr><td>Runtime integrity</td><td>구현·검증 / 앱 연결 PARTIAL</td><td>11</td><td>E1에서 연결</td></tr>
+    <tr><td>Evidence + child RRF</td><td>IMPLEMENTED</td><td>8</td><td>Phase 1 gate</td></tr>
+    <tr><td>E1 state loop</td><td>NEXT GAP</td><td>7</td><td>Connect after retrieval</td></tr>
     <tr><td>Specialist lanes</td><td>PARTIAL</td><td>6</td><td>Integrate provenance</td></tr>
     <tr><td>Reranker + layered eval</td><td>PARTIAL</td><td>5</td><td>Control/challenger contract</td></tr>
   </tbody></table>
   <h2>Validation</h2>
-  <p>focused 47 tests · full 852 tests PASS (skip 0). 저장 답변 129개: case hash 129/129, 생성 호출 0.</p>
-  <p>117개는 atomic fact 채점 가능, 12개는 분모 없음. 새 검색·생성 성능 향상으로 해석하지 않는다.</p>
+  <p>Phase 1 focused 35 tests · full 887 tests PASS (skip 0). actual: 98문서, child 9,496, KURE 1,024d + Kiwi BM25.</p>
+  <p>실검색 union 51 = dense-only 21 + lexical-only 21 + both 9. 생성 호출 0이며 골든셋 성능 향상으로 해석하지 않는다.</p>
   <p>Priority score = upstream (0–4) + connection (0–3) + safety (0–2) + validation (0–2) + risk (−3–0).</p>
   <p><a href="bidfit-evidence-harness-v1-rc0-target-flow.png">Target PNG</a> · <a href="bidfit-evidence-harness-v1-rc0-current-flow.png">Current PNG</a> · <a href="bidfit-evidence-harness-v1-rc0-flow-validation.md">검증 원장</a></p>
 </body>

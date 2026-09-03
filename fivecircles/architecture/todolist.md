@@ -52,17 +52,17 @@
 
 ### Phase 1 — Evidence와 검색 (선행: EH0.G)
 
-- [ ] **EH1.1** content-addressed Evidence/ProvenanceParent 타입을 만든다. 완료: PDF/page-v1/HWP flow/rendered page locator를 구별.
-- [ ] **EH1.2** immutable EvidenceStore를 만든다. 완료: 중복 ID·잘못된 parent/doc·cycle 거부, source block 보존.
-- [ ] **EH1.3** compatibility 1,600자 splitter를 추가한다. 완료: retrieval child와 provenance parent 분리, 기존 page chunk ID 불변.
-- [ ] **EH1.4** heading/paragraph splitter와 artifact freeze를 추가한다. 완료: chunker version/hash 분리, 기존 경로 overwrite 거부.
-- [ ] **EH1.5** KURE child vector build/load 경로를 구현한다. 완료: pinned revision/1,024차원/hash 검증; page vector를 child로 재명명하지 않음.
-- [ ] **EH1.6** legacy page control adapter를 연결한다. 완료: 기존 page index를 그대로 사용하고 child profile과 분리.
-- [ ] **EH1.7** Kiwi tokenizer/BM25를 구현한다. 완료: 실제 Kiwi version/dictionary/token artifact, scope-before-score, deterministic tie/query-token trace.
-- [ ] **EH1.8** 독립 dense/lexical budget과 RRF k=60을 연결한다. 완료: 동일 child granularity 강제, lexical-only rescue·duplicate/doc coverage trace.
-- [ ] **EH1.9** bounded parent expansion과 selector를 연결한다. 완료: budget을 지키면서 child citation·필수 근거·distinct docs 보존.
-- [ ] **EH1.10** private 새 namespace에 실제 child/lexical artifact를 만든다. 완료: old/new SHA·차원·문서 수 receipt. 모델 부재 시 이유를 별도 기록.
-- [ ] **EH1.G** Phase 1 gate: legacy/child profile 합성 통합+실물 load/search smoke+전체 회귀. 실측 성능 개선은 아직 주장하지 않음.
+- [x] **EH1.1** frozen/content-addressed Evidence/ProvenanceParent/Locator 구현. focused 7 PASS; 원문 char_range로 반복 occurrence 구별, 빈 crop-backed figure 허용.
+- [x] **EH1.2** immutable EvidenceStore 구현. 타입/store 합계 13 PASS; parent/doc/source/span/locator/support graph 검증, 중복 거부, scoped child-only 조회.
+- [x] **EH1.3** compat newline 1,600자 splitter/source-bound builder 구현. 타입/store/builder 17 PASS; 기존 split 출력 일치, 반복 span·source chunk ID 보존.
+- [x] **EH1.4** heading/paragraph splitter + private bundle freeze/load 구현. 합계20 PASS; chunker/config/file/bundle hash, 원문 span, overwrite·경로 이탈 거부.
+- [x] **EH1.5** pinned KURE child build/load/search 구현. synthetic provider 2 focused PASS; 1,024차원/row/vector/bundle identity, empty encoder 0회. 실제 빌드는 EH1.10.
+- [x] **EH1.6** LegacyPageLane control 연결. 실제 ExactDenseIndex synthetic test PASS; page granularity/source ID 보존, child와 혼합하지 않음.
+- [x] **EH1.7** Kiwi 0.23.2/model0.23.0 설치·pin, 독립 BM25+token artifact 구현. 2 focused PASS(실제 한국어 Kiwi 포함); 사전/모델 파일 SHA, query tokens/scope/tie 추적.
+- [x] **EH1.8** 독립 budget + RRF k=60 연결. 3 focused PASS; lexical-only rescue, rank/formula/doc coverage, mixed granularity 거부, empty lane 호출0.
+- [x] **EH1.9** bounded parent window + selector 구현. 3 focused PASS; char budget/필수 근거/요구 문서 coverage, 누락 명시, parent는 직접 인용 후보가 아님.
+- [x] **EH1.10** 실제 private artifact 생성. 98docs/9,331 parent/9,496 child, KURE1024+Kiwi2,065,474 tokens; source unchanged, old/new SHA receipt, 생성0.
+- [x] **EH1.G** Phase 1 gate PASS. focused35/full887/skip0, safety780, browser PASS, real child+legacy load/search, 리뷰 P1 3건 수리·재현 PASS. 성능 향상 주장 없음.
 
 ### Phase 2 — 계획과 bounded 실행 (선행: EH1.G)
 
@@ -107,7 +107,6 @@
 - [ ] **EH-D.4** logall/TODO/원장을 실제 결과로 동기화한다. 실패/수리 근거는 별도 error log로 연결한다.
 - [ ] **EH-D.5** 이번 변경만 선택 stage/commit/push한다. 현재 브랜치 유지, 무관한 dirty·resources 제외, force 금지.
 - [ ] **EH-D.6** 13항목 최종 보고와 relay 판단을 기록한다. 전체 완료 전 전체 완료/성능 개선을 주장하지 않음.
-
 
 ## 실행 원칙
 

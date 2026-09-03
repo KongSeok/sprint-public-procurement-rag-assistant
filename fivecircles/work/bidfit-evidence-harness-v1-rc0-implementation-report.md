@@ -1,18 +1,18 @@
 # BidFit Evidence-Harness v1-rc0 구현 원장
 
-## 상태 (2026-09-03, Phase 0)
+## 상태 (2026-09-03, Phase 1 gate)
 
 전체 구현은 진행 중이다. 완료된 P0를 이후 Evidence/검색/E1 앱 연결 완료로 취급하지 않는다.
 브랜치 `feature/visual-retrieval`, 시작 HEAD `7ad229f`, 기존 사용자 dirty 변경 보존.
 
 | 구분 | 결과 |
 | --- | --- |
-| 구현됨 | frozen runtime/eval DTO, fail-closed scope, typed predicate, versioned deterministic scorer, saved-answer replay CLI |
-| 테스트됨 | 신규47 + 기존805 = 852 PASS / FAIL0 / ERROR0 / SKIP0 (32.147s) |
-| 실제 실행 | 저장 답변129/source-case hash129 일치, 생성/API0, 새 private replay-03 (최종 코드 hash) |
+| 구현됨 | P0 전부 + immutable EvidenceStore, 2 splitter, KURE child/legacy page/Kiwi BM25, RRF, bounded context |
+| 테스트됨 | P0 신규47 + P1 신규35 + 기존805 = 887 PASS / FAIL0 / ERROR0 / SKIP0 (34.973s) |
+| 실제 실행 | 98문서 child KURE 9,496 + Kiwi BM25, 기존 page control 9,331 load/search; 생성/API0 |
 | 별도 판정 | facts117 / atomic facts 없는12. 없는 분모를 perfect score로 바꾸지 않음 |
-| 아직 미구현 | EvidenceStore/child dense+Kiwi/E1/전문 경로 통합/reranker/structured generation/layered evaluation |
-| 실제 모델 실측 | 이번 Phase에는 없음. 기존 answer 재채점만 수행 |
+| 아직 미구현 | E1 QueryPlan/controller, 전문 경로 통합, reranker, structured generation, layered evaluation |
+| 실제 모델 실측 | KURE/MPS child indexing·query와 Kiwi 실제 실행. 생성 모델은 실행하지 않음 |
 | 성능 향상 주장 | 불가. 새 검색/생성 profile의 동일조건 A/B를 하지 않음 |
 
 ## 파일 / 책임
@@ -27,6 +27,9 @@
 | `tests/test_harness_scoring.py` | 표면형 동치, entity/숫자 연결, 부정/unknown, full filename, 기권 회귀 |
 | `tests/test_harness_replay.py` | 저장 format, no-network, no-overwrite, stale source hash 회귀 |
 | `scripts/check_harness_flow.cjs` | static flow 보고서 desktop/mobile 검증 |
+| `src/midprojectrag/evidence/` | frozen provenance graph, extractive splitter, append-only private bundle |
+| `src/midprojectrag/retrieval/` | child KURE/Kiwi/RRF/context와 별도 legacy page control |
+| `scripts/build_evidence_harness.py` | offline 98문서 새 artifact 빌드·hash receipt·실검색 smoke |
 
 ## P0 수리 / 검증
 
@@ -38,6 +41,8 @@
 - scorer가 의미의 완전한 동치를 증명하는 것은 아니다. 보수적인 false negative/paraphrase는 별도 semantic layer 대상이다.
 - 판정 state는 gold 유무에 의존하지 않는다. 오류와 기권을 구별하고 전체 파일명을 접두/접미와 함께 보존한다.
 - peer review 5개 지적을 수리한 뒤 원래 재현18개가 전부 PASS했다.
+- Phase1 gate review P1 3개를 수리했다: fake provider의 real 표기 차단, restricted BM25 통계의
+  scope isolation, raw vector constructor 차단. 같은 세 재현의 closure PASS를 받았다.
 
 ## 명령
 
@@ -59,5 +64,5 @@ PYTHONPATH=src .venv/bin/python -m midprojectrag.offline_harness rescore --help
 - Playwright: image2/table1/error0/mobile overflow0. UI 자체는 이번 Phase에서 변경하지 않았다.
 - 초기 TDD red1, filename regression1, 실물 fact shape1, mobile overflow1은 모두 수리·재검증했다.
 - 새 runtime DTO는 아직 기존 앱 query에 연결되지 않았다. 그 연결을 숨기지 않고 diagram에 GAP으로 표시했다.
-- 다음 작은 작업: **EH1.1 Evidence/ProvenanceParent**, 이어 EH1.2 immutable store. score8의 상류 의존성.
+- 다음 작은 작업: **EH2.1 QueryPlan/budget/versioned registry**. score7의 다음 상류 의존성.
 - publication: 본 Phase 전용 source/tests/docs만 선택 stage한다. 사용자 기존 dirty와 resources는 제외한다.

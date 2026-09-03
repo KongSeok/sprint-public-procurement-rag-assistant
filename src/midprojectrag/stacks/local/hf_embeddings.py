@@ -176,6 +176,17 @@ class KureEmbeddingProvider:
         self.device = device
         self.local_files_only = local_files_only
         self.trust_remote_code = trust_remote_code
+        # A real-execution label is only available to the un-injected, pinned
+        # production adapter. Test encoders/tokenizers remain synthetic even if
+        # they expose identical model attributes.
+        self.execution_kind = (
+            "real_local_model"
+            if tokenizer is None
+            and encoder is None
+            and tokenizer_loader is None
+            and encoder_loader is None
+            else "synthetic"
+        )
         self._counter = HuggingFaceTokenCounter(
             model=model,
             revision=revision,

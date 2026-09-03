@@ -18,9 +18,9 @@
 - repo: `/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG` (ambient ChatGPT 사본 사용 금지).
 - branch / 시작 HEAD: `feature/visual-retrieval` / `7ad229f8c85fb48ebb1c53f4424db4a224b562a7`.
 - 완료: EH-A.1~3 감사·기준선·계약/flow 초안. 805 tests PASS, 실패/skip 0 (변경 전).
-- 현재 IN_PROGRESS: Phase 0 선택 publication. 다음 READY: **EH1.1**.
+- 현재 IN_PROGRESS: **Phase1 publication**. EH1.G PASS; 다음 READY는 EH2.1.
 - blocker: 현재 첫 leaf에는 없음. Kiwi/child artifact/Qwen/API 실측 가용성은 해당 leaf에서 확인.
-- 코드 상태: runtime integrity/offline_harness 신규 구현. focused 47/전체 852 PASS; 원샷 전체는 미완료.
+- 코드 상태: runtime integrity/offline_harness 검증 완료. focused 47/전체 852 PASS; Evidence 타입 구현 중이며 원샷 전체는 미완료.
 
 ## 완료된 첫 leaf 참고: EH0.1.a (현재 작업 아님)
 
@@ -51,6 +51,17 @@
 | TODO-SPLIT | COMPLETED | Phase 0~4+납품을 독립 leaf/의존성/gate로 분해; 구현 동시 실행 1개; read-only 의존성/acceptance 리뷰 및 diff-check PASS |
 | EH-CONTEXT.1 | COMPLETED | private ZIP 24파일; CRC/SHA/원문 동일성/기존 문서 불변/Git 제외 검증; 다음 leaf EH0.1.a 유지 |
 | EH0.1~7 / EH0.G | COMPLETED | focused47/full852, 0 skip; case SHA129/129 provider-free replay; review18/18, HTML desktop/mobile PASS |
+| EH1.1 | COMPLETED | evidence/model.py + public types; tests.test_evidence_model 7 PASS. char_range occurrence/빈 그림/immutable roundtrip |
+| EH1.2 | COMPLETED | evidence/store.py; 타입/store 13 PASS. missing module TDD red→green. immutable/hash/source/span/locator/scope 검증 |
+| EH1.3 | COMPLETED | evidence/builder.py; 합계17 PASS. source block SHA/doc/page + 원문span 검증, 기존 page chunks 불변 |
+| EH1.4 | COMPLETED | evidence/artifacts.py + structured splitter; 리뷰 수리 포함 22 PASS. SHA/overwrite/private binding/원문 span |
+| EH1.5 | COMPLETED | retrieval/contracts.py + dense.py; 2 focused PASS / evidence 포함24. 실제 모델 실행은 EH1.10 |
+| EH1.6 | COMPLETED | retrieval/legacy_page.py; ExactDenseIndex control 1 focused PASS |
+| EH1.7 | COMPLETED | Kiwi0.23.2/model0.23.0/1worker pinned; 한국어 실제 tokenize + BM25 artifact/scope tests 2 PASS |
+| EH1.8 | COMPLETED | fusion.py; budget/lexical rescue/RRF/mixed granularity/empty tests 3 PASS |
+| EH1.9 | COMPLETED | context.py; parent bound/mandatory/doc coverage/missing budget 3 PASS |
+| EH1.10 | COMPLETED | private v1-rc0-20260903-01: 98docs/9,496 child KURE+Kiwi; load/search/source unchanged/generation0 |
+| EH1.G | COMPLETED | focused35/full887/skip0; safety780/browser PASS; review P1 3건 수리 후 exact closure PASS |
 
 ## 안전/컨텍스트 규칙
 

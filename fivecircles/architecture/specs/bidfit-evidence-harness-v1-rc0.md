@@ -357,3 +357,65 @@ Evaluator→runtime 변환은 `project_runtime` 한 곳으로 제한한다. opti
 공통 데이터는 소유 모듈의 frozen DTO/조회 API로만 전달한다. boundary tests는 runtime→evaluator 의존과
 parent/child 혼합, 골든 값 의존을 검출한다. 정확한 새 파일/메서드는 해당 leaf 착수 때 이 표의 책임 안에서 정한다.
 독립 확장 후보는 retrieval/tokenizer adapter와 generator adapter지만 서비스 분리는 현재 팀/규모에서 불필요하다.
+
+### 16.1 Evidence public types — EH1.1
+
+- `Locator(page=None, flow_id=None, section_path=(), object_id=None, bbox=None, row_range=None, char_range=None)`:
+  page는 1-based, bbox는 `(x0,y0,x1,y1)`이며 좌표계의 정합성은 builder/source artifact가 증명한다.
+  HWP flow에 물리 page를 추정해 채우지 않는다.
+- `char_range=(start,end)`는 parent 원문 기준 0-based half-open 범위다. 동일 문구의 반복 occurrence를
+  ID suffix나 가짜 source ID 없이 구별한다. Store가 text/page의 원문 slice 동일성을 검증한다.
+  `row_range`는 0-based inclusive이며 char_range와 다른 좌표계다.
+- `ProvenanceParent(doc_id, kind, text, source_block_ids, locator)`: `parent_id=pr_<hash>`, content SHA.
+  kind는 pdf_page/page_v1/hwp_section_flow/rendered_hwp_page.
+  analytics/catalog용 예외는 필요할 때 EH3에서 명시적으로 확장하며 현재 page로 위장하지 않는다.
+- `Evidence(doc_id, kind, text, parent_id, source_block_ids, locator, source_chunk_ids=(), crop_ref=None, support_refs=())`:
+  `evidence_id=ev_<hash>`, content SHA. kind는 page/text/table_row_group/figure_object/analytics_result.
+- `page` evidence는 legacy control을 표현할 때만 사용한다. child 검색의 기본 후보는 text이며 parent는 항상 provenance 전용이다.
+- ID는 원문 text+모든 provenance 필드의 canonical identity에서 결정된다. 알 수 없는/위조 ID를 from_dict로 허용하지 않는다.
+- DTO는 frozen+slots, nested collection은 tuple; source block/chunk identity는 그대로 보존.
+- 공개 API는 `midprojectrag.evidence`의 타입과 `to_dict/from_dict`; 외부 JSON이나 객체를 실행하지 않는다.
+- 다음 EH1.2 store가 parent 존재/doc/locator/source binding을 검증한다. EH1.1 타입만으로 graph 검증 완료를 주장하지 않는다.
+- figure_object는 유효한 crop_ref가 있으면 비어 있는 텍스트를 허용한다. 읽지 않은 그림에 임의 caption을 생성하지 않는다.
+
+### 16.2 EvidenceStore — EH1.2
+
+- 생성 시 부모/근거 iterable을 복사해 read-only mapping과 tuple 인덱스로 고정한다. 외부 mutation으로 snapshot/hash가 바뀌지 않는다.
+- `get(evidence_id)`, `parent(parent_id)`, `children(parent_id, kinds=None)`, `for_document(doc_id, kinds=None)`,
+  `bridge(evidence_id, kinds)`는 저장소 안의 canonical 객체만 반환한다. 알 수 없는 ID는 명시적 오류다.
+- 부모 존재/같은 doc/child source block의 parent 포함을 검증한다. page/flow는 부모와 동일하며
+  section은 parent prefix, parent에 object/bbox/row 범위가 있으면 child의 같은 locator/포함 관계를 검증한다.
+- text/page의 char_range가 있으면 범위와 정확한 parent text slice를 검증한다. 부모의 source block은
+  immutable provenance이며 table/figure 텍스트는 원문 구조 변환을 허용하되 별도 EH3 source binding이 필요하다.
+- support_refs는 동일 저장소의 evidence ID만 참조한다. 자기 참조/cycle/다른 문서의 근거 연결은 거부한다.
+- 동일 ID 중복 입력은 조용히 유실시키지 않고 거부한다. 반복 문구 occurrence는 char_range로 구별한다.
+- snapshot `to_dict/from_dict`는 canonical content hash를 검증하며 입력 순서가 달라도 bundle hash는 같다.
+  hash는 무결성 식별자이지 외부 자료가 진실임을 인증하는 서명은 아니다.
+
+### 16.3 Child builder — EH1.3~4
+
+- `SplitConfig(chunker_id="compat-newline-1600-v1", max_chars=1600)`와 `split_spans(text,config)`는
+  Python Unicode character 기준의 원문 `(start,end)` 범위를 반환한다. compat는 기존 newline split
+  정책(후반부의 마지막 빈줄→줄바꿈→hard cut, 주변 공백 제거)을 재현한다.
+- 현재 checkout에는 별도 1,600자 child artifact가 없고 page-v1만 있다. 따라서 기존 page-v1/ID는 그대로
+  유지하고 이 정책을 새 child compatibility profile로 명시한다. 기존 child를 재사용했다는 주장은 하지 않는다.
+- `build_store(chunks, config, source_blocks=None, parent_kinds=None)`는 검증된 page-v1을 입력받아
+  provenance parent+text child+명시적 legacy page evidence를 만든다. source chunk IDs는 원래 값이다.
+- source block이 없으면 part_count=1인 page-v1만 허용한다. multipart 원문을 추측해 이어붙이지 않는다.
+  source block을 제공하면 doc/content hash/page/source ID와 각 chunk의 정확한 원문 부분 문자열을 검사한다.
+- `heading-paragraph-v1`은 별도 실험 splitter다. section heading/빈줄 경계에서 나누며 oversize는
+  compat hard bound로 나눈다. 두 정책 모두 원문 slice 보존/최대 길이/반복 occurrence 검증이 필요하다.
+- 새 bundle은 data_root/private 아래 새 디렉터리에만 저장하며 기존 경로는 거부한다. bundle/config/input
+  SHA와 parent/evidence/doc count를 receipt에 남긴다. loader는 이 계약과 SHA를 재검증한다.
+
+### 16.4 Retrieval public boundary — EH1.5~9
+
+- `Candidate(evidence_id,doc_id,score,lane,rank,granularity="child")`와 `SearchResult(candidates,trace)`는 immutable다.
+- `DenseChildLane(store,vectors,embedding_identity,query_embedder)`는 정확한 child row 순서와 1,024차원,
+  pinned KURE revision/prompt/pooling을 검증한다. page evidence는 후보가 아니며 부모는 벡터화하지 않는다.
+- `search(query,limit,*,allowed_doc_ids=None)`에서 empty는 encoder 호출 전 종료한다. scope를 먼저
+  적용하고 cosine 계산·동점 evidence ID 정렬을 한다. 합성 tests의 fake encoder는 실측 성공으로 집계하지 않는다.
+- `build_dense`는 순서 고정한 child text를 실제 provider에 배치 전달해 새 vectors를 생성한다. provider identity와
+  store/bundle/row/vector SHA를 저장하고 load 시 모두 확인한다. 기존 page vector 재활용 금지.
+- legacy adapter만 granularity=page를 선언하며 동일 source_chunk_ids를 실제 기존 index hit와 연결한다.
+  새 child fusion은 page/child 혼합을 명시적으로 거부한다.

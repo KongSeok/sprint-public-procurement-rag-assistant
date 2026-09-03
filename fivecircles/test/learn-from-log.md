@@ -169,3 +169,13 @@ Preventive rule:
 - TDD module-missing red와 기능 실패를 구분한다. filename suffix/숫자 association/극성 회귀를 유지한다.
 - 저장 답변 재채점은 실물 fact shape와 source-case hash를 확인하며, candidate companion을 gold로 사용하지 않는다.
 - refs: errorlogs/backend/2026-09-03-eh-rc0-tdd.md, errorlogs/backend/2026-09-03-eh-rc0-scorer-replay.md.
+
+### Evidence child artifact boundaries (2026-09-03)
+
+- 반복 문구는 내용 hash만으로 occurrence를 구별할 수 없다. parent 기준 half-open char_range를 canonical ID에 포함한다.
+- splitter receipt는 config 자체 hash만 맞춰서는 안 된다. 저장 child를 선언된 splitter로 재구성해 ID 집합까지 검증한다.
+- multipart page source는 같은 config/section/doc/page여야 하며 원문의 비공백 gap을 허용하지 않는다.
+- private 하위 경로 검사 전에 private root symlink 자체를 거부한다. 새 artifact는 O_EXCL/새 디렉터리로만 쓴다.
+- child dense와 page control을 ID/granularity로 분리한다. empty scope는 encoder/tokenizer/lane 호출 전에 종료한다.
+- 실제 lane smoke의 후보 수는 품질 점수가 아니다. 같은 gold/config로 retrieval 평가 전에는 성능 향상을 주장하지 않는다.
+- ref: errorlogs/backend/2026-09-03-eh-rc0-evidence.md.

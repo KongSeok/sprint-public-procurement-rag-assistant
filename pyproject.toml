@@ -12,6 +12,11 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+evidence-harness = [
+  "kiwipiepy==0.23.2",
+  "kiwipiepy_model==0.23.0",
+  "numpy>=2,<3",
+]
 hwp = [
   "pyhwp==0.1b15",
   "six>=1.17,<2",

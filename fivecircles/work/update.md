@@ -598,3 +598,15 @@ This file summarizes recent updates so other agents can continue without re‑di
 ### Tests
 - focused47/full852 PASS, skip0. 리뷰18재현·compile·safety·flow Playwright PASS; 오류 수리 기록 연결.
 - refs: bidfit-evidence-harness-v1-rc0-implementation-report.md, bidfit-evidence-harness-v1-rc0-active-context.md.
+
+## Addendum (2026-09-03) - EH-RC0 Phase 1 relay
+### Backend
+- immutable EvidenceStore, 1,600자 compatibility/heading challenger, 실제 KURE child dense, Kiwi BM25, RRF와 bounded context를 구현했다.
+- 98문서에서 parent 9,331, child 9,496를 새 private namespace에 생성했다. 구조 challenger 62,382는 미임베딩 비교 artifact로만 보관했다.
+- 기존 page 9,331 index는 legacy control로 그대로 load/search했다. 원본 SHA 유지, 생성/API 호출0, 기존 artifact overwrite0.
+### Tests
+- Phase1 focused35/full887 PASS, skip0. 실제 child/legacy search smoke와 hash/load 검증, safety780, flow Playwright PASS.
+- real smoke의 dense-only21/lexical-only21/both9는 lane 동작 증거이며 골든셋 성능 향상 주장 근거가 아니다.
+### Next
+- EH2.1 QueryPlan/budget/version registry부터 E1 state loop를 retrieval 위에 연결한다.
+- refs: bidfit-evidence-harness-v1-rc0-implementation-report.md, ../architecture/specs/bidfit-evidence-harness-v1-rc0-flow-validation.md.

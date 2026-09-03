@@ -11,7 +11,7 @@
 - 전체 첨부·리서치 재독/전체 감사 재실행은 생략하고 현재 leaf에 필요한 계약 절과 파일만 읽는다.
 - 전체 원샷 원장은 이 문서에 유지하되 매 leaf마다 납품 문서/flow를 통째로 재생성하지 않는다.
   Phase gate와 최종 납품에서 통합·회귀·보고·push/relay를 닫는다.
-- 현재 전체 상태: **INCOMPLETE / implementation not started**. 작은 leaf 완료를 전체 완료로 보고하지 않는다.
+- 현재 전체 상태: **IN_PROGRESS / Phase 0 push 완료, Phase 1 구현 중**. 작은 leaf 완료를 전체 완료로 보고하지 않는다.
 
 ## 원샷딜 플로우폼
 
@@ -51,7 +51,7 @@
 ### 4. Implementation
 
 - 사용할 스킬: `one-go`
-- 재귀 TODO: `architecture/todolist.md` EH-RC0의 leaf를 순서대로 실행. 현재 READY는 EH0.1.a.
+- 재귀 TODO: `architecture/todolist.md` EH-RC0의 leaf를 순서대로 실행. 최신 leaf는 active-context/checkpoint를 따른다.
 - 수정 대상: 신규 `evidence`, `retrieval`, `orchestration`, `analytics`, harness config/평가 모듈과 관련 테스트
 - 상태: TODO
 
@@ -130,10 +130,54 @@
 | 1 Target check | 기존 flow ledger P0 GAP, score 11; 새로운 전체 감사 생략 |
 | 2 Selection | 명시적 READY EH0.1.a. 각 leaf 검증 후 다음 leaf만 착수 |
 | 3 Contract | 기존 §8.1~8.2와 공개 DTO API; 원문 15완료 기준은 요약 13개와 별도 |
-| 4 Implementation | IN_PROGRESS: one-go, recursive sequential TODO |
+| 4 Implementation | COMPLETED: EH0.1~7, one-go/recursive sequential TODO |
 | 5 Validation | focused unittest → Phase 0 full/smoke; flow는 Phase gate에서 갱신 |
 | 6 Repair | 테스트로 재현 후 해당 leaf 내 수정, assertion 약화/skip 금지 |
-| 7 Publication | Phase 0 검증 후 이번 source/tests/docs만 선택 stage/commit/push, 아직 미실행 |
-| 8 Closeout | Phase gate에서 current flow와 실제 결과 갱신; 이후 GAP은 남김 |
+| 7 Publication | COMPLETED: c2c621c, origin/feature/visual-retrieval push; 기존 dirty39 보존, staged snapshot focused47 PASS |
+| 8 Closeout | COMPLETED: current flow/PNG/HTML, focused47/full852, replay129; 이후 GAP은 남김 |
 | 9 Relay | CONTINUE_WITH_NEXT_FORM; 단순 1~2 leaf 완료는 중단 사유 아님 |
-| 10 Ledger | Doc 완료, Implementation 진행, Test/Push/Report 대기. 다음 코드는 EH0.1 |
+| 10 Ledger | Doc/Implementation/Test/Push/Report 완료. Relay2 EH1.1 착수 |
+
+### Relay 1 closeout
+
+- Doc/Implementation/Test/Repair/Push/Report: COMPLETED (Phase 0 범위). focused47/full852/실물replay129/hash129/browser PASS.
+- Flow: GAP/PARTIAL, 기존 앱 연결과 Evidence/E1은 후속. Decision: CONTINUE_WITH_NEXT_FORM.
+
+## Relay 2 — Phase 1, 첫 leaf EH1.1
+
+| Form | 결정 |
+| --- | --- |
+| 0 Scope | Evidence/ProvenanceParent frozen 타입, branch/dirty/source 보존 |
+| 1 Target | 기존 target/current의 EvidenceStore GAP, score8 |
+| 2 Selection | EH1.1→EH1.2→splitter 순; 한 번에 구현 leaf 하나 |
+| 3 Contract | §8.3 + §16.1 공개 타입/불변성/locator 규칙 |
+| 4 Implementation | IN_PROGRESS: EH1.1만 구현, 다른 leaf는 준비/검토만 |
+| 5 Validation | evidence focused → Phase1 integration/full/flow/browser |
+| 6 Repair | 해당 leaf 실패만 고치고 동일 회귀 재실행 |
+| 7 Publication | Phase1 gate 후 선택 commit/push, pending |
+| 8 Closeout | child artifact/legacy path/실제 실행과 미실측을 분리 |
+| 9 Relay | CONTINUE_WITH_NEXT_FORM; EH1.1 시작 |
+| 10 Ledger | Doc 완료, 구현 진행, gate/납품 대기 |
+
+### Relay 2 closeout
+
+- Doc/Implementation/Test/Repair/Report: COMPLETED (Phase 1 범위). EH1.1~10/G, focused35/full887,
+  actual 98문서 child+legacy smoke, safety/browser, 독립 review closure PASS.
+- actual artifacts는 private 새 namespace이며 source unchanged/generation0. 동일 gold A/B 전이므로 성능 향상은 주장하지 않는다.
+- Publication: 선택 stage/commit/push 직전. Decision: `CONTINUE_WITH_NEXT_FORM`.
+
+## Relay 3 — Phase 2, 첫 leaf EH2.1
+
+| Form | 결정 |
+| --- | --- |
+| 0 Scope | 결정론 QueryPlan/budget/version registry; branch/dirty/private source 보존 |
+| 1 Target | current flow의 QueryPlan/E1 GAP, connection score 7 |
+| 2 Selection | EH2.1 → planner → follow-up/compare → state/controller 순, 한 구현 leaf씩 |
+| 3 Contract | §8.5 및 EH2.1 public schema를 publication 뒤 고정 |
+| 4 Implementation | Phase1 push 뒤 EH2.1 TDD 시작 |
+| 5 Validation | planner focused → Phase2 integration/full/flow/browser |
+| 6 Repair | gold-specific 규칙/미지원 constraint silent drop/불변성 문제를 fail-closed 수리 |
+| 7 Publication | Phase2 gate 후 별도 선택 commit/push |
+| 8 Closeout | actual app wiring과 synthetic test를 분리 보고 |
+| 9 Relay | `CONTINUE_WITH_NEXT_FORM`; EH2.1 선택 |
+| 10 Ledger | Phase1 gate 완료, publication 진행; Phase2 미착수 |

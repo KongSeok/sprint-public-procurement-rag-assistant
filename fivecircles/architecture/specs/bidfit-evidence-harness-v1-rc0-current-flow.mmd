@@ -1,26 +1,28 @@
 flowchart TD
-    Q["Current application query (unchanged)"] --> RP["Legacy page / existing hybrid retrieval"]
-    RP --> CTX["Top-k page context"]
-    CTX --> GEN["Current local or API generator"]
-    GEN --> CIT["Legacy citation / report"]
-    Q --> CAT["Typed catalog route"]
-    CAT --> AN["Existing deterministic catalog analytics"]
-    NQ["New RuntimeRequest API"] --> DTO["Closed frozen DTO / evaluator allowlist projection"]
-    DTO --> SC["ResolvedScope: None / empty / restricted"]
-    SC --> GUARD["scoped_search: empty returns without lane call"]
-    DTO --> FILTER["Predicate supported / unsupported / unresolved"]
-    GUARD -. "not yet wired into production query" .-> GAP["Evidence / child retrieval / E1 packages: GAP"]
-    FILTER -.-> GAP
-    CIT -.-> EVAL["Mini131 and existing deterministic evaluation"]
-    SAVED["129 stored answers + independent case assets"] --> HASH["129 exact source-case hashes verified"]
-    HASH --> SCORE["Provider-free v1-rc0 deterministic re-score"]
-    SCORE --> OUT["Private immutable output: 117 fact-scorable / 12 without atomic facts"]
+    Q["Current application query"] --> RP["Legacy application retrieval"]
+    RP --> GEN["Current local or API generator"]
+    GEN --> CIT["Legacy citation / response"]
+    NQ["New RuntimeRequest"] --> DTO["Frozen allowlist + ResolvedScope"]
+    DTO --> PLAN_GAP["QueryPlan / E1 bounded loop: next GAP"]
+    DTO --> STORE["Immutable EvidenceStore"]
+    STORE --> CHILD["9,496 extractive child evidence"]
+    STORE --> PAGE["9,331 legacy page evidence"]
+    CHILD --> KURE["KURE-v1 1,024d child dense"]
+    CHILD --> KIWI["Kiwi 0.23.2 BM25 child"]
+    KURE --> RRF["RRF k=60 / independent budgets"]
+    KIWI --> RRF
+    RRF --> SEL["Coverage + bounded parent context"]
+    PAGE --> CONTROL["Legacy page control adapter"]
+    SEL -. "not yet wired to generator" .-> PLAN_GAP
+    CONTROL -. "A/B control" .-> PLAN_GAP
+    SAVED["129 saved answers"] --> SCORE["Provider-free deterministic scorer"]
+    SCORE --> OUT["Private replay receipt"]
 
-    class RP,CTX,CAT,AN,EVAL,DTO,SC,GUARD,FILTER,HASH,SCORE,OUT green
+    class DTO,STORE,CHILD,PAGE,KURE,KIWI,RRF,SEL,CONTROL,SCORE,OUT green
     class GEN blue
     class Q,NQ,SAVED gray
-    class GAP red
-    class CIT amber
+    class PLAN_GAP red
+    class RP,CIT amber
 
     classDef green fill:#e8f2ea,stroke:#bdd1c2,color:#1f2933,stroke-width:1.5px
     classDef blue fill:#e8f0f7,stroke:#c2d3e0,color:#1f2933,stroke-width:1.5px
