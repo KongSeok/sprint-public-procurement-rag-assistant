@@ -1,0 +1,34 @@
+# 데이터 처리
+pandas>=2.0
+
+# hwp 파싱 (hwp5txt, hwp5html CLI 제공)
+pyhwp
+
+# pdf 파싱
+PyMuPDF
+pdfplumber
+beautifulsoup4
+lxml
+
+# OCR (스캔본 pdf 대응, 시스템 tesseract + tesseract-ocr-kor 언어팩 별도 필요)
+pytesseract
+Pillow
+
+# Chunking
+langchain-text-splitters
+
+# 한국어 형태소 분석 (BM25 토크나이징)
+kiwipiepy
+
+# 검색/인덱싱
+rank_bm25
+chromadb
+
+# 임베딩 (네트워크 정상 환경에서 사용, 실패 시 자동으로 오프라인 폴백)
+sentence-transformers
+
+numpy
+scikit-learn
+
+# Generation baseline (step6) - gpt-5-mini 호출용
+openai

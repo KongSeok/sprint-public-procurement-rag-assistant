@@ -113,6 +113,24 @@ PDF/HWP + 메타데이터
 
 최종 모델은 선호가 아니라 동일한 Golden Set에서 측정한 정확도, 속도, 비용을 기준으로 선택합니다.
 
+### 현재 통합 모델
+
+현재 구현은 KURE-v1 + BM25 하이브리드 검색과 Parent-Child 컨텍스트 확장을
+공통 기반으로 사용하고, 생성기만 GPT-5 mini 또는 Local Qwen(vLLM/Ollama)으로
+교체합니다. 검색 결과는 해시 기반 근거 레코드로 저장하며 답변이 검색되지 않은
+문서를 인용했는지도 검사합니다.
+
+```bash
+# GPT-5 mini API 기준선
+python scripts/run_integrated_model.py --provider openai --query "사업 예산은?"
+
+# GCP VM의 Local Qwen
+python scripts/run_integrated_model.py --provider vllm --query "사업 예산은?"
+```
+
+세부 실행법, 최신 원본 브랜치 tip, 기능별 반영 여부는
+[`docs/integrated-pipeline.md`](docs/integrated-pipeline.md)를 참고합니다.
+
 ## 7. 평가 계획
 
 Golden Set에는 기본 사실, 참가 자격, 표 정보, 위험 조항, 문서 비교, 후속 질문, 답변 불가 유형을 고르게 포함합니다.
@@ -153,10 +171,15 @@ Golden Set에는 기본 사실, 참가 자격, 표 정보, 위험 조항, 문서
 │   ├── retrieval/        # 임베딩, 인덱싱, 검색
 │   ├── generation/       # 프롬프트 및 답변 생성
 │   └── evaluation/       # 검색·생성 성능 평가
+├── scripts/              # 파이프라인·통합 모델·평가 실행 CLI
 └── tests/                # 테스트 코드
 ```
 
 실제 디렉터리는 구현을 진행하면서 생성합니다.
+
+> `feat/rag-pipeline-and-eval`에서 위 구조에 없던 `scripts/`를 추가로 만들었습니다 — 재사용
+> 가능한 CLI 실행 스크립트(파이프라인 단계 실행, 평가/비교 실험 실행)라 `notebooks/`(ipynb 탐색용)
+> 규칙과는 맞지 않아서 임시로 최상위에 뒀습니다. 팀 구조에 맞게 이름/위치를 바꿀지는 리뷰 때 논의 부탁드립니다.
 
 ## 10. Git 협업 규칙
 
@@ -287,9 +310,11 @@ git diff --staged
 - [x] 프로젝트 기획 및 MVP 범위 정리
 - [x] README와 Git 협업 규칙 작성
 - [x] 팀원 역할 확정
-- [ ] 데이터 구조 분석 및 전처리
-- [ ] 공통 RAG 베이스라인 구현
-- [ ] Golden Set 구축
-- [ ] 검색 및 생성 성능 개선 실험
-- [ ] API 모델과 GCP 로컬 모델 비교
+- [x] 데이터 구조 분석 및 전처리 (`feat/rag-pipeline-and-eval`, `src/data_processing`)
+- [x] 공통 RAG 베이스라인 구현 (`feat/rag-pipeline-and-eval`, `src/retrieval` + `src/generation`,
+      시나리오 B: API 임베딩 비교 + KURE-v1/BM25 hybrid + gpt-5-mini)
+- [x] Golden Set 구축 (`feat/rag-pipeline-and-eval`, 공식 111건 + golden-set-v3-share 공유 lane 연동)
+- [x] 검색 및 생성 성능 개선 실험 (`feat/rag-pipeline-and-eval`, Parent-Child·임베딩 A/B·리랭커·
+      가중치 튜닝·프롬프트 개선 — 상세는 `docs/rag-pipeline-and-eval-summary.md`)
+- [ ] API 모델과 GCP 로컬 모델 비교 (시나리오 A는 아직 미착수)
 - [ ] 데모 및 최종 보고서 완성
