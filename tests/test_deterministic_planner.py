@@ -69,6 +69,15 @@ class DeterministicPlannerTests(unittest.TestCase):
     def test_followup_requires_actual_prior_citations_and_signal(self):
         request = RuntimeRequest(
             question="그 사업의 기간은?",
+            history=(
+                {
+                    "turn_id": "assistant-1",
+                    "role": "assistant",
+                    "content": "이전 답변",
+                    "cited_doc_ids": ["doc-a"],
+                    "cited_evidence_ids": ["ev-a"],
+                },
+            ),
             prior_citation_state={
                 "cited_doc_ids": ["doc-a"],
                 "cited_evidence_ids": ["ev-a"],
@@ -82,6 +91,11 @@ class DeterministicPlannerTests(unittest.TestCase):
         self.assertEqual(result.trace.matched_rule_ids, ("history.citation.v1",))
         no_state = self.planner.plan(RuntimeRequest(question="그 사업의 기간은?"))
         self.assertEqual(no_state.plan.query_type, "fact")
+        no_history = self.planner.plan(RuntimeRequest(
+            question="그 사업의 기간은?",
+            prior_citation_state=request.prior_citation_state,
+        ))
+        self.assertEqual(no_history.plan.query_type, "fact")
         unrelated = self.planner.plan(RuntimeRequest(
             question="새로운 사업 목록",
             prior_citation_state=request.prior_citation_state,

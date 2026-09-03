@@ -50,6 +50,7 @@ SCOPE_ORIGINS = frozenset(
         "user_explicit",
         "entity_resolution",
         "user_explicit+entity_resolution",
+        "user_explicit+followup_citations",
         "followup_citations",
         "metadata_filter",
         "combined",
@@ -386,6 +387,8 @@ class QueryPlan:
         object.__setattr__(self, "inherited_doc_ids", inherited)
         if not set(inherited).issubset(resolved):
             raise ValueError("inherited_doc_not_resolved")
+        if inherited and self.query_type != "follow_up":
+            raise ValueError("inherited_docs_require_followup")
         if self.scope_state not in SCOPE_STATES or self.scope_origin not in SCOPE_ORIGINS:
             raise ValueError("invalid_plan_scope")
         if (self.scope_state == "restricted") != bool(resolved):
@@ -402,9 +405,13 @@ class QueryPlan:
             raise TypeError("invalid_global_fallback")
         if self.allow_global_fallback and (
             self.scope_state == "empty"
-            or self.scope_origin in {"user_explicit", "user_explicit+entity_resolution"}
+            or self.scope_origin not in {"all", "followup_citations"}
         ):
             raise ValueError("scope_cannot_global_fallback")
+        if "followup_citations" in self.scope_origin and self.query_type != "follow_up":
+            raise ValueError("followup_scope_requires_followup")
+        if self.scope_origin == "followup_citations" and inherited != resolved:
+            raise ValueError("followup_scope_must_be_inherited")
         if self.query_type == "unknown_or_out_of_scope" and self.allow_global_fallback:
             raise ValueError("unknown_query_cannot_fallback")
         unresolved = _texts(self.unresolved_constraints, "unresolved_constraints")

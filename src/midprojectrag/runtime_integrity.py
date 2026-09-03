@@ -207,7 +207,16 @@ class ResolvedScope:
             raise IntegrityError("invalid_scope_state")
         if (self.state == "restricted") != bool(self.doc_ids):
             raise IntegrityError("inconsistent_scope_state")
-        if self.origin not in ("all", "user_explicit", "followup_citations", "metadata_filter"):
+        if self.origin not in (
+            "all",
+            "user_explicit",
+            "entity_resolution",
+            "user_explicit+entity_resolution",
+            "user_explicit+followup_citations",
+            "followup_citations",
+            "metadata_filter",
+            "combined",
+        ):
             raise IntegrityError("invalid_scope_origin")
 
     @classmethod

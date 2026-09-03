@@ -468,3 +468,21 @@ parent/child 혼합, 골든 값 의존을 검출한다. 정확한 새 파일/메
   scope state/origin/doc IDs, predicate status를 기록하고 질문/정답 본문은 복제하지 않는다.
 - EH2.2는 follow-up cited ID 상속/승인된 fallback 실행(EH2.3), compare slot 생성(EH2.4), state/action
   transition(EH2.5), retrieval controller(EH2.6)를 구현했다고 주장하지 않는다.
+
+### 16.7 Actual-citation follow-up — EH2.3
+
+- follow-up scope 후보는 `RuntimeRequest.prior_citation_state`의 cited doc/evidence뿐이다. 가장 최근의
+  실제 assistant history turn에 기록된 두 citation 배열과 정확히 일치하고, 현재 immutable
+  `EvidenceStore`에서 doc/evidence 및 evidence→doc binding이 확인돼야 한다. list/comparison doc ID,
+  resolved-entity 문자열, evaluator expected/qrels는 scope를 넓히지 않는다.
+- 사용자가 명시한 document scope는 citation 상속보다 우선한다. entity scope와 citation scope가 함께
+  있으면 교집합만 `combined`로 사용하고, 공집합은 empty로 닫는다. 순수 follow-up일 때만
+  `followup_citations` scope와 `inherited_doc_ids`를 만든다.
+- fallback은 versioned policy와 현재 `EvidenceStore`에 결합된 `PrimaryEvidenceProgress`가 검증된
+  answer-support evidence/required-slot 충족도를 판정한 뒤에만 고려한다. raw boolean, primary candidate 수,
+  distinct-doc 수는 충분성 증거로 사용하지 않는다. plan이 허용하고 검증된 primary 근거가 부족한 경우에만
+  unfiltered 검색을 정확히 한 번 실행한다. user-explicit/empty/combined scope는 global fallback을 허용하지
+  않는다. EH2.3은 이 봉인된 경계를 만들고, 의미 검증기와 slot verifier 연결은 EH2.5~EH2.6에서 완성한다.
+- 결과는 primary와 optional fallback `SearchResult`를 별도로 보존한다. trace에는 request/plan/store/policy
+  hash, scope, candidate 수, 충분성, 승인·실행 여부와 bounded reason code만 기록하며 질문·정답 본문을
+  복제하지 않는다. 검색 결과의 bundle, child granularity, evidence/doc/scope binding을 다시 검증한다.

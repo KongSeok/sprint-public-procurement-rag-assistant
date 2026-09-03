@@ -14,5 +14,14 @@ or gold document IDs. EH2.2 routing accepts only `RuntimeRequest` plus a content
 production `PlanningCatalog`; the executable planner pins the approved registry SHA,
 seals and revalidates catalog construction, enforces exact JSON array shapes, and records
 production/synthetic, source, rule, and scope provenance. Ambiguous entity resolution
-and explicit empty scope fail closed. Citation inheritance, slot state, and bounded
-controller behavior remain later leaves.
+and explicit empty scope fail closed.
+
+EH2.3 accepts follow-up authority only from the most recent assistant turn's exact
+document/evidence citation arrays after resolving them against the active immutable
+`EvidenceStore`. Explicit/entity scope is intersected with those citations and an empty
+intersection stays empty. Primary retrieval is scope- and bundle-bound. A global lookup
+may run once only when the original request was unfiltered, the option and plan both
+authorize it, and a sealed `PrimaryEvidenceProgress` derived from verified primary
+evidence is insufficient. Candidate count and caller-provided booleans are never
+sufficiency evidence; primary and fallback results remain separate. Slot state and the
+bounded controller remain later leaves.

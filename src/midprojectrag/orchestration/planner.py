@@ -16,6 +16,7 @@ from .contracts import (
     PlanEntity,
     QueryPlan,
     RuleRegistry,
+    SCOPE_ORIGINS,
 )
 
 
@@ -450,12 +451,7 @@ class PlanningTrace:
             raise ValueError("matched_rule_trace_mismatch")
         if self.scope_state not in {"unfiltered", "empty", "restricted"}:
             raise ValueError("invalid_planning_scope_state")
-        if self.scope_origin not in {
-            "all",
-            "user_explicit",
-            "entity_resolution",
-            "user_explicit+entity_resolution",
-        }:
+        if self.scope_origin not in SCOPE_ORIGINS:
             raise ValueError("invalid_planning_scope_origin")
         object.__setattr__(self, "resolved_doc_ids", _texts(self.resolved_doc_ids, "trace_doc_ids"))
         if (self.scope_state == "restricted") != bool(self.resolved_doc_ids):
@@ -533,10 +529,22 @@ class DeterministicPlanner:
     def _select_rule(self, request: RuntimeRequest, query: str):
         search = _search_form(query)
         prior = request.prior_citation_state
-        has_actual_citation = bool(
+        has_actual_citation = False
+        if (
             prior
-            and (prior["cited_doc_ids"] or prior["cited_evidence_ids"])
-        )
+            and prior["cited_doc_ids"]
+            and prior["cited_evidence_ids"]
+        ):
+            for turn in reversed(request.history):
+                if turn["role"] != "assistant":
+                    continue
+                has_actual_citation = (
+                    tuple(turn.get("cited_doc_ids", ()))
+                    == tuple(prior["cited_doc_ids"])
+                    and tuple(turn.get("cited_evidence_ids", ()))
+                    == tuple(prior["cited_evidence_ids"])
+                )
+                break
         for rule in self.registry.rules:
             if rule.source == "history_citation" and not has_actual_citation:
                 continue
@@ -669,6 +677,7 @@ class DeterministicPlanner:
             and query_type != "unknown_or_out_of_scope"
             and request.document_scope["mode"] == "all"
             and scope_state != "empty"
+            and scope_origin == "all"
         )
         plan = self.registry.make_plan(
             query_type=query_type,

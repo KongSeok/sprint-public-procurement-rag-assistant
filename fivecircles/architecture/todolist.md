@@ -66,8 +66,9 @@
 
 ### Phase 2 — 계획과 bounded 실행 (선행: EH1.G)
 
-전달 원칙(2026-09-04): 기존 `feature/visual-retrieval`을 `feat/total-integration`으로 이름 변경했다.
-이 통합 작업대에서 후속 전체 범위를 구현·검증한 뒤 `feat/local-qwen-mini131-eval`에 병합한다.
+전달 원칙(2026-09-04): VLM 직후 보존 상태는 `feat/vlm-visual-retrieval`에 유지하고, 후속 작업 브랜치는
+`feat/total-integration`으로 통일했다. 이 통합 작업대에서 전체 범위를 구현·검증한 뒤
+`feat/local-qwen-mini131-eval`에 병합한다.
 runtime은 local profile 기본·LLM provider 교체형으로 유지하며 새 브랜치를 만들거나 API를 자동 호출하지 않는다.
 
 - [x] **EH2.1** QueryPlan/budget과 versioned rule registry 구현. 닫힌 frozen/slotted DTO,
@@ -77,7 +78,11 @@ runtime은 local profile 기본·LLM provider 교체형으로 유지하며 새 �
   gold-free rule routing, entity/predicate/scope provenance, fail-closed empty/ambiguity, Korean 표현 경계를 연결했다.
   focused51·전체922 PASS; 독립 감사에서 catalog 위조·alias 겹침/모호성·DTO 변조·JSON 배열
   shape·실제 list/count/table 문장 P1을 재현해 수리한 뒤 최종 PASS.
-- [ ] **EH2.3** 실제 citation-state 기반 follow-up을 구현한다. 완료: cited doc/evidence만 상속, 부족할 때만 승인된 global fallback trace.
+- [x] **EH2.3** 실제 citation-state 기반 follow-up 구현. 최신 assistant의 실제 cited doc/evidence를
+  동일 EvidenceStore에서 재검증하고 hard scope와 교집합했다. 검증된 primary evidence progress가 부족할 때만
+  순수 citation scope에서 global fallback 1회를 허용하며 primary/fallback을 분리했다. 후보 수 기반 충분성,
+  raw bool, evaluator/provider trace 본문 유입을 차단했다. binding/retrieval 모듈을 분리했고 focused61·전체943
+  PASS, 독립 리뷰 P1 3종(scope 위조·trace body·verifier ID)을 수리한 뒤 최종 PASS.
 - [ ] **EH2.4** compare의 doc×field slot을 구현한다. 완료: candidate/verified/missing/contradicted 및 문서 coverage, 누락 slot을 감춘 조기 종료 없음.
 - [ ] **EH2.5** Belief/Progress/typed Action을 구현한다. 완료: 상태 직렬화·허용 transition·action trace 회귀.
 - [ ] **EH2.6** E0/E1 bounded controller를 연결한다. 완료: round/action/deadline/no-progress 종료, 필수 slot 확인 후 stop/partial abstain.
