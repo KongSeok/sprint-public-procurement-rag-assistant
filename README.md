@@ -183,20 +183,29 @@ experiment/chunk-size
 
 | 브랜치 | 용도 |
 | --- | --- |
-| `main` | 리뷰와 검증이 끝난 통합 코드 |
+| `main` | 최종 검증을 마친 안정 버전 |
+| `develop` | 팀원별 작업을 합치고 전체 파이프라인을 검증하는 통합 브랜치 |
 | `feat/*` | 새로운 기능 구현 |
 | `fix/*` | 오류 수정 |
 | `experiment/*` | 모델, 청킹, 임베딩, 검색 비교 실험 |
 | `docs/*` | README, 보고서, 문서 수정 |
 | `chore/*` | 설정, 의존성, 폴더 구조 등 유지보수 |
 
-`main`에는 직접 push하지 않고 작업 브랜치에서 Pull Request를 생성합니다.
+`main`과 `develop`에는 직접 push하지 않습니다. 각 팀원은 자신의 작업 브랜치에서 기능 단위 테스트를 마친 뒤 `develop`을 대상으로 Pull Request를 생성합니다. `develop`에서는 브랜치를 하나씩 병합하며 통합 테스트를 수행하고, 최종 검증이 끝난 시점에만 `develop`을 `main`으로 병합합니다.
+
+```text
+팀원별 작업 브랜치 → develop → 통합 테스트 → main
+```
+
+새 작업 브랜치는 최신 `develop`에서 생성합니다.
 
 ```bash
-git switch main
-git pull origin main
+git switch develop
+git pull origin develop
 git switch -c feat/retrieval-baseline
 ```
+
+기존에 생성된 팀원 브랜치도 작업과 테스트를 마친 뒤 `develop`을 대상으로 PR을 생성합니다. 각 브랜치가 단독으로 정상 작동하더라도 데이터 형식, 파일 경로, 함수 인터페이스, 패키지 버전이 충돌할 수 있으므로 `develop`에서 전체 실행을 다시 확인합니다.
 
 ### 커밋 메시지 규칙
 
