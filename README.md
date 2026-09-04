@@ -137,3 +137,14 @@ PYTHONPATH=src python -m midprojectrag.evaluation score \
 python -m pip install -e .
 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src python -m unittest discover -s tests -v
 ```
+
+## 작업 보고 문서
+
+`feat/total-integration` 브랜치의 팀 공유용 작업 보고서는
+[박지수 팀원 일지](<박지수 팀원 일지/README.md>) 폴더에 정리되어 있습니다.
+
+| 문서 | 범위 |
+| --- | --- |
+| [Evidence-Harness 2단계 구현 진행 보고서](<박지수 팀원 일지/2026-09-04-evidence-harness-phase2-progress-report.md>) | EH2.1부터 EH2.6.b2까지의 전체 진행 상황 |
+| [EH2.4 비교 근거 누락 방지 보고서](<박지수 팀원 일지/2026-09-04-eh24-compare-doc-field-coverage-report.md>) | 다중 문서 비교의 문서×항목 근거 추적 |
+| [EH2.6.b2 실행 경로 보안 강화 보고서](<박지수 팀원 일지/2026-09-04-eh26-b2-runtime-integrity-security-report.md>) | 실행 설정과 검색기 무결성 검증 |
