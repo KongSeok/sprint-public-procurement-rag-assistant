@@ -35,6 +35,7 @@ from .followup_retrieval import (
     bind_primary_evidence_progress,
     finalize_followup_retrieval,
     retrieve_followup_primary,
+    validate_followup_retrieval_outcome,
 )
 from .compare_slots import (
     BoundCompare,
@@ -84,6 +85,7 @@ __all__ = (
     "bind_followup",
     "finalize_followup_retrieval",
     "retrieve_followup_primary",
+    "validate_followup_retrieval_outcome",
     "BoundCompare",
     "CompareBindingTrace",
     "CompareCoverage",

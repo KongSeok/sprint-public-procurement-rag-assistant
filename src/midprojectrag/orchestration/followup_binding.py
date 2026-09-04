@@ -7,6 +7,7 @@ from hashlib import sha256
 import json
 import re
 from typing import Any
+from weakref import ReferenceType, ref
 
 from midprojectrag.evidence import EvidenceStore
 from midprojectrag.runtime_integrity import RuntimeRequest
@@ -17,6 +18,19 @@ from .planner import PlanningResult, PlanningTrace
 
 _HEX64 = re.compile(r"^[0-9a-f]{64}$")
 _BOUND_FOLLOWUP_TOKEN = object()
+_BOUND_FOLLOWUP_AUTHORITIES: dict[
+    int,
+    tuple[
+        ReferenceType[BoundFollowup],
+        str,
+        PlanningResult,
+        VerifiedCitationState,
+        FollowupBindingTrace,
+        QueryPlan,
+        PlanningTrace,
+        EvidenceStore,
+    ],
+] = {}
 
 
 def _sha256(payload: dict[str, Any]) -> str:
@@ -33,6 +47,90 @@ def _sha256(payload: dict[str, Any]) -> str:
 def _require_hash(value: str, code: str) -> None:
     if type(value) is not str or not _HEX64.fullmatch(value):
         raise ValueError(code)
+
+
+def _bound_followup_payload(bound: BoundFollowup) -> dict[str, Any]:
+    """Return the complete public payload whose exact object carries authority."""
+
+    return {
+        "planning": bound.planning.to_dict(),
+        "citations": bound.citations.to_dict(),
+        "trace": bound.trace.to_dict(),
+    }
+
+
+def _drop_bound_followup_authority(
+    identity: int, dead: ReferenceType[Any]
+) -> None:
+    current = _BOUND_FOLLOWUP_AUTHORITIES.get(identity)
+    if current is not None and current[0] is dead:
+        _BOUND_FOLLOWUP_AUTHORITIES.pop(identity, None)
+
+
+def _register_bound_followup_authority(
+    bound: BoundFollowup, *, store: EvidenceStore
+) -> None:
+    """Bind authority to one factory-issued identity and its full payload."""
+
+    identity = id(bound)
+    weak = ref(
+        bound,
+        lambda dead, identity=identity: _drop_bound_followup_authority(
+            identity, dead
+        ),
+    )
+    _BOUND_FOLLOWUP_AUTHORITIES[identity] = (
+        weak,
+        _sha256(_bound_followup_payload(bound)),
+        bound.planning,
+        bound.citations,
+        bound.trace,
+        bound.planning.plan,
+        bound.planning.trace,
+        store,
+    )
+
+
+def _require_bound_followup_authority(
+    bound: BoundFollowup, *, store: EvidenceStore | None = None
+) -> None:
+    """Require the exact factory-issued, unchanged BoundFollowup instance."""
+
+    if type(bound) is not BoundFollowup:
+        raise TypeError("bound_followup_required")
+    current = _BOUND_FOLLOWUP_AUTHORITIES.get(id(bound))
+    if current is None or current[0]() is not bound:
+        raise ValueError("bound_followup_runtime_authority_required")
+    if (
+        current[2] is not bound.planning
+        or current[3] is not bound.citations
+        or current[4] is not bound.trace
+    ):
+        raise ValueError("bound_followup_nested_identity_drift")
+    if (
+        type(bound.planning) is not PlanningResult
+        or type(bound.citations) is not VerifiedCitationState
+        or type(bound.trace) is not FollowupBindingTrace
+    ):
+        raise ValueError("bound_followup_nested_type_drift")
+    if (
+        current[5] is not bound.planning.plan
+        or current[6] is not bound.planning.trace
+    ):
+        raise ValueError("bound_followup_planning_identity_drift")
+    if (
+        type(bound.planning.plan) is not QueryPlan
+        or type(bound.planning.trace) is not PlanningTrace
+    ):
+        raise ValueError("bound_followup_planning_type_drift")
+    if store is not None and current[7] is not store:
+        raise ValueError("bound_followup_store_identity_mismatch")
+    try:
+        actual = _sha256(_bound_followup_payload(bound))
+    except (AttributeError, TypeError, ValueError) as exc:
+        raise ValueError("bound_followup_runtime_authority_drift") from exc
+    if current[1] != actual:
+        raise ValueError("bound_followup_runtime_authority_drift")
 
 
 @dataclass(frozen=True, slots=True, init=False)
@@ -213,7 +311,7 @@ class FollowupBindingTrace:
         }
 
 
-@dataclass(frozen=True, slots=True, init=False)
+@dataclass(frozen=True, slots=True, weakref_slot=True, init=False)
 class BoundFollowup:
     planning: PlanningResult
     citations: VerifiedCitationState
@@ -228,6 +326,7 @@ class BoundFollowup:
         planning: PlanningResult,
         citations: VerifiedCitationState,
         trace: FollowupBindingTrace,
+        store: EvidenceStore,
         *,
         _token: object,
     ) -> BoundFollowup:
@@ -237,10 +336,16 @@ class BoundFollowup:
         object.__setattr__(result, "planning", planning)
         object.__setattr__(result, "citations", citations)
         object.__setattr__(result, "trace", trace)
-        result._validate()
+        result._validate_payload()
+        _register_bound_followup_authority(result, store=store)
+        result._validate(store=store)
         return result
 
-    def _validate(self) -> None:
+    def _validate(self, *, store: EvidenceStore | None = None) -> None:
+        _require_bound_followup_authority(self, store=store)
+        self._validate_payload()
+
+    def _validate_payload(self) -> None:
         if type(self.planning) is not PlanningResult:
             raise TypeError("planning_result_required")
         if type(self.citations) is not VerifiedCitationState:
@@ -391,5 +496,6 @@ def bind_followup(
         PlanningResult(updated_plan, updated_trace),
         citations,
         binding_trace,
+        store,
         _token=_BOUND_FOLLOWUP_TOKEN,
     )

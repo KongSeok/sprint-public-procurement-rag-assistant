@@ -7,6 +7,7 @@ from hashlib import sha256
 import json
 import re
 from typing import Any, Protocol
+from weakref import ReferenceType, ref
 
 from midprojectrag.evidence import EvidenceStore
 from midprojectrag.retrieval import SearchResult
@@ -22,6 +23,42 @@ _PRIMARY_PROGRESS_TOKEN = object()
 _RETRIEVAL_OUTCOME_TOKEN = object()
 _SEARCH_LANES = frozenset({"rrf", "dense", "lexical", "orchestration_empty_scope"})
 _VERIFIER_IDS = frozenset({"deterministic-evidence-verifier-v1"})
+_RETRIEVAL_ATTEMPT_AUTHORITIES: dict[
+    int,
+    tuple[
+        ReferenceType[FollowupRetrievalAttempt],
+        str,
+        SearchResult,
+        ResolvedScope,
+        BoundFollowup,
+        EvidenceStore,
+    ],
+] = {}
+_PRIMARY_PROGRESS_AUTHORITIES: dict[
+    int,
+    tuple[
+        ReferenceType[PrimaryEvidenceProgress],
+        str,
+        BoundFollowup,
+        FollowupRetrievalAttempt,
+        EvidenceStore,
+        str,
+    ],
+] = {}
+_RETRIEVAL_OUTCOME_AUTHORITIES: dict[
+    int,
+    tuple[
+        ReferenceType[FollowupRetrievalOutcome],
+        str,
+        FollowupRetrievalAttempt,
+        PrimaryEvidenceProgress,
+        FollowupRetrievalAttempt | None,
+        FollowupRetrievalTrace,
+        BoundFollowup,
+        EvidenceStore,
+        str,
+    ],
+] = {}
 
 
 class ChildRetriever(Protocol):
@@ -44,6 +81,226 @@ def _sha256(payload: dict[str, Any]) -> str:
         allow_nan=False,
     )
     return sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def _drop_authority(
+    authorities: dict[int, tuple[Any, ...]],
+    identity: int,
+    dead: ReferenceType[Any],
+) -> None:
+    current = authorities.get(identity)
+    if current is not None and current[0] is dead:
+        authorities.pop(identity, None)
+
+
+def _register_attempt_authority(
+    attempt: FollowupRetrievalAttempt,
+    *,
+    bound: BoundFollowup,
+    store: EvidenceStore,
+) -> None:
+    identity = id(attempt)
+    weak = ref(
+        attempt,
+        lambda dead, identity=identity: _drop_authority(
+            _RETRIEVAL_ATTEMPT_AUTHORITIES, identity, dead
+        ),
+    )
+    _RETRIEVAL_ATTEMPT_AUTHORITIES[identity] = (
+        weak,
+        _sha256(attempt.to_dict()),
+        attempt.result,
+        attempt.scope,
+        bound,
+        store,
+    )
+
+
+def _require_attempt_authority(
+    attempt: FollowupRetrievalAttempt,
+    *,
+    bound: BoundFollowup | None = None,
+    store: EvidenceStore | None = None,
+) -> None:
+    if type(attempt) is not FollowupRetrievalAttempt:
+        raise TypeError("followup_retrieval_attempt_required")
+    current = _RETRIEVAL_ATTEMPT_AUTHORITIES.get(id(attempt))
+    if current is None or current[0]() is not attempt:
+        raise ValueError("followup_attempt_runtime_authority_required")
+    if current[2] is not attempt.result or current[3] is not attempt.scope:
+        raise ValueError("followup_attempt_nested_identity_drift")
+    if (
+        type(attempt.result) is not SearchResult
+        or type(attempt.scope) is not ResolvedScope
+    ):
+        raise ValueError("followup_attempt_nested_type_drift")
+    if bound is not None and current[4] is not bound:
+        raise ValueError("followup_attempt_bound_identity_mismatch")
+    if store is not None and current[5] is not store:
+        raise ValueError("followup_attempt_store_identity_mismatch")
+    try:
+        actual = _sha256(attempt.to_dict())
+    except (AttributeError, TypeError, ValueError) as exc:
+        raise ValueError("followup_attempt_runtime_authority_drift") from exc
+    if current[1] != actual:
+        raise ValueError("followup_attempt_runtime_authority_drift")
+
+
+def _register_progress_authority(
+    progress: PrimaryEvidenceProgress,
+    *,
+    bound: BoundFollowup,
+    primary: FollowupRetrievalAttempt,
+    store: EvidenceStore,
+    policy: FollowupEvidencePolicy,
+) -> None:
+    identity = id(progress)
+    weak = ref(
+        progress,
+        lambda dead, identity=identity: _drop_authority(
+            _PRIMARY_PROGRESS_AUTHORITIES, identity, dead
+        ),
+    )
+    _PRIMARY_PROGRESS_AUTHORITIES[identity] = (
+        weak,
+        _sha256(progress.to_dict()),
+        bound,
+        primary,
+        store,
+        policy.policy_sha256,
+    )
+
+
+def _require_progress_authority(
+    progress: PrimaryEvidenceProgress,
+    *,
+    bound: BoundFollowup | None = None,
+    primary: FollowupRetrievalAttempt | None = None,
+    store: EvidenceStore | None = None,
+    policy: FollowupEvidencePolicy | None = None,
+) -> None:
+    if type(progress) is not PrimaryEvidenceProgress:
+        raise TypeError("primary_evidence_progress_required")
+    current = _PRIMARY_PROGRESS_AUTHORITIES.get(id(progress))
+    if current is None or current[0]() is not progress:
+        raise ValueError("primary_progress_runtime_authority_required")
+    if bound is not None and current[2] is not bound:
+        raise ValueError("primary_progress_bound_identity_mismatch")
+    if primary is not None and current[3] is not primary:
+        raise ValueError("primary_progress_attempt_identity_mismatch")
+    if store is not None and current[4] is not store:
+        raise ValueError("primary_progress_store_identity_mismatch")
+    if policy is not None:
+        if type(policy) is not FollowupEvidencePolicy:
+            raise TypeError("followup_evidence_policy_required")
+        if current[5] != policy.policy_sha256:
+            raise ValueError("primary_progress_policy_authority_mismatch")
+    scalar_hash_fields = (
+        progress.request_fingerprint,
+        progress.binding_sha256,
+        progress.primary_result_sha256,
+        progress.evidence_bundle_sha256,
+        progress.policy_sha256,
+        progress.verifier_config_sha256,
+        progress.progress_sha256,
+    )
+    if any(type(value) is not str for value in scalar_hash_fields):
+        raise ValueError("primary_progress_scalar_type_drift")
+    if type(progress.verifier_id) is not str or type(progress.sufficient) is not bool:
+        raise ValueError("primary_progress_scalar_type_drift")
+    if (
+        type(progress.verified_answer_evidence_ids) is not tuple
+        or type(progress.verified_slot_evidence) is not tuple
+        or type(progress.missing_required_slot_keys) is not tuple
+        or any(type(value) is not str for value in progress.verified_answer_evidence_ids)
+        or any(type(value) is not str for value in progress.missing_required_slot_keys)
+        or any(
+            type(pair) is not tuple
+            or len(pair) != 2
+            or any(type(value) is not str for value in pair)
+            for pair in progress.verified_slot_evidence
+        )
+    ):
+        raise ValueError("primary_progress_collection_type_drift")
+    try:
+        actual = _sha256(progress.to_dict())
+    except (AttributeError, TypeError, ValueError) as exc:
+        raise ValueError("primary_progress_runtime_authority_drift") from exc
+    if current[1] != actual:
+        raise ValueError("primary_progress_runtime_authority_drift")
+
+
+def _register_outcome_authority(
+    outcome: FollowupRetrievalOutcome,
+    *,
+    bound: BoundFollowup,
+    store: EvidenceStore,
+    policy: FollowupEvidencePolicy,
+) -> None:
+    identity = id(outcome)
+    weak = ref(
+        outcome,
+        lambda dead, identity=identity: _drop_authority(
+            _RETRIEVAL_OUTCOME_AUTHORITIES, identity, dead
+        ),
+    )
+    _RETRIEVAL_OUTCOME_AUTHORITIES[identity] = (
+        weak,
+        _sha256(outcome.to_dict()),
+        outcome.primary,
+        outcome.progress,
+        outcome.fallback,
+        outcome.trace,
+        bound,
+        store,
+        policy.policy_sha256,
+    )
+
+
+def _require_outcome_authority(
+    outcome: FollowupRetrievalOutcome,
+    *,
+    bound: BoundFollowup | None = None,
+    store: EvidenceStore | None = None,
+    policy: FollowupEvidencePolicy | None = None,
+) -> None:
+    if type(outcome) is not FollowupRetrievalOutcome:
+        raise TypeError("followup_retrieval_outcome_required")
+    current = _RETRIEVAL_OUTCOME_AUTHORITIES.get(id(outcome))
+    if current is None or current[0]() is not outcome:
+        raise ValueError("followup_outcome_runtime_authority_required")
+    if (
+        current[2] is not outcome.primary
+        or current[3] is not outcome.progress
+        or current[4] is not outcome.fallback
+        or current[5] is not outcome.trace
+    ):
+        raise ValueError("followup_outcome_nested_identity_drift")
+    if (
+        type(outcome.primary) is not FollowupRetrievalAttempt
+        or type(outcome.progress) is not PrimaryEvidenceProgress
+        or (
+            outcome.fallback is not None
+            and type(outcome.fallback) is not FollowupRetrievalAttempt
+        )
+        or type(outcome.trace) is not FollowupRetrievalTrace
+    ):
+        raise ValueError("followup_outcome_nested_type_drift")
+    if bound is not None and current[6] is not bound:
+        raise ValueError("followup_outcome_bound_identity_mismatch")
+    if store is not None and current[7] is not store:
+        raise ValueError("followup_outcome_store_identity_mismatch")
+    if policy is not None:
+        if type(policy) is not FollowupEvidencePolicy:
+            raise TypeError("followup_evidence_policy_required")
+        if current[8] != policy.policy_sha256:
+            raise ValueError("followup_outcome_policy_authority_mismatch")
+    try:
+        actual = _sha256(outcome.to_dict())
+    except (AttributeError, TypeError, ValueError) as exc:
+        raise ValueError("followup_outcome_runtime_authority_drift") from exc
+    if current[1] != actual:
+        raise ValueError("followup_outcome_runtime_authority_drift")
 
 
 def _require_hash(value: str, code: str) -> None:
@@ -82,7 +339,7 @@ def _validate_bound(
         raise TypeError("evidence_store_required")
     if type(registry) is not RuleRegistry:
         raise TypeError("rule_registry_required")
-    bound._validate()
+    bound._validate(store=store)
     registry.validate_plan(bound.plan)
     if bound.citations.evidence_bundle_sha256 != store.bundle_sha256:
         raise ValueError("followup_store_binding_mismatch")
@@ -185,7 +442,7 @@ class FollowupEvidencePolicy:
         return {**self._payload(), "policy_sha256": self.policy_sha256}
 
 
-@dataclass(frozen=True, slots=True, init=False)
+@dataclass(frozen=True, slots=True, weakref_slot=True, init=False)
 class FollowupRetrievalAttempt:
     attempt_kind: str
     result: SearchResult
@@ -229,10 +486,16 @@ class FollowupRetrievalAttempt:
         attempt = object.__new__(cls)
         for name, value in values.items():
             object.__setattr__(attempt, name, value)
+        attempt._validate_payload()
+        _register_attempt_authority(attempt, bound=bound, store=store)
         attempt._validate()
         return attempt
 
     def _validate(self) -> None:
+        _require_attempt_authority(self)
+        self._validate_payload()
+
+    def _validate_payload(self) -> None:
         if self.attempt_kind not in {"primary", "global_fallback"}:
             raise ValueError("invalid_followup_attempt_kind")
         if type(self.result) is not SearchResult:
@@ -282,8 +545,7 @@ def _validate_attempt(
     bound: BoundFollowup,
     store: EvidenceStore,
 ) -> None:
-    if type(attempt) is not FollowupRetrievalAttempt:
-        raise TypeError("followup_retrieval_attempt_required")
+    _require_attempt_authority(attempt, bound=bound, store=store)
     attempt._validate()
     if attempt.attempt_kind != expected_kind:
         raise ValueError("followup_attempt_kind_mismatch")
@@ -363,7 +625,7 @@ def retrieve_followup_primary(
     )
 
 
-@dataclass(frozen=True, slots=True, init=False)
+@dataclass(frozen=True, slots=True, weakref_slot=True, init=False)
 class PrimaryEvidenceProgress:
     request_fingerprint: str
     binding_sha256: str
@@ -468,10 +730,22 @@ class PrimaryEvidenceProgress:
             ("progress_sha256", _sha256(payload)),
         ):
             object.__setattr__(result, name, value)
+        result._validate_payload(policy)
+        _register_progress_authority(
+            result,
+            bound=bound,
+            primary=primary,
+            store=store,
+            policy=policy,
+        )
         result._validate(policy)
         return result
 
     def _validate(self, policy: FollowupEvidencePolicy) -> None:
+        _require_progress_authority(self, policy=policy)
+        self._validate_payload(policy)
+
+    def _validate_payload(self, policy: FollowupEvidencePolicy) -> None:
         if type(policy) is not FollowupEvidencePolicy:
             raise TypeError("followup_evidence_policy_required")
         policy._validate()
@@ -545,7 +819,7 @@ def bind_primary_evidence_progress(
     if type(policy) is not FollowupEvidencePolicy:
         raise TypeError("followup_evidence_policy_required")
     policy._validate()
-    return PrimaryEvidenceProgress._create(
+    progress = PrimaryEvidenceProgress._create(
         bound=bound,
         primary=primary,
         store=store,
@@ -556,6 +830,14 @@ def bind_primary_evidence_progress(
         verifier_config_sha256=verifier_config_sha256,
         _token=_PRIMARY_PROGRESS_TOKEN,
     )
+    _require_progress_authority(
+        progress,
+        bound=bound,
+        primary=primary,
+        store=store,
+        policy=policy,
+    )
+    return progress
 
 
 _FOLLOWUP_REASONS = frozenset(
@@ -699,7 +981,7 @@ class FollowupRetrievalTrace:
         }
 
 
-@dataclass(frozen=True, slots=True, init=False)
+@dataclass(frozen=True, slots=True, weakref_slot=True, init=False)
 class FollowupRetrievalOutcome:
     primary: FollowupRetrievalAttempt
     progress: PrimaryEvidenceProgress
@@ -717,6 +999,9 @@ class FollowupRetrievalOutcome:
         progress: PrimaryEvidenceProgress,
         fallback: FollowupRetrievalAttempt | None,
         trace: FollowupRetrievalTrace,
+        bound: BoundFollowup,
+        store: EvidenceStore,
+        policy: FollowupEvidencePolicy,
         _token: object,
     ) -> FollowupRetrievalOutcome:
         if _token is not _RETRIEVAL_OUTCOME_TOKEN:
@@ -729,10 +1014,21 @@ class FollowupRetrievalOutcome:
             ("trace", trace),
         ):
             object.__setattr__(result, name, value)
+        result._validate_payload()
+        _register_outcome_authority(
+            result,
+            bound=bound,
+            store=store,
+            policy=policy,
+        )
         result._validate()
         return result
 
     def _validate(self) -> None:
+        _require_outcome_authority(self)
+        self._validate_payload()
+
+    def _validate_payload(self) -> None:
         if type(self.primary) is not FollowupRetrievalAttempt:
             raise TypeError("followup_primary_attempt_required")
         if type(self.progress) is not PrimaryEvidenceProgress:
@@ -759,34 +1055,8 @@ class FollowupRetrievalOutcome:
         }
 
 
-def finalize_followup_retrieval(
-    *,
-    bound: BoundFollowup,
-    primary: FollowupRetrievalAttempt,
-    progress: PrimaryEvidenceProgress,
-    store: EvidenceStore,
-    registry: RuleRegistry,
-    policy: FollowupEvidencePolicy,
-    retriever: ChildRetriever,
-) -> FollowupRetrievalOutcome:
-    """Execute at most one authorized global lookup after verified insufficiency."""
-
-    _validate_bound(bound, store, registry)
-    _validate_attempt(
-        primary, expected_kind="primary", bound=bound, store=store
-    )
-    if type(progress) is not PrimaryEvidenceProgress:
-        raise TypeError("primary_evidence_progress_required")
-    progress._validate(policy)
-    if (
-        progress.request_fingerprint != bound.trace.request_fingerprint
-        or progress.binding_sha256 != _binding_sha256(bound)
-        or progress.primary_result_sha256 != primary.result_sha256
-        or progress.evidence_bundle_sha256 != store.bundle_sha256
-    ):
-        raise ValueError("primary_progress_binding_mismatch")
-
-    fallback_authorized = bool(
+def _fallback_authorized(bound: BoundFollowup) -> bool:
+    return bool(
         bound.trace.fallback_authorized
         and bound.plan.allow_global_fallback
         and bound.trace.prior_scope_state == "unfiltered"
@@ -794,36 +1064,28 @@ def finalize_followup_retrieval(
         and bound.plan.scope_origin == "followup_citations"
         and bound.plan.scope_state == "restricted"
     )
-    fallback = None
-    if progress.sufficient:
-        reason = "primary_sufficient"
-    elif not fallback_authorized:
-        reason = "primary_insufficient_fallback_not_authorized"
-    else:
-        search = getattr(retriever, "search", None)
-        if not callable(search):
-            raise TypeError("child_retriever_required")
-        fallback_scope = ResolvedScope()
-        fallback_result = search(
-            bound.plan.normalized_query,
-            dense_k=bound.plan.dense_k,
-            lexical_k=bound.plan.lexical_k,
-            scope=fallback_scope,
-        )
-        _validate_result(fallback_result, store, allowed_doc_ids=None)
-        fallback_result = _project_result(fallback_result, store)
-        fallback = FollowupRetrievalAttempt._create(
-            attempt_kind="global_fallback",
-            result=fallback_result,
-            scope=fallback_scope,
-            bound=bound,
-            store=store,
-            retriever_called=True,
-            _token=_RETRIEVAL_ATTEMPT_TOKEN,
-        )
-        reason = "primary_insufficient_global_fallback_executed"
 
-    trace = FollowupRetrievalTrace(
+
+def _build_followup_retrieval_trace(
+    *,
+    bound: BoundFollowup,
+    primary: FollowupRetrievalAttempt,
+    progress: PrimaryEvidenceProgress,
+    fallback: FollowupRetrievalAttempt | None,
+    store: EvidenceStore,
+    policy: FollowupEvidencePolicy,
+) -> FollowupRetrievalTrace:
+    fallback_authorized = _fallback_authorized(bound)
+    reason = (
+        "primary_sufficient"
+        if progress.sufficient
+        else (
+            "primary_insufficient_global_fallback_executed"
+            if fallback_authorized
+            else "primary_insufficient_fallback_not_authorized"
+        )
+    )
+    return FollowupRetrievalTrace(
         request_fingerprint=bound.trace.request_fingerprint,
         config_sha256=bound.trace.config_sha256,
         effective_plan_sha256=bound.trace.effective_plan_sha256,
@@ -851,10 +1113,160 @@ def finalize_followup_retrieval(
         ),
         reason=reason,
     )
-    return FollowupRetrievalOutcome._create(
+
+
+def validate_followup_retrieval_outcome(
+    *,
+    bound: BoundFollowup,
+    outcome: FollowupRetrievalOutcome,
+    store: EvidenceStore,
+    registry: RuleRegistry,
+    policy: FollowupEvidencePolicy,
+) -> None:
+    """Purely validate a factory-issued outcome and its full authority chain."""
+
+    _validate_bound(bound, store, registry)
+    if type(policy) is not FollowupEvidencePolicy:
+        raise TypeError("followup_evidence_policy_required")
+    policy._validate()
+    _require_outcome_authority(
+        outcome,
+        bound=bound,
+        store=store,
+        policy=policy,
+    )
+    outcome._validate()
+    _validate_attempt(
+        outcome.primary,
+        expected_kind="primary",
+        bound=bound,
+        store=store,
+    )
+    _require_progress_authority(
+        outcome.progress,
+        bound=bound,
+        primary=outcome.primary,
+        store=store,
+        policy=policy,
+    )
+    outcome.progress._validate(policy)
+    if (
+        outcome.progress.request_fingerprint != bound.trace.request_fingerprint
+        or outcome.progress.binding_sha256 != _binding_sha256(bound)
+        or outcome.progress.primary_result_sha256
+        != outcome.primary.result_sha256
+        or outcome.progress.evidence_bundle_sha256 != store.bundle_sha256
+        or outcome.progress.policy_sha256 != policy.policy_sha256
+    ):
+        raise ValueError("primary_progress_binding_mismatch")
+
+    fallback_authorized = _fallback_authorized(bound)
+    expected_fallback = not outcome.progress.sufficient and fallback_authorized
+    if (outcome.fallback is not None) != expected_fallback:
+        raise ValueError("followup_outcome_fallback_decision_mismatch")
+    if outcome.fallback is not None:
+        _validate_attempt(
+            outcome.fallback,
+            expected_kind="global_fallback",
+            bound=bound,
+            store=store,
+        )
+
+    expected_trace = _build_followup_retrieval_trace(
+        bound=bound,
+        primary=outcome.primary,
+        progress=outcome.progress,
+        fallback=outcome.fallback,
+        store=store,
+        policy=policy,
+    )
+    if _sha256(outcome.trace.to_dict()) != _sha256(expected_trace.to_dict()):
+        raise ValueError("followup_outcome_trace_integrity_mismatch")
+
+
+def finalize_followup_retrieval(
+    *,
+    bound: BoundFollowup,
+    primary: FollowupRetrievalAttempt,
+    progress: PrimaryEvidenceProgress,
+    store: EvidenceStore,
+    registry: RuleRegistry,
+    policy: FollowupEvidencePolicy,
+    retriever: ChildRetriever,
+) -> FollowupRetrievalOutcome:
+    """Execute at most one authorized global lookup after verified insufficiency."""
+
+    _validate_bound(bound, store, registry)
+    _validate_attempt(
+        primary, expected_kind="primary", bound=bound, store=store
+    )
+    if type(policy) is not FollowupEvidencePolicy:
+        raise TypeError("followup_evidence_policy_required")
+    policy._validate()
+    _require_progress_authority(
+        progress,
+        bound=bound,
+        primary=primary,
+        store=store,
+        policy=policy,
+    )
+    progress._validate(policy)
+    if (
+        progress.request_fingerprint != bound.trace.request_fingerprint
+        or progress.binding_sha256 != _binding_sha256(bound)
+        or progress.primary_result_sha256 != primary.result_sha256
+        or progress.evidence_bundle_sha256 != store.bundle_sha256
+    ):
+        raise ValueError("primary_progress_binding_mismatch")
+
+    fallback_authorized = _fallback_authorized(bound)
+    fallback = None
+    if not progress.sufficient and fallback_authorized:
+        search = getattr(retriever, "search", None)
+        if not callable(search):
+            raise TypeError("child_retriever_required")
+        fallback_scope = ResolvedScope()
+        fallback_result = search(
+            bound.plan.normalized_query,
+            dense_k=bound.plan.dense_k,
+            lexical_k=bound.plan.lexical_k,
+            scope=fallback_scope,
+        )
+        _validate_result(fallback_result, store, allowed_doc_ids=None)
+        fallback_result = _project_result(fallback_result, store)
+        fallback = FollowupRetrievalAttempt._create(
+            attempt_kind="global_fallback",
+            result=fallback_result,
+            scope=fallback_scope,
+            bound=bound,
+            store=store,
+            retriever_called=True,
+            _token=_RETRIEVAL_ATTEMPT_TOKEN,
+        )
+
+    trace = _build_followup_retrieval_trace(
+        bound=bound,
+        primary=primary,
+        progress=progress,
+        fallback=fallback,
+        store=store,
+        policy=policy,
+    )
+    outcome = FollowupRetrievalOutcome._create(
         primary=primary,
         progress=progress,
         fallback=fallback,
         trace=trace,
+        bound=bound,
+        store=store,
+        policy=policy,
         _token=_RETRIEVAL_OUTCOME_TOKEN,
     )
+    validate_followup_retrieval_outcome(
+        bound=bound,
+        outcome=outcome,
+        store=store,
+        registry=registry,
+        policy=policy,
+    )
+    return outcome

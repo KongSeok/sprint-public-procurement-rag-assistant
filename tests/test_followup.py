@@ -9,6 +9,7 @@ from midprojectrag.orchestration import (
     FollowupEvidencePolicy,
     FollowupRetrievalAttempt,
     FollowupRetrievalOutcome,
+    FollowupRetrievalTrace,
     PlanningCatalog,
     PrimaryEvidenceProgress,
     VerifiedCitationState,
@@ -17,6 +18,7 @@ from midprojectrag.orchestration import (
     default_rule_registry,
     finalize_followup_retrieval,
     retrieve_followup_primary,
+    validate_followup_retrieval_outcome,
 )
 from midprojectrag.retrieval import Candidate, SearchResult
 from midprojectrag.runtime_integrity import EvaluationCase, RuntimeRequest, project_runtime
@@ -112,6 +114,15 @@ class _FakeRetriever:
         if isinstance(outcome, BaseException):
             raise outcome
         return outcome
+
+
+class _ToDictBomb:
+    def __init__(self):
+        self.calls = 0
+
+    def to_dict(self):
+        self.calls += 1
+        raise AssertionError("untrusted nested to_dict executed before identity rejection")
 
 
 class ActualCitationFollowupTests(unittest.TestCase):
@@ -626,6 +637,179 @@ class ActualCitationFollowupTests(unittest.TestCase):
         self.assertNotIn(bound.plan.normalized_query.lower(), trace_text)
         self.assertNotIn("reference_answer", trace_text)
         self.assertEqual(policy.policy_sha256, FollowupEvidencePolicy.v1().policy_sha256)
+
+    @staticmethod
+    def _raw_clone(value):
+        clone = object.__new__(type(value))
+        for name in value.__dataclass_fields__:
+            object.__setattr__(clone, name, getattr(value, name))
+        return clone
+
+    def test_equal_payload_attempt_clone_has_no_execution_authority(self):
+        bound = self.bind(self.request())
+        source = _FakeRetriever(_result(self.store, (self.ev_a,)))
+        primary = self._primary(bound, source)
+        clone = self._raw_clone(primary)
+        self.assertEqual(clone.to_dict(), primary.to_dict())
+        with self.assertRaisesRegex(
+            ValueError, "followup_attempt_runtime_authority_required"
+        ):
+            self._progress(bound, clone, (self.ev_a.evidence_id,))
+
+    def test_attempt_rejects_equal_result_identity_replacement(self):
+        bound = self.bind(self.request())
+        source = _FakeRetriever(_result(self.store, (self.ev_a,)))
+        primary = self._primary(bound, source)
+        replacement = SearchResult(
+            primary.result.candidates, dict(primary.result.trace)
+        )
+        self.assertEqual(replacement.to_dict(), primary.result.to_dict())
+        object.__setattr__(primary, "result", replacement)
+        with self.assertRaisesRegex(
+            ValueError, "followup_attempt_nested_identity_drift"
+        ):
+            self._progress(bound, primary, (self.ev_a.evidence_id,))
+
+    def test_attempt_nested_identity_rejects_before_untrusted_to_dict(self):
+        bound = self.bind(self.request())
+        source = _FakeRetriever(_result(self.store, (self.ev_a,)))
+        primary = self._primary(bound, source)
+        bomb = _ToDictBomb()
+        object.__setattr__(primary, "result", bomb)
+        with self.assertRaisesRegex(
+            ValueError, "followup_attempt_nested_identity_drift"
+        ):
+            self._progress(bound, primary, (self.ev_a.evidence_id,))
+        self.assertEqual(bomb.calls, 0)
+        self.assertEqual(len(source.calls), 1)
+
+    def test_attempt_is_bound_to_exact_factory_bound_and_store(self):
+        request = self.request()
+        bound_a = self.bind(request)
+        bound_b = self.bind(request)
+        self.assertEqual(bound_a.to_dict(), bound_b.to_dict())
+        source = _FakeRetriever(_result(self.store, (self.ev_a,)))
+        primary = self._primary(bound_a, source)
+        with self.assertRaisesRegex(
+            ValueError, "followup_attempt_bound_identity_mismatch"
+        ):
+            self._progress(bound_b, primary, (self.ev_a.evidence_id,))
+
+        cloned_store = EvidenceStore.from_dict(self.store.to_dict())
+        no_calls = _FakeRetriever()
+        with self.assertRaisesRegex(
+            ValueError, "bound_followup_store_identity_mismatch"
+        ):
+            retrieve_followup_primary(
+                bound=bound_a,
+                store=cloned_store,
+                registry=self.registry,
+                retriever=no_calls,
+            )
+        self.assertEqual(no_calls.calls, [])
+
+    def test_progress_clone_and_post_issuance_drift_fail_before_fallback(self):
+        bound = self.bind(self.request())
+        source = _FakeRetriever(_result(self.store, (self.ev_a,)))
+        primary = self._primary(bound, source)
+        progress = self._progress(bound, primary, (self.ev_a.evidence_id,))
+        clone = self._raw_clone(progress)
+        no_calls = _FakeRetriever()
+        with self.assertRaisesRegex(
+            ValueError, "primary_progress_runtime_authority_required"
+        ):
+            self._finalize(bound, primary, clone, no_calls)
+        self.assertEqual(no_calls.calls, [])
+
+        object.__setattr__(progress, "sufficient", False)
+        object.__setattr__(progress, "progress_sha256", "0" * 64)
+        with self.assertRaisesRegex(
+            ValueError, "primary_progress_runtime_authority_drift"
+        ):
+            self._finalize(bound, primary, progress, no_calls)
+        self.assertEqual(no_calls.calls, [])
+
+    def test_outcome_clone_and_equal_trace_replacement_are_rejected(self):
+        bound = self.bind(self.request())
+        source = _FakeRetriever(_result(self.store, (self.ev_a,)))
+        primary = self._primary(bound, source)
+        progress = self._progress(bound, primary, (self.ev_a.evidence_id,))
+        outcome = self._finalize(bound, primary, progress, source)
+        policy = FollowupEvidencePolicy.v1()
+
+        clone = self._raw_clone(outcome)
+        self.assertEqual(clone.to_dict(), outcome.to_dict())
+        with self.assertRaisesRegex(
+            ValueError, "followup_outcome_runtime_authority_required"
+        ):
+            validate_followup_retrieval_outcome(
+                bound=bound,
+                outcome=clone,
+                store=self.store,
+                registry=self.registry,
+                policy=policy,
+            )
+
+        trace_payload = outcome.trace.to_dict()
+        replacement_trace = FollowupRetrievalTrace(
+            **{key: value for key, value in trace_payload.items() if key != "schema_version"}
+        )
+        self.assertEqual(replacement_trace.to_dict(), outcome.trace.to_dict())
+        object.__setattr__(outcome, "trace", replacement_trace)
+        with self.assertRaisesRegex(
+            ValueError, "followup_outcome_nested_identity_drift"
+        ):
+            validate_followup_retrieval_outcome(
+                bound=bound,
+                outcome=outcome,
+                store=self.store,
+                registry=self.registry,
+                policy=policy,
+            )
+
+    def test_outcome_nested_identity_rejects_before_untrusted_to_dict(self):
+        bound = self.bind(self.request())
+        source = _FakeRetriever(_result(self.store, (self.ev_a,)))
+        primary = self._primary(bound, source)
+        progress = self._progress(bound, primary, (self.ev_a.evidence_id,))
+        outcome = self._finalize(bound, primary, progress, source)
+        bomb = _ToDictBomb()
+        object.__setattr__(outcome, "trace", bomb)
+        with self.assertRaisesRegex(
+            ValueError, "followup_outcome_nested_identity_drift"
+        ):
+            validate_followup_retrieval_outcome(
+                bound=bound,
+                outcome=outcome,
+                store=self.store,
+                registry=self.registry,
+                policy=FollowupEvidencePolicy.v1(),
+            )
+        self.assertEqual(bomb.calls, 0)
+        self.assertEqual(len(source.calls), 1)
+
+    def test_outcome_deep_validation_is_pure_and_authority_is_not_serialized(self):
+        bound = self.bind(self.request())
+        source = _FakeRetriever(_result(self.store, (self.ev_a,)))
+        primary = self._primary(bound, source)
+        progress = self._progress(bound, primary, (self.ev_a.evidence_id,))
+        outcome = self._finalize(bound, primary, progress, source)
+        before = len(source.calls)
+        validate_followup_retrieval_outcome(
+            bound=bound,
+            outcome=outcome,
+            store=self.store,
+            registry=self.registry,
+            policy=FollowupEvidencePolicy.v1(),
+        )
+        self.assertEqual(len(source.calls), before)
+        serialized = outcome.to_dict()
+        self.assertEqual(
+            set(serialized),
+            {"schema_version", "primary", "progress", "fallback", "trace"},
+        )
+        self.assertNotIn("authority", str(serialized).lower())
+        self.assertNotIn(str(id(outcome)), str(serialized))
 
 
 if __name__ == "__main__":

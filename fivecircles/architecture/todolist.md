@@ -89,7 +89,7 @@ runtime은 local profile 기본·LLM provider 교체형으로 유지하며 새 �
   identity를 재검증한다. focused107·전체987 PASS, 독립 리뷰 P1 수리 후 최종 PASS.
 - [ ] **EH2.5** Belief/Progress/typed Action을 구현한다. 완료: 상태 직렬화·허용 action 산출·decision-chain 회귀. 실제 state transition/action-effect receipt는 EH2.6에서 구현한다.
   - [x] **EH2.5.a** 현재 EH2.3/EH2.4와 prototype을 read-only 감사하고 pure state/action 계약을 고정한다.
-  - [ ] **EH2.5.b** follow-up bound/attempt/progress/outcome authority와 전체 hash chain을 봉인한다.
+  - [x] **EH2.5.b** follow-up bound/attempt/progress/outcome을 factory identity·전체 hash·exact bound/store chain으로 봉인했다. focused34·전체1000 PASS, side-effect-first P1 수정 후 독립 리뷰 PASS.
   - [ ] **EH2.5.c** compare/follow-up `Belief`·`Progress`·`HarnessState` projection/replay를 구현한다.
   - [ ] **EH2.5.d** closed typed action·deterministic allowed order·decision hash chain을 구현한다.
   - [ ] **EH2.5.e** adversarial focused/full 회귀와 독립 리뷰를 통과한 뒤 부모를 완료 처리한다.
