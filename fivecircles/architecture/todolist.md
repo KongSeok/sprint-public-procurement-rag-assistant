@@ -26,6 +26,20 @@
 - 기존 artifact는 불변, 새 corpus/index/trace는 private 새 namespace에만 생성한다.
   외부 모델/실측 불가는 BLOCKED 또는 unavailable로 남기며 synthetic PASS로 대체하지 않는다.
 
+### EXP-SELECT — baseline control → challenger → golden 선택 gate
+
+- [x] **EXP-SELECT.1** 기준선을 최종 구조가 아닌 immutable control로, GPT research·EvoHarness·통합안을
+  challenger hypothesis로 고정한다. 권위: `requirements/decisions.md` D-024,
+  `requirements/current.md` §1.1, `specs/assembly-on-research-and-exp.md`의 실험 목적 계약.
+- [ ] **EXP-SELECT.2** baseline/API control, local control과 각 challenger의 corpus/gold/qrels/judge/scope/
+  budget/config hash 및 사전 metric threshold를 하나의 freeze receipt로 고정한다.
+- [ ] **EXP-SELECT.3** parser→chunker→embedder→fusion→reranker→Harness 순으로 한 축씩 component ablation을
+  실행하고 retrieval 품질·효율·guardrail을 분리 기록한다. 구현 회귀 PASS를 품질 향상으로 대체하지 않는다.
+- [ ] **EXP-SELECT.4** 선택된 구성요소를 조립한 local-first challenger를 동일 frozen golden에서 baseline과
+  E2E 비교한다. 실제 provider 실행 때만 Langfuse를 opt-in하고 trace/latency/token/cost를 계측한다.
+- [ ] **EXP-SELECT.5** gate/Pareto 판정과 사람 리뷰 뒤에만 `feat/local-qwen-mini131-eval`의 기본 profile을
+  전환한다. mixed/loss면 baseline 유지; winner여도 baseline artifact와 rollback 경로를 삭제하지 않는다.
+
 ### EH-A — 시작 기준선 (완료)
 
 - [x] **EH-A.1** 현재 checkout/dirty 소유권/다른 branch와 경계를 감사한다. 근거: `feat/vlm-visual-retrieval`, `7ad229f`, 시작 tracked 수정 39개 보존.
@@ -71,6 +85,31 @@
 `feat/local-qwen-mini131-eval`에 병합한다.
 runtime은 local profile 기본·LLM provider 교체형으로 유지하며 새 브랜치를 만들거나 API를 자동 호출하지 않는다.
 
+#### EH2.EVAL — 기존 평가 Batch 2 흡수
+
+소유권: `specs/evaluation-contract.md`가 질문·split·qrels·hash의 단일 원천이다. EH Phase 2는
+평가 스키마를 복제하지 않고 실행 stage receipt만 제공한다. 리뷰:
+`../work/review/review-eval-batch2-eh2-sequencing-2026-09-04.md`.
+
+- [x] **EH2.EVAL.1 / EVAL-FOUNDATION** 공통 Schema, 누수 검사, hash, metrics와
+  `validate/score/compare` CLI가 이미 완료됐음을 확인하고 재구현 범위에서 제외한다.
+- [x] **EH2.EVAL.2 / CONTRACT-DELTA** 별도 전후 질문셋 없이 동일 qrels를 사용하고,
+  dense/lexical raw lane→fusion→rerank→final context checkpoint와 stable source/object anchor,
+  evaluator-only join 계약을 `evaluation-contract.md` §9.1 및 EH2 계약에 고정한다.
+- [x] **EH2.EVAL.3 / DEV-INVENTORY** 기존 dev40 draft·52 source-block reference의 자동 검증 완료와
+  named human 승인 0건을 확인한다. 이를 신규 40문항 작성으로 중복 계산하지 않는다.
+- [ ] **EH2.EVAL.4 / EVAL-GOLDSET** private EDA seed10을 strict evaluator schema로 변환하고
+  legacy activation/source scope를 정규화한 뒤 공식 gold 편입 여부를 named human review로 결정한다.
+  dev40도 named human 승인과 stable positive/hard-negative source anchor qrels 보강을 수행한다.
+  private source-block snapshot을 입력 권한으로 쓰는 evaluator-only `AnchorResolutionReceipt`와
+  청킹 변경 전후 동일 source-block join 회귀를 구현한다. 이 사람 작업은 EH2.6 구현과 병행하며
+  gold/expected 값은 runtime·receipt·routing에 넣지 않는다.
+- [ ] **EH2.EVAL.5 / SEALED-HOLDOUT** 이미 실행된 RAG129를 사후 held-out으로 바꾸지 않는다.
+  별도 20건의 count 계약·격리 담당을 먼저 확정한 뒤 작성·2인 교차검토·순서/hash 봉인을 수행한다.
+- [ ] **EH2.EVAL.6 / EVAL-RUN** dev/qrels 승인 전 tuning·우승 주장을 금지하고, sealed held-out은
+  최종 config 동결 뒤 EH4.10~11에서 한 번만 실행한다. EH2.G는 합성 E2E·gold injection 차단·
+  lineage·controller 종료와 Mini131 회귀만 담당한다.
+
 - [x] **EH2.1** QueryPlan/budget과 versioned rule registry 구현. 닫힌 frozen/slotted DTO,
   query-type 예산 단일 원천, registry-bound plan load/hash 검증, unresolved 명시. focused27·전체898 PASS,
   독립 리뷰 P1 2건 수리 후 재리뷰 PASS.
@@ -108,9 +147,18 @@ runtime은 local profile 기본·LLM provider 교체형으로 유지하며 새 �
       lane/verifier/reranker identity의 production/synthetic runtime authority를 구현했다. evidence/dense/lexical/
       fusion/root 진입 gate와 registry entry까지 호출 전 봉인했으며 focused104·전체1109·safety811,
       독립 P1 10건 수리 후 최종 재리뷰 PASS.
-    - [ ] **EH2.6.b3** owner-issued `RetrievalObligation`과 dense/lexical `LaneSearchReceipt`를 분리하고
-      public execution boundary에서 query/scope/budget/store/call 전 검증·exact-once 소비를 봉인한다.
-    - [ ] **EH2.6.b4** same-round `FusionReceipt`와 state 없는 E0 control receipt를 구현한다.
+    - [x] **EH2.6.b3** (선행: EH2.EVAL.2) owner-issued `RetrievalObligation`과 dense/lexical
+      `LaneSearchReceipt`를 분리하고 public execution boundary에서 query/scope/budget/store/call 전
+      검증·exact-once 소비를 봉인한다. 최초 focused36·관련186·전체1147·safety823 및 독립 리뷰를
+      통과했으나 exact code를 공유하는 copied-globals executor clone 가설을 닫기 위해 재개했다.
+      - [x] **EH2.6.b3.r1** ledger mutation은 issued executor의 exact code뿐 아니라 exact module-global
+        namespace에서 온 frame만 허용한다. copied-globals clone이 provider 호출 0회로 permit/receipt를
+        만들 수 없음을 회귀로 고정했다. b4와 함께 b3+b4 focused64·관련214·전체1175·독립 재리뷰를
+        통과해 재개 상태를 닫았다.
+    - [x] **EH2.6.b4** same-round `FusionReceipt`와 state 없는 E0 control receipt를 구현했다. visual 자리 때문에
+      stage ordinal 4를 유지하고 dense→lexical→fusion의 obligation별 순서, exact-once fusion/E0 claim,
+      post-provider child 재검증, closure-cell pin, receipt 수명과 독립적인 dual immutable history를 봉인했다.
+      focused27·b3+b4 64·관련214·전체1175 PASS, API/model/Langfuse 호출 0, 독립 최종 리뷰 PASS.
     - [ ] **EH2.6.b5** 독립 lane·lexical rescue·fact empty·호출 전 거부 focused gate를 통과한다.
   - [ ] **EH2.6.c** effect/reducer/absence transition을 구현한다.
     - [ ] **EH2.6.c1** EH2.3 verified 주장을 candidate로 낮추고 follow-up 실제 slot에 doc-matching outcome
@@ -155,7 +203,12 @@ runtime은 local profile 기본·LLM provider 교체형으로 유지하며 새 �
 - [ ] **EH4.7** retrieval/context/slot 계층 evaluator를 추가한다. 완료: Recall@1/3/5/10·MRR·nDCG·lane rescue·pre/post retention 별도 출력.
 - [ ] **EH4.8** generation/list/analytics/visual 평가를 추가한다. 완료: 결정론/semantic adapter 분리, completeness/exact 검증, 혼합 평균 금지.
 - [ ] **EH4.9** frozen corpus/gold/config의 재현 가능한 실행 receipt를 남긴다. 완료: 실제/합성/미실행 구분, old/new scorer·latency·모델 가용성 별도.
-- [ ] **EH4.G** Phase 4 gate: 통합 CLI smoke+전체 회귀+privacy/hash gate. 미실행 성능을 구현 완료에 섞지 않음.
+- [ ] **EH4.10** authoritative local page-v1 control과 단계별 challenger를 동일 frozen golden에서 paired run한다.
+  완료: 비교축 외 generator/prompt/runtime/cache 고정, 오류·누락 분모 유지, case-level delta와 quality/efficiency 분리.
+- [ ] **EH4.11** `ComparisonSelectionReceipt`를 발급한다. 완료: 사전 봉인 selection policy/hash와 hard gate에 따라
+  `selected|retain_control|no_winner`를 기록하며 retrieval 결과와 API/local generation 결과를 섞지 않는다.
+- [ ] **EH4.G** Phase 4 gate: 통합 CLI smoke+전체 회귀+privacy/hash gate+EH4.10~11. 미실행 성능을
+  구현 완료에 섞지 않고 selection receipt 없이는 기본 runtime을 바꾸지 않음.
 
 ### EH-D — 납품 체크포인트 (선행: EH4.G)
 

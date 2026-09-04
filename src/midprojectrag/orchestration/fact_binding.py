@@ -977,6 +977,75 @@ def validate_bound_fact(*, bound: BoundFact, store: EvidenceStore) -> None:
     _require_bound_fact_authority(bound, store=store)
 
 
+@dataclass(frozen=True, slots=True)
+class _FactRetrievalSource:
+    """Owner-projected in-process source for the fact retrieval obligation."""
+
+    ordinal: int
+    obligation_key: str
+    query: str
+    scope_state: str
+    scope_origin: str
+    scope_doc_ids: tuple[str, ...]
+    dense_k: int
+    lexical_k: int
+    execution_kind: str
+    evidence_bundle_sha256: str
+    source_receipt_sha256: str
+
+    def __post_init__(self) -> None:
+        if self.ordinal != 1 or self.obligation_key != "$answer_support":
+            raise ValueError("invalid_fact_retrieval_obligation")
+        if type(self.query) is not str or not self.query.strip():
+            raise ValueError("invalid_fact_retrieval_query")
+        if self.scope_state not in {"unfiltered", "restricted"}:
+            raise ValueError("invalid_fact_retrieval_scope")
+        if type(self.scope_origin) is not str or not self.scope_origin:
+            raise ValueError("invalid_fact_retrieval_scope")
+        if type(self.scope_doc_ids) is not tuple or any(
+            type(doc_id) is not str or not doc_id for doc_id in self.scope_doc_ids
+        ):
+            raise ValueError("invalid_fact_retrieval_scope")
+        if (self.scope_state == "restricted") != bool(self.scope_doc_ids):
+            raise ValueError("invalid_fact_retrieval_scope")
+        for value in (self.dense_k, self.lexical_k):
+            if type(value) is not int or value < 1:
+                raise ValueError("invalid_fact_retrieval_budget")
+        if self.execution_kind not in {"production", "synthetic"}:
+            raise ValueError("invalid_fact_retrieval_execution_kind")
+        for value in (self.evidence_bundle_sha256, self.source_receipt_sha256):
+            _require_hash(value, "invalid_fact_retrieval_hash")
+
+
+def _project_fact_retrieval_source(
+    *,
+    bound: BoundFact,
+    store: EvidenceStore,
+) -> _FactRetrievalSource:
+    """Project one ready fact query without serializing its raw question."""
+
+    validate_bound_fact(bound=bound, store=store)
+    if bound.trace.status != "ready" or bound.trace.reason != "ready":
+        raise ValueError("fact_binding_not_ready")
+    if bound.plan.metadata_predicates:
+        raise ValueError("fact_metadata_scope_receipt_required")
+    if bound.plan.query_type != "fact":
+        raise ValueError("fact_plan_required")
+    return _FactRetrievalSource(
+        ordinal=1,
+        obligation_key="$answer_support",
+        query=bound.plan.normalized_query,
+        scope_state=bound.plan.scope_state,
+        scope_origin=bound.plan.scope_origin,
+        scope_doc_ids=bound.plan.resolved_doc_ids,
+        dense_k=bound.plan.dense_k,
+        lexical_k=bound.plan.lexical_k,
+        execution_kind=bound.trace.execution_kind,
+        evidence_bundle_sha256=bound.trace.evidence_bundle_sha256,
+        source_receipt_sha256=bound.binding_sha256,
+    )
+
+
 def replay_bound_fact(
     raw: Mapping[str, Any],
     *,

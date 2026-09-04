@@ -11,7 +11,7 @@ from collections.abc import Mapping
 from typing import Any
 from weakref import ReferenceType, ref
 
-from midprojectrag.evidence import EvidenceStore
+from midprojectrag.evidence import EvidenceStore, validate_evidence_store_snapshot
 from midprojectrag.runtime_integrity import RuntimeRequest
 
 from .contracts import PlanConstraint, QueryPlan, RequiredSlot
@@ -32,6 +32,8 @@ _BOUND_COMPARE_AUTHORITIES: dict[
         CompareBindingTrace,
         QueryPlan,
         PlanningTrace,
+        EvidenceStore,
+        CompareFieldRegistry,
     ],
 ] = {}
 _COMPARE_REASONS = frozenset(
@@ -155,7 +157,12 @@ def _drop_bound_compare_authority(identity: int, dead: ReferenceType[Any]) -> No
         _BOUND_COMPARE_AUTHORITIES.pop(identity, None)
 
 
-def _register_bound_compare_authority(bound: BoundCompare) -> None:
+def _register_bound_compare_authority(
+    bound: BoundCompare,
+    *,
+    store: EvidenceStore,
+    compare_registry: CompareFieldRegistry,
+) -> None:
     """Bind authority to object identity and its complete canonical payload."""
 
     identity = id(bound)
@@ -173,10 +180,17 @@ def _register_bound_compare_authority(bound: BoundCompare) -> None:
         bound.trace,
         bound.planning.plan,
         bound.planning.trace,
+        store,
+        compare_registry,
     )
 
 
-def _require_bound_compare_authority(bound: BoundCompare) -> None:
+def _require_bound_compare_authority(
+    bound: BoundCompare,
+    *,
+    store: EvidenceStore | None = None,
+    compare_registry: CompareFieldRegistry | None = None,
+) -> None:
     """Require the exact factory-issued, unchanged BoundCompare instance."""
 
     if type(bound) is not BoundCompare:
@@ -214,6 +228,28 @@ def _require_bound_compare_authority(bound: BoundCompare) -> None:
         raise ValueError("bound_compare_runtime_authority_drift") from exc
     if current[1] != expected:
         raise ValueError("bound_compare_runtime_authority_drift")
+    if store is not None:
+        if type(store) is not EvidenceStore:
+            raise TypeError("evidence_store_required")
+        if current[7] is not store:
+            raise ValueError("bound_compare_store_identity_mismatch")
+        try:
+            validate_evidence_store_snapshot(
+                store, object.__getattribute__(bound.trace, "evidence_bundle_sha256")
+            )
+        except ValueError as exc:
+            raise ValueError("bound_compare_store_payload_drift") from exc
+    if compare_registry is not None:
+        if type(compare_registry) is not CompareFieldRegistry:
+            raise TypeError("compare_field_registry_required")
+        if current[8] is not compare_registry:
+            raise ValueError("bound_compare_registry_identity_mismatch")
+        compare_registry._validate()
+        if (
+            object.__getattribute__(compare_registry, "config_sha256")
+            != object.__getattribute__(bound.trace, "compare_config_sha256")
+        ):
+            raise ValueError("bound_compare_registry_payload_drift")
 
 
 def _closed(value: Any, fields: frozenset[str], code: str) -> Mapping[str, Any]:
@@ -809,6 +845,8 @@ class BoundCompare:
         planning: PlanningResult,
         plan: QueryPlan,
         trace: CompareBindingTrace,
+        store: EvidenceStore,
+        compare_registry: CompareFieldRegistry,
         _token: object,
     ) -> BoundCompare:
         if _token is not _BOUND_COMPARE_TOKEN:
@@ -823,7 +861,11 @@ class BoundCompare:
             _canonical_sha256(_bound_compare_payload(planning, plan, trace)),
         )
         result._validate_payload()
-        _register_bound_compare_authority(result)
+        _register_bound_compare_authority(
+            result,
+            store=store,
+            compare_registry=compare_registry,
+        )
         result._validate()
         return result
 
@@ -940,6 +982,199 @@ class BoundCompare:
         if _canonical_sha256(result.to_dict()) != _canonical_sha256(dict(value)):
             raise ValueError("bound_compare_payload_mismatch")
         return result
+
+
+@dataclass(frozen=True, slots=True)
+class _CompareRetrievalSource:
+    """Owner-projected input for one compare document-by-field obligation.
+
+    This is an in-process source projection, not an execution receipt.  The
+    execution owner consumes it immediately and never serializes ``query``.
+    """
+
+    ordinal: int
+    obligation_key: str
+    doc_id: str
+    field: str
+    query: str
+    scope_origin: str
+    dense_k: int
+    lexical_k: int
+    execution_kind: str
+    evidence_bundle_sha256: str
+    source_receipt_sha256: str
+
+    def __post_init__(self) -> None:
+        if type(self.ordinal) is not int or self.ordinal < 1:
+            raise ValueError("invalid_compare_retrieval_ordinal")
+        if any(
+            type(value) is not str or not value
+            for value in (
+                self.obligation_key,
+                self.doc_id,
+                self.field,
+                self.query,
+                self.scope_origin,
+                self.execution_kind,
+                self.evidence_bundle_sha256,
+                self.source_receipt_sha256,
+            )
+        ):
+            raise ValueError("invalid_compare_retrieval_source")
+        if self.obligation_key != f"{self.doc_id}.{self.field}":
+            raise ValueError("compare_retrieval_slot_mismatch")
+        if self.execution_kind not in {"production", "synthetic"}:
+            raise ValueError("invalid_compare_retrieval_execution_kind")
+        for value in (self.dense_k, self.lexical_k):
+            if type(value) is not int or value < 1:
+                raise ValueError("invalid_compare_retrieval_budget")
+        for value in (self.evidence_bundle_sha256, self.source_receipt_sha256):
+            if not _HEX64.fullmatch(value):
+                raise ValueError("invalid_compare_retrieval_hash")
+
+
+def validate_bound_compare(
+    *,
+    bound: BoundCompare,
+    store: EvidenceStore,
+    compare_registry: CompareFieldRegistry | None = None,
+) -> None:
+    """Require the exact owner-issued compare authority and live dependencies."""
+
+    registry = (
+        _BOUND_COMPARE_AUTHORITIES[id(bound)][8]
+        if compare_registry is None
+        else compare_registry
+    )
+    _require_bound_compare_authority(
+        bound,
+        store=store,
+        compare_registry=registry,
+    )
+    bound._validate_payload()
+
+
+def _split_compare_budget(total: int, count: int) -> tuple[int, ...]:
+    if type(total) is not int or total < 1 or type(count) is not int or count < 1:
+        raise ValueError("invalid_compare_retrieval_budget")
+    quotient, remainder = divmod(total, count)
+    if quotient < 1:
+        raise ValueError("compare_retrieval_budget_exhausted")
+    return tuple(
+        quotient + (1 if index < remainder else 0)
+        for index in range(count)
+    )
+
+
+def compare_slot_query(
+    *,
+    bound: BoundCompare,
+    slot: RequiredSlot,
+    compare_registry: CompareFieldRegistry | None = None,
+) -> str:
+    """Return the registry-owned canonical Korean query for one slot."""
+
+    _require_bound_compare_authority(bound)
+    if type(slot) is not RequiredSlot or slot not in bound.plan.required_slots:
+        raise ValueError("unknown_compare_slot_key")
+    registry = (
+        _BOUND_COMPARE_AUTHORITIES[id(bound)][8]
+        if compare_registry is None
+        else compare_registry
+    )
+    if type(registry) is not CompareFieldRegistry:
+        raise TypeError("compare_field_registry_required")
+    registry._validate()
+    if registry.config_sha256 != bound.trace.compare_config_sha256:
+        raise ValueError("bound_compare_registry_payload_drift")
+    rule = next((item for item in registry.rules if item.field == slot.field), None)
+    if rule is None or not rule.signals:
+        raise ValueError("compare_slot_field_rule_unresolved")
+    return rule.signals[0]
+
+
+def compare_slot_budget(
+    *,
+    bound: BoundCompare,
+    slot: RequiredSlot,
+) -> tuple[int, int, int, int]:
+    """Partition each lane budget across the complete doc-major slot matrix."""
+
+    _require_bound_compare_authority(bound)
+    if type(slot) is not RequiredSlot:
+        raise TypeError("compare_required_slot_required")
+    slots = bound.plan.required_slots
+    try:
+        index = slots.index(slot)
+    except ValueError as exc:
+        raise ValueError("unknown_compare_slot_key") from exc
+    count = len(slots)
+    dense_limits = _split_compare_budget(bound.plan.dense_k, count)
+    lexical_limits = _split_compare_budget(bound.plan.lexical_k, count)
+    return dense_limits[index], lexical_limits[index], index + 1, count
+
+
+def _project_compare_retrieval_sources(
+    *,
+    bound: BoundCompare,
+    store: EvidenceStore,
+    compare_registry: CompareFieldRegistry | None = None,
+) -> tuple[_CompareRetrievalSource, ...]:
+    """Project the full doc-major compare matrix without exposing gold data."""
+
+    registry = (
+        _BOUND_COMPARE_AUTHORITIES[id(bound)][8]
+        if compare_registry is None
+        else compare_registry
+    )
+    validate_bound_compare(
+        bound=bound,
+        store=store,
+        compare_registry=registry,
+    )
+    if bound.trace.status != "ready" or bound.trace.reason != "ready":
+        raise ValueError("compare_binding_not_ready")
+    slots = bound.plan.required_slots
+    if type(slots) is not tuple or not slots:
+        raise ValueError("compare_retrieval_slots_required")
+    dense_k = bound.plan.dense_k
+    lexical_k = bound.plan.lexical_k
+    if tuple(slot.key for slot in slots) != bound.trace.required_slot_keys:
+        raise ValueError("compare_slot_trace_mismatch")
+    result = []
+    for index, slot in enumerate(slots, 1):
+        dense_limit, lexical_limit, ordinal, count = compare_slot_budget(
+            bound=bound,
+            slot=slot,
+        )
+        if ordinal != index or count != len(slots):
+            raise ValueError("compare_retrieval_slot_ordinal_mismatch")
+        result.append(
+            _CompareRetrievalSource(
+                ordinal=index,
+                obligation_key=slot.key,
+                doc_id=slot.doc_id,
+                field=slot.field,
+                query=compare_slot_query(
+                    bound=bound,
+                    slot=slot,
+                    compare_registry=registry,
+                ),
+                scope_origin=bound.plan.scope_origin,
+                dense_k=dense_limit,
+                lexical_k=lexical_limit,
+                execution_kind=bound.trace.execution_kind,
+                evidence_bundle_sha256=bound.trace.evidence_bundle_sha256,
+                source_receipt_sha256=bound.binding_sha256,
+            )
+        )
+    projected = tuple(result)
+    if (
+        sum(source.dense_k for source in projected) != dense_k
+        or sum(source.lexical_k for source in projected) != lexical_k
+    ):
+        raise ValueError("compare_retrieval_budget_mismatch")
+    return projected
 
 
 def _resolved_compare_scope(
@@ -1163,5 +1398,7 @@ def prepare_compare_slots(
         planning=planning,
         plan=effective,
         trace=trace,
+        store=store,
+        compare_registry=compare_registry,
         _token=_BOUND_COMPARE_TOKEN,
     )

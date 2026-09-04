@@ -1,8 +1,27 @@
 # BidFit Evidence-Harness v1-rc0
 
+## 0. 실험 지위와 선택 계약
+
+이 계약의 구현은 기존 RAG를 곧바로 대체하기 위한 작업이 아니다. page-only baseline은 공정한 비교를
+위한 불변 control로 보존한다. 본 Evidence-Harness는 GPT retrieval 연구, EvoHarness 연구와 팀 실험을
+조립한 **challenger**이며, 검색 품질과 효율이 더 좋을 것이라는 가설을 검증하는 대상이다.
+
+- 구현·unit/full regression PASS는 기능 안전성 증거이며 성능 우승 증거가 아니다.
+- baseline과 challenger는 같은 refined98, frozen gold/qrels, judge/rubric, 질문 순서, scope, budget과
+  hash-attested config/artifact로 비교한다.
+- component ablation 뒤 조립형 A/B를 수행하고 Recall/MRR/nDCG, 필수 문서·page·object·set completeness,
+  build/query latency, RAM/VRAM, index size, token/cost, citation·abstention·error 회귀로 판단한다.
+- full golden A/B gate 전에는 default profile을 바꾸거나 “향상/최종”을 주장하지 않는다.
+- 최종 통합 대상은 `feat/local-qwen-mini131-eval`이며 generator는 local/API 교체형이다. 현재
+  `feat/total-integration`은 challenger 조립 작업대이고 API page-only 경로는 비교 control이다.
+- threshold와 non-inferiority 규칙은 run 전에 평가 config에 동결하며, 결과가 혼합되면 baseline을
+  유지하거나 품질·효율 Pareto 경계에서 가장 단순한 구성을 선택한다.
+
 ## 1. Goal
 
-현재 checkout의 page/table/visual·Mini131 기반선을 보존하면서, 사용자 질문과 대화 이력에서 출발해 무결성 검사를 거친 Evidence 기반 검색·검증·생성·평가 경로를 production modules로 조립한다.
+현재 checkout의 page/table/visual·Mini131 기반선을 control로 보존하면서, 사용자 질문과 대화 이력에서
+출발해 무결성 검사를 거친 Evidence 기반 검색·검증·생성·평가 challenger를 production modules로
+조립한다. 조립 후 동일 골든셋으로 baseline 대비 검색 품질·효율·안전성을 비교해 채택 여부를 결정한다.
 
 ## 2. Background / Current Problem
 
@@ -247,6 +266,31 @@ Table correction은 source hash와 locator binding이 검증된 provenance objec
 
 `architecture_id=bidfit-evidence-harness-v1-rc0` config는 R0~R4/E0~E1 profile과 query-type budget을 한곳에 고정한다. trace/report에는 config hash, evidence bundle hash, dense/lexical artifact hash, model revision, dimensions, chunker ID를 포함한다.
 
+### 8.11 Control / Challenger Selection Contract
+
+retrieval architecture 비교의 authoritative control은 local KURE page-v1 profile이다. API/local generator
+비교는 별도 축이며 retrieval arm의 generator·prompt·temperature·hardware/cache 조건을 중간에 바꾸지 않는다.
+각 run은 `control|challenger`와 `hypothesis|implemented_unmeasured|evaluated|selected` 상태를 명시한다.
+
+```text
+ComparisonSelectionReceipt:
+  experiment_id
+  control_architecture_id
+  challenger_architecture_id
+  corpus_hash, golden_hash, qrels_hash, split_hash
+  scoring_hash, judge_hash, rubric_hash, non_target_stack_hash
+  runtime_profile, quality_metrics, efficiency_metrics, paired_deltas
+  hard_gate_results, selection_policy_hash
+  decision = selected | retain_control | no_winner
+  reasons
+```
+
+selection policy와 threshold는 결과를 보기 전에 hash로 봉인한다. integrity/security/reproducibility hard
+gate를 모두 통과한 뒤 (a) 핵심 검색 품질이 개선되고 효율 guardrail을 지키거나, (b) 검색 품질이
+non-inferior이면서 핵심 효율 지표 하나 이상이 개선될 때만 선택할 수 있다. 임계값이 없거나 서로 Pareto
+우위가 아니면 `no_winner`로 기록한다. 누락·오류 case는 분모에서 빼지 않으며 held-out은 튜닝 종료 후 한 번만
+실행한다. research 문서, unit/full test, synthetic smoke는 measured superiority로 사용할 수 없다.
+
 ## 9. Permission / Risk Rules
 
 - private corpus, qrels, expected answer, prompt/trace 본문은 Git에 저장하지 않음
@@ -270,6 +314,10 @@ Table correction은 source hash와 locator binding이 검증된 provenance objec
 11. structured citation이 EvidenceStore 객체로 resolve된다.
 12. config/artifact identity가 trace에 남는다.
 13. scorer regression 6종과 저장 답변 재채점이 provider 없이 통과한다.
+14. baseline과 challenger가 같은 frozen corpus/gold/qrels/split/scorer/judge 및 non-target stack으로 실제 실행된다.
+15. case-level paired delta, 유효 분모, 검색 품질과 효율 지표가 분리 기록된다.
+16. `ComparisonSelectionReceipt`가 없으면 challenger는 기본 runtime을 대체하지 않고 baseline을 유지한다.
+17. retrieval architecture 결과와 API/local generator 결과를 섞어 우승을 선언하지 않는다.
 
 ## 11. Implementation Batches
 
@@ -289,9 +337,17 @@ Table correction은 source hash와 locator binding이 검증된 provenance objec
 
 ### Batch 2: E1 planner and bounded harness
 
-**Goal:** typed QueryPlan, compare/follow-up, Belief/Progress/actions와 bounded policy를 구현한다.
+**Goal:** 기존 평가 Batch 2의 남은 책임을 `EH2.EVAL`로 흡수하고, typed QueryPlan,
+compare/follow-up, Belief/Progress/actions와 bounded policy를 구현한다.
 
-**Done when:** required slots와 actual-citation inheritance가 trace에서 증명된다.
+**Evaluation ownership:** `evaluation-contract.md`가 질문·split·qrels·hash의 단일 원천이다.
+EH는 평가 Schema나 별도 전후 질문셋을 다시 만들지 않는다. `EH2.EVAL`은 완료된 평가 foundation을
+참조하고, lane→fusion→rerank→final-context checkpoint가 그 계약을 만족하도록 실행 receipt를 설계한다.
+dev 승인과 held-out 작성은 EH 구현과 병행할 수 있지만, actual paired selection과 held-out 실행은
+최종 config 동결 뒤 Batch 4에서만 수행한다.
+
+**Done when:** required slots와 actual-citation inheritance가 trace에서 증명되고, qrels가 runtime에
+유입되지 않은 채 evaluator가 단계별 receipt를 offline join할 수 있다.
 
 ### Batch 3: Specialist lanes and citations
 
@@ -303,7 +359,8 @@ Table correction은 source hash와 locator binding이 검증된 provenance objec
 
 **Goal:** identity/Qwen adapter, R0~R4/E0~E1 config, layered report를 연결한다.
 
-**Done when:** optional unavailable이 정직하게 기록되고 전체 suite·flow report가 통과한다.
+**Done when:** optional unavailable이 정직하게 기록되고 전체 suite·flow report가 통과하며, same-golden
+paired run과 `ComparisonSelectionReceipt`가 `selected|retain_control|no_winner` 중 하나를 근거와 함께 남긴다.
 
 ## 12. Test Plan
 
@@ -646,6 +703,53 @@ parent/child 혼합, 골든 값 의존을 검출한다. 정확한 새 파일/메
   loader attestation/config hash를 보존한다. query를 만들거나 외부 코드로 보내기 전에 전부 재검증하고,
   approved lane class method를 직접 호출한다. follow-up은 EH2.3 primary/허용 fallback에서 검색이 이미
   종결됐으므로 추가 retriever 호출은 0회다.
+- EH2.6.b3 구현은 `BoundFact`/`BoundCompare` owner가 재구성한 private query·scope에서만
+  `RetrievalObligation`을 발급한다. 공개 obligation/receipt에는 raw query와 qrels를 넣지 않고 query hash,
+  source receipt, exact store/config/runtime identity만 남긴다. 동일 source를 재발급하면 동일 obligation과
+  ledger를 돌려주며, 요청 graph가 사라지면 issuance/obligation/ledger/receipt authority도 weak cleanup된다.
+  ledger는 전체 obligation 순서에 대해 각 dense→lexical을 한 번씩만 소비하고 hash/revision chain을
+  전진시킨다. lane close가 발급한 일회성 permit과 closure-sealed executor gate는 issued public executor의
+  exact code와 exact module-global namespace에서 온 frame만 허용한다. 따라서 copied-globals function clone을
+  포함해 실제 public executor를 거치지 않은 direct claim/close·receipt mint와 permit 재사용을 거부한다.
+  provider error와 호출 전/후
+  contract error는 typed boundary로 분리하며 `call_performed`를 실제 경계와 결합한다. dense provider
+  failure 뒤에는 untouched lexical을 정확히 한 번만 진단 실행할 수 있고 그 뒤 종료한다.
+  copied-globals function clone도 ledger mutation을 할 수 없도록 executor의 exact code와 exact
+  module-global namespace를 함께 검사한다.
+- EH2.6.b4 구현은 평가 checkpoint의 고정 순서에서 visual lane 자리를 보존해 `FusionReceipt.stage_ordinal=4`로
+  둔다. exact same obligation/round/query/scope/store/config/runtime의 정상 dense·lexical receipt만 RRF 입력이
+  되며, 둘 중 error receipt가 있거나 역할·identity가 섞이면 fusion 호출 전에 거부한다. fusion 결과는 lane
+  candidate union, exact RRF score/order, store text evidence, scope, dense-only/lexical-only/both partition을 다시
+  검증한다. 공개 receipt에는 safe evidence ID·stable anchor·partition/hash만 남기고 `fuse_rrf`가 중첩한 raw
+  lane trace·query·qrels는 보존하지 않는다.
+- fusion 소비는 b3 lane ledger를 소급 변경하지 않고 exact ledger/obligation/lane-receipt pair에 결합된 별도
+  closure-private lock/permit로 한 번만 허용한다. 현재 obligation의 두 lane 뒤, 이전 obligation fusion이 모두
+  완료되고 다음 obligation lane이 아직 시작되지 않은 시점만 claim할 수 있다. claim·close는 issued fusion
+  executor의 exact code와 exact module-global namespace를 모두 요구하며 receipt 수명과 무관하게 ledger가
+  살아 있는 동안 replay를 거부하고 request graph 소멸 시 weak cleanup한다. 이 보장은 receipt 수명에 기대지
+  않는다. ledger 수명의 완료 이력은 현재 진행 상태와 동일 immutable tuple identity를 공유하는 별도
+  closure-private history에 함께 기록하며, 어느 한쪽만 교체·삭제되면 public fusion 전에 authority drift로
+  닫힌다. executor와 validator의 closure cell 값도 발급 시 identity로 고정해 cell 교체를 dependency drift로
+  거부한다.
+- E0 public entry는 `mode=e0_once`와 complete canonical obligation tuple을 전 obligation에 대해 첫 provider 호출
+  전에 검증하고 전체 실행을 원자적으로 claim한다. 각 obligation은 dense→lexical→fusion 뒤에만 다음
+  obligation으로 이동한다. E0 실행 중 child lane/fusion은 exact E0 executor caller만 허용해 concurrent 외부
+  소비를 차단한다. E0는 child executor·validator를 진입 시 local identity로 고정하고, 각 provider 반환 뒤
+  dependency gate와 exact child receipt type/public validator를 다시 통과한 결과만 집계한다. provider가 실행
+  중 global child executor를 교체하거나 다음 obligation lane을 이전 fusion보다 먼저 시작하려 하면 receipt를
+  발급하지 않고 fail-closed한다. dense provider error는 untouched lexical 진단을 한 번 보존하되 fusion하지 않고 error로
+  닫으며, contract/fusion error 뒤 untouched obligation은 `error/execution_terminated_before_obligation`으로
+  명시한다. `unavailable`은 스키마·집계에는 남지만 현재 필수 dense/lexical/RRF runtime에서는 합성하지 않는다.
+  aggregate에는 child receipt SHA만 선형으로 참조하며 state/decision/action/transition, semantic READY,
+  evaluator/gold/qrels 입력을 두지 않는다.
+- `LaneSearchReceipt`, `FusionReceipt`, 이후 rerank/context receipt는 `evaluation-contract.md` §9.1의
+  stage checkpoint를 구성할 수 있는 safe evidence ID·stable anchor·owner receipt/config identity를
+  보존한다. 평가 case나 qrels를 인자로 받지 않으며, evaluator는 실행 종료 뒤 private qrels를 별도로
+  join한다. text lane anchor는 evidence locator hash와 별도로 `doc_id + source_block_id` 기반의
+  chunk-invariant `source_block_anchor_sha256`를 보존한다. evaluator-only resolver만 private source-block
+  snapshot의 exact owner와 `source_locator` SHA를 대조해 canonical qrel locator hash로 해석하고
+  `AnchorResolutionReceipt`로 봉인한다. pre/post 평가를 위해 raw lane 결과를 fusion 결과나 final
+  context로 덮어쓰지 않는다.
 - action order는 obligation 순서 안에서 `retrieve_dense`, `retrieve_lexical`, `fuse`, eligible parent/table/
   figure context, `rerank`, `verify_slot` 순이다. candidate target은 evidence ID 오름차순이다. ledger에서
   성공·empty·unavailable로 이미 종결된 action은 다시 선택하지 않는다. unavailable capability는 같은

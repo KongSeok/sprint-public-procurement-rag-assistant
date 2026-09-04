@@ -5,6 +5,14 @@ from types import MappingProxyType
 from typing import Mapping
 
 
+class RetrievalProviderError(RuntimeError):
+    """Sanitized marker raised only around actual retriever provider I/O."""
+
+
+class RetrievalPostCallContractError(ValueError):
+    """Sanitized marker for a contract failure after provider I/O returned."""
+
+
 def freeze(value):
     if isinstance(value, Mapping):
         return MappingProxyType({k: freeze(v) for k, v in value.items()})

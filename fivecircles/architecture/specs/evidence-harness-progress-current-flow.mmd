@@ -1,0 +1,53 @@
+flowchart LR
+  GOLD["동결 평가 자산<br/>refined98 + golden/qrels"]
+
+  subgraph CONTROL["CONTROL · 재현 가능한 기준선"]
+    B1["page-v1<br/>9,331 chunks"]
+    B2["KURE-v1 Dense retrieval<br/>top-10 → context-5"]
+    B3["local Qwen generation<br/>Mac-equivalent provisional"]
+    B1 --> B2 --> B3
+  end
+
+  API["별도 API arm<br/>embedding/generation 비교용<br/>local control을 대체하지 않음"]
+
+  subgraph HYP["CHALLENGER 가설의 출처"]
+    R1["GPT retrieval research"]
+    R2["EvoHarness research"]
+    R3["HB · DH 팀 실험"]
+  end
+
+  subgraph BUILD["현재 feat/total-integration · EH2.6.b4"]
+    C1["EvidenceStore<br/>page parent + child"]
+    C2["KURE child + Kiwi BM25<br/>독립 retrieval lane"]
+    C3["QueryPlan · Belief/Progress<br/>config/runtime authority"]
+    C4["owner-issued obligation<br/>dense·lexical exact-once receipt"]
+    C5["same-round RRF<br/>FusionReceipt stage 4"]
+    C6["state-free E0 control<br/>fact·compare canonical order"]
+    C7["zero-dispatch integrity gates<br/>API · model · Langfuse = 0"]
+    C1 --> C2 --> C3 --> C4 --> C5 --> C6 --> C7
+  end
+
+  GAP["미완성<br/>b5 focused gate → effect/reducer → bounded E1<br/>specialist lanes → generation → E2E"]
+  SELECT["동일 golden A/B<br/>아직 미실행"]
+  LOCAL["채택 시 local-first 전달<br/>feat/local-qwen-mini131-eval"]
+
+  GOLD --> CONTROL
+  GOLD --> API
+  R1 --> C1
+  R2 --> C1
+  R3 --> C1
+  C7 --> GAP --> SELECT
+  CONTROL --> SELECT
+  SELECT -. "winner 미선정" .-> LOCAL
+
+  classDef green fill:#e8f2ea,stroke:#8eb49a,color:#1f2933,stroke-width:1.5px
+  classDef blue fill:#e8f0f7,stroke:#8fb4cf,color:#1f2933,stroke-width:1.5px
+  classDef amber fill:#fff4dc,stroke:#d8aa53,color:#1f2933,stroke-width:1.5px
+  classDef red fill:#fde9e6,stroke:#d98e84,color:#1f2933,stroke-width:1.5px
+  classDef gray fill:#eef1ed,stroke:#aab5ad,color:#1f2933,stroke-width:1.5px
+  class B1,B2,B3 green
+  class C1,C2,C3,C4,C5,C6,C7 blue
+  class GOLD gray
+  class R1,R2,R3,API amber
+  class GAP red
+  class SELECT,LOCAL amber

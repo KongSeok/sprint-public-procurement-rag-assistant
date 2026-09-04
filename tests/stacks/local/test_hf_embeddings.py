@@ -15,6 +15,7 @@ from midprojectrag.stacks.local.gcp_config import (
     KURE_PROMPT_VERSION,
 )
 from midprojectrag.stacks.local.hf_embeddings import (
+    EmbeddingPostCallContractError,
     HuggingFaceTokenCounter,
     KureEmbeddingProvider,
 )
@@ -141,7 +142,9 @@ class HuggingFaceEmbeddingTests(unittest.TestCase):
                     tokenizer=tokenizer,
                     encoder=_Encoder(vectors),
                 )
-                with self.assertRaisesRegex(ValueError, error_code):
+                with self.assertRaisesRegex(
+                    EmbeddingPostCallContractError, error_code
+                ):
                     provider.embed(["a"])
 
     def test_model_and_revision_are_exactly_allowlisted(self) -> None:

@@ -8,6 +8,7 @@ from unittest.mock import patch
 
 import midprojectrag.retrieval.kiwi_bm25 as kiwi_module
 from midprojectrag.evidence.builder import build_store
+from midprojectrag.retrieval.contracts import RetrievalPostCallContractError
 from midprojectrag.retrieval.kiwi_bm25 import (
     KiwiBM25Lane,
     KiwiTokenizer,
@@ -74,6 +75,29 @@ class KiwiBM25Tests(unittest.TestCase):
             wrong.identity = {"engine": "synthetic", "version": "2"}
             with self.assertRaises(ValueError):
                 KiwiBM25Lane.load(store, wrong, target, data_root=root)
+
+    def test_post_tokenize_contract_failure_is_typed_as_post_call(self):
+        class LateMalformedTokens:
+            identity = {"engine": "synthetic", "version": "post-call-test"}
+
+            def __init__(self):
+                self.calls = 0
+
+            def tokenize(self, text):
+                self.calls += 1
+                if self.calls <= 2:
+                    return tuple(text.lower().split())
+                return (["unhashable"],)
+
+        tokenizer = LateMalformedTokens()
+        lane = KiwiBM25Lane.build(self._store(), tokenizer)
+
+        with self.assertRaisesRegex(
+            RetrievalPostCallContractError,
+            "lexical_post_call_contract_error",
+        ):
+            lane.search("정보시스템", 1)
+        self.assertEqual(tokenizer.calls, 3)
 
     def test_real_pinned_kiwi_korean_tokenization(self):
         tokenizer = KiwiTokenizer()

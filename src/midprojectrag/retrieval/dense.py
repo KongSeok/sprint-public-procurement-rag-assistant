@@ -17,12 +17,20 @@ from midprojectrag.stacks.local.gcp_config import (
     KURE_MODEL_ID, KURE_MODEL_REVISION, KURE_DIMENSIONS, KURE_POOLING, KURE_PROMPT_VERSION,
 )
 from midprojectrag.stacks.local.hf_embeddings import (
+    EmbeddingPostCallContractError,
+    EmbeddingProviderError,
     HuggingFaceTokenCounter,
     KureEmbeddingProvider,
     _default_encoder_loader,
     _default_tokenizer_loader,
 )
-from .contracts import Candidate, SearchResult, validate_search
+from .contracts import (
+    Candidate,
+    RetrievalPostCallContractError,
+    RetrievalProviderError,
+    SearchResult,
+    validate_search,
+)
 
 try:  # Capture dependency handles before application-level monkeypatching.
     from sentence_transformers.sentence_transformer.model import (
@@ -366,13 +374,23 @@ def _initialize_pinned_provider_runtime(provider) -> tuple[object, object]:
     """Load dependency objects without exposing a user/corpus string to them."""
 
     state, counter_state = _production_provider_state(provider)
-    encoder = _ISSUED_KURE_GET_ENCODER(provider)
-    tokenizer = _ISSUED_COUNTER_GET_TOKENIZER(state["_counter"])
-    runtime = (encoder, tokenizer)
-    if state["_encoder"] is not encoder or counter_state["_tokenizer"] is not tokenizer:
-        raise ValueError("dense_production_provider_runtime_object_drift")
-    _validate_loaded_runtime_objects(runtime)
-    return runtime
+    try:
+        encoder = _ISSUED_KURE_GET_ENCODER(provider)
+        tokenizer = _ISSUED_COUNTER_GET_TOKENIZER(state["_counter"])
+    except Exception as exc:
+        raise RetrievalProviderError("dense_provider_error") from exc
+    try:
+        runtime = (encoder, tokenizer)
+        if state["_encoder"] is not encoder or counter_state["_tokenizer"] is not tokenizer:
+            raise ValueError("dense_production_provider_runtime_object_drift")
+        _validate_loaded_runtime_objects(runtime)
+        return runtime
+    except RetrievalPostCallContractError:
+        raise
+    except Exception as exc:
+        raise RetrievalPostCallContractError(
+            "dense_post_call_contract_error"
+        ) from exc
 
 
 def _digest(value) -> str:
@@ -725,35 +743,72 @@ class DenseChildLane:
             query_runtime = object.__getattribute__(runtime, "query_runtime")
             query_provider = object.__getattribute__(runtime, "query_provider")
             if all(value is None for value in query_runtime):
+                initialized_runtime = _ISSUED_INITIALIZE_PINNED_PROVIDER_RUNTIME(
+                    query_provider
+                )
                 object.__setattr__(
                     runtime,
                     "query_runtime",
-                    _ISSUED_INITIALIZE_PINNED_PROVIDER_RUNTIME(query_provider),
+                    initialized_runtime,
                 )
-                _ISSUED_REQUIRE_LOADED_DENSE_ARTIFACT(
-                    self, store, production=True
-                )
+                try:
+                    _ISSUED_REQUIRE_LOADED_DENSE_ARTIFACT(
+                        self, store, production=True
+                    )
+                except Exception as exc:
+                    raise RetrievalPostCallContractError(
+                        "dense_post_call_contract_error"
+                    ) from exc
             _ISSUED_REQUIRE_PINNED_PROVIDER_METHODS()
-            batch = _ISSUED_KURE_EMBED(query_provider, [query])
-            _ISSUED_RECORD_LOADED_DENSE_RUNTIME(self)
+            try:
+                batch = _ISSUED_KURE_EMBED(query_provider, [query])
+            except EmbeddingPostCallContractError as exc:
+                raise RetrievalPostCallContractError(
+                    "dense_post_call_contract_error"
+                ) from exc
+            except EmbeddingProviderError as exc:
+                raise RetrievalProviderError("dense_provider_error") from exc
         else:
-            batch = state["provider"].embed([query])
-        query_vector = _ISSUED_NORMALIZE(batch.vectors, 1)[0]
-        scores = state["vectors"][indices] @ query_vector
-        ranked = sorted(zip(indices, scores), key=lambda p: (-float(p[1]), rows[p[0]].evidence_id))[:limit]
-        return _ISSUED_SEARCH_RESULT(
-            tuple(
-                _ISSUED_CANDIDATE(
-                    rows[i].evidence_id,
-                    rows[i].doc_id,
-                    float(score),
-                    "dense",
-                    rank,
-                )
-                for rank, (i, score) in enumerate(ranked, 1)
-            ),
-            trace | {"encoder_calls": 1},
-        )
+            try:
+                batch = state["provider"].embed([query])
+            except RetrievalPostCallContractError:
+                raise
+            except RetrievalProviderError:
+                raise
+            except EmbeddingPostCallContractError as exc:
+                raise RetrievalPostCallContractError(
+                    "dense_post_call_contract_error"
+                ) from exc
+            except EmbeddingProviderError as exc:
+                raise RetrievalProviderError("dense_provider_error") from exc
+        try:
+            if runtime is not None:
+                _ISSUED_RECORD_LOADED_DENSE_RUNTIME(self)
+            query_vector = _ISSUED_NORMALIZE(batch.vectors, 1)[0]
+            scores = state["vectors"][indices] @ query_vector
+            ranked = sorted(
+                zip(indices, scores),
+                key=lambda p: (-float(p[1]), rows[p[0]].evidence_id),
+            )[:limit]
+            return _ISSUED_SEARCH_RESULT(
+                tuple(
+                    _ISSUED_CANDIDATE(
+                        rows[i].evidence_id,
+                        rows[i].doc_id,
+                        float(score),
+                        "dense",
+                        rank,
+                    )
+                    for rank, (i, score) in enumerate(ranked, 1)
+                ),
+                trace | {"encoder_calls": 1},
+            )
+        except RetrievalPostCallContractError:
+            raise
+        except Exception as exc:
+            raise RetrievalPostCallContractError(
+                "dense_post_call_contract_error"
+            ) from exc
 
 
 _PINNED_DENSE_SEARCH = DenseChildLane.search
@@ -1608,8 +1663,12 @@ _DENSE_PRODUCTION_OBJECT_AUTHORITY = (
     ("EvidenceStore", EvidenceStore),
     ("KureEmbeddingProvider", KureEmbeddingProvider),
     ("HuggingFaceTokenCounter", HuggingFaceTokenCounter),
+    ("EmbeddingProviderError", EmbeddingProviderError),
+    ("EmbeddingPostCallContractError", EmbeddingPostCallContractError),
     ("Candidate", Candidate),
     ("SearchResult", SearchResult),
+    ("RetrievalProviderError", RetrievalProviderError),
+    ("RetrievalPostCallContractError", RetrievalPostCallContractError),
     ("LoadedDenseArtifactAttestation", LoadedDenseArtifactAttestation),
     ("_LoadedDenseSnapshot", _LoadedDenseSnapshot),
     ("_LoadedDenseRuntime", _LoadedDenseRuntime),

@@ -17,6 +17,8 @@ from midprojectrag.runtime_integrity import ResolvedScope
 from .compare_slots import (
     BoundCompare,
     CompareFieldRegistry,
+    compare_slot_budget,
+    compare_slot_query,
     default_compare_field_registry,
 )
 from .contracts import RequiredSlot
@@ -316,16 +318,7 @@ def _slot_for_key(bound: BoundCompare, slot_key: str) -> RequiredSlot:
 
 
 def _slot_query(bound: BoundCompare, slot: RequiredSlot) -> str:
-    registry = default_compare_field_registry()
-    rule = next((item for item in registry.rules if item.field == slot.field), None)
-    if rule is None:
-        raise ValueError("compare_slot_field_rule_unresolved")
-    # The first signal is the registry-owned Korean canonical phrase.  It
-    # separates each slot's actual KURE/BM25 query without relying on an
-    # English control tag.  User compare grammar is intentionally omitted:
-    # an excluded axis ("예산은 비교하지 말고") must never negate or pollute
-    # the positive query for another slot.
-    return rule.signals[0]
+    return compare_slot_query(bound=bound, slot=slot)
 
 
 def _query_sha256(bound: BoundCompare, slot: RequiredSlot) -> str:
@@ -333,24 +326,7 @@ def _query_sha256(bound: BoundCompare, slot: RequiredSlot) -> str:
 
 
 def _slot_budget(bound: BoundCompare, slot: RequiredSlot) -> tuple[int, int, int, int]:
-    """Partition the query-level candidate budget across the complete slot matrix."""
-
-    slots = bound.plan.required_slots
-    try:
-        index = slots.index(slot)
-    except ValueError as exc:
-        raise ValueError("unknown_compare_slot_key") from exc
-    count = len(slots)
-    if count < 1:
-        raise ValueError("compare_slot_matrix_required")
-
-    def share(total: int | None) -> int:
-        if type(total) is not int or total < count:
-            raise ValueError("compare_slot_budget_too_small")
-        quotient, remainder = divmod(total, count)
-        return quotient + (1 if index < remainder else 0)
-
-    return share(bound.plan.dense_k), share(bound.plan.lexical_k), index + 1, count
+    return compare_slot_budget(bound=bound, slot=slot)
 
 
 def _validate_production_retriever(retriever: Any, store: EvidenceStore) -> None:

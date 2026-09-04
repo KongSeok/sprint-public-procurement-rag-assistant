@@ -9,7 +9,12 @@ from midprojectrag.evidence import EvidenceStore, validate_evidence_store_snapsh
 from midprojectrag.runtime_integrity import ResolvedScope
 from . import dense as _DENSE_RUNTIME_MODULE
 from . import kiwi_bm25 as _LEXICAL_RUNTIME_MODULE
-from .contracts import Candidate, SearchResult
+from .contracts import (
+    Candidate,
+    RetrievalPostCallContractError,
+    RetrievalProviderError,
+    SearchResult,
+)
 
 
 _HYBRID_PRODUCTION_BINDING = object()
@@ -91,6 +96,14 @@ _PRODUCTION_HYBRIDS: dict[
     tuple[ReferenceType[object], object, dict[str, object]],
 ] = {}
 _ISSUED_PRODUCTION_HYBRIDS = _PRODUCTION_HYBRIDS
+
+
+class HybridLaneProviderError(RuntimeError):
+    """Sanitized marker for an exception raised inside one child provider."""
+
+
+class HybridLanePostCallContractError(RuntimeError):
+    """Sanitized marker for a contract failure after a child provider call."""
 
 
 def _contract_classes_unchanged() -> bool:
@@ -776,6 +789,102 @@ class HybridChildRetriever:
             self, dict.__getitem__(namespace, "store")
         )
 
+    def search_lane(
+        self,
+        query,
+        *,
+        lane,
+        limit,
+        scope: ResolvedScope,
+    ):
+        """Execute exactly one approved child lane without fusion."""
+
+        module_namespace = globals()
+        dependency_checker = dict.get(
+            module_namespace, "_validate_fusion_entry_dependencies"
+        )
+        checker_defaults = (
+            None
+            if type(dependency_checker) is not FunctionType
+            else object.__getattribute__(dependency_checker, "__defaults__")
+        )
+        if (
+            dependency_checker
+            is not dict.get(
+                module_namespace, "_ISSUED_FUSION_ENTRY_DEPENDENCY_CHECKER"
+            )
+            or type(dependency_checker) is not FunctionType
+            or object.__getattribute__(dependency_checker, "__code__")
+            is not dict.get(
+                module_namespace,
+                "_PINNED_FUSION_ENTRY_DEPENDENCY_CHECKER_CODE",
+            )
+            or checker_defaults
+            is not dict.get(
+                module_namespace,
+                "_ISSUED_FUSION_ENTRY_DEPENDENCY_DEFAULTS",
+            )
+            or type(checker_defaults) is not tuple
+            or len(checker_defaults) != 5
+            or tuple.__getitem__(checker_defaults, 0) is not module_namespace
+            or object.__getattribute__(dependency_checker, "__kwdefaults__")
+            is not None
+        ):
+            raise ValueError("hybrid_production_entry_dependency_drift")
+        dependency_checker()
+        if type(query) is not str or not query.strip():
+            raise ValueError("invalid_hybrid_lane_query")
+        if type(lane) is not str or lane not in {"dense", "lexical"}:
+            raise ValueError("invalid_hybrid_lane")
+        if type(limit) is not int or limit < 1:
+            raise ValueError("invalid_hybrid_scope_or_budget")
+        namespace = object.__getattribute__(self, "__dict__")
+        if type(namespace) is not dict or set(namespace) != {
+            "store",
+            "dense",
+            "lexical",
+        }:
+            raise ValueError("hybrid_production_runtime_drift")
+        store = dict.__getitem__(namespace, "store")
+        lane_object = dict.__getitem__(namespace, lane)
+        production = _PINNED_PRODUCTION_HYBRID_ENTRY(self) is not None
+        if production:
+            _PINNED_REQUIRE_PRODUCTION_HYBRID(self, store)
+        scope_state, allowed_doc_ids = _PINNED_RESOLVED_SCOPE_VALUES(scope)
+        if scope_state == "empty":
+            return _PINNED_SEARCH_RESULT_CLASS(
+                (),
+                {
+                    "lane": lane,
+                    "granularity": "child",
+                    "bundle_sha256": object.__getattribute__(
+                        store, "bundle_sha256"
+                    ),
+                    "empty_scope": True,
+                    "lane_calls": 0,
+                },
+            )
+        lane_search = type.__getattribute__(type(lane_object), "__dict__").get(
+            "search"
+        )
+        if type(lane_search) is not FunctionType:
+            raise ValueError("hybrid_production_method_override")
+        try:
+            return lane_search(
+                lane_object,
+                query,
+                limit,
+                allowed_doc_ids=allowed_doc_ids,
+            )
+        except RetrievalPostCallContractError as exc:
+            raise HybridLanePostCallContractError(
+                "hybrid_lane_post_call_contract_error"
+            ) from exc
+        except RetrievalProviderError as exc:
+            raise HybridLaneProviderError("hybrid_lane_provider_error") from exc
+        except Exception:
+            raise
+
     def search(
         self,
         query,
@@ -819,51 +928,35 @@ class HybridChildRetriever:
         dependency_checker()
         namespace = object.__getattribute__(self, "__dict__")
         store = dict.__getitem__(namespace, "store")
-        dense_lane = dict.__getitem__(namespace, "dense")
-        lexical_lane = dict.__getitem__(namespace, "lexical")
-        production = _PINNED_PRODUCTION_HYBRID_ENTRY(self) is not None
-        if production:
+        if _PINNED_PRODUCTION_HYBRID_ENTRY(self) is not None:
             _PINNED_REQUIRE_PRODUCTION_HYBRID(self, store)
-        scope_state, allowed_doc_ids = _PINNED_RESOLVED_SCOPE_VALUES(scope)
         if any(type(k) is not int or k < 1 for k in (dense_k, lexical_k)):
             raise ValueError("invalid_hybrid_scope_or_budget")
-        if scope_state == "empty":
-            empty = _PINNED_SEARCH_RESULT_CLASS((), {"granularity": "child", "bundle_sha256": object.__getattribute__(store, "bundle_sha256"),
-                                      "empty_scope": True, "lane_calls": 0})
-            return _PINNED_FUSE_RRF(empty, empty, store)
-        if production:
-            dense_search = type.__getattribute__(type(dense_lane), "__dict__").get(
-                "search"
-            )
-            lexical_search = type.__getattribute__(
-                type(lexical_lane), "__dict__"
-            ).get("search")
-            if type(dense_search) is not FunctionType or type(
-                lexical_search
-            ) is not FunctionType:
-                raise ValueError("hybrid_production_method_override")
-            dense = dense_search(
-                dense_lane,
-                query,
-                dense_k,
-                allowed_doc_ids=allowed_doc_ids,
-            )
-            lexical = lexical_search(
-                lexical_lane,
-                query,
-                lexical_k,
-                allowed_doc_ids=allowed_doc_ids,
-            )
-        else:
-            dense = dense_lane.search(
-                query, dense_k, allowed_doc_ids=allowed_doc_ids
-            )
-            lexical = lexical_lane.search(
-                query, lexical_k, allowed_doc_ids=allowed_doc_ids
-            )
+        dense = _PINNED_HYBRID_SEARCH_LANE(
+            self,
+            query,
+            lane="dense",
+            limit=dense_k,
+            scope=scope,
+        )
+        lexical = _PINNED_HYBRID_SEARCH_LANE(
+            self,
+            query,
+            lane="lexical",
+            limit=lexical_k,
+            scope=scope,
+        )
         return _PINNED_FUSE_RRF(dense, lexical, store)
 
 
+_PINNED_HYBRID_SEARCH_LANE = HybridChildRetriever.search_lane
+_PINNED_HYBRID_SEARCH_LANE_CODE = HybridChildRetriever.search_lane.__code__
+_PINNED_HYBRID_SEARCH_LANE_DEFAULTS = HybridChildRetriever.search_lane.__defaults__
+_PINNED_HYBRID_SEARCH_LANE_KWDEFAULTS = (
+    None
+    if HybridChildRetriever.search_lane.__kwdefaults__ is None
+    else dict(HybridChildRetriever.search_lane.__kwdefaults__)
+)
 _PINNED_HYBRID_SEARCH = HybridChildRetriever.search
 _PINNED_HYBRID_SEARCH_CODE = HybridChildRetriever.search.__code__
 _PINNED_HYBRID_SEARCH_DEFAULTS = HybridChildRetriever.search.__defaults__
@@ -975,6 +1068,7 @@ def preflight_production_hybrid(
     if type(retriever) is not HybridChildRetriever or type(store) is not EvidenceStore:
         raise ValueError("hybrid_production_binding_required")
     class_namespace = type.__getattribute__(HybridChildRetriever, "__dict__")
+    current_search_lane = class_namespace.get("search_lane")
     current_search = class_namespace.get("search")
     current_fuse = globals().get("fuse_rrf")
     if (
@@ -1012,6 +1106,13 @@ def preflight_production_hybrid(
         is not globals().get("_ISSUED_RESOLVED_SCOPE_VALUES")
         or not _PINNED_CONTRACT_CLASSES_UNCHANGED()
         or not _PINNED_RESOLVED_SCOPE_CLASS_UNCHANGED()
+        or not _ISSUED_FUNCTION_UNCHANGED(
+            current_search_lane,
+            _PINNED_HYBRID_SEARCH_LANE,
+            _PINNED_HYBRID_SEARCH_LANE_CODE,
+            _PINNED_HYBRID_SEARCH_LANE_DEFAULTS,
+            _PINNED_HYBRID_SEARCH_LANE_KWDEFAULTS,
+        )
         or not _ISSUED_FUNCTION_UNCHANGED(
             current_search,
             _PINNED_HYBRID_SEARCH,
@@ -1402,6 +1503,10 @@ _FUSION_ENTRY_OBJECT_PINS = (
     ("EvidenceStore", _PINNED_EVIDENCE_STORE_CLASS, type),
     ("HybridProductionBinding", HybridProductionBinding, type),
     ("HybridChildRetriever", HybridChildRetriever, type),
+    ("HybridLaneProviderError", HybridLaneProviderError, type),
+    ("HybridLanePostCallContractError", HybridLanePostCallContractError, type),
+    ("RetrievalPostCallContractError", RetrievalPostCallContractError, type),
+    ("RetrievalProviderError", RetrievalProviderError, type),
     ("_HYBRID_PRODUCTION_BINDING", _HYBRID_PRODUCTION_BINDING, object),
     ("_DENSE_RUNTIME_MODULE", _DENSE_RUNTIME_MODULE, type(_DENSE_RUNTIME_MODULE)),
     (
@@ -1442,6 +1547,7 @@ _FUSION_ENTRY_CLASS_METHOD_PINS = tuple(
             type.__getattribute__(HybridChildRetriever, "__dict__")["__init__"],
         ),
         (HybridChildRetriever, "from_loaded_artifacts", _factory_function),
+        (HybridChildRetriever, "search_lane", _PINNED_HYBRID_SEARCH_LANE),
         (HybridChildRetriever, "search", _PINNED_HYBRID_SEARCH),
         (
             HybridProductionBinding,

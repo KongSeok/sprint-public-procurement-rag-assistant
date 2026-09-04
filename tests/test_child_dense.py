@@ -16,6 +16,8 @@ from midprojectrag.retrieval.dense import (
     load_dense,
     preflight_loaded_dense_artifact,
 )
+from midprojectrag.retrieval.contracts import RetrievalPostCallContractError
+from midprojectrag.stacks.local.hf_embeddings import KureEmbeddingProvider
 from tests.test_evidence_builder import chunk
 
 
@@ -66,6 +68,41 @@ class ChildDenseTests(unittest.TestCase):
                 lane.vectors.flags.writeable = True
             with self.assertRaises(FileExistsError):
                 build_dense(self.store, provider, output_dir=target, data_root=root)
+
+    def test_post_embed_contract_failure_is_typed_as_post_call(self):
+        class Tokenizer:
+            def __call__(self, _text, **_kwargs):
+                return {"input_ids": [1]}
+
+        class Encoder:
+            def __init__(self):
+                self.calls = []
+
+            def encode(self, texts, **_kwargs):
+                self.calls.append(tuple(texts))
+                return np.zeros((len(texts), 3), dtype=np.float32)
+
+        encoder = Encoder()
+        provider = KureEmbeddingProvider(
+            tokenizer=Tokenizer(),
+            encoder=encoder,
+        )
+        vectors = np.zeros((2, 1024), dtype=np.float32)
+        vectors[0, 0] = 1
+        vectors[1, 1] = 1
+        lane = DenseChildLane._from_verified(
+            self.store,
+            vectors,
+            provider,
+            artifact_sha256="a" * 64,
+        )
+
+        with self.assertRaisesRegex(
+            RetrievalPostCallContractError,
+            "dense_post_call_contract_error",
+        ):
+            lane.search("alpha", 1)
+        self.assertEqual(encoder.calls, [("alpha",)])
 
     def test_identity_dimensions_and_artifact_tampering_fail_closed(self):
         provider = FakeKure()

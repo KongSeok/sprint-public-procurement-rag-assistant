@@ -1,0 +1,58 @@
+flowchart TB
+  PURPOSE["목적<br/>baseline보다 검색 품질이 높고<br/>더 효율적인 RAG 구조 탐색"]
+  BASE["Immutable local baseline control<br/>KURE page-only Dense · fixed local generator<br/>재현/rollback 유지"]
+
+  subgraph SOURCES["Challenger hypothesis"]
+    GPT["GPT retrieval research<br/>hybrid · parent-child · reranker · visual"]
+    EVO["EvoHarness research<br/>evidence state · verify · bounded loop"]
+    TEAM["HB/DH experiments<br/>KURE · Kiwi · router · analytics"]
+  end
+
+  ISO["local-first 격리 구현<br/>versioned config + immutable artifacts<br/>generator adapter는 local/API 교체형"]
+  ABL["Component ablation<br/>parser → chunk → embedder → fusion<br/>reranker → Harness"]
+  ASM["Assembled challenger<br/>BidFit Evidence-Harness v1-rc0"]
+  GOLD["동일 frozen golden A/B<br/>같은 corpus · qrels · judge · scope · budget · order"]
+
+  subgraph METRICS["독립 측정"]
+    Q["검색 품질<br/>Recall · MRR · nDCG<br/>doc/page/object/set completeness"]
+    E["효율<br/>build/query p50·p95<br/>RAM·VRAM · index · token·cost"]
+    S["Guardrail<br/>citation · abstention<br/>error · regression"]
+  end
+
+  DEC{"사전 동결 gate / Pareto 판정"}
+  WIN["WIN<br/>local-first 기본 profile로 채택<br/>baseline rollback 유지"]
+  MIX["MIXED<br/>가장 단순한 Pareto 후보 선택<br/>또는 추가 한 축 실험"]
+  LOSE["LOSS / regression<br/>baseline 유지<br/>실패 원인만 다음 가설로"]
+
+  PURPOSE --> BASE
+  PURPOSE --> GPT
+  PURPOSE --> EVO
+  PURPOSE --> TEAM
+  GPT --> ISO
+  EVO --> ISO
+  TEAM --> ISO
+  ISO --> ABL --> ASM
+  BASE --> GOLD
+  ASM --> GOLD
+  GOLD --> Q
+  GOLD --> E
+  GOLD --> S
+  Q --> DEC
+  E --> DEC
+  S --> DEC
+  DEC -->|"gate 충족"| WIN
+  DEC -->|"trade-off"| MIX
+  DEC -->|"미달"| LOSE
+  MIX -. "새 가설" .-> ABL
+  LOSE -. "실패 유형" .-> ABL
+
+  classDef green fill:#e8f2ea,stroke:#8eb49a,color:#1f2933,stroke-width:1.5px
+  classDef blue fill:#e8f0f7,stroke:#8fb4cf,color:#1f2933,stroke-width:1.5px
+  classDef amber fill:#fff4dc,stroke:#d8aa53,color:#1f2933,stroke-width:1.5px
+  classDef red fill:#fde9e6,stroke:#d98e84,color:#1f2933,stroke-width:1.5px
+  classDef gray fill:#eef1ed,stroke:#aab5ad,color:#1f2933,stroke-width:1.5px
+  class WIN green
+  class ISO,ABL,ASM blue
+  class GPT,EVO,TEAM,DEC,MIX amber
+  class PURPOSE,BASE,GOLD,Q,E,S gray
+  class LOSE red

@@ -23,6 +23,14 @@ TokenizerLoader = Callable[..., Any]
 EncoderLoader = Callable[..., Any]
 
 
+class EmbeddingProviderError(RuntimeError):
+    """A sanitized failure raised by an actual tokenizer/encoder call."""
+
+
+class EmbeddingPostCallContractError(ValueError):
+    """A contract failure detected after tokenizer/encoder work occurred."""
+
+
 def _default_tokenizer_loader(**kwargs: Any) -> Any:
     try:
         from transformers import AutoTokenizer
@@ -102,26 +110,38 @@ class HuggingFaceTokenCounter:
     def count(self, text: str) -> int:
         if not isinstance(text, str):
             raise ValueError("invalid_counter_input")
-        payload = self._get_tokenizer()(
-            text,
-            add_special_tokens=True,
-            return_attention_mask=False,
-            return_token_type_ids=False,
-            truncation=False,
-        )
-        if not isinstance(payload, Mapping):
-            raise ValueError("tokenizer_output_invalid")
-        input_ids = payload.get("input_ids")
-        if (
-            not isinstance(input_ids, Sequence)
-            or isinstance(input_ids, (str, bytes))
-            or any(isinstance(item, Sequence) for item in input_ids)
-        ):
-            raise ValueError("tokenizer_output_invalid")
-        count = len(input_ids)
-        if count < 1:
-            raise ValueError("tokenizer_output_invalid")
-        return count
+        try:
+            payload = self._get_tokenizer()(
+                text,
+                add_special_tokens=True,
+                return_attention_mask=False,
+                return_token_type_ids=False,
+                truncation=False,
+            )
+        except (EmbeddingProviderError, EmbeddingPostCallContractError):
+            raise
+        except Exception as error:
+            raise EmbeddingProviderError("tokenizer_provider_error") from error
+        try:
+            if not isinstance(payload, Mapping):
+                raise ValueError("tokenizer_output_invalid")
+            input_ids = payload.get("input_ids")
+            if (
+                not isinstance(input_ids, Sequence)
+                or isinstance(input_ids, (str, bytes))
+                or any(isinstance(item, Sequence) for item in input_ids)
+            ):
+                raise ValueError("tokenizer_output_invalid")
+            count = len(input_ids)
+            if count < 1:
+                raise ValueError("tokenizer_output_invalid")
+            return count
+        except EmbeddingPostCallContractError:
+            raise
+        except Exception as error:
+            raise EmbeddingPostCallContractError(
+                "tokenizer_output_invalid"
+            ) from error
 
 
 class KureEmbeddingProvider:
@@ -237,23 +257,42 @@ class KureEmbeddingProvider:
         ordered_texts = list(texts)
         token_counts = [self._counter.count(text) for text in ordered_texts]
         if any(count > self.max_input_tokens for count in token_counts):
-            raise ValueError("embedding_input_token_limit_exceeded")
-        vectors = self._get_encoder().encode(
-            ordered_texts,
-            batch_size=self.batch_size,
-            convert_to_numpy=True,
-            normalize_embeddings=False,
-            prompt=self.prompt,
-            show_progress_bar=False,
-        )
-        matrix = np.asarray(vectors, dtype=np.float32)
+            raise EmbeddingPostCallContractError(
+                "embedding_input_token_limit_exceeded"
+            )
+        try:
+            vectors = self._get_encoder().encode(
+                ordered_texts,
+                batch_size=self.batch_size,
+                convert_to_numpy=True,
+                normalize_embeddings=False,
+                prompt=self.prompt,
+                show_progress_bar=False,
+            )
+        except (EmbeddingProviderError, EmbeddingPostCallContractError):
+            raise
+        except Exception as error:
+            raise EmbeddingProviderError("embedding_provider_error") from error
+        try:
+            matrix = np.asarray(vectors, dtype=np.float32)
+        except Exception as error:
+            raise EmbeddingPostCallContractError(
+                "embedding_output_invalid"
+            ) from error
         if matrix.shape != (len(ordered_texts), self.dimensions):
-            raise ValueError("embedding_shape_mismatch")
+            raise EmbeddingPostCallContractError("embedding_shape_mismatch")
         if not np.isfinite(matrix).all():
-            raise ValueError("embedding_non_finite")
+            raise EmbeddingPostCallContractError("embedding_non_finite")
         if np.any(np.linalg.norm(matrix, axis=1) == 0):
-            raise ValueError("embedding_zero_vector")
-        return EmbeddingBatch(
-            vectors=np.ascontiguousarray(matrix, dtype=np.float32),
-            input_tokens=sum(token_counts),
-        )
+            raise EmbeddingPostCallContractError("embedding_zero_vector")
+        try:
+            return EmbeddingBatch(
+                vectors=np.ascontiguousarray(matrix, dtype=np.float32),
+                input_tokens=sum(token_counts),
+            )
+        except EmbeddingPostCallContractError:
+            raise
+        except Exception as error:
+            raise EmbeddingPostCallContractError(
+                "embedding_output_invalid"
+            ) from error

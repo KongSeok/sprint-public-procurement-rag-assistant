@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'unsafe-inline'; object-src 'none'; base-uri 'none'">
+  <title>Local RAG Baseline → Evidence-Harness Challenger 평가 진행 보고서</title>
+  <style>
+    :root { color-scheme:light; --ink:#20302b; --muted:#64716c; --line:#d8e1dc; --paper:#fff; --bg:#f4f7f5; --green:#e7f2e9; --blue:#e8f0f7; --amber:#fff3d9; --red:#fbe8e5; --gray:#eef1ef; --navy:#264b3d; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.58 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    main { max-width:1220px; margin:0 auto; padding:40px 22px 64px; }
+    h1 { margin:0; font-size:32px; letter-spacing:-.04em; line-height:1.22; }
+    h2 { margin:38px 0 12px; font-size:21px; letter-spacing:-.02em; }
+    h3 { margin:24px 0 10px; font-size:17px; }
+    p { margin:8px 0; }
+    a { color:#215f8a; }
+    code { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.92em; }
+    .sub { color:var(--muted); margin-top:8px; }
+    .purpose { margin-top:24px; padding:21px 23px; border:2px solid #89af96; border-radius:16px; background:var(--green); font-size:16px; }
+    .purpose strong { display:block; margin-bottom:5px; color:#225b38; font-size:18px; }
+    .status-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin:18px 0; }
+    .card { padding:17px 18px; border:1px solid var(--line); border-radius:14px; background:var(--paper); }
+    .card .label { color:var(--muted); font-size:12px; font-weight:800; letter-spacing:.06em; }
+    .card .value { margin-top:4px; font-size:18px; font-weight:800; }
+    .card.green { background:var(--green); } .card.blue { background:var(--blue); } .card.amber { background:var(--amber); }
+    .table-wrap { overflow-x:auto; border:1px solid var(--line); border-radius:14px; background:var(--paper); }
+    table { width:100%; border-collapse:collapse; min-width:780px; }
+    th,td { padding:11px 13px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+    th { background:#edf3ef; font-size:13px; }
+    tr:last-child td { border-bottom:0; }
+    .num { font-variant-numeric:tabular-nums; white-space:nowrap; }
+    .done { color:#28613c; font-weight:800; } .todo { color:#914137; font-weight:800; }
+    .flows { display:grid; grid-template-columns:1fr; gap:18px; margin-top:16px; }
+    figure { margin:0; padding:15px; border:1px solid var(--line); border-radius:14px; background:var(--paper); }
+    figcaption { display:flex; justify-content:space-between; gap:10px; margin-bottom:10px; font-weight:800; }
+    figure img { display:block; width:100%; height:auto; object-fit:contain; background:#fff; border-radius:8px; }
+    .callout { padding:15px 17px; border-left:5px solid #d1a044; border-radius:8px; background:var(--amber); }
+    .steps { margin:0; padding-left:23px; }
+    .steps li { margin:8px 0; padding-left:4px; }
+    .legend { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0; }
+    .chip { padding:5px 9px; border:1px solid var(--line); border-radius:999px; font-size:12px; }
+    .green { background:var(--green); } .blue { background:var(--blue); } .amber { background:var(--amber); } .red { background:var(--red); } .gray { background:var(--gray); }
+    footer { margin-top:32px; color:var(--muted); font-size:13px; }
+    @media(max-width:880px){ .status-grid,.flows{grid-template-columns:1fr} figure img{height:auto;max-height:680px} h1{font-size:26px} main{padding:25px 14px 45px} }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Local RAG Baseline → Evidence-Harness Challenger 평가 진행 보고서</h1>
+  <p class="sub">2026-09-05 · 작업대 feat/total-integration · EH2.6.b4 · 최종 통합 대상 feat/local-qwen-mini131-eval</p>
+
+  <section class="purpose">
+    <strong>목적 및 고정 방침</strong>
+    기존 local KURE page-v1 RAG는 최종 구조가 아니라 비교를 위한 control이다. GPT retrieval 연구,
+    EvoHarness 연구와 통합안은 더 높은 검색 품질과 효율을 낼 것이라는 challenger 가설이다. 후보를 구현한 뒤
+    동일한 refined98·frozen golden/qrels·judge·질문 순서·예산으로 비교하고, 검색 품질·효율·안전성 실측을
+    통해 더 나은 구조를 선택한다. Golden E2E 전에는 “더 우수함·더 효율적임·최종 구조”를 선언하지 않는다.
+  </section>
+
+  <div class="status-grid">
+    <div class="card green"><div class="label">CONTROL</div><div class="value">Local B0 측정됨</div><p>Mac-equivalent provisional. 재현·rollback 기준으로 유지.</p></div>
+    <div class="card blue"><div class="label">CHALLENGER</div><div class="value">부분 구현·미측정</div><p>Evidence-Harness는 EH2.6.b4까지. 실제 E2E는 미완성.</p></div>
+    <div class="card amber"><div class="label">SELECTION</div><div class="value">Winner 미선정</div><p>동일 골든셋 paired A/B와 gate/Pareto 판정 전.</p></div>
+  </div>
+
+  <h2>지금 무엇을 쓰고 무엇을 만드는가</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>역할</th><th>대상</th><th>상태</th><th>의미</th></tr></thead>
+    <tbody>
+      <tr><td>주 비교 통제군 B0</td><td>KURE page-v1 + fixed local Qwen</td><td class="done">측정 완료·provisional</td><td>local-first retrieval 비교의 authoritative control</td></tr>
+      <tr><td>별도 API arm</td><td>OpenAI small/nano + Streamlit</td><td>호환 경로</td><td>과거 API-first 구현. local control을 대체하지 않음</td></tr>
+      <tr><td>현재 개발 대상</td><td>feat/total-integration의 Evidence-Harness</td><td class="todo">EH2.6.b4</td><td>독립 lane·RRF·state-free E0 완료, E1/생성 E2E 미완성</td></tr>
+      <tr><td>최종 전달 대상</td><td>feat/local-qwen-mini131-eval</td><td class="todo">병합·선택 전</td><td>local-first, generator는 local/API 교체형</td></tr>
+      <tr><td>채택 구조</td><td>B0 대 assembled challenger</td><td class="todo">미선정</td><td>같은 golden의 실측 결과로만 결정</td></tr>
+    </tbody>
+  </table></div>
+  <p class="callout"><strong>한 문장:</strong> 현재 비교할 때 쓰는 것은 local baseline, 현재 만드는 것은 challenger, 나중에 기본으로 쓸 것은 아직 미정이다. EH2.6.b4 과정의 API·모델·Langfuse 호출은 0회다.</p>
+
+  <h2>이전 → 현재 → 목표</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>구분</th><th>이전</th><th>현재</th><th>목표</th></tr></thead>
+    <tbody>
+      <tr><td>baseline 의미</td><td>먼저 만든 실행 경로</td><td>immutable control로 고정</td><td>공정 비교·rollback 기준</td></tr>
+      <tr><td>연구 문서</td><td>좋은 구성의 참고안</td><td>challenger hypothesis로 고정</td><td>실측에서 이긴 구성만 채택</td></tr>
+      <tr><td>구현</td><td>page-only와 분리된 실험 섬</td><td>Evidence/KURE child/Kiwi/RRF/QueryPlan/runtime authority</td><td>bounded controller·전문 lane·generation E2E</td></tr>
+      <tr><td>평가</td><td>부분 지표 혼재</td><td>구현 PASS와 성능 우승 분리</td><td>단일변수 ablation + assembled paired A/B</td></tr>
+      <tr><td>전달</td><td>API UI와 local 경로 혼재</td><td>통합 작업대와 local 전달 branch 분리</td><td>local-first 기본, API는 별도 arm</td></tr>
+      <tr><td>선택</td><td>추천 스택이 목표처럼 보임</td><td>winner 미선정</td><td>품질·효율·guardrail gate/Pareto 판정</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="legend"><span class="chip gray">동결 입력/기준</span><span class="chip green">측정된 control</span><span class="chip blue">구현된 미측정 후보</span><span class="chip amber">가설/선택 대기</span><span class="chip red">미완성 gap</span></div>
+  <section class="flows">
+    <figure><figcaption><span>현재 control·challenger 상태</span><a href="evidence-harness-progress-current-flow.mmd">Mermaid</a></figcaption><a href="evidence-harness-progress-current-flow.png"><img src="evidence-harness-progress-current-flow.png" alt="현재 local control과 challenger 상태"></a></figure>
+    <figure><figcaption><span>목표 실험·선택 흐름</span><a href="evidence-harness-progress-target-flow.mmd">Mermaid</a></figcaption><a href="evidence-harness-progress-target-flow.png"><img src="evidence-harness-progress-target-flow.png" alt="연구 가설에서 동일 골든셋 비교와 선택까지의 흐름"></a></figure>
+  </section>
+
+  <h2>같은 계층으로 정렬한 스펙</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>계층</th><th>Local B0 control</th><th>Research/EvoHarness challenger</th><th>평가 질문</th></tr></thead>
+    <tbody>
+      <tr><td>데이터</td><td>refined98 immutable</td><td>같은 snapshot</td><td>corpus/hash가 같은가?</td></tr>
+      <tr><td>파서·근거</td><td>rhwp/pypdf page source</td><td>provenance parent + block/page/bbox</td><td>정확도와 비용이 좋아지는가?</td></tr>
+      <tr><td>청킹</td><td>page-v1 · 9,331</td><td>heading/paragraph child + object</td><td>근거 recall/context 효율이 개선되는가?</td></tr>
+      <tr><td>임베딩</td><td>KURE page</td><td>KURE child; OpenAI small/Qwen3은 별도 arm</td><td>동일 qrels의 Pareto 우위는?</td></tr>
+      <tr><td>Lexical/Fusion</td><td>없음 / Dense exact</td><td>Kiwi BM25 + weighted/RRF A/B</td><td>lexical rescue·nDCG·지연 변화는?</td></tr>
+      <tr><td>Reranker</td><td>identity/no rerank</td><td>optional Qwen3 reranker</td><td>retention 이득이 p95 비용을 상쇄하는가?</td></tr>
+      <tr><td>Harness</td><td>single pass</td><td>QueryPlan·slot·coverage·bounded verify</td><td>비교/목록/후속 completeness가 좋아지는가?</td></tr>
+      <tr><td>전문 lane</td><td>분리된 catalog/analytics/visual</td><td>list·analytics·table·figure bridge</td><td>top-N·전수·표·그림 실패가 줄어드는가?</td></tr>
+      <tr><td>생성</td><td>고정 local Qwen</td><td>같은 Evidence Pack + 교체형 adapter</td><td>retrieval과 generator 효과가 분리됐는가?</td></tr>
+      <tr><td>관측</td><td>오프라인 지표</td><td>E2E에서 Langfuse opt-in</td><td>latency/token/cost가 재현 가능한가?</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>단일변수 실험군</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Arm</th><th>기준선에서 바꾸는 것</th><th>검증할 가설</th><th>현재</th></tr></thead>
+    <tbody>
+      <tr><td>B0</td><td>없음: page/KURE Dense/local generator</td><td>비교 출발점</td><td class="done">측정됨</td></tr>
+      <tr><td>R1</td><td>child evidence + KURE Dense</td><td>근거 recall/context 효율 개선</td><td>paired run 전</td></tr>
+      <tr><td>R2</td><td>R1 + Kiwi + RRF k=60</td><td>lexical rescue·다중문서 coverage 개선</td><td>paired run 전</td></tr>
+      <tr><td>R3</td><td>R2 + Qwen3 reranker</td><td>상위 evidence 순위/retention 개선</td><td>adapter·실측 전</td></tr>
+      <tr><td>H1</td><td>선택 R arm + bounded Harness</td><td>비교·목록·후속·기권 완전성 개선</td><td>controller 미완성</td></tr>
+      <tr><td>V1</td><td>선택 text arm + table/figure bridge</td><td>object recall 개선</td><td>별도 gate</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>B0 측정 출발점</h2>
+  <p>Mac Ollama/NumPy exact의 <code>mac_local_equivalent</code>. <code>official=false</code>, <code>passed=false</code>, human gold 승인 전 provisional.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>지표</th><th>B0</th><th>Challenger</th></tr></thead>
+    <tbody>
+      <tr><td>Document Recall@1 / @5 / @10</td><td class="num">0.921986 / 0.987589 / 0.991135</td><td>미측정</td></tr>
+      <tr><td>MRR@10</td><td class="num">1.000000</td><td>미측정</td></tr>
+      <tr><td>Set precision / recall / F1</td><td class="num">0.608974 / 0.692308 / 0.630769</td><td>미측정</td></tr>
+      <tr><td>Set exact / count accuracy</td><td class="num">0.538462 / 0.538462</td><td>미측정</td></tr>
+      <tr><td>Visual page / object Recall@10</td><td class="num">0.600000 / 0.000000</td><td>미측정</td></tr>
+      <tr><td>Semantic accepted / mean</td><td class="num">88/129 (0.682171) / 70.135659</td><td>미측정</td></tr>
+      <tr><td>Runtime error</td><td class="num">6/129 (0.046512)</td><td>미측정</td></tr>
+      <tr><td>Total latency p50 / p95</td><td class="num">33,405.49 / 263,840.61 ms</td><td>미측정</td></tr>
+    </tbody>
+  </table></div>
+  <p class="sub">이 값은 challenger가 넘어야 할 출발점이며 공식 GCP 성능이나 후보 우승 판정이 아니다.</p>
+
+  <h2>평가와 선택 gate</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>축</th><th>지표</th><th>판단</th></tr></thead>
+    <tbody>
+      <tr><td>검색 품질</td><td>Recall@1/3/5/10, MRR, nDCG, required-doc</td><td>정답 발견과 상위 순위를 분리</td></tr>
+      <tr><td>위치·객체</td><td>page/object recall, table/figure locator</td><td>문서만 맞는 허상 차단</td></tr>
+      <tr><td>집합</td><td>set P/R/F1, exact/count, completeness</td><td>top-N·전수 누락 검출</td></tr>
+      <tr><td>효율</td><td>build/query p50·p95, RAM/VRAM, index, token/cost, actions</td><td>품질 동률이면 작은 구성 선택</td></tr>
+      <tr><td>안전성</td><td>citation, abstention, error, regression</td><td>품질과 환각·오류 trade-off 차단</td></tr>
+    </tbody>
+  </table></div>
+  <p>threshold/non-inferiority는 결과를 보기 전에 hash로 봉인한다. hard gate를 통과하고 품질 개선+효율 guardrail, 또는 품질 non-inferior+핵심 효율 개선일 때만 채택한다. 서로 Pareto 우위가 없으면 <code>no_winner</code>로 baseline을 유지한다.</p>
+
+  <h2>완료와 남은 gap</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>상태</th><th>항목</th><th>판정</th><th>다음</th></tr></thead>
+    <tbody>
+      <tr><td class="done">DONE</td><td>baseline·계보 보존</td><td>local B0와 API arm 분리</td><td>비교 때 재현</td></tr>
+      <tr><td class="done">DONE</td><td>challenger 골격·권한</td><td>Evidence/KURE/Kiwi/RRF/QueryPlan/runtime authority</td><td>회귀 유지</td></tr>
+      <tr><td class="done">DONE</td><td>E0 retrieval execution</td><td>owner obligation → dense → lexical → same-round RRF, exact-once aggregate</td><td>EH2.6.b5 focused gate</td></tr>
+      <tr><td class="todo">NOT DONE</td><td>state/terminal</td><td>effect/reducer/bounded controller 없음</td><td>EH2.6.c~e</td></tr>
+      <tr><td class="todo">NOT DONE</td><td>specialist E2E</td><td>analytics/list/table/figure controller 밖</td><td>EH3</td></tr>
+      <tr><td class="todo">NOT DONE</td><td>generation/evaluator</td><td>adapter/CLI/layer evaluator 미완성</td><td>EH4</td></tr>
+      <tr><td class="todo">NOT DONE</td><td>same-golden selection</td><td>freeze receipt·paired A/B·winner 없음</td><td>EXP-SELECT.2~5</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>다음 실행 순서</h2>
+  <ol class="steps">
+    <li>EH2.6.b5 focused gate를 닫은 뒤 effect/reducer → bounded E1 controller를 완성한다.</li>
+    <li>EH3의 catalog/analytics/list/table/figure를 같은 Evidence contract에 연결한다.</li>
+    <li>EH4의 reranker, local/API generator adapter, CLI와 계층별 evaluator를 완성한다.</li>
+    <li>공통 hash·budget·metric threshold를 동결하고 B0→R1→R2→R3→H1→V1 paired ablation을 실행한다.</li>
+    <li>assembled challenger를 full golden에서 비교하고 selection receipt와 사람 리뷰 뒤에만 local 기본 profile을 전환한다.</li>
+  </ol>
+
+  <h2>엔지니어링 검증</h2>
+  <p>EH2.6.b4 focused 27/27 · b3+b4 64/64 · 관련 회귀 214/214 · 전체 1,175/1,175 PASS. 이는 구현 무결성 결과이며 retrieval 성능 향상 수치가 아니다.</p>
+  <p>API·모델·Langfuse 호출 0회. 갱신 Mermaid PNG 2개 직접 검사, HTML headless Chrome 1440×1100 렌더, repository safety 828 files PASS.</p>
+  <footer>권위: requirements/decisions.md D-024 → requirements/current.md §1.1 → assembly-on-research-and-exp.md → bidfit-evidence-harness-v1-rc0.md. Langfuse는 실제 E2E 측정 수단이며 검색 성능 구성요소가 아니다.</footer>
+</main>
+</body>
+</html>

@@ -15,7 +15,15 @@ from weakref import ReferenceType, ref
 
 from midprojectrag.evidence import EvidenceStore, validate_evidence_store_snapshot
 from midprojectrag.evidence.artifacts import file_sha, private_path, write_new_json
-from .contracts import Candidate, SearchResult, freeze, thaw, validate_search
+from .contracts import (
+    Candidate,
+    RetrievalPostCallContractError,
+    RetrievalProviderError,
+    SearchResult,
+    freeze,
+    thaw,
+    validate_search,
+)
 
 try:  # Capture runtime handles before application-level monkeypatching.
     import kiwipiepy_model as _PINNED_KIWI_MODEL_MODULE
@@ -313,13 +321,24 @@ class KiwiTokenizer:
         runtime_tokenize = type.__getattribute__(
             _PINNED_KIWI_CLASS, "__dict__"
         ).get("tokenize")
-        return tuple(
-            unicodedata.normalize("NFC", token.form).casefold()
-            for token in runtime_tokenize(runtime, text)
-            if token.tag.startswith(
-                ("N", "V", "MM", "MAG", "MAJ", "SL", "SH", "SN", "XPN", "XR")
+        try:
+            raw_tokens = tuple(runtime_tokenize(runtime, text))
+        except Exception as exc:
+            raise RetrievalProviderError("lexical_provider_error") from exc
+        try:
+            return tuple(
+                unicodedata.normalize("NFC", token.form).casefold()
+                for token in raw_tokens
+                if token.tag.startswith(
+                    ("N", "V", "MM", "MAG", "MAJ", "SL", "SH", "SN", "XPN", "XR")
+                )
             )
-        )
+        except RetrievalPostCallContractError:
+            raise
+        except Exception as exc:
+            raise RetrievalPostCallContractError(
+                "lexical_post_call_contract_error"
+            ) from exc
 
 
 _PINNED_KIWI_TOKENIZE = KiwiTokenizer.tokenize
@@ -398,56 +417,70 @@ class KiwiBM25Lane:
                  "b": dict.__getitem__(state, "b")}
         if not indices:
             return SearchResult((), trace | {"query_tokens": [], "tokenizer_calls": 0, "empty_scope": True})
-        if (
+        production_tokenizer = (
             authority is not None
             and object.__getattribute__(authority.attestation, "tokenizer_kind")
             == "real_kiwi"
-        ):
-            tokenize = _require_pinned_tokenize_implementation()
-            exposed_tokens = tokenize(tokenizer, query)
-            tokens = tokenize(authority.query_tokenizer, query)
-            if exposed_tokens != tokens:
-                raise ValueError("lexical_exposed_tokenizer_runtime_drift")
-            tokenizer_calls = 2
-        else:
-            tokens = tokenizer.tokenize(query)
-            tokenizer_calls = 1
-        # Authorization/scope is applied to the scoring population, not only
-        # to the rows returned. Excluded documents cannot influence IDF or
-        # length normalization for a restricted request.
-        tf_rows = dict.__getitem__(state, "tf")
-        token_rows = dict.__getitem__(state, "tokens")
-        k1 = dict.__getitem__(state, "k1")
-        b = dict.__getitem__(state, "b")
-        scoped_df = {}
-        for index in indices:
-            for term, _count in dict.items(tf_rows[index]):
-                dict.__setitem__(
-                    scoped_df,
-                    term,
-                    dict.get(scoped_df, term, 0) + 1,
-                )
-        scoped_avgdl = sum(len(token_rows[i]) for i in indices) / len(indices)
-        ranked = []
-        for i in indices:
-            score = 0.0
-            for term in sorted(set(tokens)):
-                tf = dict.get(tf_rows[i], term, 0)
-                if not tf:
-                    continue
-                df, total = dict.__getitem__(scoped_df, term), len(indices)
-                idf = math.log(1 + (total - df + 0.5) / (df + 0.5))
-                denom = tf + k1 * (1-b + b * len(token_rows[i]) / (scoped_avgdl or 1))
-                score += idf * tf * (k1+1) / denom
-            if score > 0:
-                ranked.append((i, score))
-        ranked.sort(key=lambda pair: (-pair[1], rows[pair[0]].evidence_id))
-        candidates = tuple(Candidate(rows[i].evidence_id, rows[i].doc_id, score, "lexical", rank)
-                           for rank, (i, score) in enumerate(ranked[:limit], 1))
-        return SearchResult(candidates, trace | {
-            "query_tokens": list(tokens), "tokenizer_calls": tokenizer_calls,
-            "canonical_runtime_crosscheck": tokenizer_calls == 2,
-        })
+        )
+        tokenize = (
+            _require_pinned_tokenize_implementation()
+            if production_tokenizer
+            else None
+        )
+        try:
+            if production_tokenizer:
+                exposed_tokens = tokenize(tokenizer, query)
+                tokens = tokenize(authority.query_tokenizer, query)
+                if exposed_tokens != tokens:
+                    raise RetrievalPostCallContractError(
+                        "lexical_exposed_tokenizer_runtime_drift"
+                    )
+                tokenizer_calls = 2
+            else:
+                tokens = tokenizer.tokenize(query)
+                tokenizer_calls = 1
+            # Authorization/scope is applied to the scoring population, not only
+            # to the rows returned. Excluded documents cannot influence IDF or
+            # length normalization for a restricted request.
+            tf_rows = dict.__getitem__(state, "tf")
+            token_rows = dict.__getitem__(state, "tokens")
+            k1 = dict.__getitem__(state, "k1")
+            b = dict.__getitem__(state, "b")
+            scoped_df = {}
+            for index in indices:
+                for term, _count in dict.items(tf_rows[index]):
+                    dict.__setitem__(
+                        scoped_df,
+                        term,
+                        dict.get(scoped_df, term, 0) + 1,
+                    )
+            scoped_avgdl = sum(len(token_rows[i]) for i in indices) / len(indices)
+            ranked = []
+            for i in indices:
+                score = 0.0
+                for term in sorted(set(tokens)):
+                    tf = dict.get(tf_rows[i], term, 0)
+                    if not tf:
+                        continue
+                    df, total = dict.__getitem__(scoped_df, term), len(indices)
+                    idf = math.log(1 + (total - df + 0.5) / (df + 0.5))
+                    denom = tf + k1 * (1-b + b * len(token_rows[i]) / (scoped_avgdl or 1))
+                    score += idf * tf * (k1+1) / denom
+                if score > 0:
+                    ranked.append((i, score))
+            ranked.sort(key=lambda pair: (-pair[1], rows[pair[0]].evidence_id))
+            candidates = tuple(Candidate(rows[i].evidence_id, rows[i].doc_id, score, "lexical", rank)
+                               for rank, (i, score) in enumerate(ranked[:limit], 1))
+            return SearchResult(candidates, trace | {
+                "query_tokens": list(tokens), "tokenizer_calls": tokenizer_calls,
+                "canonical_runtime_crosscheck": tokenizer_calls == 2,
+            })
+        except (RetrievalProviderError, RetrievalPostCallContractError):
+            raise
+        except Exception as exc:
+            raise RetrievalPostCallContractError(
+                "lexical_post_call_contract_error"
+            ) from exc
 
     def save(self, output_dir: Path, *, data_root: Path) -> dict:
         target = private_path(output_dir, data_root)
@@ -1164,6 +1197,8 @@ _PRODUCTION_DISPATCH_IDENTITY_PINS = (
     ("Counter", Counter),
     ("Candidate", Candidate),
     ("SearchResult", SearchResult),
+    ("RetrievalProviderError", RetrievalProviderError),
+    ("RetrievalPostCallContractError", RetrievalPostCallContractError),
     ("EvidenceStore", EvidenceStore),
     ("LoadedLexicalArtifactAttestation", LoadedLexicalArtifactAttestation),
     ("_LoadedLexicalAuthority", _LoadedLexicalAuthority),

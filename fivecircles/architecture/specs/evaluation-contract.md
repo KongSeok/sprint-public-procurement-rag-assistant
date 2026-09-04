@@ -262,6 +262,57 @@ The run `config_sha256` identifies retrieval/generation settings. The aggregate
 `scoring_config_sha256` separately identifies the metric thresholds used to score the run, and
 must match between A/B reports.
 
+### 9.1 Retrieval stage checkpoint and offline qrels join
+
+Retriever 전후 평가는 별도 질문 세트를 만들지 않는다. 같은 case/question/qrels에 대해 검색 과정의
+서로 다른 시점을 독립 checkpoint로 기록하고 evaluator가 private qrels와 사후 결합한다.
+
+각 실행은 가능한 단계만 다음 닫힌 순서로 기록한다.
+
+```text
+lane_dense | lane_lexical | lane_visual
+  -> fusion
+  -> rerank
+  -> final_context
+```
+
+`stage_ordinal`은 optional stage 생략 여부와 무관하게 dense=1, lexical=2, visual=3,
+fusion=4, rerank=5, final_context=6으로 고정한다.
+
+각 checkpoint의 안전한 공개 projection은 최소한 다음 값을 포함한다.
+
+```text
+stage, stage_ordinal, query_sha256, scope_sha256,
+evidence_store_sha256, retrieval_config_sha256, source_receipt_sha256,
+ordered_evidence_ids, ordered_stable_anchors, candidate_count,
+call_performed, outcome, checkpoint_sha256
+```
+
+- `ordered_stable_anchors`는 두 층을 함께 보존한다. `doc_id + source_block_id`마다 계산한
+  `source_block_anchor_sha256`는 청킹·evidence locator가 바뀌어도 같은 원문 블록이면 유지되는 evaluator
+  join key다. evidence locator/object hash는 sealed EvidenceStore 내부의 후보 위치 감사값이며 text qrel의
+  `locator_hash`로 해석하지 않는다. raw question, source text, provider trace,
+  gold/qrels/expected/reference answer는 checkpoint와 runtime request에 들어가지 않는다.
+- text qrels의 정본은 experiment-specific chunk ID가 아니라
+  `doc_id + source_block_id + locator_hash`다. visual qrels는 승인된 occurrence/object locator를
+  사용한다. 실험별 evidence/chunk ID는 evaluator-only resolution receipt로 이 anchor에 매핑한다.
+- evaluator-only `AnchorResolutionReceipt`는 `checkpoint_sha256`, `evidence_store_sha256`, private
+  source-block snapshot SHA, 입력 `source_block_anchor_sha256`, `doc_id`, `source_block_id`, snapshot에서
+  다시 계산한 `locator_hash`, `resolved|missing|ambiguous`, receipt SHA를 닫힌 필드로 보존한다. resolver는
+  private block snapshot의 exact owner와 `source_locator` SHA를 검증한 뒤에만 canonical text-qrel anchor를
+  발급한다. runtime/receipt가 qrels를 입력받아 이 값을 직접 만드는 것은 금지한다.
+- raw lane, fusion, rerank, final context는 서로의 결과로 소급 작성할 수 없다. 각 checkpoint는
+  해당 단계 owner receipt와 config/artifact identity에 결합한다.
+- 공통 evaluator는 lane별 Recall/MRR/nDCG, fusion rescue와 함께, 동결 config가 지정한
+  `pre_context_stage`(기본 `fusion`)에서 찾은 relevant anchor가 `final_context`까지 남은 비율을
+  pre→post retention으로 계산한다. 단계가 unavailable이면 0이나 empty로 바꾸지 않고 별도 상태로 보고한다.
+- compare/list/visual은 같은 checkpoint 위에 required slot, distinct-document, set completeness,
+  page/object support projection을 추가한다. 이 projection도 evaluator-only gold를 runtime으로 전달하지 않는다.
+
+현재 40개 dev draft는 자동 구조 검증을 통과했지만 named human 승인이 없고, 실제 sealed held-out
+20개 파일은 없다. 이미 실행·검토된 RAG129 case를 사후에 held-out으로 이름만 바꾸지 않는다.
+held-out을 기존 129 count에 포함할지 별도 final set으로 확장할지는 작성 전에 count 계약으로 확정한다.
+
 ## 10. Metrics
 
 Retrieval:

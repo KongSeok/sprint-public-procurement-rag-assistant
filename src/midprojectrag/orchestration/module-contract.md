@@ -154,8 +154,45 @@ the internal monotonic clock, and currently unavailable verifier/reranker capabi
 synthetic adapters and clocks are available only through `HarnessRuntimeBinding.for_test`.
 Bind, validate, serialize, dense/lexical/fusion preflight, and evidence-store snapshot entry
 gates authenticate their complete issued callable/class/registry surface before traversal and
-make zero retriever, tokenizer, model, verifier, reranker, or clock calls. These bindings provide
-authority only; lane execution receipts remain EH2.6.b3.
+make zero retriever, tokenizer, model, verifier, reranker, or clock calls.
+
+EH2.6.b3 issues `RetrievalObligation` only from exact live `BoundFact`/`BoundCompare` owner
+authority. Raw query and evaluator data remain private; public payloads retain only their hashes,
+source receipt, scope, budgets, and exact store/config/runtime bindings. One issuance owns one
+hash-chained ledger whose canonical global order is dense then lexical for each obligation. A lane
+can be claimed and closed once. Closing mints a single-use transition permit, and closure-sealed
+executor methods reject direct ledger mutation, forged permits, global-spoofed caller checks, and
+receipt reminting without the public lane executor. Typed provider and pre/post-call contract
+failures preserve truthful `call_performed` state. A dense provider failure permits only the
+untouched lexical diagnostic lane, after which execution terminates without fusion. Stable text
+anchors carry both store-local evidence-locator hashes and chunk-invariant source-block join
+hashes. Issuance, obligation, ledger, permit, and receipt authorities use weak cleanup with no
+request/query retention after the request graph is collected. Fusion and the E0 aggregate are
+implemented by EH2.6.b4.
+
+EH2.6.b4 adds factory-issued `FusionReceipt`, `E0ObligationResult`, and `E0ControlReceipt` through
+public `execute_*`/`validate_*` boundaries in `execution_contracts.py`. Fusion is checkpoint ordinal
+four because the evaluation stage contract reserves ordinal three for an optional visual lane. It
+accepts only the exact live normal dense/lexical receipts for one obligation and validates the RRF
+union, score/order, scope, text-evidence anchors, and lane partitions before projecting a trace-free
+receipt. A closure-private, ledger-lifetime fusion claim rejects replay, concurrency, skipped fusion,
+and copied-globals executor clones without changing the b3 lane ledger retrospectively. Completion
+is mirrored into two closure-private maps as the same immutable tuple object, so deleting the receipt
+or mutating only the visible progress cell cannot reopen a live ledger pair. Runtime dependency pins
+also bind closure-cell contents, not only code/default/global identities.
+
+The E0 entry requires `mode=e0_once`, validates the complete canonical obligation set before any
+provider call, atomically claims the run, and executes dense, lexical, then fusion for each obligation
+before moving to the next. While that claim is pending, child lane/fusion entry accepts only the exact
+E0 executor caller. It captures child executors and validators at entry, revalidates the dependency
+gate after every provider return, and accepts only exact typed receipts that pass their public
+validators. A provider-time global swap or a lane advance before the preceding fusion therefore
+fails closed without an aggregate receipt. Per-obligation results retain only child receipt hashes and a closed
+`retrieved|empty|unavailable|error` status; untouched work after an execution error is explicitly
+`error/execution_terminated_before_obligation`. Aggregate precedence is error, unavailable, all-empty,
+then retrieved, and `execution_complete` is true only for retrieved/empty-only runs. The payload is a
+state-free retrieval control checkpoint: it neither claims semantic readiness nor accepts or stores
+gold, qrels, expected answers, raw queries, source text, or provider traces.
 An E1 compare seed must be all-unsearched; already hybrid-searched EH2.4 coverage cannot be
 relabeled as independent lane execution. Once all approved retrieval paths close with no
 candidates, controller-only `verify_slot` performs a zero-provider exhaustion check that may
