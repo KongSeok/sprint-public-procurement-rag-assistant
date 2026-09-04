@@ -247,6 +247,22 @@ revalidated before normalization or mint. Provider, malformed-result, and post-c
 consume the local claim, and cannot be retried; concurrency has one winner and completion history outlives receipt
 GC while the source authority remains live. c2 receipts are state-free: c3 owns effect/absence projection and d
 owns global action budgets, deadline permits, transition order, and terminal semantics.
+
+EH2.6.c3 closes source receipts before final effects. A parent context is a `ProvenanceParent`, not an Evidence;
+its public receipt binds parent ID, seed Evidence ID/anchor, kind/doc and content/locator hashes while private
+authority retains the exact parent object and text. It must never invent an evidence ID or become support/citation.
+Bridge receipts are issued for each table/figure attempt over the config-bounded, evidence-ID-sorted immutable seed
+prefix and contain only exact `store.bridge` linked Evidence IDs/anchors or an explicit empty outcome. Caller target
+IDs are not accepted and bridge-added Evidence never becomes a recursive context seed.
+
+Reranking receives an ID-less contiguous projection of owner-derived candidate plus bridge Evidence and returns
+only a unique nonempty index subsequence/permutation. The executor maps indexes to exact IDs, validates the runtime
+again after the call, and keeps provider text private. Only a derived semantic obligation may add these bridge
+Evidence and private parent contexts; parent items are auxiliary verifier context without support indexes. The
+closed `ActionEffectReceipt` DTO/validator is defined in c3, but minting execution/step/decision/action/before-state
+bindings stays fail-closed until the EH2.6.d2 `ControllerDecisionReceipt` permit exists. The EH2.5 preview trace is
+never substituted for that permit. Consequently c4 reducer/effect mint is dependency-blocked by d1/d2, not by an
+untrusted temporary decision field.
 An E1 compare seed must be all-unsearched; already hybrid-searched EH2.4 coverage cannot be
 relabeled as independent lane execution. Once all approved retrieval paths close with no
 candidates, controller-only `verify_slot` performs a zero-provider exhaustion check that may

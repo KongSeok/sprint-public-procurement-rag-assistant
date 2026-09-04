@@ -415,14 +415,18 @@
 - 문서 생성/수정: §16.10, module-contract, recursive TODO/checkpoint.
 - 계약 확인: source-owned factory, closed outcome/projection, parent nonpromotion, bridge actual linkage,
   rerank subset/permutation, semantic verify projection, bounded absence 충분조건·금지사유.
-- 상태: IN_PROGRESS.
+- 계약 결과: parent의 evidence ID 부재, rerank source receipt 부재, d2 controller decision 선행 의존을 확인했다.
+  c3는 parent/bridge/rerank/absence source receipt와 effect DTO/validator를 닫고, public effect mint는 d2 permit
+  전까지 금지한다. EH2.5 preview는 실행 권한으로 재사용하지 않는다.
+- 상태: COMPLETED.
 
 ### 4. Implementation
 
 - 사용할 스킬: `one-go`, 재귀 leaf는 `batch-sequential-runner`.
-- 재귀 TODO: c3.1 effect schema/factory → c3.2 bounded absence → c3.3 authority/회귀 gate.
+- 재귀 TODO: c3.0 계약교정 → c3.1 context receipt → c3.2 rerank/derived semantic → c3.3 absence →
+  c3.4 closed effect DTO → c3.5 authority/회귀 gate.
 - 수정 대상: `orchestration/action_effects.py`, `execution_contracts.py`, public exports, focused tests.
-- 상태: PENDING.
+- 상태: IN_PROGRESS (`c3.1`).
 
 ### 5. Validation + Report
 
@@ -467,6 +471,7 @@
 
 ### 10. Final Ledger
 
-- Doc: IN_PROGRESS.
-- Implementation / Validation / Repair / Push / Report / Relay: PENDING.
-- 남은 리스크: c3 계약이 source receipt별 증명력을 넘지 않도록 먼저 봉인해야 한다.
+- Doc: COMPLETED.
+- Implementation: IN_PROGRESS (`c3.1`).
+- Validation / Repair / Push / Report / Relay: PENDING.
+- 남은 리스크: derived semantic의 auxiliary parent context와 c2 at-most-once issuance key를 분리해야 한다.

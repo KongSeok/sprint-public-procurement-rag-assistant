@@ -823,12 +823,25 @@ parent/child 혼합, 골든 값 의존을 검출한다. 정확한 새 파일/메
   sanitized fixed error로 끝나고 local claim을 소비해 같은 live semantic obligation을 다시 호출할 수 없다. issuance와
   실행 완료 history는 receipt GC와 독립적이고 동시 호출 winner는 하나뿐이다. c2 receipt는 상태를 직접 바꾸지 않으며
   전체 action budget·deadline·terminal order는 d 단계, effect/absence 투영은 c3 책임이다.
-- `ActionEffectReceipt`는 execution/step/decision/action/before-state, sanitized outcome, typed source receipt,
-  evidence projection, parent/bridge context, optional absence SHA를 봉인한다. outcome은 `applied`, `empty`,
-  `unsupported`, `unavailable`, `deadline_discarded`, `provider_error`, `contract_error`, `terminal`로 닫는다. provider 예외
-  본문·경로·키는 저장하지 않는다. parent expansion은 verifier context일 뿐 candidate/citation evidence로
-  승격하지 않고, bridge는 sealed store가 반환한 실제 linked evidence만 후보에 추가한다. reranker는 기존
-  candidate의 subset/permutation만 반환할 수 있다.
+- c3는 최종 effect보다 먼저 **source receipt 층**을 닫는다. `ParentContextReceipt`는 immutable retrieval seed
+  candidate의 exact `ProvenanceParent`를 `parent_id`, seed child ID/anchor, parent kind/doc/content/locator hash로
+  봉인하며 parent 원문은 private authority에만 둔다. parent에는 evidence ID가 없으므로 child ID나 store 밖
+  synthetic `Evidence`로 가장하지 않는다. `BridgeContextReceipt`는 같은 seed에서 exact
+  `store.bridge(...)`를 table/figure kind별로 실행한 `applied|empty` 결과와 실제 linked Evidence ID/anchor만
+  봉인한다. 두 receipt factory는 caller target/ID를 받지 않고 semantic obligation의 immutable seed candidate를
+  evidence-ID 오름차순으로 정렬한 config-bounded prefix 전체에서 결정론적으로 발급한다. bridge 결과는 다시
+  context action seed가 될 수 없다.
+- `RerankReceipt`는 candidate+bridge의 owner-derived nonempty ordered input을 ID 없는 contiguous private request로
+  exact pinned `rerank(self, request)`에 최대 한 번 전달한다. raw output은 index의 nonempty unique 부분순열만
+  허용하고 executor만 owner-issued ID/anchor로 복원한다. unavailable은 zero-call, provider/contract/post-call
+  drift는 sanitized fixed outcome/consumed attempt이며 raw 본문·경로·키를 저장하지 않는다. rerank receipt와
+  parent/bridge receipt를 받은 derived semantic obligation만 parent private context와 reranked candidate/bridge를
+  verifier에 한 번 공급할 수 있다. parent context는 support index나 citation/verified 후보로 승격할 수 없다.
+- `ActionEffectReceipt`의 닫힌 DTO/validator는 c3가 정의하되 execution/step/decision/action/before-state를 결합하는
+  public mint는 EH2.6.d2의 exact `ControllerDecisionReceipt` permit 전에는 열지 않는다. EH2.5
+  `ActionDecisionTrace`를 임시 실행 권한으로 재사용하지 않는다. d2 이후 mint된 effect는 sanitized outcome,
+  typed source receipt SHA, evidence projection, parent/bridge context와 optional absence SHA를 봉인한다. outcome은
+  `applied|empty|unsupported|unavailable|deadline_discarded|provider_error|contract_error|terminal`로 닫는다.
 - `AbsenceConfirmationReceipt`는 모든 허용 retrieval/verification 경로가 bounded하게 종결된 한 obligation에
   한해 `bounded_no_candidate|bounded_no_verified_support|followup_approved_paths_exhausted`를 기록한다.
   이는 해당 query/scope/budget에서 support를 확보하지 못했다는 뜻이며 corpus에 사실이 없다는 주장이 아니다.

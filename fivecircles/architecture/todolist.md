@@ -175,20 +175,28 @@ runtime은 local profile 기본·LLM provider 교체형으로 유지하며 새 �
         supplied-evidence-bound `SemanticVerificationReceipt`만 발급한다.
       - [x] **EH2.6.c2.3** clone/drift/mixed dependency, malformed output, contradiction independence,
         concurrency/replay/비누출 focused gate와 관련·전체·safety 회귀를 통과한다.
-    - [ ] **EH2.6.c3** expansion/bridge/rerank/verify `ActionEffectReceipt`와 빈 후보 zero-provider exhaustion을
-      포함한 bounded absence receipt를 구현한다.
-      - [ ] **EH2.6.c3.1** exact source receipt에서만 factory-issued `ActionEffectReceipt`를 만들고
-        expansion=context-only, bridge=actual linked evidence, rerank=subset/permutation, verify=semantic projection을 봉인한다.
-      - [ ] **EH2.6.c3.2** 모든 승인 경로가 bounded하게 닫힌 경우에만 three-reason
+    - [ ] **EH2.6.c3** expansion/bridge/rerank/verify source receipt와 빈 후보 zero-provider exhaustion을
+      포함한 bounded absence receipt를 구현하고, 최종 `ActionEffectReceipt` mint는 d2 decision permit 뒤로 닫는다.
+      - [x] **EH2.6.c3.0** parent ID 부재, rerank source receipt 부재, d2 decision 선행 의존을 감사하고
+        EH2.5 preview를 실행 권한으로 재사용하지 않는 source-receipt-first 계약으로 교정한다.
+      - [ ] **EH2.6.c3.1** immutable seed prefix 전체에서 parent=context-only와 table/figure actual bridge
+        `applied|empty`를 caller ID 없이 발급하는 typed context receipt를 구현한다.
+      - [ ] **EH2.6.c3.2** ID-less exact-once rerank receipt와 parent/bridge/rerank를 반영한 derived semantic
+        obligation을 구현하며 parent support/citation 승격을 금지한다.
+      - [ ] **EH2.6.c3.3** 모든 승인 경로가 bounded하게 닫힌 경우에만 three-reason
         `AbsenceConfirmationReceipt`를 zero-provider로 발급하고 timeout/error/unavailable/unresolved 단독 발급을 금지한다.
-      - [ ] **EH2.6.c3.3** source/store/config/runtime clone·drift·mixed authority, replay/serialization,
+      - [ ] **EH2.6.c3.4** closed `ActionEffectReceipt` DTO/validator를 추가하되 public mint는 exact d2
+        `ControllerDecisionReceipt` permit 전까지 fail-closed한다.
+      - [ ] **EH2.6.c3.5** source/store/config/runtime clone·drift·mixed authority, replay/serialization,
         projection 비승격·비누출 focused gate와 관련·전체·safety 회귀를 통과한다.
-    - [ ] **EH2.6.c4** monotonic one-obligation reducer와 hash-chained transition/no-progress를 구현한다.
+    - [ ] **EH2.6.c4** `[BLOCKED_BY_EH2.6.d2]` exact controller decision-bound `ActionEffectReceipt` mint,
+      monotonic one-obligation reducer와 hash-chained transition/no-progress를 구현한다.
     - [ ] **EH2.6.c5** verified/contradicted/confirmed-missing·raw bool/ID 공격 focused gate를 통과한다.
   - [ ] **EH2.6.d** bounded E1 controller와 replay를 구현한다.
     - [ ] **EH2.6.d1** lane/action/capability/round 소비와 exact state/last-transition을 함께 봉인하는
       `ExecutionLedger`·`HarnessExecution` aggregate를 구현한다.
-    - [ ] **EH2.6.d2** state+ledger 기반 allowed action과 cross-state `ControllerDecisionReceipt`를 구현한다.
+    - [ ] **EH2.6.d2** state+ledger 기반 allowed action과 cross-state `ControllerDecisionReceipt`, c4 effect mint
+      permit을 구현한다.
     - [ ] **EH2.6.d3** start/step/run과 terminal `HarnessRunResult`를 구현한다.
     - [ ] **EH2.6.d4** action/round/deadline/post-deadline/no-progress/capability 종료를 호출 수까지 검증한다.
     - [ ] **EH2.6.d5** provider·clock 0회 strict execution replay와 fact/compare/follow-up 합성 E2E를 통과한다.
