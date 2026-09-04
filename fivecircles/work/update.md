@@ -622,3 +622,18 @@ This file summarizes recent updates so other agents can continue without re‑di
 - BoundFact·fact 초기 state와 exact request/planner/catalog/store authority를 구현했다. (refs: ../architecture/specs/bidfit-evidence-harness-v1-rc0.md)
 ### Tests
 - focused47/full1034/safety807·독립 리뷰 PASS. API·Langfuse 0회. (refs: ../test/errorlogs/backend/2026-09-04-eh26-b1-live-authority.md)
+
+## Addendum (2026-09-04) - EH2.6.b2 execution config/runtime authority
+
+### Backend
+- Closed/hash-bound `HarnessExecutionConfig`와 exact production/synthetic `HarnessRuntimeBinding`을 구현했다.
+- EvidenceStore, KURE dense, Kiwi lexical, RRF hybrid와 root bind/validate/serialize의 callable·class descriptor·registry/entry를 traversal 전에 봉인했다.
+- production은 loader-attested KURE/Kiwi/hybrid와 내부 monotonic clock만 허용하며 verifier/reranker는 승인 전 unavailable이다. 실제 lane receipt 실행은 EH2.6.b3이다.
+
+### Tests
+- focused104/full1109/safety811·py_compile·diff-check PASS. 독립 리뷰 P1 10건 수리 후 최종 재리뷰 PASS.
+- bind/validate 동안 API·Langfuse·retriever·tokenizer·model/provider·verifier·reranker·clock 호출 0회.
+- refs: ../test/errorlogs/backend/2026-09-04-eh26-b2-runtime-authority.md, bidfit-evidence-harness-v1-rc0-checkpoint.md.
+
+### Next
+- EH2.6.b3: owner-issued `RetrievalObligation`과 독립 dense/lexical `LaneSearchReceipt`, exact-once 소비를 구현한다.

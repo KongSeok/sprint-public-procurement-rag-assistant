@@ -632,6 +632,11 @@ parent/child 혼합, 골든 값 의존을 검출한다. 정확한 새 파일/메
   receipt는 action budget을 소비하지 않고 항상 마지막에 한 번 발급할 수 있다. v1은 distinct-query rewrite 계약이
   없으므로 obligation별 retrieval round는 정확히 1회다. bool-as-int, NaN/Inf, unknown field와 발급 후
   drift를 거부한다. production clock은 내부 `monotonic_ns`, synthetic clock 주입은 test runtime factory만 허용한다.
+  EH2.6.b2 구현은 config/runtime을 constructor가 아닌 owner factory만 발급하며, production에서는
+  loader-attested KURE/Kiwi/hybrid와 내부 clock만 허용한다. verifier/reranker는 승인 구현이 생기기 전까지
+  unavailable로 고정하고 synthetic adapter는 test factory에만 둔다. bind/validate/to_dict와 evidence/dense/
+  lexical/fusion preflight는 callable code/default/global, class descriptor, registry/entry identity를 traversal보다
+  먼저 검증하여 query·retriever·tokenizer·model·verifier·reranker·clock 호출 0회를 보장한다.
 - compare/fact retrieval은 exact production hybrid binding을 재검증하되 실행을 dense, lexical, pure RRF
   세 단계로 분리한다. `LaneSearchReceipt`는 lane, execution/obligation/round, source에서 재구성한 query
   hash, scope, candidate limit, store/runtime binding, safe projected result와 실제 호출 여부를 봉인한다.

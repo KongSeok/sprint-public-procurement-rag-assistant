@@ -201,3 +201,15 @@ Preventive rule:
 
 Reference:
 - `errorlogs/backend/2026-09-04-eh26-b1-live-authority.md`
+
+### EH2.6.b2 zero-dispatch authority gates (2026-09-04)
+Cause:
+- Outer validator identity alone did not seal mutable checker defaults, coordinated aliases, transitive helpers, class methods, or registry-entry dereference order.
+
+Preventive rule:
+- Public bind/validate/search preflight must authenticate exact checker code/globals/defaults and the complete reachable callable/class/registry surface before traversal.
+- Validate exact registry entry type and weakref type before dereference; test coordinated replacements as well as one-name patches with `calls == []`.
+- Runtime authority validation remains provider-free; Langfuse stays disabled until real E2E/golden execution.
+
+Reference:
+- `errorlogs/backend/2026-09-04-eh26-b2-runtime-authority.md`

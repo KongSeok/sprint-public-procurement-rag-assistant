@@ -1,6 +1,6 @@
 # EH-RC0 재개 체크포인트
 
-갱신: 2026-09-04 · EH2.6.b1 완료, 다음 READY는 EH2.6.b2. 토큰 절약을 위해 이 문서의 한눈에 보는 상태와 계약 §16.10부터 읽기.
+갱신: 2026-09-04 · EH2.6.b2 완료, 다음 READY는 EH2.6.b3. 토큰 절약을 위해 이 문서의 한눈에 보는 상태와 계약 §16.10부터 읽기.
 
 ## 중단/애매함 발생 시
 
@@ -21,10 +21,11 @@
   후속 전체 범위의 선택 commit·검증이 끝난 뒤 `feat/local-qwen-mini131-eval`에 병합한다.
   새 브랜치는 만들지 않는다.
 - 완료: EH-A.1~3 감사·기준선·계약/flow 초안. 805 tests PASS, 실패/skip 0 (변경 전).
-- 현재 IN_PROGRESS: **Phase 2**. EH2.1~2.5, EH2.6.a~b1 PASS; 다음 READY는 EH2.6.b2 실행 config/runtime authority.
+- 현재 IN_PROGRESS: **Phase 2**. EH2.1~2.5, EH2.6.a~b2 PASS; 다음 READY는 EH2.6.b3 retrieval obligation/lane receipt.
 - blocker: 없음. 실제 생성/API 호출은 계속 0이며 Phase 2는 provider-free 합성 테스트로 진행한다.
-- 코드 상태: EH2.6.b1은 sealed `BoundFact`, fact 초기 state, live request/store authority를 구현해
-  focused 47·전체 1,034·safety 807 PASS와 독립 P0/P1 리뷰 PASS를 받았다. API·Langfuse 호출은 0이다.
+- 코드 상태: EH2.6.b2는 immutable execution config와 exact production/synthetic runtime authority,
+  evidence/dense/lexical/fusion/root zero-dispatch preflight를 구현해 focused 104·전체 1,109·safety 811 PASS와
+  독립 P1 10건 수리 후 최종 재리뷰 PASS를 받았다. API·Langfuse·model/provider 호출은 0이다.
   EH2.6 controller 전체 구현·실행 완료 주장이 아니며 원샷 전체는 미완료다.
 
 ## 완료된 첫 leaf 참고: EH0.1.a (현재 작업 아님)
@@ -74,6 +75,7 @@
 | EH2.5 | COMPLETED | sealed Belief/Progress/HarnessState + typed action/decision; focused55/full1020. store/nested identity P1 수리 후 독립 재검토 PASS |
 | EH2.6.a | COMPLETED | §16.10 E0/E1 controller 계약·재귀 leaf·public owner 경계. 7 P1 수정 후 독립 재리뷰 PASS |
 | EH2.6.b1 | COMPLETED | BoundFact/fact 초기 state/live request·store authority. focused47/full1034/safety807, 독립 재리뷰 PASS; 다음 EH2.6.b2 |
+| EH2.6.b2 | COMPLETED | immutable execution config + exact production/synthetic runtime authority. focused104/full1109/safety811, 독립 P1 10건 수리·최종 재리뷰 PASS; 다음 EH2.6.b3 |
 
 ## 안전/컨텍스트 규칙
 

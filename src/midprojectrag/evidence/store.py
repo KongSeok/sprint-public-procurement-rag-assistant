@@ -5,10 +5,11 @@ from collections import defaultdict, deque
 from dataclasses import dataclass
 from hashlib import sha256
 import json
-from types import MappingProxyType
+from types import CodeType, FunctionType, MappingProxyType
 from typing import Iterable, Mapping
 from weakref import ReferenceType, ref
 
+from . import model as _MODEL_RUNTIME_MODULE
 from .model import Evidence, Locator, ProvenanceParent
 
 
@@ -17,6 +18,7 @@ _STORE_AUTHORITIES: dict[
     int,
     tuple[ReferenceType[object], object, object, object, str],
 ] = {}
+_ISSUED_STORE_AUTHORITIES = _STORE_AUTHORITIES
 
 
 def _drop_store_authority(identity: int, dead: ReferenceType[object]) -> None:
@@ -249,7 +251,7 @@ class EvidenceStore:
         return store
 
 
-def validate_evidence_store_snapshot(
+def _validate_evidence_store_snapshot(
     store: EvidenceStore,
     expected_bundle_sha256: str,
 ) -> None:
@@ -266,8 +268,17 @@ def validate_evidence_store_snapshot(
     if type(expected_bundle_sha256) is not str:
         raise TypeError("evidence_store_bundle_sha256_required")
     try:
-        authority = _STORE_AUTHORITIES.get(id(store))
-        if authority is None or authority[0]() is not store:
+        authority = dict.get(_ISSUED_STORE_AUTHORITIES, id(store))
+        if (
+            type(authority) is not tuple
+            or len(authority) != 5
+            or type(authority[0]) is not ReferenceType
+            or type(authority[1]) is not _MAPPING_PROXY_TYPE
+            or type(authority[2]) is not _MAPPING_PROXY_TYPE
+            or type(authority[3]) is not _MAPPING_PROXY_TYPE
+            or type(authority[4]) is not str
+            or authority[0]() is not store
+        ):
             raise ValueError("evidence_store_runtime_authority_required")
         if (
             authority[1] is not store._parents
@@ -352,6 +363,394 @@ def validate_evidence_store_snapshot(
         if isinstance(exc, ValueError) and str(exc) == "evidence_store_bundle_mismatch":
             raise
         raise ValueError("evidence_store_payload_drift") from exc
+
+
+_ISSUED_VALIDATE_EVIDENCE_STORE_SNAPSHOT_CORE = (
+    _validate_evidence_store_snapshot
+)
+
+
+def _validate_store_validation_dependencies(
+    _module_globals=None,
+    _global_pins=None,
+    _model_attribute_pins=None,
+    _class_namespace_pins=None,
+    _function_pins=None,
+    _external_attribute_pins=None,
+) -> None:
+    """Authenticate every callable and descriptor before store traversal."""
+
+    live_globals = globals()
+    if type(_module_globals) is not dict or _module_globals is not live_globals:
+        raise ValueError("evidence_store_validation_dependency_drift")
+    for name, supplied in (
+        ("_STORE_VALIDATION_GLOBAL_PINS", _global_pins),
+        ("_STORE_VALIDATION_MODEL_ATTRIBUTE_PINS", _model_attribute_pins),
+        ("_STORE_VALIDATION_CLASS_NAMESPACE_PINS", _class_namespace_pins),
+        ("_STORE_VALIDATION_FUNCTION_PINS", _function_pins),
+        ("_STORE_VALIDATION_EXTERNAL_ATTRIBUTE_PINS", _external_attribute_pins),
+    ):
+        if (
+            supplied is not dict.get(live_globals, name)
+            or supplied is not dict.get(live_globals, "_ISSUED" + name)
+            or type(supplied) is not tuple
+        ):
+            raise ValueError("evidence_store_validation_dependency_drift")
+
+    for entry in _global_pins:
+        if type(entry) is not tuple or len(entry) != 3:
+            raise ValueError("evidence_store_validation_dependency_drift")
+        name, issued, issued_type = entry
+        if (
+            type(name) is not str
+            or dict.get(live_globals, name) is not issued
+            or type(issued) is not issued_type
+        ):
+            raise ValueError("evidence_store_validation_dependency_drift")
+
+    model_namespace = object.__getattribute__(
+        _MODEL_RUNTIME_MODULE, "__dict__"
+    )
+    if type(model_namespace) is not dict:
+        raise ValueError("evidence_store_validation_dependency_drift")
+    for entry in _model_attribute_pins:
+        if type(entry) is not tuple or len(entry) != 2:
+            raise ValueError("evidence_store_validation_dependency_drift")
+        name, issued = entry
+        if type(name) is not str or dict.get(model_namespace, name) is not issued:
+            raise ValueError("evidence_store_validation_dependency_drift")
+
+    for entry in _class_namespace_pins:
+        if type(entry) is not tuple or len(entry) != 3:
+            raise ValueError("evidence_store_validation_dependency_drift")
+        owner, expected_size, issued_items = entry
+        if (
+            type(owner) is not type
+            or type(expected_size) is not int
+            or type(issued_items) is not tuple
+        ):
+            raise ValueError("evidence_store_validation_dependency_drift")
+        namespace = type.__getattribute__(owner, "__dict__")
+        if type(namespace) is not _MAPPING_PROXY_TYPE or len(namespace) != expected_size:
+            raise ValueError("evidence_store_validation_dependency_drift")
+        for name, issued in issued_items:
+            if type(name) is not str or namespace.get(name) is not issued:
+                raise ValueError("evidence_store_validation_dependency_drift")
+
+    for entry in _function_pins:
+        if type(entry) is not tuple or len(entry) != 7:
+            raise ValueError("evidence_store_validation_dependency_drift")
+        (
+            function,
+            code,
+            defaults,
+            kwdefaults,
+            kwdefault_items,
+            closure,
+            closure_values,
+        ) = entry
+        current_kwdefaults = object.__getattribute__(function, "__kwdefaults__")
+        current_closure = object.__getattribute__(function, "__closure__")
+        if (
+            type(function) is not FunctionType
+            or type(code) is not CodeType
+            or object.__getattribute__(function, "__code__") is not code
+            or object.__getattribute__(function, "__defaults__") is not defaults
+            or current_kwdefaults is not kwdefaults
+            or current_closure is not closure
+        ):
+            raise ValueError("evidence_store_validation_dependency_drift")
+        if current_kwdefaults is None:
+            if kwdefault_items is not None:
+                raise ValueError("evidence_store_validation_dependency_drift")
+        elif (
+            type(current_kwdefaults) is not dict
+            or type(kwdefault_items) is not tuple
+            or len(current_kwdefaults) != len(kwdefault_items)
+            or any(
+                dict.get(current_kwdefaults, name) is not issued
+                for name, issued in kwdefault_items
+            )
+        ):
+            raise ValueError("evidence_store_validation_dependency_drift")
+        if current_closure is None:
+            if closure_values is not None:
+                raise ValueError("evidence_store_validation_dependency_drift")
+        elif (
+            type(current_closure) is not tuple
+            or type(closure_values) is not tuple
+            or len(current_closure) != len(closure_values)
+            or any(
+                object.__getattribute__(cell, "cell_contents") is not issued
+                for cell, issued in zip(current_closure, closure_values)
+            )
+        ):
+            raise ValueError("evidence_store_validation_dependency_drift")
+
+    for entry in _external_attribute_pins:
+        if type(entry) is not tuple or len(entry) != 3:
+            raise ValueError("evidence_store_validation_dependency_drift")
+        owner, name, issued = entry
+        owner_namespace = object.__getattribute__(owner, "__dict__")
+        if (
+            type(owner_namespace) is not dict
+            or type(name) is not str
+            or dict.get(owner_namespace, name) is not issued
+        ):
+            raise ValueError("evidence_store_validation_dependency_drift")
+
+
+_ISSUED_STORE_VALIDATION_DEPENDENCY_CHECKER = (
+    _validate_store_validation_dependencies
+)
+_PINNED_STORE_VALIDATION_DEPENDENCY_CHECKER_CODE = (
+    _validate_store_validation_dependencies.__code__
+)
+
+
+def validate_evidence_store_snapshot(
+    store: EvidenceStore,
+    expected_bundle_sha256: str,
+    *,
+    _dependency_checker=None,
+    _dependency_checker_code=None,
+    _dependency_checker_defaults=None,
+) -> None:
+    """Validate an issued store after authenticating the validation runtime."""
+
+    module_namespace = globals()
+    if (
+        _dependency_checker
+        is not dict.get(
+            module_namespace, "_ISSUED_STORE_VALIDATION_DEPENDENCY_CHECKER"
+        )
+        or type(_dependency_checker) is not FunctionType
+        or object.__getattribute__(_dependency_checker, "__code__")
+        is not _dependency_checker_code
+        or _dependency_checker_code
+        is not dict.get(
+            module_namespace,
+            "_PINNED_STORE_VALIDATION_DEPENDENCY_CHECKER_CODE",
+        )
+        or _dependency_checker_defaults
+        is not dict.get(
+            module_namespace,
+            "_ISSUED_STORE_VALIDATION_DEPENDENCY_CHECKER_DEFAULTS",
+        )
+        or object.__getattribute__(_dependency_checker, "__defaults__")
+        is not _dependency_checker_defaults
+    ):
+        raise ValueError("evidence_store_validation_dependency_drift")
+    _dependency_checker()
+    _ISSUED_VALIDATE_EVIDENCE_STORE_SNAPSHOT_CORE(
+        store, expected_bundle_sha256
+    )
+
+
+_ISSUED_VALIDATE_EVIDENCE_STORE_SNAPSHOT_PUBLIC = (
+    validate_evidence_store_snapshot
+)
+
+
+def _store_validation_function_pin(function):
+    kwdefaults = object.__getattribute__(function, "__kwdefaults__")
+    closure = object.__getattribute__(function, "__closure__")
+    return (
+        function,
+        object.__getattribute__(function, "__code__"),
+        object.__getattribute__(function, "__defaults__"),
+        kwdefaults,
+        (
+            None
+            if kwdefaults is None
+            else tuple(dict.items(kwdefaults))
+        ),
+        closure,
+        (
+            None
+            if closure is None
+            else tuple(
+                object.__getattribute__(cell, "cell_contents")
+                for cell in closure
+            )
+        ),
+    )
+
+
+def _store_validation_class_pin(owner):
+    namespace = type.__getattribute__(owner, "__dict__")
+    return owner, len(namespace), tuple(namespace.items())
+
+
+_STORE_VALIDATION_MODEL_NAMES = (
+    "_PARENT_KINDS",
+    "_EVIDENCE_KINDS",
+    "_LOCATOR_FIELDS",
+    "_PARENT_FIELDS",
+    "_EVIDENCE_FIELDS",
+    "_string",
+    "_optional_string",
+    "_sequence",
+    "_strings",
+    "_integer",
+    "_snapshot",
+    "_json_array",
+    "_identity",
+    "_content_sha256",
+    "_assert_computed",
+    "_parent_reference",
+    "_crop_reference",
+    "Locator",
+    "ProvenanceParent",
+    "Evidence",
+    "json",
+    "math",
+    "sha256",
+)
+_STORE_VALIDATION_MODEL_ATTRIBUTE_PINS = tuple(
+    (name, object.__getattribute__(_MODEL_RUNTIME_MODULE, name))
+    for name in _STORE_VALIDATION_MODEL_NAMES
+)
+_ISSUED_STORE_VALIDATION_MODEL_ATTRIBUTE_PINS = (
+    _STORE_VALIDATION_MODEL_ATTRIBUTE_PINS
+)
+
+_STORE_VALIDATION_CLASSES = (
+    EvidenceStore,
+    Locator,
+    ProvenanceParent,
+    Evidence,
+)
+_STORE_VALIDATION_CLASS_NAMESPACE_PINS = tuple(
+    _store_validation_class_pin(owner) for owner in _STORE_VALIDATION_CLASSES
+)
+_ISSUED_STORE_VALIDATION_CLASS_NAMESPACE_PINS = (
+    _STORE_VALIDATION_CLASS_NAMESPACE_PINS
+)
+
+_STORE_VALIDATION_OWN_FUNCTIONS = (
+    _drop_store_authority,
+    _exact_strings,
+    _validate_locator_shape,
+    _validate_parent_shape,
+    _validate_evidence_shape,
+    _bound,
+    _validate_evidence_store_snapshot,
+)
+_STORE_VALIDATION_MODEL_FUNCTIONS = tuple(
+    function
+    for name, function in _STORE_VALIDATION_MODEL_ATTRIBUTE_PINS
+    if type(function) is FunctionType
+)
+_STORE_VALIDATION_CLASS_FUNCTIONS = tuple(
+    function
+    for owner, _size, items in _STORE_VALIDATION_CLASS_NAMESPACE_PINS
+    for _name, descriptor in items
+    for function in (
+        (
+            descriptor
+            if type(descriptor) is FunctionType
+            else descriptor.__func__
+            if type(descriptor) in (classmethod, staticmethod)
+            else descriptor.fget
+            if type(descriptor) is property
+            else None
+        ),
+    )
+    if type(function) is FunctionType
+)
+_STORE_VALIDATION_FUNCTION_PINS = tuple(
+    _store_validation_function_pin(function)
+    for function in (
+        _STORE_VALIDATION_OWN_FUNCTIONS
+        + _STORE_VALIDATION_MODEL_FUNCTIONS
+        + _STORE_VALIDATION_CLASS_FUNCTIONS
+    )
+)
+_ISSUED_STORE_VALIDATION_FUNCTION_PINS = (
+    _STORE_VALIDATION_FUNCTION_PINS
+)
+
+_STORE_VALIDATION_GLOBAL_PINS = tuple(
+    (name, value, type(value))
+    for name, value in (
+        ("defaultdict", defaultdict),
+        ("deque", deque),
+        ("sha256", sha256),
+        ("json", json),
+        ("CodeType", CodeType),
+        ("FunctionType", FunctionType),
+        ("MappingProxyType", MappingProxyType),
+        ("ReferenceType", ReferenceType),
+        ("ref", ref),
+        ("_MODEL_RUNTIME_MODULE", _MODEL_RUNTIME_MODULE),
+        ("Evidence", Evidence),
+        ("Locator", Locator),
+        ("ProvenanceParent", ProvenanceParent),
+        ("EvidenceStore", EvidenceStore),
+        ("_MAPPING_PROXY_TYPE", _MAPPING_PROXY_TYPE),
+        ("_STORE_AUTHORITIES", _ISSUED_STORE_AUTHORITIES),
+        ("_ISSUED_STORE_AUTHORITIES", _ISSUED_STORE_AUTHORITIES),
+        ("_drop_store_authority", _drop_store_authority),
+        ("_exact_strings", _exact_strings),
+        ("_validate_locator_shape", _validate_locator_shape),
+        ("_validate_parent_shape", _validate_parent_shape),
+        ("_validate_evidence_shape", _validate_evidence_shape),
+        ("_bound", _bound),
+        (
+            "_validate_evidence_store_snapshot",
+            _validate_evidence_store_snapshot,
+        ),
+        (
+            "_ISSUED_VALIDATE_EVIDENCE_STORE_SNAPSHOT_CORE",
+            _ISSUED_VALIDATE_EVIDENCE_STORE_SNAPSHOT_CORE,
+        ),
+        (
+            "validate_evidence_store_snapshot",
+            _ISSUED_VALIDATE_EVIDENCE_STORE_SNAPSHOT_PUBLIC,
+        ),
+        (
+            "_ISSUED_VALIDATE_EVIDENCE_STORE_SNAPSHOT_PUBLIC",
+            _ISSUED_VALIDATE_EVIDENCE_STORE_SNAPSHOT_PUBLIC,
+        ),
+    )
+)
+_ISSUED_STORE_VALIDATION_GLOBAL_PINS = _STORE_VALIDATION_GLOBAL_PINS
+
+_STORE_VALIDATION_EXTERNAL_ATTRIBUTE_PINS = (
+    (json, "dumps", json.dumps),
+    (
+        _MODEL_RUNTIME_MODULE.math,
+        "isfinite",
+        _MODEL_RUNTIME_MODULE.math.isfinite,
+    ),
+)
+_ISSUED_STORE_VALIDATION_EXTERNAL_ATTRIBUTE_PINS = (
+    _STORE_VALIDATION_EXTERNAL_ATTRIBUTE_PINS
+)
+
+_validate_store_validation_dependencies.__defaults__ = (
+    globals(),
+    _STORE_VALIDATION_GLOBAL_PINS,
+    _STORE_VALIDATION_MODEL_ATTRIBUTE_PINS,
+    _STORE_VALIDATION_CLASS_NAMESPACE_PINS,
+    _STORE_VALIDATION_FUNCTION_PINS,
+    _STORE_VALIDATION_EXTERNAL_ATTRIBUTE_PINS,
+)
+_ISSUED_STORE_VALIDATION_DEPENDENCY_CHECKER_DEFAULTS = (
+    _validate_store_validation_dependencies.__defaults__
+)
+validate_evidence_store_snapshot.__kwdefaults__.update(
+    {
+        "_dependency_checker": _ISSUED_STORE_VALIDATION_DEPENDENCY_CHECKER,
+        "_dependency_checker_code": (
+            _PINNED_STORE_VALIDATION_DEPENDENCY_CHECKER_CODE
+        ),
+        "_dependency_checker_defaults": (
+            _ISSUED_STORE_VALIDATION_DEPENDENCY_CHECKER_DEFAULTS
+        ),
+    }
+)
 
 
 __all__ = ("EvidenceStore", "validate_evidence_store_snapshot")

@@ -2,6 +2,9 @@ from dataclasses import FrozenInstanceError, replace
 from collections.abc import Mapping
 from types import MappingProxyType
 import unittest
+from unittest.mock import patch
+
+import midprojectrag.evidence.store as store_module
 
 from midprojectrag.evidence import (
     Evidence,
@@ -224,6 +227,84 @@ class EvidenceStoreTests(unittest.TestCase):
         )
         with self.assertRaisesRegex(ValueError, "evidence_store_payload_drift"):
             validate_evidence_store_snapshot(store, store.bundle_sha256)
+
+    def test_snapshot_gate_rejects_store_method_drift_before_call(self):
+        store = EvidenceStore([self.p], [self.e])
+        for name in ("to_dict", "from_dict", "parent", "children", "get"):
+            calls = []
+
+            def armed(*_args, **_kwargs):
+                calls.append(name)
+                raise AssertionError("drifted store method executed")
+
+            with self.subTest(name=name), patch.object(
+                EvidenceStore, name, armed
+            ):
+                with self.assertRaisesRegex(
+                    ValueError, "evidence_store_validation_dependency_drift"
+                ):
+                    validate_evidence_store_snapshot(
+                        store, store.bundle_sha256
+                    )
+            self.assertEqual(calls, [])
+
+    def test_snapshot_gate_rejects_helper_drift_before_call(self):
+        store = EvidenceStore([self.p], [self.e])
+        for name in (
+            "_exact_strings",
+            "_validate_locator_shape",
+            "_validate_parent_shape",
+            "_validate_evidence_shape",
+            "_bound",
+            "_drop_store_authority",
+        ):
+            calls = []
+
+            def armed(*_args, **_kwargs):
+                calls.append(name)
+                raise AssertionError("drifted validation helper executed")
+
+            with self.subTest(name=name), patch.object(
+                store_module, name, armed
+            ):
+                with self.assertRaisesRegex(
+                    ValueError, "evidence_store_validation_dependency_drift"
+                ):
+                    validate_evidence_store_snapshot(
+                        store, store.bundle_sha256
+                    )
+            self.assertEqual(calls, [])
+
+    def test_snapshot_gate_rejects_registry_replacement_without_lookup(self):
+        store = EvidenceStore([self.p], [self.e])
+        bomb = _BombMap()
+        with patch.object(store_module, "_STORE_AUTHORITIES", bomb):
+            with self.assertRaisesRegex(
+                ValueError, "evidence_store_validation_dependency_drift"
+            ):
+                validate_evidence_store_snapshot(store, store.bundle_sha256)
+        self.assertEqual(bomb.calls, 0)
+
+    def test_snapshot_gate_rejects_forged_checker_defaults(self):
+        store = EvidenceStore([self.p], [self.e])
+        checker = store_module._validate_store_validation_dependencies
+        issued_defaults = checker.__defaults__
+        copied_namespace = dict(issued_defaults[0])
+        calls = []
+
+        def armed_to_dict(_store):
+            calls.append("to_dict")
+            raise AssertionError("store traversal executed")
+
+        forged_defaults = (copied_namespace, *issued_defaults[1:])
+        with patch.object(checker, "__defaults__", forged_defaults), patch.object(
+            EvidenceStore, "to_dict", armed_to_dict
+        ):
+            with self.assertRaisesRegex(
+                ValueError, "evidence_store_validation_dependency_drift"
+            ):
+                validate_evidence_store_snapshot(store, store.bundle_sha256)
+        self.assertEqual(calls, [])
 
 
 if __name__ == "__main__":

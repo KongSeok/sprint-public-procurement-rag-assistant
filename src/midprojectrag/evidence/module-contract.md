@@ -70,7 +70,10 @@ candidates. None/empty scope remains distinct. JSON graph identity is order-inde
 `validate_evidence_store_snapshot` additionally reconstructs the canonical graph and checks
 the live parent/evidence keys, exact node types, child tuple membership/order, object identity,
 and bundle hash before orchestration reuses a store. Index-only or stateful-iterable drift is
-therefore rejected even when the serialized values and old bundle hash appear unchanged.
+therefore rejected even when the serialized values and old bundle hash appear unchanged. Its
+public validation entry authenticates the exact helper, model/class descriptor, method, and
+authority-registry surface before traversal; a replaced helper or armed registry entry is
+rejected without invoking that replacement.
 
 Public builder APIs are `SplitConfig`, `split_spans`, `children_from_parent`,
 `build_store`, and `validate_chunking`. `build_store` uses the existing public

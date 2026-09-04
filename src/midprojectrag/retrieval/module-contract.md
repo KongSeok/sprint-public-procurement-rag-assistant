@@ -6,10 +6,10 @@ None means global, an empty frozenset means no encoder/tokenizer/lane call.
 
 | Owner | Public API | Boundaries |
 | --- | --- | --- |
-| dense.py | KURE_IDENTITY, DenseChildLane, build_dense, load_dense, require_loaded_dense_artifact | pinned revision/prompt/pooling/1024d; child-only ordered vectors; loader-issued per-instance attestation; hidden pinned query runtime |
+| dense.py | KURE_IDENTITY, DenseChildLane, build_dense, load_dense, preflight_loaded_dense_artifact, require_loaded_dense_artifact | pinned revision/prompt/pooling/1024d; child-only ordered vectors; loader-issued per-instance attestation; hidden pinned query runtime |
 | legacy_page.py | LegacyPageLane | previously validated ExactDenseIndex; source chunk→page evidence binding; page granularity only |
-| kiwi_bm25.py | KiwiTokenizer, KiwiBM25Lane, require_loaded_lexical_artifact | actual Kiwi/model versions+dictionary file hashes; persisted token replay; loader-issued per-instance attestation; hidden pinned query runtime; scope before score |
-| fusion.py | fuse_rrf, HybridChildRetriever.from_loaded_artifacts, require_production_hybrid | independent budgets, same child bundle/granularity, k=60; factory-issued production binding; lexical rescue/duplicates/docs trace |
+| kiwi_bm25.py | KiwiTokenizer, KiwiBM25Lane, preflight_loaded_lexical_artifact, require_loaded_lexical_artifact | actual Kiwi/model versions+dictionary file hashes; persisted token replay; loader-issued per-instance attestation; hidden pinned query runtime; scope before score |
+| fusion.py | fuse_rrf, HybridChildRetriever.from_loaded_artifacts, preflight_production_hybrid, require_production_hybrid | independent budgets, same child bundle/granularity, k=60; factory-issued production binding; lexical rescue/duplicates/docs trace |
 | context.py | expand_parents, select_context | bounded original parent windows, only child evidence IDs are citable; missing mandatory/docs explicit |
 
 No lane reads evaluator gold, required gold IDs, expected answers, or scores.
@@ -20,6 +20,13 @@ deployment boundary. Raw constructors, build-only lanes, and synthetic artifacts
 mint production runtime authority. Production search uses module-private fresh KURE/Kiwi
 runtimes and validates pinned dependency identities before query egress. Query
 token traces are private query data, never public log payloads.
+
+EH2.6.b2 strengthens each production entrypoint and identity registry as a zero-dispatch
+preflight boundary. Exact registry/backing-store identity, entry tuple/authority type,
+`ReferenceType`, callable code/default/global identity, contract descriptors, and JSON dispatch
+are checked before weakref dereference, store traversal, tokenizer/encoder access, or lane call.
+Coordinated checker-alias replacement and self-consistent copied namespaces fail closed. The
+runtime binding reuses the exact loader and hybrid attestations; it does not execute a search.
 
 KURE tests using FakeKure are synthetic and labeled as such. The explicit local
 build script uses existing pinned weights and sets offline mode. New KURE child

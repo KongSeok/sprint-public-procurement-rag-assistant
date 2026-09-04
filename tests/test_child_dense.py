@@ -3,10 +3,19 @@ from pathlib import Path
 from types import SimpleNamespace
 import tempfile
 import unittest
+from unittest.mock import patch
+from weakref import ref
 import numpy as np
 
 from midprojectrag.evidence.builder import build_store
-from midprojectrag.retrieval.dense import KURE_IDENTITY, DenseChildLane, build_dense, load_dense
+import midprojectrag.retrieval.dense as dense_module
+from midprojectrag.retrieval.dense import (
+    KURE_IDENTITY,
+    DenseChildLane,
+    build_dense,
+    load_dense,
+    preflight_loaded_dense_artifact,
+)
 from tests.test_evidence_builder import chunk
 
 
@@ -26,6 +35,16 @@ class FakeKure:
 class ChildDenseTests(unittest.TestCase):
     def setUp(self):
         self.store = build_store([chunk("alpha"), chunk("beta", block="block_" + "c" * 24, doc="doc_" + "d" * 24)])
+
+    def _loaded_lane(self):
+        provider = FakeKure()
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            target = root / "private" / "dense"
+            build_dense(self.store, provider, output_dir=target, data_root=root)
+            return load_dense(
+                self.store, provider, output_dir=target, data_root=root
+            )
 
     def test_independent_actual_child_text_build_load_search(self):
         provider = FakeKure()
@@ -75,6 +94,235 @@ class ChildDenseTests(unittest.TestCase):
             root, target = Path(temp), Path(temp) / "private" / "dense"
             receipt = build_dense(self.store, provider, output_dir=target, data_root=root)
             self.assertEqual(receipt["execution_kind"], "synthetic")
+
+    def test_identity_registry_rejects_malformed_entries_before_dereference(self):
+        calls = []
+
+        class Key:
+            pass
+
+        class ArmedReference:
+            def __call__(self):
+                calls.append("armed-reference")
+                raise AssertionError("forged registry reference was invoked")
+
+        class ArmedTuple(tuple):
+            def __len__(self):
+                calls.append("armed-len")
+                raise AssertionError("tuple subclass length was invoked")
+
+            def __getitem__(self, index):
+                calls.append(("armed-getitem", index))
+                raise AssertionError("tuple subclass item access was invoked")
+
+        registry = dense_module._IdentityWeakRegistry()
+        key = Key()
+        weak = ref(key)
+        storage = object.__getattribute__(registry, "_entries")
+        malformed = (
+            ("non-weak-reference", (ArmedReference(), object())),
+            ("wrong-length", (weak, object(), object())),
+            ("tuple-subclass", ArmedTuple((weak, object()))),
+        )
+        operations = (
+            ("get", lambda: registry.get(key)),
+            ("pop", lambda: registry.pop(key)),
+            ("contains", lambda: registry.__contains__(key)),
+            ("getitem", lambda: registry[key]),
+            ("drop", lambda: registry._drop(id(key), weak)),
+        )
+        for malformed_name, entry in malformed:
+            for operation_name, operation in operations:
+                with self.subTest(
+                    malformed=malformed_name, operation=operation_name
+                ):
+                    dict.__setitem__(storage, id(key), entry)
+                    with self.assertRaisesRegex(
+                        ValueError, "dense_production_registry_entry_drift"
+                    ):
+                        operation()
+                    self.assertEqual(calls, [])
+
+    def test_preflight_rejects_armed_registry_entry_before_call(self):
+        lane = self._loaded_lane()
+        registry = dense_module._LOADED_DENSE
+        storage = object.__getattribute__(registry, "_entries")
+        issued_entry = dict.__getitem__(storage, id(lane))
+        calls = []
+
+        class ArmedReference:
+            def __call__(self):
+                calls.append("armed-reference")
+                raise AssertionError("forged registry reference was invoked")
+
+        dict.__setitem__(
+            storage,
+            id(lane),
+            (ArmedReference(), tuple.__getitem__(issued_entry, 1)),
+        )
+        try:
+            with self.assertRaisesRegex(
+                ValueError, "dense_production_registry_entry_drift"
+            ):
+                preflight_loaded_dense_artifact(lane, self.store)
+        finally:
+            dict.__setitem__(storage, id(lane), issued_entry)
+        self.assertEqual(calls, [])
+
+    def test_preflight_rejects_replaced_registry_storage_before_access(self):
+        lane = self._loaded_lane()
+        registry = dense_module._LOADED_DENSE
+        issued_storage = object.__getattribute__(registry, "_entries")
+        calls = []
+
+        class ArmedStorage(dict):
+            def get(self, key, default=None):
+                calls.append(("get", key))
+                raise AssertionError("forged registry storage was accessed")
+
+        object.__setattr__(registry, "_entries", ArmedStorage())
+        try:
+            with self.assertRaisesRegex(
+                ValueError, "dense_production_registry_storage_drift"
+            ):
+                preflight_loaded_dense_artifact(lane, self.store)
+        finally:
+            object.__setattr__(registry, "_entries", issued_storage)
+        self.assertEqual(calls, [])
+
+    def test_preflight_rejects_forged_checker_defaults_before_iteration(self):
+        lane = self._loaded_lane()
+        checker = dense_module._require_dense_production_search_dependencies
+        issued_defaults = object.__getattribute__(checker, "__defaults__")
+        calls = []
+
+        class ArmedAuthority:
+            def __iter__(self):
+                calls.append("armed-authority")
+                raise AssertionError("forged checker defaults were iterated")
+
+        forged_defaults = list(issued_defaults)
+        forged_defaults[1] = ArmedAuthority()
+        object.__setattr__(checker, "__defaults__", tuple(forged_defaults))
+        try:
+            with self.assertRaisesRegex(
+                ValueError, "dense_production_search_dependency_override"
+            ):
+                preflight_loaded_dense_artifact(lane, self.store)
+        finally:
+            object.__setattr__(checker, "__defaults__", issued_defaults)
+        self.assertEqual(calls, [])
+
+    def test_preflight_rejects_forged_registry_checker_defaults_before_iteration(self):
+        lane = self._loaded_lane()
+        checker = dense_module._require_pinned_dense_registry_authority
+        issued_defaults = object.__getattribute__(checker, "__defaults__")
+        calls = []
+
+        class ArmedAuthority:
+            def __iter__(self):
+                calls.append("armed-registry-authority")
+                raise AssertionError("forged registry defaults were iterated")
+
+        forged_defaults = (
+            tuple.__getitem__(issued_defaults, 0),
+            ArmedAuthority(),
+            tuple.__getitem__(issued_defaults, 2),
+        )
+        object.__setattr__(checker, "__defaults__", forged_defaults)
+        try:
+            with self.assertRaisesRegex(
+                ValueError, "dense_production_search_dependency_override"
+            ):
+                preflight_loaded_dense_artifact(lane, self.store)
+        finally:
+            object.__setattr__(checker, "__defaults__", issued_defaults)
+        self.assertEqual(calls, [])
+
+    def test_preflight_rejects_issued_checker_replacement_before_call(self):
+        lane = self._loaded_lane()
+        calls = []
+
+        class ArmedChecker:
+            def __call__(self, *args, **kwargs):
+                calls.append((args, kwargs))
+                raise AssertionError("replacement dependency checker was invoked")
+
+        with patch.object(
+            dense_module,
+            "_ISSUED_REQUIRE_DENSE_PRODUCTION_SEARCH_DEPENDENCIES",
+            ArmedChecker(),
+        ):
+            with self.assertRaisesRegex(
+                ValueError, "dense_production_search_dependency_override"
+            ):
+                preflight_loaded_dense_artifact(lane, self.store)
+        self.assertEqual(calls, [])
+
+    def test_public_entries_reject_coordinated_checker_replacement_before_call(self):
+        lane = self._loaded_lane()
+        calls = []
+
+        def armed_checker(*args, **kwargs):
+            calls.append((args, kwargs))
+            raise AssertionError("coordinated replacement checker was invoked")
+
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            entries = (
+                ("search", lambda: lane.search("alpha", 1)),
+                (
+                    "preflight",
+                    lambda: preflight_loaded_dense_artifact(lane, self.store),
+                ),
+                (
+                    "require",
+                    lambda: dense_module.require_loaded_dense_artifact(
+                        lane, self.store
+                    ),
+                ),
+                (
+                    "build",
+                    lambda: build_dense(
+                        self.store,
+                        FakeKure(),
+                        output_dir=root / "build",
+                        data_root=root,
+                    ),
+                ),
+                (
+                    "load",
+                    lambda: load_dense(
+                        self.store,
+                        FakeKure(),
+                        output_dir=root / "load",
+                        data_root=root,
+                    ),
+                ),
+            )
+            with (
+                patch.object(
+                    dense_module,
+                    "_require_dense_production_search_dependencies",
+                    armed_checker,
+                ),
+                patch.object(
+                    dense_module,
+                    "_ISSUED_REQUIRE_DENSE_PRODUCTION_SEARCH_DEPENDENCIES",
+                    armed_checker,
+                ),
+                patch.object(
+                    dense_module,
+                    "_PINNED_REQUIRE_DENSE_PRODUCTION_SEARCH_DEPENDENCIES_CODE",
+                    armed_checker.__code__,
+                ),
+            ):
+                for name, entry in entries:
+                    with self.subTest(entry=name), self.assertRaisesRegex(
+                        ValueError, "dense_production_search_dependency_override"
+                    ):
+                        entry()
+        self.assertEqual(calls, [])
 
 
 if __name__ == "__main__":

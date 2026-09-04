@@ -80,6 +80,15 @@ from .actions import (
     decide_harness_action,
     replay_action_decision,
 )
+from .execution_contracts import (
+    HARNESS_EXECUTION_POLICY_ID,
+    HarnessExecutionConfig,
+    HarnessRuntimeBinding,
+    bind_production_harness_runtime,
+    create_harness_execution_config,
+    validate_harness_execution_config,
+    validate_harness_runtime_binding,
+)
 
 __all__ = (
     "BudgetRule",
@@ -144,4 +153,11 @@ __all__ = (
     "allowed_harness_actions",
     "decide_harness_action",
     "replay_action_decision",
+    "HARNESS_EXECUTION_POLICY_ID",
+    "HarnessExecutionConfig",
+    "HarnessRuntimeBinding",
+    "bind_production_harness_runtime",
+    "create_harness_execution_config",
+    "validate_harness_execution_config",
+    "validate_harness_runtime_binding",
 )

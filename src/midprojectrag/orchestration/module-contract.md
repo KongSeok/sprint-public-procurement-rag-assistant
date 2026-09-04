@@ -145,6 +145,17 @@ identities, classes, attestations/config hashes, capabilities, and method-overri
 These checks happen before query derivation or egress, and approved class methods are invoked
 directly. Only executor code can mint semantic/rerank receipts from adapter output; synthetic
 adapters are test-only and cannot authorize production sources.
+
+EH2.6.b2 implements this boundary as factory-issued `HarnessExecutionConfig` and
+`HarnessRuntimeBinding`. The config is a closed, hash-bound `e0_once|e1_bounded` snapshot with
+the v1 one-round rule, `rrf_k=60`, positive action/no-progress/context-target/deadline limits,
+and exact JSON replay. Production binding accepts only loader-attested KURE+Kiwi+RRF objects,
+the internal monotonic clock, and currently unavailable verifier/reranker capabilities;
+synthetic adapters and clocks are available only through `HarnessRuntimeBinding.for_test`.
+Bind, validate, serialize, dense/lexical/fusion preflight, and evidence-store snapshot entry
+gates authenticate their complete issued callable/class/registry surface before traversal and
+make zero retriever, tokenizer, model, verifier, reranker, or clock calls. These bindings provide
+authority only; lane execution receipts remain EH2.6.b3.
 An E1 compare seed must be all-unsearched; already hybrid-searched EH2.4 coverage cannot be
 relabeled as independent lane execution. Once all approved retrieval paths close with no
 candidates, controller-only `verify_slot` performs a zero-provider exhaustion check that may
