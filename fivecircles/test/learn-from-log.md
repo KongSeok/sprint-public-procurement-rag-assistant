@@ -213,3 +213,19 @@ Preventive rule:
 
 Reference:
 - `errorlogs/backend/2026-09-04-eh26-b2-runtime-authority.md`
+
+### EH2.6.b4 callback and replay authority (2026-09-05)
+
+Cause:
+- 호출 전 callable 검증만으로는 untrusted provider callback 이후의 global 교체를 막지 못했다.
+- 결과 receipt 수명이나 단일 mutable progress map에 replay 이력을 기대면 GC·부분 변조 뒤 다시 열릴 수 있다.
+- mirror를 직접 교란하는 테스트는 teardown이 비대칭이면 다른 실행 순서에 stale state를 남긴다.
+
+Preventive rule:
+- provider 반환 뒤 dependency gate, exact DTO type, public receipt validator를 다시 실행한다.
+- 단계별 obligation 순서를 lane claim 전에 검증한다.
+- ledger-lifetime 완료 이력은 동일 immutable entry identity를 공유하는 이중 private mirror로 보존한다.
+- private-state 회귀는 두 mirror를 대칭 복구하고 정·역순 반복으로 isolation을 검증한다.
+
+Reference:
+- `errorlogs/backend/2026-09-05-eh26-b4-fusion-e0-integrity.md`

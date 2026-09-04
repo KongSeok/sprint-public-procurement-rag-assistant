@@ -637,3 +637,24 @@ This file summarizes recent updates so other agents can continue without re‑di
 
 ### Next
 - EH2.6.b3: owner-issued `RetrievalObligation`과 독립 dense/lexical `LaneSearchReceipt`, exact-once 소비를 구현한다.
+
+## Addendum (2026-09-05) - EH2.6.b3 repair and b4 fusion/E0 relay
+
+### Backend
+
+- b3 copied-globals executor provenance를 exact code+module-global namespace로 닫았다.
+- same-round stage-4 `FusionReceipt`와 state-free `E0ControlReceipt`를 구현했다.
+- provider 반환 뒤 child dependency/type/receipt를 재검증하고, obligation별 dense→lexical→fusion 순서를
+  강제하며 closure-cell pin과 dual immutable history로 replay를 차단한다.
+
+### Tests
+
+- b4 focused27, b3+b4 64, 관련214, 전체1175, safety828 PASS.
+- 정·역순 교대 10회 총640 PASS와 독립 APPROVE(P0/P1/P2 없음).
+- 실제 API/model/Langfuse 호출 0. retrieval 품질 개선은 아직 측정하지 않았다.
+
+### Next
+
+- EH2.6.b5 focused gate 뒤 effect/reducer와 bounded E1 controller를 순차 구현한다.
+- refs: `review/review-eh2-6-b4-fusion-e0-2026-09-05.md`,
+  `../architecture/specs/evidence-harness-progress-flow-validation.md`.

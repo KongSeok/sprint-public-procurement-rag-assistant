@@ -64,9 +64,9 @@
 
 - git status 확인: 대규모 user-owned dirty 상태; 선택 범위를 별도 확인한다.
 - 커밋 범위: EH2.6 b1~b4의 의존 폐쇄 파일과 계약·테스트·로그만 명시적으로 stage한다.
-- 커밋: Cycle 2 closeout에서 기록한다.
-- 푸시: Cycle 2 closeout에서 기록한다.
-- 상태: IN_PROGRESS.
+- 커밋: `5c07c4c` (`feat(harness): add exact fusion and E0 control`).
+- 푸시: `origin/feat/total-integration` 동기화 완료.
+- 상태: COMPLETED.
 
 ### 8. Closeout Report
 
@@ -92,10 +92,10 @@
 - Implementation: COMPLETED.
 - Validation: COMPLETED.
 - Repair: COMPLETED.
-- Push: Cycle 2와 함께 IN_PROGRESS.
+- Push: COMPLETED (`5c07c4c`).
 - Report: COMPLETED.
 - Relay: CONTINUE_WITH_NEXT_FORM.
-- 남은 리스크: b4 exact-once fusion/E0 aggregate 구현 및 독립 감사.
+- 남은 리스크: 없음. 다음 leaf의 별도 acceptance는 b5에서 판정한다.
 
 ## Cycle 2 — EH2.6.b4 same-round fusion / state-free E0
 
@@ -152,6 +152,17 @@
 ### 5. Push / Relay
 
 - user-owned dirty 파일을 broad-add하지 않고 EH2.6 의존 폐쇄만 선별 stage한다.
-- commit/push: 선별 stage 검증 뒤 기록.
+- commit/push: `5c07c4c`를 `origin/feat/total-integration`에 푸시했다.
 - relay: `CONTINUE_WITH_NEXT_FORM`, 다음 leaf `EH2.6.b5`.
-- 상태: IN_PROGRESS.
+- 상태: COMPLETED.
+
+### 6. Final Ledger
+
+- Doc: COMPLETED.
+- Implementation: COMPLETED.
+- Validation: COMPLETED.
+- Repair: COMPLETED.
+- Push: COMPLETED (`5c07c4c`).
+- Report: COMPLETED.
+- Relay: `CONTINUE_WITH_NEXT_FORM`.
+- 다음 READY: `EH2.6.b5`.
