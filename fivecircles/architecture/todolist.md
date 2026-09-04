@@ -139,7 +139,7 @@ runtime은 local profile 기본·LLM provider 교체형으로 유지하며 새 �
       fact state, follow-up slot projection gap을 재현했다.
     - [x] **EH2.6.a2** §16.10과 module contract에 E0/E1 경계, DTO, action order, absence/reducer/종료/replay를 고정했다.
     - [x] **EH2.6.a3** 독립 계약 재리뷰 PASS로 P0/P1을 닫고 public owner API/구현 파일 경계를 확정했다.
-  - [ ] **EH2.6.b** source/runtime/검색 receipt 기반을 구현한다.
+  - [x] **EH2.6.b** source/runtime/검색 receipt 기반을 구현했다.
     - [x] **EH2.6.b1** planner replay·catalog/config/store-bound `BoundFact`와 fact 초기 state를 구현하고,
       unknown/stale doc 및 fact metadata predicate를 EH3.1 receipt 전까지 not-ready로 닫았다.
       follow-up metadata safe projection은 EH2.6.c1에서 닫는다. focused47·전체1034·독립 리뷰 PASS.
@@ -159,7 +159,9 @@ runtime은 local profile 기본·LLM provider 교체형으로 유지하며 새 �
       stage ordinal 4를 유지하고 dense→lexical→fusion의 obligation별 순서, exact-once fusion/E0 claim,
       post-provider child 재검증, closure-cell pin, receipt 수명과 독립적인 dual immutable history를 봉인했다.
       focused27·b3+b4 64·관련214·전체1175 PASS, API/model/Langfuse 호출 0, 독립 최종 리뷰 PASS.
-    - [ ] **EH2.6.b5** 독립 lane·lexical rescue·fact empty·호출 전 거부 focused gate를 통과한다.
+    - [x] **EH2.6.b5** 독립 lane·lexical rescue·fact empty·호출 전 거부 focused gate를 통과했다.
+      dense-empty→lexical-only fusion, fact all-empty retrieval-complete/state-free, pre-call zero-dispatch,
+      provider-error lexical diagnostic/no-fusion을 전용 4건으로 고정하고 public validator·비누출까지 PASS.
   - [ ] **EH2.6.c** effect/reducer/absence transition을 구현한다.
     - [ ] **EH2.6.c1** EH2.3 verified 주장을 candidate로 낮추고 follow-up 실제 slot에 doc-matching outcome
       candidate를 투영하며 추가 검색 0회를 고정한다.

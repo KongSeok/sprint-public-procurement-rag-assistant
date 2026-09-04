@@ -1,6 +1,6 @@
 # EH-RC0 재개 체크포인트
 
-갱신: 2026-09-05 · EH2.6.b4 완료, 다음 READY는 EH2.6.b5 focused gate. 토큰 절약을 위해 이 문서의 한눈에 보는 상태와 계약 §16.10부터 읽기.
+갱신: 2026-09-05 · EH2.6.b5 gate 완료, 다음 READY는 EH2.6.c1. 토큰 절약을 위해 이 문서의 한눈에 보는 상태와 계약 §16.10부터 읽기.
 
 ## 중단/애매함 발생 시
 
@@ -21,8 +21,8 @@
   후속 전체 범위의 선택 commit·검증이 끝난 뒤 `feat/local-qwen-mini131-eval`에 병합한다.
   새 브랜치는 만들지 않는다.
 - 완료: EH-A.1~3 감사·기준선·계약/flow 초안. 805 tests PASS, 실패/skip 0 (변경 전).
-- 현재 IN_PROGRESS: **Phase 2**. EH2.1~2.5와 EH2.6.a~b4 PASS. 다음 leaf는 독립 lane·lexical
-  rescue·fact empty·호출 전 거부를 한 묶음으로 고정하는 `EH2.6.b5` focused gate다.
+- 현재 IN_PROGRESS: **Phase 2**. EH2.1~2.5와 EH2.6.a~b5 PASS. 다음 leaf는 EH2.3의 verified 주장을
+  candidate로 낮추고 follow-up 실제 slot에 retrieval outcome을 투영하는 `EH2.6.c1`이다.
 - 기존 평가 Batch 2의 활성 책임은 `EH2.EVAL`로 통합했다. EVAL.1~3은 완료, 사람 승인·qrels 보강과
   sealed held-out 실행은 EVAL.4~6에 남아 있으며 EH2 runtime에는 gold 값을 주입하지 않는다.
 - blocker: 없음. 실제 생성/API 호출은 계속 0이며 Phase 2는 provider-free 합성 테스트로 진행한다.
@@ -31,7 +31,9 @@
   다음 obligation으로 이동하고, post-provider child validator 재검증, closure-cell identity pin,
   receipt GC와 독립적인 ledger-lifetime dual immutable history로 replay를 차단한다. focused27,
   b3+b4 64, 관련214, 전체1,175 PASS와 독립 최종 APPROVE를 받았다. API·Langfuse·실제
-  model/provider 호출은 0이다.
+  model/provider 호출은 0이다. b5는 이 production surface를 바꾸지 않고 lexical-only rescue,
+  fact all-empty state-free 완료, pre-call zero-dispatch, provider-error lexical diagnostic/no-fusion을
+  전용 4건과 public validator·비누출 assertion으로 고정했다.
   EH2.6 controller 전체 구현·실행 완료 주장이 아니며 원샷 전체는 미완료다.
 
 ## 완료된 첫 leaf 참고: EH0.1.a (현재 작업 아님)
@@ -84,6 +86,7 @@
 | EH2.6.b2 | COMPLETED | immutable execution config + exact production/synthetic runtime authority. focused104/full1109/safety811, 독립 P1 10건 수리·최종 재리뷰 PASS; 다음 EH2.6.b3 |
 | EH2.6.b3 | COMPLETED | exact code+module namespace provenance로 copied-globals clone 차단. b4와 함께 focused64/related214/full1175, 독립 재리뷰 PASS |
 | EH2.6.b4 | COMPLETED | stage-4 same-round FusionReceipt + state-free E0 control; post-provider validation, strict obligation order, closure-cell/dual-history replay 방어. focused27/full1175, API·model·Langfuse 0; 다음 EH2.6.b5 |
+| EH2.6.b5 | COMPLETED | b3/b4 production 변경 없이 lexical-only rescue, fact empty state-free, pre-call zero-dispatch, provider-error diagnostic/no-fusion. focused4/b3~b5 68/related218/full1179/safety829 PASS; 다음 EH2.6.c1 |
 
 ## 안전/컨텍스트 규칙
 

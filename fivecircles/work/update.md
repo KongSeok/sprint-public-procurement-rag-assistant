@@ -658,3 +658,22 @@ This file summarizes recent updates so other agents can continue without re‑di
 - EH2.6.b5 focused gate 뒤 effect/reducer와 bounded E1 controller를 순차 구현한다.
 - refs: `review/review-eh2-6-b4-fusion-e0-2026-09-05.md`,
   `../architecture/specs/evidence-harness-progress-flow-validation.md`.
+
+## Addendum (2026-09-05) - EH2.6.b5 focused retrieval gate
+
+### Backend
+
+- b3/b4 production surface를 바꾸지 않고 lexical-only rescue, fact all-empty state-free 완료,
+  pre-call zero-dispatch, provider-error lexical diagnostic/no-fusion 네 경계를 전용 테스트로 고정했다.
+- parent `EH2.6.b` source/runtime/retrieval receipt 기반을 완료로 닫고 다음 READY를 `EH2.6.c1`로 옮겼다.
+
+### Tests
+
+- b5 focused4, b3+b4+b5 68, 관련218, 전체1179 PASS; 독립 리뷰 2건 APPROVE(P0/P1/P2 없음).
+- 실제 API/model/Langfuse 호출과 VLM/golden 품질 실행은 0이다.
+
+### Next
+
+- EH2.6.c1 candidate projection부터 effect/reducer와 bounded E1 controller를 순차 구현한다.
+- refs: `review/review-eh2-6-b5-focused-gate-2026-09-05.md`,
+  `../architecture/specs/evidence-harness-progress-flow-validation.md`.

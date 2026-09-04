@@ -48,7 +48,7 @@
 <body>
 <main>
   <h1>Local RAG Baseline → Evidence-Harness Challenger 평가 진행 보고서</h1>
-  <p class="sub">2026-09-05 · 작업대 feat/total-integration · EH2.6.b4 · 최종 통합 대상 feat/local-qwen-mini131-eval</p>
+  <p class="sub">2026-09-05 · 작업대 feat/total-integration · EH2.6.b5 · 최종 통합 대상 feat/local-qwen-mini131-eval</p>
 
   <section class="purpose">
     <strong>목적 및 고정 방침</strong>
@@ -60,7 +60,7 @@
 
   <div class="status-grid">
     <div class="card green"><div class="label">CONTROL</div><div class="value">Local B0 측정됨</div><p>Mac-equivalent provisional. 재현·rollback 기준으로 유지.</p></div>
-    <div class="card blue"><div class="label">CHALLENGER</div><div class="value">부분 구현·미측정</div><p>Evidence-Harness는 EH2.6.b4까지. 실제 E2E는 미완성.</p></div>
+    <div class="card blue"><div class="label">CHALLENGER</div><div class="value">부분 구현·미측정</div><p>Evidence-Harness는 EH2.6.b5까지. 실제 E2E는 미완성.</p></div>
     <div class="card amber"><div class="label">SELECTION</div><div class="value">Winner 미선정</div><p>동일 골든셋 paired A/B와 gate/Pareto 판정 전.</p></div>
   </div>
 
@@ -70,12 +70,12 @@
     <tbody>
       <tr><td>주 비교 통제군 B0</td><td>KURE page-v1 + fixed local Qwen</td><td class="done">측정 완료·provisional</td><td>local-first retrieval 비교의 authoritative control</td></tr>
       <tr><td>별도 API arm</td><td>OpenAI small/nano + Streamlit</td><td>호환 경로</td><td>과거 API-first 구현. local control을 대체하지 않음</td></tr>
-      <tr><td>현재 개발 대상</td><td>feat/total-integration의 Evidence-Harness</td><td class="todo">EH2.6.b4</td><td>독립 lane·RRF·state-free E0 완료, E1/생성 E2E 미완성</td></tr>
+      <tr><td>현재 개발 대상</td><td>feat/total-integration의 Evidence-Harness</td><td class="todo">EH2.6.b5</td><td>독립 lane·RRF·state-free E0·focused gate 완료, E1/생성 E2E 미완성</td></tr>
       <tr><td>최종 전달 대상</td><td>feat/local-qwen-mini131-eval</td><td class="todo">병합·선택 전</td><td>local-first, generator는 local/API 교체형</td></tr>
       <tr><td>채택 구조</td><td>B0 대 assembled challenger</td><td class="todo">미선정</td><td>같은 golden의 실측 결과로만 결정</td></tr>
     </tbody>
   </table></div>
-  <p class="callout"><strong>한 문장:</strong> 현재 비교할 때 쓰는 것은 local baseline, 현재 만드는 것은 challenger, 나중에 기본으로 쓸 것은 아직 미정이다. EH2.6.b4 과정의 API·모델·Langfuse 호출은 0회다.</p>
+  <p class="callout"><strong>한 문장:</strong> 현재 비교할 때 쓰는 것은 local baseline, 현재 만드는 것은 challenger, 나중에 기본으로 쓸 것은 아직 미정이다. EH2.6.b5 과정의 API·모델·Langfuse 호출은 0회다.</p>
 
   <h2>이전 → 현재 → 목표</h2>
   <div class="table-wrap"><table>
@@ -162,7 +162,7 @@
     <tbody>
       <tr><td class="done">DONE</td><td>baseline·계보 보존</td><td>local B0와 API arm 분리</td><td>비교 때 재현</td></tr>
       <tr><td class="done">DONE</td><td>challenger 골격·권한</td><td>Evidence/KURE/Kiwi/RRF/QueryPlan/runtime authority</td><td>회귀 유지</td></tr>
-      <tr><td class="done">DONE</td><td>E0 retrieval execution</td><td>owner obligation → dense → lexical → same-round RRF, exact-once aggregate</td><td>EH2.6.b5 focused gate</td></tr>
+      <tr><td class="done">DONE</td><td>E0 retrieval + focused gate</td><td>exact-once aggregate와 lexical rescue·fact empty·pre-call/error 경계</td><td>EH2.6.c1</td></tr>
       <tr><td class="todo">NOT DONE</td><td>state/terminal</td><td>effect/reducer/bounded controller 없음</td><td>EH2.6.c~e</td></tr>
       <tr><td class="todo">NOT DONE</td><td>specialist E2E</td><td>analytics/list/table/figure controller 밖</td><td>EH3</td></tr>
       <tr><td class="todo">NOT DONE</td><td>generation/evaluator</td><td>adapter/CLI/layer evaluator 미완성</td><td>EH4</td></tr>
@@ -172,7 +172,7 @@
 
   <h2>다음 실행 순서</h2>
   <ol class="steps">
-    <li>EH2.6.b5 focused gate를 닫은 뒤 effect/reducer → bounded E1 controller를 완성한다.</li>
+    <li>EH2.6.c1 candidate projection부터 effect/reducer → bounded E1 controller를 완성한다.</li>
     <li>EH3의 catalog/analytics/list/table/figure를 같은 Evidence contract에 연결한다.</li>
     <li>EH4의 reranker, local/API generator adapter, CLI와 계층별 evaluator를 완성한다.</li>
     <li>공통 hash·budget·metric threshold를 동결하고 B0→R1→R2→R3→H1→V1 paired ablation을 실행한다.</li>
@@ -180,8 +180,8 @@
   </ol>
 
   <h2>엔지니어링 검증</h2>
-  <p>EH2.6.b4 focused 27/27 · b3+b4 64/64 · 관련 회귀 214/214 · 전체 1,175/1,175 PASS. 이는 구현 무결성 결과이며 retrieval 성능 향상 수치가 아니다.</p>
-  <p>API·모델·Langfuse 호출 0회. 갱신 Mermaid PNG 2개 직접 검사, HTML headless Chrome 1440×1100 렌더, repository safety 828 files PASS.</p>
+  <p>EH2.6.b5 focused 4/4 · b3+b4+b5 68/68 · 관련 회귀 218/218 · 전체 1,179/1,179 PASS. 이는 구현 무결성 결과이며 retrieval 성능 향상 수치가 아니다.</p>
+  <p>API·모델·Langfuse 호출 0회. 갱신 Mermaid PNG 직접 검사, HTML headless Chrome 1440×1100 렌더, repository safety 829 files PASS.</p>
   <footer>권위: requirements/decisions.md D-024 → requirements/current.md §1.1 → assembly-on-research-and-exp.md → bidfit-evidence-harness-v1-rc0.md. Langfuse는 실제 E2E 측정 수단이며 검색 성능 구성요소가 아니다.</footer>
 </main>
 </body>

@@ -742,6 +742,11 @@ parent/child 혼합, 골든 값 의존을 검출한다. 정확한 새 파일/메
   명시한다. `unavailable`은 스키마·집계에는 남지만 현재 필수 dense/lexical/RRF runtime에서는 합성하지 않는다.
   aggregate에는 child receipt SHA만 선형으로 참조하며 state/decision/action/transition, semantic READY,
   evaluator/gold/qrels 입력을 두지 않는다.
+- EH2.6.b5 focused gate는 b3/b4 production 경계를 넓히지 않고 네 실행 의미를 함께 고정한다. dense가 정상
+  empty이고 lexical이 후보를 찾으면 lexical-only partition으로 fusion되어 retrieval rescue가 된다. 두 lane이
+  모두 empty인 fact E0는 bounded retrieval 완료로 닫히지만 semantic READY/answerable/verified 상태를 만들지
+  않는다. 호출 전 contract rejection은 provider side-effect, lexical, fusion을 모두 0으로 유지한다. dense
+  provider error 뒤의 lexical 한 번은 진단 receipt일 뿐 fusion rescue로 승격하지 않는다.
 - `LaneSearchReceipt`, `FusionReceipt`, 이후 rerank/context receipt는 `evaluation-contract.md` §9.1의
   stage checkpoint를 구성할 수 있는 safe evidence ID·stable anchor·owner receipt/config identity를
   보존한다. 평가 case나 qrels를 인자로 받지 않으며, evaluator는 실행 종료 뒤 private qrels를 별도로

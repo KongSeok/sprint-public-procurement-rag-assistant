@@ -1054,6 +1054,146 @@ class E0FusionTests(unittest.TestCase):
                     progress[identity] = entry
                     history[identity] = entry
 
+    def test_b5_r1_dense_empty_is_rescued_by_independent_lexical_fusion(self):
+        store, config, runtime, obligations, dense_log, lexical_log = self._fact_case(
+            name="b5-r1",
+            mode="e1_bounded",
+            dense_mode="empty",
+            lexical_mode="valid",
+        )
+        obligation = obligations[0]
+        dense, lexical = self._lane_pair(
+            obligation=obligation,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+
+        receipt = self._fuse(
+            obligation=obligation,
+            dense=dense,
+            lexical=lexical,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+
+        self.assertEqual((dense.outcome, lexical.outcome), ("empty", "applied"))
+        self.assertEqual((receipt.outcome, receipt.stage_ordinal), ("applied", 4))
+        self.assertEqual(receipt.dense_only_evidence_ids, ())
+        self.assertEqual(receipt.both_evidence_ids, ())
+        self.assertEqual(
+            receipt.lexical_only_evidence_ids,
+            tuple(sorted(lexical.ordered_evidence_ids)),
+        )
+        self.assertEqual(
+            set(receipt.ordered_evidence_ids),
+            set(lexical.ordered_evidence_ids),
+        )
+        self.assertEqual((_calls(dense_log), _calls(lexical_log)), (("dense",), ("lexical",)))
+        validate_fusion_receipt(
+            receipt=receipt,
+            obligation=obligation,
+            dense_receipt=dense,
+            lexical_receipt=lexical,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+
+    def test_b5_r2_fact_all_empty_is_complete_but_not_semantic_state(self):
+        store, config, runtime, obligations, dense_log, lexical_log = self._fact_case(
+            name="b5-r2",
+            dense_mode="empty",
+            lexical_mode="empty",
+        )
+
+        receipt = execute_e0_control(
+            obligations=obligations,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+
+        payload = receipt.to_dict()
+        self.assertEqual((receipt.outcome, receipt.execution_complete), ("empty", True))
+        self.assertEqual(receipt.empty_obligation_keys, ("$answer_support",))
+        self.assertEqual((_calls(dense_log), _calls(lexical_log)), (("dense",), ("lexical",)))
+        self.assertTrue(
+            {"state", "decision", "ready", "answerable", "verified"}.isdisjoint(payload)
+        )
+        validate_e0_control_receipt(
+            receipt=receipt,
+            obligations=obligations,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+
+    def test_b5_r3_pre_call_contract_rejection_performs_zero_lane_calls(self):
+        store, config, runtime, obligations, dense_log, lexical_log = self._fact_case(
+            name="b5-r3",
+            dense_mode="pre_call_contract",
+        )
+
+        receipt = execute_e0_control(
+            obligations=obligations,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+
+        result = receipt.ordered_results[0]
+        self.assertEqual((receipt.outcome, receipt.execution_complete), ("error", False))
+        self.assertEqual(result.error_code, "lane_dispatch_contract_error")
+        self.assertIsNotNone(result.dense_receipt_sha256)
+        self.assertIsNone(result.lexical_receipt_sha256)
+        self.assertIsNone(result.fusion_receipt_sha256)
+        self.assertEqual((_calls(dense_log), _calls(lexical_log)), ((), ()))
+        self.assertNotIn(
+            "private-pre-call-contract-detail-must-not-leak",
+            json.dumps(receipt.to_dict()),
+        )
+        validate_e0_control_receipt(
+            receipt=receipt,
+            obligations=obligations,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+
+    def test_b5_r4_provider_error_runs_lexical_diagnostic_without_fusion(self):
+        store, config, runtime, obligations, dense_log, lexical_log = self._fact_case(
+            name="b5-r4",
+            dense_mode="provider_error",
+        )
+
+        receipt = execute_e0_control(
+            obligations=obligations,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+
+        result = receipt.ordered_results[0]
+        self.assertEqual((receipt.outcome, receipt.execution_complete), ("error", False))
+        self.assertEqual(result.error_code, "lane_provider_error")
+        self.assertIsNotNone(result.dense_receipt_sha256)
+        self.assertIsNotNone(result.lexical_receipt_sha256)
+        self.assertIsNone(result.fusion_receipt_sha256)
+        self.assertEqual((_calls(dense_log), _calls(lexical_log)), (("dense",), ("lexical",)))
+        self.assertNotIn(
+            "private-provider-detail-must-not-leak",
+            json.dumps(receipt.to_dict()),
+        )
+        validate_e0_control_receipt(
+            receipt=receipt,
+            obligations=obligations,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

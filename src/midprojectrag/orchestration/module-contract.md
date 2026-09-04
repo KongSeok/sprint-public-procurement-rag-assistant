@@ -238,3 +238,9 @@ E0 preserves ordered per-obligation statuses and aggregate precedence of error, 
 all-empty, then retrieved. It records each status partition and reports execution complete only
 when every obligation boundedly ended as retrieved or empty; mixed compare slots are never
 collapsed into an unqualified success.
+
+EH2.6.b5 is a focused acceptance gate over the b3/b4 production surface, not a new execution layer.
+It fixes four distinctions: a normal empty dense lane can be rescued by a valid lexical-only fusion;
+an all-empty fact E0 is retrieval-complete but carries no semantic-ready state; pre-call contract
+rejection performs no provider side effect and produces no lexical/fusion child; and lexical work
+after a dense provider error is diagnostic only and never authorizes fusion.

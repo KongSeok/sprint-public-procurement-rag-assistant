@@ -166,3 +166,35 @@
 - Report: COMPLETED.
 - Relay: `CONTINUE_WITH_NEXT_FORM`.
 - 다음 READY: `EH2.6.b5`.
+
+## Cycle 3 — EH2.6.b5 focused retrieval gate
+
+### 0. Scope / Decision
+
+- 목적: b3/b4 production surface를 넓히지 않고 네 핵심 실행 의미를 하나의 focused gate로 고정한다.
+- 포함: 독립 lane의 lexical-only rescue, fact all-empty, 호출 전 zero-dispatch, provider-error 진단 경계.
+- 제외: effect/reducer/E1, 실제 provider/model/API/Langfuse, golden 품질 측정, VLM 변경.
+- 판정: 기존 경계가 구현돼 있어 production 코드 추가는 불필요하고 전용 회귀만 추가한다.
+
+### 1. Test Gate
+
+- `b5_r1`: dense normal-empty + lexical applied → stage-4 lexical-only fusion, 양 lane 정확히 1회.
+- `b5_r2`: fact 양 lane empty → E0 `empty/execution_complete`, semantic ready/state 필드 없음.
+- `b5_r3`: pre-call contract rejection → provider log 0, lexical/fusion child 없음.
+- `b5_r4`: dense provider error → lexical 진단 1회, fusion 없음.
+- 네 테스트 모두 public validator를 재호출하고 private provider detail 비노출을 확인한다.
+- focused: 4/4 PASS. b3+b4+b5 module: 68/68 PASS.
+
+### 2. Review / Result
+
+- 계약·테스트 독립 감사: APPROVE. 누락 P0/P1 없음.
+- 선택적 P2였던 validator·비누출 자급 assertion도 전용 gate에 추가했다.
+- parent `EH2.6.b` source/runtime/retrieval receipt 기반을 COMPLETED로 닫는다.
+- 다음 READY: `EH2.6.c1` follow-up candidate projection.
+
+### 3. Validation / Publication
+
+- 관련 회귀 218/218, 전체 unittest 1,179/1,179, repository safety 829 files PASS.
+- commit/push: b5 문서·테스트만 선별 stage하고 사용자 소유 변경은 제외한다.
+- Relay: `CONTINUE_WITH_NEXT_FORM` → `EH2.6.c1`.
+- 상태: COMPLETED. 선택 커밋·푸시 기록만 closeout에서 덧붙인다.
