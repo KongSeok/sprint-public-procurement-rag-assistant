@@ -55,6 +55,16 @@ from .compare_coverage import (
     execute_compare_slot_search,
     verify_compare_slot_search,
 )
+from .harness_state import (
+    Belief,
+    EvidenceBeliefEntry,
+    HarnessState,
+    Progress,
+    build_compare_harness_state,
+    build_followup_harness_state,
+    replay_harness_state,
+    validate_harness_state,
+)
 
 __all__ = (
     "BudgetRule",
@@ -100,4 +110,12 @@ __all__ = (
     "execute_compare_slot_search",
     "prepare_compare_slots",
     "verify_compare_slot_search",
+    "Belief",
+    "EvidenceBeliefEntry",
+    "HarnessState",
+    "Progress",
+    "build_compare_harness_state",
+    "build_followup_harness_state",
+    "replay_harness_state",
+    "validate_harness_state",
 )
