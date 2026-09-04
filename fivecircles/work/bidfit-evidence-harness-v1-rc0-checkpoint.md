@@ -21,9 +21,10 @@
   후속 전체 범위의 선택 commit·검증이 끝난 뒤 `feat/local-qwen-mini131-eval`에 병합한다.
   새 브랜치는 만들지 않는다.
 - 완료: EH-A.1~3 감사·기준선·계약/flow 초안. 805 tests PASS, 실패/skip 0 (변경 전).
-- 현재 IN_PROGRESS: **Phase 2**. EH2.1~2.5 PASS; 다음 READY는 EH2.6 bounded controller 계약 분할.
+- 현재 IN_PROGRESS: **Phase 2**. EH2.1~2.5와 EH2.6.a PASS; 다음 READY는 EH2.6.b1 `BoundFact`.
 - blocker: 없음. 실제 생성/API 호출은 계속 0이며 Phase 2는 provider-free 합성 테스트로 진행한다.
-- 코드 상태: EH2.5.d까지 origin push 완료. state/action 최종 P1 수리와 logall 체크포인트는 선택 commit 대기; 전체 1,020 PASS. 원샷 전체는 미완료.
+- 코드 상태: EH2.5 최종 P1 수리·logall을 `16652fd`로 origin push 완료, 전체 1,020 PASS.
+  EH2.6은 계약만 작성 중이며 runtime 구현·실행 완료 주장이 아니다. 원샷 전체는 미완료.
 
 ## 완료된 첫 leaf 참고: EH0.1.a (현재 작업 아님)
 
@@ -70,6 +71,7 @@
 | EH2.3 | COMPLETED | actual-citation follow-up; focused61/full943. exact citation scope, verified progress, bounded fallback, 독립 P1 수리 PASS |
 | EH2.4 | COMPLETED | compare doc×field coverage; focused107/full987. provisional missing, typed receipt, complete matrix, 독립 P1 수리 PASS |
 | EH2.5 | COMPLETED | sealed Belief/Progress/HarnessState + typed action/decision; focused55/full1020. store/nested identity P1 수리 후 독립 재검토 PASS |
+| EH2.6.a | COMPLETED | §16.10 E0/E1 controller 계약·재귀 leaf·public owner 경계. 7 P1 수정 후 독립 재리뷰 PASS |
 
 ## 안전/컨텍스트 규칙
 

@@ -93,7 +93,40 @@ runtime은 local profile 기본·LLM provider 교체형으로 유지하며 새 �
   - [x] **EH2.5.c** compare/follow-up `Belief`·`Progress`·`HarnessState` projection/replay를 구현했다. factory/exact identity, live store canonical payload, source 재구성 replay를 봉인했고 focused9·전체1009 PASS(독립 P1 수정 후 재검토 PASS).
   - [x] **EH2.5.d** closed typed action·deterministic allowed order·decision hash chain을 구현했다. mixed contradiction 전역 abstain gate, sealed-store parent/bridge eligibility, strict replay를 포함해 focused10·state 통합19·전체1019 PASS, 독립 리뷰 PASS.
   - [x] **EH2.5.e** adversarial focused55·전체1020 회귀와 독립 리뷰를 통과했다. live store 및 `BoundCompare` nested identity P1을 수리·재검토하고 부모를 완료 처리했다.
-- [ ] **EH2.6** E0/E1 bounded controller를 연결한다. 완료: round/action/deadline/no-progress 종료, 필수 slot 확인 후 stop/partial abstain.
+- [ ] **EH2.6** E0/E1 bounded controller를 연결한다. 완료: fact/compare/follow-up의 독립 lane·effect·transition,
+  round/action/deadline/no-progress 종료, 필수 obligation 검증 후 ready/partial abstain을 정확히 구분한다.
+  - [x] **EH2.6.a** 실행 전 계약과 gap을 봉인했다.
+    - [x] **EH2.6.a1** EH2.3~2.5와 retrieval runtime을 read-only 감사해 cross-state decision, hybrid lane,
+      fact state, follow-up slot projection gap을 재현했다.
+    - [x] **EH2.6.a2** §16.10과 module contract에 E0/E1 경계, DTO, action order, absence/reducer/종료/replay를 고정했다.
+    - [x] **EH2.6.a3** 독립 계약 재리뷰 PASS로 P0/P1을 닫고 public owner API/구현 파일 경계를 확정했다.
+  - [ ] **EH2.6.b** source/runtime/검색 receipt 기반을 구현한다.
+    - [ ] **EH2.6.b1** planner replay·catalog/config/store-bound `BoundFact`와 fact 초기 state를 구현하고,
+      unknown/stale doc 및 fact/follow-up metadata predicate를 EH3.1 receipt 전까지 not-ready로 닫는다.
+    - [ ] **EH2.6.b2** context target quota를 포함한 immutable `HarnessExecutionConfig`와 exact nested
+      lane/verifier/reranker identity의 production/synthetic runtime authority를 구현한다.
+    - [ ] **EH2.6.b3** owner-issued `RetrievalObligation`과 dense/lexical `LaneSearchReceipt`를 분리하고
+      public execution boundary에서 query/scope/budget/store/call 전 검증·exact-once 소비를 봉인한다.
+    - [ ] **EH2.6.b4** same-round `FusionReceipt`와 state 없는 E0 control receipt를 구현한다.
+    - [ ] **EH2.6.b5** 독립 lane·lexical rescue·fact empty·호출 전 거부 focused gate를 통과한다.
+  - [ ] **EH2.6.c** effect/reducer/absence transition을 구현한다.
+    - [ ] **EH2.6.c1** EH2.3 verified 주장을 candidate로 낮추고 follow-up 실제 slot에 doc-matching outcome
+      candidate를 투영하며 추가 검색 0회를 고정한다.
+    - [ ] **EH2.6.c2** exact runtime verifier 호출로만 발급되는 supplied-evidence-bound semantic
+      support/value/contradiction receipt를 구현한다.
+    - [ ] **EH2.6.c3** expansion/bridge/rerank/verify `ActionEffectReceipt`와 빈 후보 zero-provider exhaustion을
+      포함한 bounded absence receipt를 구현한다.
+    - [ ] **EH2.6.c4** monotonic one-obligation reducer와 hash-chained transition/no-progress를 구현한다.
+    - [ ] **EH2.6.c5** verified/contradicted/confirmed-missing·raw bool/ID 공격 focused gate를 통과한다.
+  - [ ] **EH2.6.d** bounded E1 controller와 replay를 구현한다.
+    - [ ] **EH2.6.d1** lane/action/capability/round 소비와 exact state/last-transition을 함께 봉인하는
+      `ExecutionLedger`·`HarnessExecution` aggregate를 구현한다.
+    - [ ] **EH2.6.d2** state+ledger 기반 allowed action과 cross-state `ControllerDecisionReceipt`를 구현한다.
+    - [ ] **EH2.6.d3** start/step/run과 terminal `HarnessRunResult`를 구현한다.
+    - [ ] **EH2.6.d4** action/round/deadline/post-deadline/no-progress/capability 종료를 호출 수까지 검증한다.
+    - [ ] **EH2.6.d5** provider·clock 0회 strict execution replay와 fact/compare/follow-up 합성 E2E를 통과한다.
+  - [ ] **EH2.6.e** authority clone/nested drift, mixed source/store/config/runtime, 악성 provider 출력,
+    JSON scalar/shape·gold injection adversarial, focused/full 회귀와 독립 P0/P1 리뷰 후 부모를 완료 처리한다.
 - [ ] **EH2.G** Phase 2 gate: 동일 합성 corpus의 단일/비교/후속 질의 end-to-end+gold-lineage 재검증+전체 회귀.
 
 ### Phase 3 — 전문 경로 (선행: EH2.G)

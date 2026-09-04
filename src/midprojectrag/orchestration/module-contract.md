@@ -108,3 +108,81 @@ is eligible only when the candidate's `parent_id` resolves in the sealed store. 
 figure bridges are eligible only when the store itself derives at least one linked
 `table_row_group` or `figure_object` respectively through `store.bridge`; callers cannot
 supply kind or lineage. The deterministic decision selects the first allowed action.
+
+EH2.6 adds a separate ledger-aware execution chain; EH2.5 `ActionDecisionTrace` remains
+a single-state preview and must not be reused across changed states. A controller decision
+binds the exact state and execution ledger and links to the previous transition. EH2.3 and
+EH2.4 receipts are immutable audit roots. EH2.3 primary progress is a compatibility receipt
+whose caller-supplied candidate IDs and config hash are not terminal semantic authority.
+EH2.5 follow-up verified/stop projection therefore cannot enter E1 directly. Every E1 belief
+change must be authorized by an exact action-effect receipt and reducer-issued transition.
+
+E1 supports fact, compare, and follow-up. Fact authority comes from a planner-replayed,
+catalog/config/store-bound `BoundFact` and starts with one unsearched `$answer_support`
+obligation. Compare and fact run dense and lexical lanes independently and fuse only two
+same-round receipts with matching query, scope, store, and runtime identities. A hybrid
+one-shot call must not be mislabeled as one lane. Follow-up consumes its already finalized
+primary/optional-fallback candidates and makes zero additional retrieval calls. Unverified
+follow-up slots receive only candidates whose evidence document matches the slot document;
+all EH2.3 claimed verified IDs are downgraded to candidates until a new runtime-bound semantic
+receipt verifies them. Fact and follow-up metadata predicates fail closed until EH3.1 provides
+an exact filtered-scope receipt. Restricted fact IDs must exist in both the sealed catalog
+universe and exact live, canonically rehashed evidence store.
+
+The v1 controller permits one retrieval round per obligation because no distinct-query
+rewrite policy exists. Its immutable config bounds nonterminal actions, no-progress, and an
+integer-millisecond monotonic-clock deadline; terminal receipts do not consume that budget.
+Effects are closed, sanitize provider failures, and cannot turn late, unavailable,
+or errored work into evidence. Parent expansion is verifier context only; bridges add only
+store-derived linked evidence; reranking is a subset/permutation; semantic verification can
+promote only supplied evidence. Compare contradiction requires typed canonical values with
+independent support. Field relevance and caller booleans/ID maps are not semantic authority.
+The runtime binding retains exact hybrid/dense/lexical and verifier/optional-reranker object
+identities, classes, attestations/config hashes, capabilities, and method-override absence.
+These checks happen before query derivation or egress, and approved class methods are invoked
+directly. Only executor code can mint semantic/rerank receipts from adapter output; synthetic
+adapters are test-only and cannot authorize production sources.
+An E1 compare seed must be all-unsearched; already hybrid-searched EH2.4 coverage cannot be
+relabeled as independent lane execution. Once all approved retrieval paths close with no
+candidates, controller-only `verify_slot` performs a zero-provider exhaustion check that may
+mint absence. Fact metadata predicates remain not-ready until EH3.1 supplies a filtered-scope
+receipt.
+Every attempted lane outcome consumes that obligation/round/lane exactly once with no v1
+automatic retry. Deadline and integrity failure terminate immediately. An ordinary dense
+provider failure may be followed by the untouched lexical lane once, but it cannot authorize
+fusion and the run then ends with a sanitized error.
+
+Confirmed absence means only that all approved actions for one sealed query/scope/budget were
+exhausted without support. It cannot be minted from timeout, provider error, unavailable
+capability, unresolved scope, or an empty top-k alone. Reducer transitions are monotonic and
+change at most one obligation. Lane, parent-context, and terminal effects retain the exact same
+state object; only a semantic state change mints a new state whose source receipt is the effect.
+No-progress uses a semantic fingerprint that excludes hashes, ordinals, time, and counters;
+required lane prerequisites are operational progress and do not increment its streak. Only
+fuse/verify checkpoints with unchanged semantic state and verifier context increment it.
+Only all-verified state is ready; mixed verified and confirmed
+missing is partial abstention, all confirmed missing or contradiction is abstention. Replay
+must use exact live source/config/store/effect authority and perform zero provider, retriever,
+verifier, reranker, or clock calls. E0 is a one-shot retrieval control receipt, not semantic
+readiness; generation, analytics/list execution, E2 policy, learning, and query rewrite remain
+outside EH2.6. Execution payloads use ordered SHA references and bounded summaries rather than
+recursively nesting prior receipts; the top-level receipt bundle carries each payload once.
+Raw persisted JSON can be structurally audited but cannot remint provider-execution authority.
+Late raw provider output is discarded before parsing or projection. Optional bridge/reranker
+unavailability may be skipped once; required semantic-verifier unavailability terminates with
+a capability-gap reason. Missing abstention is a run result, not the contradiction-only
+`Progress.abstain_required` gate.
+
+EH2.6 defines a separate factory-issued `ControllerAction` with the same closed kind/target
+shape as EH2.5 actions. Context actions target only a config-bounded prefix of immutable
+retrieval seed candidates and never bridge-added evidence, preventing graph recursion and
+action explosion. Owner modules expose sealed `RetrievalObligation` projections and the
+retrieval package exposes independent lane/fusion execution. The controller must not import
+another module's underscore helpers or factory tokens. Fact binding owns fact initialization,
+the compare owner derives slot query/budget, harness state owns the safe E1 follow-up projection,
+and execution-contract/effect/reducer/controller modules retain their single responsibilities.
+
+E0 preserves ordered per-obligation statuses and aggregate precedence of error, unavailable,
+all-empty, then retrieved. It records each status partition and reports execution complete only
+when every obligation boundedly ended as retrieved or empty; mixed compare slots are never
+collapsed into an unqualified success.

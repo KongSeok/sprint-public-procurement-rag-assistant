@@ -529,9 +529,10 @@ parent/child 혼합, 골든 값 의존을 검출한다. 정확한 새 파일/메
 - EH2.4의 missing은 `no_candidate_yet`/`candidates_unverified`를 보존하는 비종료 관찰이다.
   bounded action을 모두 수행했음을 봉인한 absence receipt는 EH2.6에서만 만들며,
   그전에는 missing reason이 있어도 coverage·정상 stop에 산입하지 않는다.
-- coverage는 slot과 document 두 축으로 계산한다. 모든 required slot이 verified 또는
-  verifier가 확정한 missing이고, 모든 required document의 필드가 완결됐을 때만 정상 stop을
-  허용한다. confirmed contradiction은 accounted로는 보이되 정상 stop을 막고 abstain/conflict 경로를
+- coverage는 slot과 document 두 축으로 계산한다. 모든 required slot이 verified이고 모든 required
+  document의 필드가 완결됐을 때만 정상 stop을 허용한다. verified와 confirmed missing이 섞인 경우는
+  `partial_abstained`, 전부 confirmed missing이면 `abstained`이며 둘 다 정상 stop이 아니다.
+  confirmed contradiction은 accounted로는 보이되 정상 stop을 막고 abstain/conflict 경로를
   요구한다. EH2.4는 임의 evidence 두 건만으로 contradiction을 확정하지 않으며 typed value receipt가
   추가될 때까지 그 승격을 차단한다. required slot 0건을 vacuous completion으로 판정하지 않는다.
   `CompareCoverage`는 factory가 발급한 동일 객체 identity와 전체 tree hash를 함께 요구하고, 각 slot과
@@ -603,3 +604,129 @@ parent/child 혼합, 골든 값 의존을 검출한다. 정확한 새 파일/메
   execution identity·정확한 ordinal+1·nonterminal 이전 decision만 허용한다.
 - persisted state/decision replay는 동일한 bound/source receipts/store/registry/policy로 재구성한 canonical
   JSON과 정확히 같아야 한다. evaluator/gold/qrels/expected answer는 모든 factory 인자와 직렬화에서 금지한다.
+
+### 16.10 E0/E1 bounded controller — EH2.6
+
+- EH2.6은 EH2.3/EH2.4 receipt를 변경하지 않는 audit root로 사용하고, 모든 실행 변화는
+  factory-issued `ActionEffectReceipt`와 `HarnessTransitionReceipt` chain으로만 만든다. EH2.5의
+  `ActionDecisionTrace`는 한 상태의 deterministic preview/reference이며 다단계 controller chain으로
+  재해석하지 않는다. 특히 EH2.3 `PrimaryEvidenceProgress`는 caller가 candidate ID, 허용된 verifier ID,
+  임의 config hash를 공급하는 compatibility receipt이므로 E1 terminal semantic authority가 아니다.
+  EH2.5 follow-up state가 verified/stop으로 보이더라도 E1 시작 상태로 직접 사용할 수 없다. 실제
+  `ControllerDecisionReceipt`는 `HarnessState + ExecutionLedger`에서 allowed
+  action을 다시 계산하고 직전 `transition_sha256`에 연결한다.
+- E1은 `fact`, `compare`, `follow_up`을 지원한다. `BoundFact`는 동일 request를 동일 planner로 replay해
+  fact plan/catalog/config/store identity를 봉인하고 `$answer_support` 하나가 unsearched인 초기 state를
+  만든다. restricted scope의 모든 doc ID가 sealed catalog universe와 exact live `EvidenceStore` 양쪽에
+  존재하고 store canonical payload가 bundle SHA와 일치해야 한다. unknown/stale doc, empty/unresolved scope는
+  검색 전에 fail-closed한다. compare/follow-up은 기존 bound source를 재사용한다.
+  analytics/list/table-visual 실행과 generation은 EH2.6 범위가 아니다.
+- `HarnessExecutionConfig`는 `e0_once|e1_bounded`, policy ID, `max_nonterminal_actions`, obligation별
+  max rounds, max no-progress, `max_context_targets_per_obligation`, 정수 `timeout_ms`와 `rrf_k=60`을
+  hash로 봉인한다. terminal stop/abstain
+  receipt는 action budget을 소비하지 않고 항상 마지막에 한 번 발급할 수 있다. v1은 distinct-query rewrite 계약이
+  없으므로 obligation별 retrieval round는 정확히 1회다. bool-as-int, NaN/Inf, unknown field와 발급 후
+  drift를 거부한다. production clock은 내부 `monotonic_ns`, synthetic clock 주입은 test runtime factory만 허용한다.
+- compare/fact retrieval은 exact production hybrid binding을 재검증하되 실행을 dense, lexical, pure RRF
+  세 단계로 분리한다. `LaneSearchReceipt`는 lane, execution/obligation/round, source에서 재구성한 query
+  hash, scope, candidate limit, store/runtime binding, safe projected result와 실제 호출 여부를 봉인한다.
+  같은 round의 두 lane receipt가 query/scope/store/runtime identity까지 같을 때만 `FusionReceipt`를
+  만들고 `fuse_rrf`를 실행한다. 기존 `HybridChildRetriever.search()` 한 번을 `retrieve_dense`로 기록하지
+  않는다. `HarnessRuntimeBinding`은 exact hybrid/dense/lexical object identity와 class, method override 부재,
+  loader attestation/config hash를 보존한다. query를 만들거나 외부 코드로 보내기 전에 전부 재검증하고,
+  approved lane class method를 직접 호출한다. follow-up은 EH2.3 primary/허용 fallback에서 검색이 이미
+  종결됐으므로 추가 retriever 호출은 0회다.
+- action order는 obligation 순서 안에서 `retrieve_dense`, `retrieve_lexical`, `fuse`, eligible parent/table/
+  figure context, `rerank`, `verify_slot` 순이다. candidate target은 evidence ID 오름차순이다. ledger에서
+  성공·empty·unavailable로 이미 종결된 action은 다시 선택하지 않는다. unavailable capability는 같은
+  target에 정확히 한 번 기록한 뒤 다음 action으로 진행하며, semantic verifier 부재는 absence가 아니라
+  capability-gap abstain이다. EH2.6은 EH2.5 public action constructor를 넓히지 않고 동일한 닫힌
+  kind/target shape의 별도 factory-issued `ControllerAction`을 state+ledger에서만 발급한다.
+- context action target은 fused/source 결과에서 고정한 `retrieval_seed_candidate_ids` 중
+  `max_context_targets_per_obligation` 이내로 제한한다. quota는 execution config의 양의 정수이며 plan의
+  per-obligation final/rerank budget보다 클 수 없다. bridge로 추가된 evidence는 verifier input에는 들어가지만
+  다시 expand/bridge target이 될 수 없어 graph 순환과 action 폭증을 막는다.
+- fact/compare에서 dense·lexical·fusion이 모두 종결됐는데 후보가 없는 provisional obligation과,
+  follow-up 승인 경로가 종결됐으나 후보가 없는 provisional obligation에는 controller 전용
+  `verify_slot` exhaustion check를 허용한다. 이 검사는 verifier/provider를 호출하지 않고 exact ledger에서
+  absence 발급 조건만 판정한다. EH2.4에서 이미 one-shot hybrid search가 들어간 coverage는 독립 lane
+  receipt로 소급 포장하지 않는다. E1 compare start는 모든 slot이 `unsearched`인 coverage만 허용하고,
+  pre-searched candidate/missing seed는 fail-closed한다.
+- lane을 실제 시도한 모든 outcome(`applied`, `empty`, `unavailable`, `provider_error`, `contract_error`,
+  `deadline_discarded`)은 해당 obligation/round/lane을 정확히 한 번 소비하며 v1은 자동 retry하지 않는다.
+  deadline과 contract-integrity error는 즉시 종료한다. 일반 dense provider error는 untouched lexical lane을
+  정확히 한 번 실행할 수 있지만, 두 정상 lane receipt가 없으므로 fusion은 허용하지 않고 lexical 결과를
+  진단 receipt로만 보존한 뒤 sanitized error로 종료한다. terminal 뒤나 이미 소비한 lane에는 재호출하지 않는다.
+- `SemanticVerificationReceipt`는 verifier에게 실제 공급된 evidence ID와 `supported`, `unsupported`,
+  `contradicted`, `unavailable` disposition을 봉인한다. verified/contradicted ID는 supplied candidate/bridge evidence의
+  subset이어야 한다. compare는 field, value type, canonical value와 value별 support가 추가로 필요하며,
+  서로 다른 canonical value가 각각 typed support를 가질 때만 contradiction을 만든다. EH2.4의
+  `field_relevance_only`, raw boolean 또는 caller ID map은 terminal semantic 권한이 아니다.
+- `ActionEffectReceipt`는 execution/step/decision/action/before-state, sanitized outcome, typed source receipt,
+  evidence projection, parent/bridge context, optional absence SHA를 봉인한다. outcome은 `applied`, `empty`,
+  `unsupported`, `unavailable`, `deadline_discarded`, `provider_error`, `contract_error`, `terminal`로 닫는다. provider 예외
+  본문·경로·키는 저장하지 않는다. parent expansion은 verifier context일 뿐 candidate/citation evidence로
+  승격하지 않고, bridge는 sealed store가 반환한 실제 linked evidence만 후보에 추가한다. reranker는 기존
+  candidate의 subset/permutation만 반환할 수 있다.
+- `AbsenceConfirmationReceipt`는 모든 허용 retrieval/verification 경로가 bounded하게 종결된 한 obligation에
+  한해 `bounded_no_candidate|bounded_no_verified_support|followup_approved_paths_exhausted`를 기록한다.
+  이는 해당 query/scope/budget에서 support를 확보하지 못했다는 뜻이며 corpus에 사실이 없다는 주장이 아니다.
+  timeout, provider error, unavailable capability, unresolved scope만으로는 발급할 수 없다.
+- fact 또는 follow-up plan에 metadata predicate가 있으면 EH3.1 filtered-scope receipt 전에는 not-ready로
+  닫는다. syntactically supported predicate도 무시한 채 unfiltered/citation-only retrieval로 실행하지 않는다.
+  missing/partial/full abstention은
+  controller `HarnessRunResult`에서 파생하며, contradiction 전용인 `Progress.abstain_required`를 재사용하지 않는다.
+- E1 follow-up 전용 초기 projection은 EH2.3 primary/fallback의 모든 후보를 audit lineage와 함께
+  `$answer_support` candidate로 낮춘다. 각 실제 required slot에는 그 slot의 `doc_id`와 같은 후보만
+  순서 보존 dedupe해 candidate로 넣고, 없을 때만 provisional missing으로 둔다. 기존 progress가 주장한
+  verified ID도 candidate 이상으로 승격하지 않으며 새 runtime-bound `SemanticVerificationReceipt`만 verified를
+  만든다. `$answer_support`와 각 slot은 별도 obligation이고 한 transition은 하나만 바꾼다.
+- reducer는 exact before state와 effect로 exact after state를 하나만 결정한다. lane 실행, parent context,
+  terminal stop/abstain은 exact same state object를 after로 사용한다. 상태가 실제 바뀌는 effect만 새 state를
+  발급하고 그 source receipt가 effect SHA를 가리키며, 한 nonterminal transition은 하나의 obligation만
+  바꾼다. verified/confirmed-missing/contradicted terminal obligation은 다시 열지 않는다.
+  `HarnessExecution` aggregate는 exact state, ledger, last transition identity를 함께 봉인한다.
+  `HarnessTransitionReceipt`는 before/after state SHA, decision/effect, 이전 transition과 semantic progress
+  fingerprint를 hash-chain한다. fingerprint는 provenance/source SHA, ordinal, 시간, counter를 제외하고
+  obligation별 stage·candidate/verified ID와 verifier-context ID를 포함한다. dense/lexical prerequisite 완료는
+  operational progress로 기록하되 no-progress streak를 늘리지 않는다. fuse/verify checkpoint에서 semantic
+  state와 verifier context가 모두 그대로일 때만 streak를 1 올린다.
+- 종료 우선순위는 complete stop, contradiction abstain, deadline, action budget, no-progress, round cap에서
+  발급 가능한 bounded absence, capability unavailable, sanitized contract/provider error 순이다. provider
+  호출 직전·직후 deadline을 검사하고, post-call deadline 판정은 raw 결과 parsing/projection보다 먼저 한다.
+  늦게 돌아온 raw payload는 완전히 폐기하고 `deadline_discarded`만 남겨 state에 승격하지
+  않는다. adapter별 강제 취소 timeout은 후속 composition 책임이다. terminal 뒤에는 decision/provider
+  호출이 0회여야 한다.
+- 최종 상태는 모든 obligation verified일 때만 `ready`다. verified+confirmed missing은
+  `partial_abstained`, 전부 confirmed missing 또는 contradiction은 `abstained`다. open obligation을 남긴
+  timeout/budget/no-progress/capability 종료는 verified가 일부 있어도 종료 reason을 보존하며 정상 stop으로
+  바꾸지 않는다.
+- E0는 state/policy transition 없이 fact/compare의 bound query별 dense+lexical+RRF를 정확히 한 번 수행하는
+  control receipt다. follow-up은 EH2.3 outcome을 재사용하며 재검색하지 않는다. E0 결과는
+  obligation별 `retrieved|empty|unavailable|error`를 순서대로 보존한다. aggregate precedence는 error,
+  unavailable, all-empty, otherwise retrieved이며 nonempty/empty/unavailable/error obligation key와
+  `execution_complete`를 함께 기록해 혼합 compare 결과를 숨기지 않는다. `execution_complete`는 모든
+  obligation이 retrieved/empty로 bounded 종결됐을 때만 true다. E0는 semantic READY 또는 품질 향상을
+  주장하지 않는다. E1은 같은 source authority 위에 ledger-aware decision/effect/reducer loop를 추가한다.
+  E2 policy/학습/query rewrite는 비범위다.
+- persisted execution replay는 provider/retriever/verifier/reranker/clock을 다시 호출하지 않는다. exact source,
+  store, config, factory-issued effects로 state를 순서대로 reduce하고 strict canonical JSON을 대조한다.
+  이 authoritative replay는 같은 process의 exact live effect identity를 요구한다. persisted raw JSON-only
+  replay는 구조/hash audit 결과일 뿐 provider 실행 권한을 다시 발급하지 않으며 executable로 승격하지 않는다.
+  ledger/decision/transition/run payload는 ordered receipt SHA와 bounded summary만 보존하고 이전 payload 전체를
+  재중첩하지 않는다. top-level receipt bundle이 각 receipt payload를 정확히 한 번 포함해 action 수에 대해
+  선형 크기를 유지한다.
+  runtime API와 serialization에는 evaluator/gold/qrels/expected/reference answer를 받을 필드가 없어야 한다.
+- `HarnessRuntimeBinding`은 semantic verifier와 optional reranker도 factory에서 exact identity/class,
+  capability, implementation/config hash, method override 부재에 결합한다. production은 승인된 class method를,
+  synthetic은 명시적 test factory만 호출하며 receipt는 executor만 발급한다. caller가 disposition이나
+  evidence ID를 public execution 인자로 넘겨 semantic/rerank receipt를 mint할 수 없다. 승인된 production
+  verifier가 없으면 production E1은 정직하게 capability-gap으로 종료한다. optional bridge/reranker unavailable은
+  한 번 skip할 수 있지만 required semantic verifier unavailable은 종료한다.
+- 구현 파일 경계는 다음으로 고정한다. controller는 다른 모듈의 underscore API나 factory token을 import하지
+  않는다. `fact_binding.py`가 `bind_fact`와 fact initial projection을, 기존 `compare_slots.py`가 public sealed
+  compare `RetrievalObligation` projection을, `harness_state.py`가 E1 follow-up safe projection을 소유한다.
+  `retrieval/fusion.py`는 exact runtime-bound independent lane execution/fusion public boundary를 제공한다.
+  `execution_contracts.py`는 config/runtime/obligation/ledger/action/receipt aggregate를,
+  `action_effects.py`는 typed verifier/reranker/context effect를, `state_reducer.py`는 state-changing factory와
+  reducer를, `controller.py`는 start/decide/step/run/replay orchestration만 소유한다.
