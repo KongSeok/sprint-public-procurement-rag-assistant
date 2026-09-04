@@ -86,7 +86,7 @@
 | EH2.6.b3 | COMPLETED | exact code+module namespace provenance로 copied-globals clone 차단. b4와 함께 focused64/related214/full1175, 독립 재리뷰 PASS |
 | EH2.6.b4 | COMPLETED | stage-4 same-round FusionReceipt + state-free E0 control; post-provider validation, strict obligation order, closure-cell/dual-history replay 방어. focused27/full1175, API·model·Langfuse 0; 다음 EH2.6.b5 |
 | EH2.6.b5 | COMPLETED | b3/b4 production 변경 없이 lexical-only rescue, fact empty state-free, pre-call zero-dispatch, provider-error diagnostic/no-fusion. focused4/b3~b5 68/related218/full1179/safety829 PASS; 다음 EH2.6.c1 |
-| EH2.6.c1 | COMPLETED | follow-up outcome을 E1 candidate/all-open state로 안전 투영. metadata fail-closed, 추가 retrieval 0, clone·단일 private drift 방어. focused7/related60/full1186/safety837, 독립 리뷰 3건 APPROVE; 다음 EH2.6.c2 |
+| EH2.6.c1 | COMPLETED | `a9ac527` push. follow-up outcome을 E1 candidate/all-open state로 안전 투영. metadata fail-closed, retrieval 0, clone·단일 private drift 방어. focused7/related60/full1186/safety837, 독립 리뷰 3건 APPROVE; 다음 EH2.6.c2 |
 
 ## 안전/컨텍스트 규칙
 

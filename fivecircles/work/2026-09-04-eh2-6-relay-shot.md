@@ -214,9 +214,9 @@
 | Implementation | COMPLETED | test-first public API와 outcome/pin mirror 추가 |
 | Validation / Report | COMPLETED | focused7→related60→full1186→safety837, Mermaid PNG/static PASS |
 | Repair / Review | COMPLETED | 독립 P1 반복 수리 후 reviewer 3명 최종 APPROVE |
-| Push | PENDING | 대상 파일만 선별 commit/push |
-| Closeout | PENDING | TODO/checkpoint/update/review/ledger 갱신 |
-| Relay | PENDING | 완료 즉시 다음 READY 재채점 후 새 form 진입 |
+| Push | COMPLETED | c1 대상만 `a9ac527`로 선별 commit/push |
+| Closeout | COMPLETED | TODO/checkpoint/update/review/flow ledger 갱신 |
+| Relay | COMPLETED | `EH2.6.c2`를 재채점하고 아래 Cycle 5 form으로 진입 |
 
 ### 1. Relay score
 
@@ -262,6 +262,108 @@
 ### 6. Push / closeout / relay
 
 - 사용자 소유 dirty 변경을 broad-add하지 않고 c1 code/test/contract/report/log hunk만 선별 stage한다.
-- commit/push: PENDING.
+- commit/push: `a9ac527` (`feat(harness): add safe followup E1 projection`) 원격 동기화 완료.
 - closeout flow: c1 MATCHED, c2 MATCHED/NEXT, EH2.EVAL.4 GAP/WAIT.
 - Relay: push 후 `EH2.6.c2` 새 form을 열고 즉시 시작한다.
+
+### 7. Final ledger
+
+- Doc: COMPLETED.
+- Implementation: COMPLETED.
+- Validation: COMPLETED / PASS_WITH_RISKS (HTML browser visual만 environment-blocked).
+- Repair: COMPLETED, 독립 최종 APPROVE 3건.
+- Push: COMPLETED (`a9ac527`, `origin/feat/total-integration`).
+- Report: COMPLETED, current flow에 c1 노드 추가.
+- Flow diagram verification: PARTIAL — c1 MATCHED, c2~E1 controller는 GAP.
+- Relay: `CONTINUE_WITH_NEXT_FORM`.
+- 남은 리스크: 브라우저 file URL 정책 외 c1 구현 blocker 없음.
+
+## Cycle 5 — EH2.6.c2 semantic verification receipt
+
+### 0. Scope Intake
+
+- 요청 범위: c1 push 뒤 최고 점수 READY TODO인 c2를 계약→구현→검증→푸시→다음 relay로 수행한다.
+- 브랜치: `feat/total-integration`; 새 브랜치 생성/병합 없음.
+- 사용자 제약: user-owned dirty·VLM·resources 보존, 실제 API/model/Langfuse/golden 실행 0.
+- 완료 기준: exact source/runtime verifier만 supplied evidence의 typed semantic receipt를 발급하고 호출 전 거부는 0 dispatch.
+- 위험/확인 필요: verifier target/output schema, private authority bridge, unavailable와 actual-call 의미를 먼저 고정한다.
+- 상태: COMPLETED.
+
+### 1. Start Report / Target Check
+
+- 사용할 스킬: `mermaid-flow-report`.
+- 기준 타겟 플로우: §16.10 E1 `candidate → semantic verify → effect/reducer`.
+- 현재 플로우: c1 safe candidate projection까지 MATCHED, semantic receipt부터 GAP.
+- 점수표/선정 기준: upstream + connection + safety + validation - risk.
+- 상태: COMPLETED.
+
+### 2. Relay Unit Selection
+
+- 사용할 스킬: `relay-shot`.
+- 확인한 TODO source: `architecture/todolist.md`, §16.10, module-contract, checkpoint, refreshed flow report.
+- 점수 상위 후보: c2=4+3+2+2+0=11, c3=3+3+2+2-1=9, EVAL.4=2+2+1+1-1=5.
+- 선택한 다음 단위작업: `EH2.6.c2`.
+- 플로우폼 반영: 이 Cycle 5 form.
+- 상태: `CONTINUE_WITH_NEXT_FORM` / COMPLETED.
+
+### 3. Doc / Contract
+
+- 사용할 스킬: `doc-contract-writer`.
+- 문서 생성/수정: §16.10, module-contract, recursive TODO/checkpoint.
+- 계약 확인: source-derived target, closed verifier request/result, typed canonical values, supplied/context 역할,
+  production unavailable zero-call, executor-only receipt, c3 state mutation 비범위.
+- 상태: IN_PROGRESS.
+
+### 4. Implementation
+
+- 사용할 스킬: `one-go`, 필요시 `batch-sequential-runner`.
+- 재귀 TODO: c2.1 target/schema → c2.2 execution/receipt → c2.3 focused authority gate.
+- 수정 대상: `orchestration/action_effects.py`, public exports, focused tests.
+- 상태: PENDING.
+
+### 5. Validation + Report
+
+- 사용할 스킬: `test-runner`, `mermaid-flow-report`.
+- 자동 테스트: c2 focused → execution/c1/state 관련 → full unittest → safety.
+- 빌드/lint: write-free imports, target diff-check.
+- Playwright/browser smoke: flow HTML; URL 정책 차단 시 기존 비우회 규칙으로 environment-blocked 기록.
+- 현상태 Mermaid 플로우맵: semantic receipt 완료 뒤 current node 추가.
+- 도달 경로 체크: exact source/runtime → one verifier call/zero-call unavailable → typed receipt.
+- provider-policy-flow-validation.md 갱신: MidProjectRAG 비대상이므로 SKIPPED_WITH_REASON.
+- 타겟 노드 연결 점수: 11.
+- 상태: PENDING.
+
+### 6. Repair Loop
+
+- 실패 원인: 아직 없음.
+- 수리 배치: focused failure/reviewer P0/P1만 최소 수정.
+- 재테스트: PENDING.
+- 상태: PENDING.
+
+### 7. Push / Publication
+
+- git status 확인: 대규모 user-owned dirty에서 c2 의존 폐쇄만 선별한다.
+- 커밋 범위: c2 code/test/contract/report/log hunk.
+- 커밋/푸시: PENDING.
+- 상태: PENDING.
+
+### 8. Closeout Report
+
+- 사용할 스킬: `mermaid-flow-report`.
+- 시작 타겟 대비 최종 현재 플로우: PENDING.
+- 남은 GAP/PARTIAL 및 다음 점수표: PENDING.
+- 상태: PENDING.
+
+### 9. Relay Shot
+
+- 사용할 스킬: `relay-shot`.
+- 확인한 TODO source/다음 후보: c2 종료 후 재검사.
+- 새 원샷딜 시작 여부: 안전한 READY가 있으면 즉시 시작.
+- 멈춘 이유, 있으면: 없음.
+- 상태: PENDING.
+
+### 10. Final Ledger
+
+- Doc: IN_PROGRESS.
+- Implementation/Validation/Repair/Push/Report/Relay: PENDING.
+- 남은 리스크: c2 계약의 세 선행 결정을 코드 전에 봉인해야 한다.

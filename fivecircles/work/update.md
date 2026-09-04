@@ -689,7 +689,7 @@ This file summarizes recent updates so other agents can continue without re‑di
 - EH2.3 verified 주장을 candidate로 낮추고 primary→fallback dedupe와 slot별 동일 doc 후보 투영을 구현했다.
 - 초기 state는 coverage 0·all-open·stop false이며 metadata predicate는 EH3.1 receipt 전까지 fail-closed한다.
 - public extra/gold, foreign outcome/store clone, dependency·단일 private pin/registry drift를 호출 전에 차단한다.
-- focused7·관련60 PASS, 독립 리뷰 3건 최종 APPROVE. 실제 API/model/Langfuse/retrieval 추가 호출은 0이다.
+- focused7·관련60·전체1186·safety837 PASS, 독립 리뷰 3건 APPROVE. `a9ac527` push, 외부 호출 0이다.
 - 다음 READY는 exact runtime verifier receipt를 구현하는 `EH2.6.c2`다.
 - 계속 요청+안전한 READY TODO이면 다음 form 시작 전 final을 금지한다.
 
