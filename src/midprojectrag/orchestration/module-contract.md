@@ -117,9 +117,12 @@ whose caller-supplied candidate IDs and config hash are not terminal semantic au
 EH2.5 follow-up verified/stop projection therefore cannot enter E1 directly. Every E1 belief
 change must be authorized by an exact action-effect receipt and reducer-issued transition.
 
-E1 supports fact, compare, and follow-up. Fact authority comes from a planner-replayed,
-catalog/config/store-bound `BoundFact` and starts with one unsearched `$answer_support`
-obligation. Compare and fact run dense and lexical lanes independently and fuse only two
+E1 supports fact, compare, and follow-up. `bind_fact` issues factory-only `BoundFact` authority
+after exact request/planner/registry/catalog/store types and live payloads pass validation and
+the supplied plan exactly matches a fresh deterministic replay. Restricted document IDs must
+exist in the catalog universe and store; empty/unresolved/metadata-dependent bindings remain
+not-ready. Only a ready binding starts one unsearched `$answer_support` obligation. Compare and
+fact run dense and lexical lanes independently and fuse only two
 same-round receipts with matching query, scope, store, and runtime identities. A hybrid
 one-shot call must not be mislabeled as one lane. Follow-up consumes its already finalized
 primary/optional-fallback candidates and makes zero additional retrieval calls. Unverified
@@ -178,9 +181,10 @@ shape as EH2.5 actions. Context actions target only a config-bounded prefix of i
 retrieval seed candidates and never bridge-added evidence, preventing graph recursion and
 action explosion. Owner modules expose sealed `RetrievalObligation` projections and the
 retrieval package exposes independent lane/fusion execution. The controller must not import
-another module's underscore helpers or factory tokens. Fact binding owns fact initialization,
-the compare owner derives slot query/budget, harness state owns the safe E1 follow-up projection,
-and execution-contract/effect/reducer/controller modules retain their single responsibilities.
+another module's underscore helpers or factory tokens. Fact binding owns fact authority,
+the compare owner derives slot query/budget, harness state owns fact initialization and the safe
+E1 follow-up projection, and execution-contract/effect/reducer/controller modules retain their
+single responsibilities.
 
 E0 preserves ordered per-obligation statuses and aggregate precedence of error, unavailable,
 all-empty, then retrieved. It records each status partition and reports execution complete only

@@ -2,7 +2,8 @@
 
 ## Public API
 
-`midprojectrag.evidence` exports `Locator`, `ProvenanceParent`, `Evidence`, and `EvidenceStore`.
+`midprojectrag.evidence` exports `Locator`, `ProvenanceParent`, `Evidence`, `EvidenceStore`,
+and `validate_evidence_store_snapshot`.
 Each is a frozen, slotted dataclass with `to_dict()` and `from_dict()` methods.
 Construction accepts list or tuple collection inputs and copies them to tuples.
 Only validated immutable scalars and `Locator` instances are retained.
@@ -66,6 +67,10 @@ hash. `json.loads(json.dumps(value.to_dict()))` round-trips exactly.
 references before freezing canonical maps. It rejects duplicate IDs, exposes
 `get/parent/children/for_document/candidates/bridge`, and defaults to text-only
 candidates. None/empty scope remains distinct. JSON graph identity is order-independent.
+`validate_evidence_store_snapshot` additionally reconstructs the canonical graph and checks
+the live parent/evidence keys, exact node types, child tuple membership/order, object identity,
+and bundle hash before orchestration reuses a store. Index-only or stateful-iterable drift is
+therefore rejected even when the serialized values and old bundle hash appear unchanged.
 
 Public builder APIs are `SplitConfig`, `split_spans`, `children_from_parent`,
 `build_store`, and `validate_chunking`. `build_store` uses the existing public

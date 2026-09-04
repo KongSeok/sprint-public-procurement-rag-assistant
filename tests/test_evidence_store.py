@@ -1,8 +1,76 @@
 from dataclasses import FrozenInstanceError, replace
+from collections.abc import Mapping
+from types import MappingProxyType
 import unittest
 
-from midprojectrag.evidence import Evidence, Locator, ProvenanceParent
-from midprojectrag.evidence.store import EvidenceStore
+from midprojectrag.evidence import (
+    Evidence,
+    EvidenceStore,
+    Locator,
+    ProvenanceParent,
+    validate_evidence_store_snapshot,
+)
+
+
+class _FlipChildren:
+    def __init__(self, child):
+        self.child = child
+        self.calls = 0
+
+    def __iter__(self):
+        self.calls += 1
+        return iter((self.child,) if self.calls == 1 else ())
+
+
+class _BombEvidence(Evidence):
+    calls = 0
+
+    def to_dict(self):
+        type(self).calls += 1
+        raise AssertionError("untrusted evidence method executed")
+
+
+def _bomb_evidence_from(source):
+    result = object.__new__(_BombEvidence)
+    for name in Evidence.__slots__:
+        object.__setattr__(result, name, getattr(source, name))
+    return result
+
+
+class _ArmedKey(str):
+    armed = False
+    calls = 0
+
+    def __hash__(self):
+        if type(self).armed:
+            type(self).calls += 1
+            raise AssertionError("untrusted key hash executed")
+        return str.__hash__(self)
+
+
+class _BombMap(Mapping):
+    def __init__(self):
+        self.calls = 0
+
+    def __getitem__(self, key):
+        self.calls += 1
+        raise AssertionError("untrusted mapping lookup executed")
+
+    def __iter__(self):
+        self.calls += 1
+        raise AssertionError("untrusted mapping iteration executed")
+
+    def __len__(self):
+        self.calls += 1
+        raise AssertionError("untrusted mapping length executed")
+
+
+class _BombHash(str):
+    calls = 0
+
+    def __ne__(self, other):
+        type(self).calls += 1
+        raise AssertionError("untrusted hash comparison executed")
 
 
 class EvidenceStoreTests(unittest.TestCase):
@@ -62,6 +130,100 @@ class EvidenceStoreTests(unittest.TestCase):
                     replace(good.locator, row_range=(0, 6))):
             with self.assertRaises(ValueError):
                 EvidenceStore([p], [replace(good, locator=loc)])
+
+    def test_live_snapshot_rejects_lookup_and_children_index_drift(self):
+        store = EvidenceStore([self.p], [self.e])
+        validate_evidence_store_snapshot(store, store.bundle_sha256)
+
+        object.__setattr__(
+            store,
+            "_evidence",
+            MappingProxyType({"wrong-key": store.evidence[0]}),
+        )
+        with self.assertRaisesRegex(ValueError, "evidence_store_payload_drift"):
+            validate_evidence_store_snapshot(store, store.bundle_sha256)
+
+        for field in ("_parents", "_evidence", "_children"):
+            with self.subTest(field=field):
+                store = EvidenceStore([self.p], [self.e])
+                bomb = _BombMap()
+                forged = MappingProxyType(bomb)
+                bomb.calls = 0
+                object.__setattr__(store, field, forged)
+                with self.assertRaisesRegex(
+                    ValueError, "evidence_store_payload_drift"
+                ):
+                    validate_evidence_store_snapshot(store, store.bundle_sha256)
+                self.assertEqual(bomb.calls, 0)
+
+        store = EvidenceStore([self.p], [self.e])
+        _BombHash.calls = 0
+        object.__setattr__(store, "bundle_sha256", _BombHash(store.bundle_sha256))
+        with self.assertRaisesRegex(ValueError, "evidence_store_payload_drift"):
+            validate_evidence_store_snapshot(store, str(store.bundle_sha256))
+        self.assertEqual(_BombHash.calls, 0)
+
+        store = EvidenceStore([self.p], [self.e])
+        _ArmedKey.armed = False
+        _ArmedKey.calls = 0
+        armed_key = _ArmedKey(self.p.parent_id)
+        forged_children = MappingProxyType(
+            {armed_key: (store.evidence[0],)}
+        )
+        _ArmedKey.armed = True
+        try:
+            object.__setattr__(store, "_children", forged_children)
+            with self.assertRaisesRegex(
+                ValueError, "evidence_store_payload_drift"
+            ):
+                validate_evidence_store_snapshot(store, store.bundle_sha256)
+            self.assertEqual(_ArmedKey.calls, 0)
+        finally:
+            _ArmedKey.armed = False
+
+        store = EvidenceStore([self.p], [self.e])
+        flip = _FlipChildren(store.evidence[0])
+        object.__setattr__(
+            store,
+            "_children",
+            MappingProxyType({self.p.parent_id: flip}),
+        )
+        with self.assertRaisesRegex(ValueError, "evidence_store_payload_drift"):
+            validate_evidence_store_snapshot(store, store.bundle_sha256)
+        self.assertEqual(flip.calls, 0)
+
+        store = EvidenceStore([self.p], [self.e])
+        _BombEvidence.calls = 0
+        bomb = _bomb_evidence_from(store.evidence[0])
+        object.__setattr__(
+            store,
+            "_evidence",
+            MappingProxyType({bomb.evidence_id: bomb}),
+        )
+        with self.assertRaisesRegex(ValueError, "evidence_store_payload_drift"):
+            validate_evidence_store_snapshot(store, store.bundle_sha256)
+        self.assertEqual(_BombEvidence.calls, 0)
+
+        store = EvidenceStore([self.p], [self.e])
+        equal_clone = Evidence.from_dict(store.evidence[0].to_dict())
+        self.assertEqual(equal_clone, store.evidence[0])
+        self.assertIsNot(equal_clone, store.evidence[0])
+        object.__setattr__(
+            store,
+            "_children",
+            MappingProxyType({self.p.parent_id: (equal_clone,)}),
+        )
+        with self.assertRaisesRegex(ValueError, "evidence_store_payload_drift"):
+            validate_evidence_store_snapshot(store, store.bundle_sha256)
+
+        store = EvidenceStore([self.p], [self.e])
+        object.__setattr__(
+            store,
+            "_children",
+            MappingProxyType({self.p.parent_id: ()}),
+        )
+        with self.assertRaisesRegex(ValueError, "evidence_store_payload_drift"):
+            validate_evidence_store_snapshot(store, store.bundle_sha256)
 
 
 if __name__ == "__main__":

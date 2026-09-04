@@ -190,3 +190,14 @@ Preventive rule:
 Reference:
 - `errorlogs/backend/2026-09-04-eh25-store-payload-authority.md`
 - `errorlogs/backend/2026-09-04-eh25-bound-compare-nested-authority.md`
+
+### EH2.6.b1 live authority precheck (2026-09-04)
+Cause:
+- frozen DTO도 `object.__setattr__`로 mapping/index/scalar subclass가 주입되면 직렬화가 악성 메서드를 먼저 호출할 수 있었다.
+
+Preventive rule:
+- constructor-issued identity와 exact child type을 먼저 검사하고, 그 뒤에만 mapping 순회·hash·비교·직렬화를 수행한다.
+- bind/replay 모두 bomb mapping/string 호출 0회와 derived store index identity 회귀를 유지한다.
+
+Reference:
+- `errorlogs/backend/2026-09-04-eh26-b1-live-authority.md`

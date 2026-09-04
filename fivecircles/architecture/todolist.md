@@ -101,8 +101,9 @@ runtime은 local profile 기본·LLM provider 교체형으로 유지하며 새 �
     - [x] **EH2.6.a2** §16.10과 module contract에 E0/E1 경계, DTO, action order, absence/reducer/종료/replay를 고정했다.
     - [x] **EH2.6.a3** 독립 계약 재리뷰 PASS로 P0/P1을 닫고 public owner API/구현 파일 경계를 확정했다.
   - [ ] **EH2.6.b** source/runtime/검색 receipt 기반을 구현한다.
-    - [ ] **EH2.6.b1** planner replay·catalog/config/store-bound `BoundFact`와 fact 초기 state를 구현하고,
-      unknown/stale doc 및 fact/follow-up metadata predicate를 EH3.1 receipt 전까지 not-ready로 닫는다.
+    - [x] **EH2.6.b1** planner replay·catalog/config/store-bound `BoundFact`와 fact 초기 state를 구현하고,
+      unknown/stale doc 및 fact metadata predicate를 EH3.1 receipt 전까지 not-ready로 닫았다.
+      follow-up metadata safe projection은 EH2.6.c1에서 닫는다. focused47·전체1034·독립 리뷰 PASS.
     - [ ] **EH2.6.b2** context target quota를 포함한 immutable `HarnessExecutionConfig`와 exact nested
       lane/verifier/reranker identity의 production/synthetic runtime authority를 구현한다.
     - [ ] **EH2.6.b3** owner-issued `RetrievalObligation`과 dense/lexical `LaneSearchReceipt`를 분리하고

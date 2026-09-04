@@ -618,9 +618,14 @@ parent/child 혼합, 골든 값 의존을 검출한다. 정확한 새 파일/메
 - E1은 `fact`, `compare`, `follow_up`을 지원한다. `BoundFact`는 동일 request를 동일 planner로 replay해
   fact plan/catalog/config/store identity를 봉인하고 `$answer_support` 하나가 unsearched인 초기 state를
   만든다. restricted scope의 모든 doc ID가 sealed catalog universe와 exact live `EvidenceStore` 양쪽에
-  존재하고 store canonical payload가 bundle SHA와 일치해야 한다. unknown/stale doc, empty/unresolved scope는
+  존재하고 store canonical payload가 bundle SHA와 일치해야 한다. live store 검증은 parent/evidence ID
+  index와 derived child tuple의 exact type·key·object identity까지 canonical reconstruction과 대조한다. unknown/stale
+  doc, empty/unresolved scope는
   검색 전에 fail-closed한다. compare/follow-up은 기존 bound source를 재사용한다.
   analytics/list/table-visual 실행과 generation은 EH2.6 범위가 아니다.
+- fact binding은 constructor-issued `RuntimeRequest`의 exact frozen-tree identity/type을 직렬화 전에 확인한다.
+  planner/catalog/registry/planning/trace/store도 untrusted method·hash·비교 호출 전에 exact type/identity를
+  선검증하며, clone 또는 `object.__setattr__` 기반 drift는 검색과 planner replay 전에 거부한다.
 - `HarnessExecutionConfig`는 `e0_once|e1_bounded`, policy ID, `max_nonterminal_actions`, obligation별
   max rounds, max no-progress, `max_context_targets_per_obligation`, 정수 `timeout_ms`와 `rrf_k=60`을
   hash로 봉인한다. terminal stop/abstain
@@ -724,8 +729,9 @@ parent/child 혼합, 골든 값 의존을 검출한다. 정확한 새 파일/메
   verifier가 없으면 production E1은 정직하게 capability-gap으로 종료한다. optional bridge/reranker unavailable은
   한 번 skip할 수 있지만 required semantic verifier unavailable은 종료한다.
 - 구현 파일 경계는 다음으로 고정한다. controller는 다른 모듈의 underscore API나 factory token을 import하지
-  않는다. `fact_binding.py`가 `bind_fact`와 fact initial projection을, 기존 `compare_slots.py`가 public sealed
-  compare `RetrievalObligation` projection을, `harness_state.py`가 E1 follow-up safe projection을 소유한다.
+  않는다. `fact_binding.py`가 `bind_fact`를, 기존 `compare_slots.py`가 public sealed compare
+  `RetrievalObligation` projection을, `harness_state.py`가 fact initial state와 E1 follow-up safe projection을
+  소유한다.
   `retrieval/fusion.py`는 exact runtime-bound independent lane execution/fusion public boundary를 제공한다.
   `execution_contracts.py`는 config/runtime/obligation/ledger/action/receipt aggregate를,
   `action_effects.py`는 typed verifier/reranker/context effect를, `state_reducer.py`는 state-changing factory와

@@ -11,11 +11,12 @@ import re
 from typing import Any
 from weakref import ReferenceType, ref
 
-from midprojectrag.evidence import EvidenceStore
+from midprojectrag.evidence import EvidenceStore, validate_evidence_store_snapshot
 
 from .compare_coverage import CompareCoverage
 from .compare_slots import BoundCompare
 from .contracts import PlanConstraint, PlanEntity, RuleRegistry
+from .fact_binding import BoundFact, validate_bound_fact
 from .followup_binding import BoundFollowup
 from .followup_retrieval import (
     FollowupEvidencePolicy,
@@ -26,7 +27,7 @@ from .followup_retrieval import (
 
 
 _HEX64 = re.compile(r"^[0-9a-f]{64}$")
-_SOURCE_KINDS = frozenset({"compare", "follow_up"})
+_SOURCE_KINDS = frozenset({"fact", "compare", "follow_up"})
 _OBSERVATION_STAGES = frozenset(
     {
         "unsearched",
@@ -141,16 +142,12 @@ def _strict_json_value(value: Any, code: str) -> None:
 def _validate_store_snapshot(store: EvidenceStore, expected_bundle_sha256: str) -> None:
     """Re-hash the live graph so frozen-object bypasses cannot alter authority."""
 
-    if store.bundle_sha256 != expected_bundle_sha256:
-        raise ValueError("harness_state_store_bundle_mismatch")
     try:
-        payload = store.to_dict()
-        claimed = payload.pop("bundle_sha256")
-        actual = _canonical_sha256(payload)
-    except (AttributeError, KeyError, TypeError, ValueError) as exc:
+        validate_evidence_store_snapshot(store, expected_bundle_sha256)
+    except ValueError as exc:
+        if str(exc) == "evidence_store_bundle_mismatch":
+            raise ValueError("harness_state_store_bundle_mismatch") from exc
         raise ValueError("harness_state_store_payload_drift") from exc
-    if claimed != expected_bundle_sha256 or actual != expected_bundle_sha256:
-        raise ValueError("harness_state_store_payload_drift")
 
 
 @dataclass(frozen=True, slots=True, weakref_slot=True, init=False)
@@ -830,6 +827,56 @@ def build_compare_harness_state(
     )
 
 
+def build_fact_harness_state(
+    *,
+    bound: BoundFact,
+    store: EvidenceStore,
+) -> HarnessState:
+    """Project a ready fact binding into one unsearched answer obligation."""
+
+    validate_bound_fact(bound=bound, store=store)
+    if bound.trace.status != "ready":
+        raise ValueError("fact_binding_not_ready")
+    evidence_map = (
+        EvidenceBeliefEntry._create(
+            obligation_key="$answer_support",
+            observation_stage="unsearched",
+            candidate_evidence_ids=(),
+            verified_evidence_ids=(),
+            _token=_ENTRY_TOKEN,
+        ),
+    )
+    belief = _make_belief(
+        source_kind="fact",
+        request_fingerprint=bound.trace.request_fingerprint,
+        binding_sha256=bound.binding_sha256,
+        effective_plan_sha256=bound.trace.effective_plan_sha256,
+        config_sha256=bound.trace.config_sha256,
+        evidence_bundle_sha256=bound.trace.evidence_bundle_sha256,
+        query_type=bound.plan.query_type,
+        entities=bound.plan.entities,
+        constraints=bound.plan.constraints,
+        scope_state=bound.plan.scope_state,
+        scope_origin=bound.plan.scope_origin,
+        scope_doc_ids=bound.plan.resolved_doc_ids,
+        evidence_map=evidence_map,
+        source_receipt_sha256=bound.trace.trace_sha256,
+    )
+    progress = _make_progress(
+        evidence_map=evidence_map,
+        slot_coverage_ratio=0.0,
+        answerability="in_progress",
+        normal_stop_allowed=False,
+        abstain_required=False,
+    )
+    return HarnessState._create(
+        belief=belief,
+        progress=progress,
+        store=store,
+        _token=_STATE_TOKEN,
+    )
+
+
 def build_followup_harness_state(
     *,
     bound: BoundFollowup,
@@ -953,8 +1000,8 @@ def validate_harness_state(*, state: HarnessState, store: EvidenceStore) -> None
 def replay_harness_state(
     raw: Mapping[str, Any],
     *,
-    bound: BoundCompare | BoundFollowup,
-    source_receipt: CompareCoverage | FollowupRetrievalOutcome,
+    bound: BoundCompare | BoundFollowup | BoundFact,
+    source_receipt: CompareCoverage | FollowupRetrievalOutcome | None,
     store: EvidenceStore,
     progress: PrimaryEvidenceProgress | None = None,
     registry: RuleRegistry | None = None,
@@ -965,7 +1012,11 @@ def replay_harness_state(
     if type(raw) is not dict:
         raise TypeError("harness_state_replay_mapping_required")
     _strict_json_value(raw, "harness_state_replay_json_required")
-    if type(bound) is BoundCompare and type(source_receipt) is CompareCoverage:
+    if type(bound) is BoundFact and source_receipt is None:
+        if progress is not None or registry is not None or policy is not None:
+            raise ValueError("fact_harness_replay_arguments_mismatch")
+        expected = build_fact_harness_state(bound=bound, store=store)
+    elif type(bound) is BoundCompare and type(source_receipt) is CompareCoverage:
         if progress is not None or registry is not None or policy is not None:
             raise ValueError("compare_harness_replay_arguments_mismatch")
         expected = build_compare_harness_state(
@@ -1001,6 +1052,7 @@ __all__ = (
     "HarnessState",
     "Progress",
     "build_compare_harness_state",
+    "build_fact_harness_state",
     "build_followup_harness_state",
     "replay_harness_state",
     "validate_harness_state",

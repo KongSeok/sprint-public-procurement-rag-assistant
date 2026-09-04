@@ -7,8 +7,95 @@ from hashlib import sha256
 import json
 from types import MappingProxyType
 from typing import Iterable, Mapping
+from weakref import ReferenceType, ref
 
-from .model import Evidence, ProvenanceParent
+from .model import Evidence, Locator, ProvenanceParent
+
+
+_MAPPING_PROXY_TYPE = type(MappingProxyType({}))
+_STORE_AUTHORITIES: dict[
+    int,
+    tuple[ReferenceType[object], object, object, object, str],
+] = {}
+
+
+def _drop_store_authority(identity: int, dead: ReferenceType[object]) -> None:
+    current = _STORE_AUTHORITIES.get(identity)
+    if current is not None and current[0] is dead:
+        _STORE_AUTHORITIES.pop(identity, None)
+
+
+def _exact_strings(value: object) -> bool:
+    return type(value) is tuple and all(type(item) is str for item in value)
+
+
+def _validate_locator_shape(locator: object) -> None:
+    if type(locator) is not Locator:
+        raise ValueError("evidence_store_node_type_drift")
+    if locator.page is not None and type(locator.page) is not int:
+        raise ValueError("evidence_store_node_type_drift")
+    for value in (locator.flow_id, locator.object_id):
+        if value is not None and type(value) is not str:
+            raise ValueError("evidence_store_node_type_drift")
+    if not _exact_strings(locator.section_path):
+        raise ValueError("evidence_store_node_type_drift")
+    for value, size, numeric_types in (
+        (locator.bbox, 4, {int, float}),
+        (locator.row_range, 2, {int}),
+        (locator.char_range, 2, {int}),
+    ):
+        if value is None:
+            continue
+        if type(value) is not tuple or len(value) != size:
+            raise ValueError("evidence_store_node_type_drift")
+        if any(type(item) not in numeric_types for item in value):
+            raise ValueError("evidence_store_node_type_drift")
+
+
+def _validate_parent_shape(parent: object) -> None:
+    if type(parent) is not ProvenanceParent:
+        raise ValueError("evidence_store_node_type_drift")
+    if any(
+        type(value) is not str
+        for value in (
+            parent.doc_id,
+            parent.kind,
+            parent.text,
+            parent.parent_id,
+            parent.content_sha256,
+        )
+    ) or not _exact_strings(parent.source_block_ids):
+        raise ValueError("evidence_store_node_type_drift")
+    _validate_locator_shape(parent.locator)
+
+
+def _validate_evidence_shape(evidence: object) -> None:
+    if type(evidence) is not Evidence:
+        raise ValueError("evidence_store_node_type_drift")
+    if any(
+        type(value) is not str
+        for value in (
+            evidence.doc_id,
+            evidence.kind,
+            evidence.text,
+            evidence.parent_id,
+            evidence.evidence_id,
+            evidence.content_sha256,
+        )
+    ):
+        raise ValueError("evidence_store_node_type_drift")
+    if evidence.crop_ref is not None and type(evidence.crop_ref) is not str:
+        raise ValueError("evidence_store_node_type_drift")
+    if any(
+        not _exact_strings(value)
+        for value in (
+            evidence.source_block_ids,
+            evidence.source_chunk_ids,
+            evidence.support_refs,
+        )
+    ):
+        raise ValueError("evidence_store_node_type_drift")
+    _validate_locator_shape(evidence.locator)
 
 
 def _bound(parent: ProvenanceParent, child: Evidence) -> None:
@@ -40,7 +127,7 @@ def _bound(parent: ProvenanceParent, child: Evidence) -> None:
                 raise ValueError("evidence_text_span_mismatch")
 
 
-@dataclass(frozen=True, slots=True, init=False)
+@dataclass(frozen=True, slots=True, weakref_slot=True, init=False)
 class EvidenceStore:
     _parents: Mapping[str, ProvenanceParent]
     _evidence: Mapping[str, Evidence]
@@ -90,6 +177,18 @@ class EvidenceStore:
         digest = sha256(json.dumps(self._payload(), ensure_ascii=False, sort_keys=True,
                                    separators=(",", ":"), allow_nan=False).encode()).hexdigest()
         object.__setattr__(self, "bundle_sha256", digest)
+        identity = id(self)
+        weak = ref(
+            self,
+            lambda dead, identity=identity: _drop_store_authority(identity, dead),
+        )
+        _STORE_AUTHORITIES[identity] = (
+            weak,
+            self._parents,
+            self._evidence,
+            self._children,
+            self.bundle_sha256,
+        )
 
     @property
     def parents(self) -> tuple[ProvenanceParent, ...]:
@@ -148,3 +247,111 @@ class EvidenceStore:
         if store.bundle_sha256 != payload["bundle_sha256"]:
             raise ValueError("evidence_bundle_hash_mismatch")
         return store
+
+
+def validate_evidence_store_snapshot(
+    store: EvidenceStore,
+    expected_bundle_sha256: str,
+) -> None:
+    """Validate both canonical payload and every live lookup index.
+
+    Re-hashing ``to_dict()`` alone is insufficient because the serialized payload
+    contains mapping values, not the private mapping keys or derived child index.
+    This boundary reconstructs the canonical graph and checks the live indexes
+    that retrieval methods actually consult.
+    """
+
+    if type(store) is not EvidenceStore:
+        raise TypeError("evidence_store_required")
+    if type(expected_bundle_sha256) is not str:
+        raise TypeError("evidence_store_bundle_sha256_required")
+    try:
+        authority = _STORE_AUTHORITIES.get(id(store))
+        if authority is None or authority[0]() is not store:
+            raise ValueError("evidence_store_runtime_authority_required")
+        if (
+            authority[1] is not store._parents
+            or authority[2] is not store._evidence
+            or authority[3] is not store._children
+        ):
+            raise ValueError("evidence_store_index_drift")
+        if type(store.bundle_sha256) is not str:
+            raise ValueError("evidence_store_bundle_drift")
+        if store.bundle_sha256 is not authority[4]:
+            raise ValueError("evidence_store_bundle_mismatch")
+        if any(
+            type(mapping) is not _MAPPING_PROXY_TYPE
+            for mapping in (store._parents, store._evidence, store._children)
+        ):
+            raise ValueError("evidence_store_index_drift")
+        for key, parent in store._parents.items():
+            if type(key) is not str:
+                raise ValueError("evidence_store_index_drift")
+            _validate_parent_shape(parent)
+            if key != parent.parent_id:
+                raise ValueError("evidence_store_index_drift")
+        for key, evidence in store._evidence.items():
+            if type(key) is not str:
+                raise ValueError("evidence_store_index_drift")
+            _validate_evidence_shape(evidence)
+            if key != evidence.evidence_id:
+                raise ValueError("evidence_store_index_drift")
+        derived_children: dict[str, list[Evidence]] = defaultdict(list)
+        for evidence in store._evidence.values():
+            derived_children[evidence.parent_id].append(evidence)
+        expected_children = {
+            key: tuple(
+                sorted(
+                    values,
+                    key=lambda item: (
+                        item.locator.char_range or (0, 0),
+                        item.evidence_id,
+                    ),
+                )
+            )
+            for key, values in derived_children.items()
+        }
+        child_keys = tuple(store._children.keys())
+        if any(type(key) is not str for key in child_keys):
+            raise ValueError("evidence_store_index_drift")
+        if set(child_keys) != set(expected_children):
+            raise ValueError("evidence_store_index_drift")
+        for parent_id, children in store._children.items():
+            if type(parent_id) is not str or type(children) is not tuple:
+                raise ValueError("evidence_store_index_drift")
+            if len(children) != len(expected_children[parent_id]) or any(
+                type(child) is not Evidence
+                or store._evidence.get(child.evidence_id) is not child
+                or child is not expected
+                for child, expected in zip(children, expected_children[parent_id])
+            ):
+                raise ValueError("evidence_store_index_drift")
+        if store.bundle_sha256 != expected_bundle_sha256:
+            raise ValueError("evidence_store_bundle_mismatch")
+        payload = store.to_dict()
+        canonical = EvidenceStore.from_dict(payload)
+        if canonical.bundle_sha256 != expected_bundle_sha256:
+            raise ValueError("evidence_store_bundle_mismatch")
+        if tuple(store._parents) != tuple(canonical._parents):
+            raise ValueError("evidence_store_index_drift")
+        if tuple(store._evidence) != tuple(canonical._evidence):
+            raise ValueError("evidence_store_index_drift")
+        if frozenset(store._children) != frozenset(canonical._children):
+            raise ValueError("evidence_store_index_drift")
+        if store.parents != canonical.parents or store.evidence != canonical.evidence:
+            raise ValueError("evidence_store_payload_drift")
+        for parent_id, parent in canonical._parents.items():
+            if store.parent(parent_id) != parent:
+                raise ValueError("evidence_store_index_drift")
+            if store.children(parent_id) != canonical.children(parent_id):
+                raise ValueError("evidence_store_index_drift")
+        for evidence_id, evidence in canonical._evidence.items():
+            if store.get(evidence_id) != evidence:
+                raise ValueError("evidence_store_index_drift")
+    except (AttributeError, KeyError, TypeError, ValueError) as exc:
+        if isinstance(exc, ValueError) and str(exc) == "evidence_store_bundle_mismatch":
+            raise
+        raise ValueError("evidence_store_payload_drift") from exc
+
+
+__all__ = ("EvidenceStore", "validate_evidence_store_snapshot")

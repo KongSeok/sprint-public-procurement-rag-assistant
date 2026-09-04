@@ -1,4 +1,5 @@
 from copy import deepcopy
+from types import MappingProxyType
 import unittest
 
 from midprojectrag.evidence import Evidence, EvidenceStore, Locator, ProvenanceParent
@@ -359,6 +360,37 @@ class HarnessStateProjectionTests(unittest.TestCase):
             bound=bound, coverage=coverage, store=store
         )
         object.__setattr__(store.get(ev_a.evidence_id), "text", "ATTACK")
+        with self.assertRaisesRegex(
+            ValueError, "harness_state_store_payload_drift"
+        ):
+            validate_harness_state(state=state, store=store)
+
+        store, (_ev_a, _ev_b), bound = _compare_fixture()
+        coverage = build_compare_coverage(
+            bound=bound,
+            store=store,
+            candidate_results={},
+            verified_evidence={},
+            missing_reasons={},
+            contradicted_evidence={},
+        )
+        state = build_compare_harness_state(
+            bound=bound, coverage=coverage, store=store
+        )
+        object.__setattr__(
+            store,
+            "_parents",
+            MappingProxyType(
+                {
+                    **{
+                        key: value
+                        for key, value in store._parents.items()
+                        if key != store.parents[0].parent_id
+                    },
+                    "wrong-key": store.parents[0],
+                }
+            ),
+        )
         with self.assertRaisesRegex(
             ValueError, "harness_state_store_payload_drift"
         ):

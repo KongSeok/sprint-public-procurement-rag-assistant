@@ -37,6 +37,13 @@ from .followup_retrieval import (
     retrieve_followup_primary,
     validate_followup_retrieval_outcome,
 )
+from .fact_binding import (
+    BoundFact,
+    FactBindingTrace,
+    bind_fact,
+    replay_bound_fact,
+    validate_bound_fact,
+)
 from .compare_slots import (
     BoundCompare,
     CompareBindingTrace,
@@ -61,6 +68,7 @@ from .harness_state import (
     HarnessState,
     Progress,
     build_compare_harness_state,
+    build_fact_harness_state,
     build_followup_harness_state,
     replay_harness_state,
     validate_harness_state,
@@ -103,6 +111,11 @@ __all__ = (
     "finalize_followup_retrieval",
     "retrieve_followup_primary",
     "validate_followup_retrieval_outcome",
+    "BoundFact",
+    "FactBindingTrace",
+    "bind_fact",
+    "replay_bound_fact",
+    "validate_bound_fact",
     "BoundCompare",
     "CompareBindingTrace",
     "CompareCoverage",
@@ -122,6 +135,7 @@ __all__ = (
     "HarnessState",
     "Progress",
     "build_compare_harness_state",
+    "build_fact_harness_state",
     "build_followup_harness_state",
     "replay_harness_state",
     "validate_harness_state",

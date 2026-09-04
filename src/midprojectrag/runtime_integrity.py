@@ -13,6 +13,7 @@ import json
 import math
 from types import MappingProxyType
 from typing import Any, Mapping
+from weakref import ReferenceType, ref
 
 
 class IntegrityError(ValueError):
@@ -23,6 +24,19 @@ RUNTIME_FIELDS = frozenset({
     "request_id", "question", "history", "document_scope", "metadata_filters",
     "options", "prior_citation_state",
 })
+_RUNTIME_REQUEST_AUTHORITIES: dict[
+    int,
+    tuple[ReferenceType[object], tuple[object, ...]],
+] = {}
+
+
+def _drop_runtime_request_authority(
+    identity: int,
+    dead: ReferenceType[object],
+) -> None:
+    current = _RUNTIME_REQUEST_AUTHORITIES.get(identity)
+    if current is not None and current[0] is dead:
+        _RUNTIME_REQUEST_AUTHORITIES.pop(identity, None)
 
 
 def _closed(value: Any, keys: set[str] | frozenset[str], code: str) -> Mapping:
@@ -70,6 +84,23 @@ def _thaw(value: Any) -> Any:
     if isinstance(value, tuple):
         return [_thaw(v) for v in value]
     return value
+
+
+def _is_exact_frozen_runtime_tree(value: Any) -> bool:
+    """Check constructor-issued frozen values without invoking scalar subclasses."""
+
+    if value is None or type(value) in {str, bool, int}:
+        return True
+    if type(value) is float:
+        return math.isfinite(value)
+    if type(value) is tuple:
+        return all(_is_exact_frozen_runtime_tree(item) for item in value)
+    if type(value) is type(MappingProxyType({})):
+        return all(
+            type(key) is str and _is_exact_frozen_runtime_tree(item)
+            for key, item in value.items()
+        )
+    return False
 
 
 def _validate_runtime(raw: Mapping) -> dict:
@@ -128,7 +159,7 @@ def _validate_runtime(raw: Mapping) -> dict:
     return result
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, weakref_slot=True)
 class RuntimeRequest:
     question: str
     request_id: str = "runtime"
@@ -142,6 +173,17 @@ class RuntimeRequest:
         values = _validate_runtime({key: getattr(self, key) for key in RUNTIME_FIELDS})
         for key, value in values.items():
             object.__setattr__(self, key, _freeze(value))
+        identity = id(self)
+        weak = ref(
+            self,
+            lambda dead, identity=identity: _drop_runtime_request_authority(
+                identity, dead
+            ),
+        )
+        _RUNTIME_REQUEST_AUTHORITIES[identity] = (
+            weak,
+            tuple(getattr(self, key) for key in sorted(RUNTIME_FIELDS)),
+        )
 
     @classmethod
     def from_dict(cls, value: Mapping) -> RuntimeRequest:
@@ -158,6 +200,30 @@ class RuntimeRequest:
     @property
     def fingerprint(self) -> str:
         return sha256(json.dumps(self.to_dict(), ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+
+
+def validate_runtime_request_snapshot(request: RuntimeRequest) -> None:
+    """Require the exact unchanged request tree issued by the constructor."""
+
+    if type(request) is not RuntimeRequest:
+        raise TypeError("runtime_request_required")
+    authority = _RUNTIME_REQUEST_AUTHORITIES.get(id(request))
+    if authority is None or authority[0]() is not request:
+        raise IntegrityError("runtime_request_authority_required")
+    current = tuple(getattr(request, key) for key in sorted(RUNTIME_FIELDS))
+    if len(current) != len(authority[1]) or any(
+        issued is not actual for issued, actual in zip(authority[1], current)
+    ):
+        raise IntegrityError("runtime_request_identity_drift")
+    if any(not _is_exact_frozen_runtime_tree(value) for value in current):
+        raise IntegrityError("runtime_request_child_type_drift")
+    try:
+        payload = RuntimeRequest.to_dict(request)
+        canonical = RuntimeRequest.from_dict(payload)
+    except (AttributeError, KeyError, TypeError, ValueError) as exc:
+        raise IntegrityError("runtime_request_payload_drift") from exc
+    if canonical.to_dict() != payload:
+        raise IntegrityError("runtime_request_payload_drift")
 
 
 def project_runtime(evaluation_row: Mapping) -> RuntimeRequest:

@@ -616,3 +616,9 @@ This file summarizes recent updates so other agents can continue without re‑di
 
 ### Tests
 - focused55/full1020·독립 재검토 PASS. API·Langfuse 호출 0. (refs: ../test/errorlogs/backend/2026-09-04-eh25-bound-compare-nested-authority.md)
+
+## Addendum (2026-09-04) - EH2.6.b1 sealed fact authority
+### Backend
+- BoundFact·fact 초기 state와 exact request/planner/catalog/store authority를 구현했다. (refs: ../architecture/specs/bidfit-evidence-harness-v1-rc0.md)
+### Tests
+- focused47/full1034/safety807·독립 리뷰 PASS. API·Langfuse 0회. (refs: ../test/errorlogs/backend/2026-09-04-eh26-b1-live-authority.md)
