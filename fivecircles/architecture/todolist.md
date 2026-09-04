@@ -87,7 +87,12 @@ runtime은 local profile 기본·LLM provider 교체형으로 유지하며 새 �
   search/field-relevance receipt, provisional missing과 문서 coverage를 봉인했고 typed receipt 없는
   verified/contradicted·조기 정상 종료를 차단했다. production retriever와 factory-issued binding/coverage
   identity를 재검증한다. focused107·전체987 PASS, 독립 리뷰 P1 수리 후 최종 PASS.
-- [ ] **EH2.5** Belief/Progress/typed Action을 구현한다. 완료: 상태 직렬화·허용 transition·action trace 회귀.
+- [ ] **EH2.5** Belief/Progress/typed Action을 구현한다. 완료: 상태 직렬화·허용 action 산출·decision-chain 회귀. 실제 state transition/action-effect receipt는 EH2.6에서 구현한다.
+  - [x] **EH2.5.a** 현재 EH2.3/EH2.4와 prototype을 read-only 감사하고 pure state/action 계약을 고정한다.
+  - [ ] **EH2.5.b** follow-up bound/attempt/progress/outcome authority와 전체 hash chain을 봉인한다.
+  - [ ] **EH2.5.c** compare/follow-up `Belief`·`Progress`·`HarnessState` projection/replay를 구현한다.
+  - [ ] **EH2.5.d** closed typed action·deterministic allowed order·decision hash chain을 구현한다.
+  - [ ] **EH2.5.e** adversarial focused/full 회귀와 독립 리뷰를 통과한 뒤 부모를 완료 처리한다.
 - [ ] **EH2.6** E0/E1 bounded controller를 연결한다. 완료: round/action/deadline/no-progress 종료, 필수 slot 확인 후 stop/partial abstain.
 - [ ] **EH2.G** Phase 2 gate: 동일 합성 corpus의 단일/비교/후속 질의 end-to-end+gold-lineage 재검증+전체 회귀.
 

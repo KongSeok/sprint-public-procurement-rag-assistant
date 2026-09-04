@@ -68,3 +68,43 @@ confirmed contradictions. EH2.4 records provisional missing observations but can
 mint an absence confirmation: they remain open until EH2.6 binds a bounded action
 receipt. EH2.5 may adapt these records into Belief/Progress, but
 downstream compare code must accept the sealed compare binding rather than a bare plan.
+
+EH2.5 adds only a pure state/action projection. `Belief`, `Progress`, and `HarnessState`
+must be reconstructed from an identity-authorized `BoundCompare` + `CompareCoverage` or
+an identity-authorized `BoundFollowup` + primary progress + retrieval outcome. They bind
+request, plan, config, store, source-receipt, scope, entities/constraints, and ordered
+obligation/evidence identities without copying question text. Follow-up uses the reserved
+`$answer_support` obligation so an empty plan slot list cannot become vacuous completion;
+empty or unavailable fallback output remains provisional, not confirmed absence.
+
+Actions are closed identifiers, never caller-supplied queries or scopes. Retrieval/fusion/
+rerank/verify actions target one obligation, expansion/bridge actions additionally target
+an evidence ID already present in that obligation's candidate set, and terminal actions have
+no target. EH2.5 derives a deterministic allowed-action order and a hash-chained
+`ActionDecisionTrace`; it performs no retrieval, verification, reranking, model call, retry,
+deadline accounting, or absence confirmation. `fuse` remains a declared type but is not
+eligible until EH2.6 has a lane-execution ledger. Runtime use and persisted replay require
+factory-issued object identity plus canonical full-payload reconstruction. Gold/evaluator
+fields are not accepted by any state or action API.
+
+EH2.5 has no state reducer, transition, or action-effect receipt; all three belong to EH2.6.
+Its exact terminal gates are source-derived: compare copies `normal_stop_allowed` and
+`abstain_required` from the sealed `CompareCoverage`; follow-up permits normal stop only when
+the sealed primary progress is sufficient and the complete outcome chain is valid. EH2.5
+cannot create confirmed absence, so every other insufficient follow-up remains provisional/
+open rather than forced abstention. Normal-stop state allows only `stop`; forced-abstention
+state allows only `abstain`; otherwise exactly one untargeted `abstain` follows the eligible
+nonterminal actions.
+
+Allowed actions are ordered first by the sealed canonical obligation order and then by
+`retrieve_dense`, `retrieve_lexical`, `expand_parent`, `bridge_table`, `bridge_figure`,
+`rerank`, `verify_slot`; bridge/expand targets are ordered by evidence ID. Compare unsearched
+or provisional-missing obligations allow the two retrieval actions. Compare candidates and
+follow-up candidates allow eligible expansion/bridges followed by rerank and verify. A
+follow-up provisional-missing obligation allows no new retrieval because EH2.3 already
+finalized its primary and optional fallback. Verified/confirmed-missing obligations allow no
+nonterminal action and contradicted state enters the global abstention gate. A parent expansion
+is eligible only when the candidate's `parent_id` resolves in the sealed store. Table and
+figure bridges are eligible only when the store itself derives at least one linked
+`table_row_group` or `figure_object` respectively through `store.bridge`; callers cannot
+supply kind or lineage. The deterministic decision selects the first allowed action.

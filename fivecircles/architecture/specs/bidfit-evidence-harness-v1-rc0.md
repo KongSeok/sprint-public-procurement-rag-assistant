@@ -540,3 +540,66 @@ parent/child 혼합, 골든 값 의존을 검출한다. 정확한 새 파일/메
 - persisted receipt는 provider를 다시 호출하기 전에 slot/request/binding/plan/store/query/budget/scope/
   action/profile/result projection 및 내부·외부 hash를 pure-validation한다. 재생 결과 비교는 Python의
   느슨한 scalar equality가 아니라 canonical JSON으로 수행해 `4`/`4.0`, `false`/`0`도 구분한다.
+
+### 16.9 Belief / Progress / typed action — EH2.5
+
+- EH2.5는 실행 loop가 아니다. EH2.3의 follow-up binding/progress/outcome과 EH2.4의 compare
+  binding/coverage를 공통 상태로 투영하고, 현재 상태에서 허용되는 typed action과 결정 chain만
+  만든다. retrieval/provider 호출, retry·round·deadline·no-progress, 실제 before→after 효과 및
+  confirmed absence receipt는 EH2.6 책임이다. `HarnessState` reducer/transition과 action-effect
+  receipt도 EH2.6 전용이며 EH2.5 API에는 존재하지 않는다.
+- `Belief`는 `source_kind`, request/binding/effective-plan/config/store identity, query type,
+  plan에서 온 entity/constraint, scope, obligation별 candidate/verified evidence map과 원본 authority
+  receipt SHA를 보존한다. 원문 질문이나 action이 바꿀 수 있는 query/scope/doc ID는 복제하지 않는다.
+  `Progress`는 required/verified/provisional-missing/confirmed-missing/contradicted/open obligation,
+  coverage ratio, answerability와 stop/abstain gate를 보존한다. compare의 EH2.4 missing은 전부
+  provisional+open이며 field relevance만으로 verified가 되지 않는다.
+- follow-up은 예약 obligation `$answer_support`를 항상 첫 항목으로 사용하고 실제 required slot을
+  plan 순서로 뒤에 둔다. primary 뒤 fallback candidate를 순서 보존 dedupe하고,
+  `PrimaryEvidenceProgress`의 verified answer/slot만 verified로 투영한다. `sufficient=true`이고
+  outcome trace와 전체 hash chain이 맞을 때만 정상 stop을 허용한다. fallback 미승인·빈 결과는
+  confirmed absence나 강제 abstain 근거가 아니다.
+- `HarnessState`와 그 하위 DTO는 frozen/slotted/factory-only이며 factory가 발급한 동일 object identity와
+  전체 canonical payload hash를 실행 경계에서 다시 확인한다. compare는 기존 identity authority를
+  재사용한다. follow-up은 raw `object.__new__`나 발급 후 drift를 막도록 bound/attempt/progress/outcome의
+  발급 identity와 request/plan/store/policy/result hash chain을 먼저 봉인한다.
+- typed action은 `retrieve_dense`, `retrieve_lexical`, `fuse`, `expand_parent`, `rerank`,
+  `bridge_table`, `bridge_figure`, `verify_slot`, `stop`, `abstain`으로 닫는다. retrieve/fuse/rerank/verify는
+  obligation만, expand/bridge는 obligation+현재 candidate evidence만, terminal action은 target 없이
+  생성한다. action에는 임의 query나 scope를 받지 않는다. `fuse`는 lane별 실행 ledger가 생기는
+  EH2.6 전에는 타입만 제공하고 허용 action으로 발급하지 않는다.
+- 비종료 allowed action은 source와 obligation 상태로 정확히 제한한다.
+
+  | source | obligation 상태 | EH2.5 allowed action |
+  | --- | --- | --- |
+  | compare | `unsearched` | `retrieve_dense`, `retrieve_lexical` |
+  | compare | `candidate` | eligibility를 만족하는 `expand_parent`, `bridge_table`, `bridge_figure`; 이후 `rerank`, `verify_slot` |
+  | compare | `provisional_missing` | `retrieve_dense`, `retrieve_lexical` |
+  | follow-up | `$answer_support` 또는 실제 slot의 `candidate` | eligibility를 만족하는 `expand_parent`, `bridge_table`, `bridge_figure`; 이후 `rerank`, `verify_slot` |
+  | follow-up | `provisional_missing` | 없음. EH2.3의 primary와 허용된 fallback은 이미 종결되었고 재시도는 EH2.6 전용이다. |
+  | 공통 | `verified`, `confirmed_missing` | 없음 |
+  | 공통 | `contradicted` | 전역 gate가 `abstain`만 허용 |
+
+  `expand_parent`는 해당 obligation의 candidate가 현재 store에 존재하고 그 candidate의 `parent_id`를
+  `store.parent(...)`로 해석할 수 있을 때만 발급한다. `bridge_table`과 `bridge_figure`는 각각
+  `store.bridge(candidate_id, kinds=("table_row_group",))`와
+  `store.bridge(candidate_id, kinds=("figure_object",))`가 실제 연결 객체를 반환할 때만 발급한다.
+  caller는 evidence kind, parent, support lineage를 제공하거나 덮어쓸 수 없다. bridge/parent target은
+  state의 candidate ID와 sealed store에서만 파생한다.
+- deterministic E1 allowed order는 plan/coverage가 봉인한 canonical obligation 순서를 먼저 적용하고,
+  각 obligation 안에서 `retrieve_dense`, `retrieve_lexical`, `expand_parent`, `bridge_table`,
+  `bridge_figure`, `rerank`, `verify_slot` 순서를 사용한다. expand/bridge candidate는 `evidence_id`
+  오름차순으로 둔다. open 상태에는 이 순서의 비종료 action 뒤에 target 없는 `abstain`을 정확히
+  한 번 붙이고, decision은 allowed tuple의 첫 action을 선택한다. `fuse`는 이 순서에 포함되지 않는다.
+- gate는 다음 공식으로만 파생한다. compare의 `normal_stop_allowed`와 `abstain_required`는 sealed
+  `CompareCoverage`의 동명 값과 정확히 같아야 한다. follow-up의 `normal_stop_allowed`는
+  `progress.sufficient`이고 primary/fallback/progress/outcome 전체 authority chain이 유효할 때만 true다.
+  EH2.5는 confirmed absence를 만들지 않으므로 그 밖의 follow-up 부족 상태는 provisional/open으로
+  남고 `abstain_required=false`다. `normal_stop_allowed=true`이면 allowed tuple은 정확히
+  `(stop,)`, `abstain_required=true`이면 정확히 `(abstain,)`이다. 두 값은 동시에 true일 수 없다.
+- deterministic E1 decision은 위 exact gate/order를 사용하고 state SHA,
+  전체 allowed-action SHA, selected action, policy ID/SHA, execution identity, ordinal과 이전 decision SHA를
+  `ActionDecisionTrace`에 묶는다. previous chain은 같은
+  execution identity·정확한 ordinal+1·nonterminal 이전 decision만 허용한다.
+- persisted state/decision replay는 동일한 bound/source receipts/store/registry/policy로 재구성한 canonical
+  JSON과 정확히 같아야 한다. evaluator/gold/qrels/expected answer는 모든 factory 인자와 직렬화에서 금지한다.
