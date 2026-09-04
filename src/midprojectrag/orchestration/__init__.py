@@ -65,6 +65,13 @@ from .harness_state import (
     replay_harness_state,
     validate_harness_state,
 )
+from .actions import (
+    ActionDecisionTrace,
+    HarnessAction,
+    allowed_harness_actions,
+    decide_harness_action,
+    replay_action_decision,
+)
 
 __all__ = (
     "BudgetRule",
@@ -118,4 +125,9 @@ __all__ = (
     "build_followup_harness_state",
     "replay_harness_state",
     "validate_harness_state",
+    "ActionDecisionTrace",
+    "HarnessAction",
+    "allowed_harness_actions",
+    "decide_harness_action",
+    "replay_action_decision",
 )
