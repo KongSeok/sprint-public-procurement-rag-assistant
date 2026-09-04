@@ -721,3 +721,28 @@ This file summarizes recent updates so other agents can continue without re‑di
 
 - `EH2.6.c3`: expansion/bridge/rerank/verify `ActionEffectReceipt`와 bounded zero-provider absence receipt를
   계약-first로 구현한다.
+
+## Addendum (2026-09-05) - EH2.6.c3.1 parent/bridge source receipts
+
+### Backend
+
+- immutable candidate seed의 config-bounded prefix에서 caller ID 없이 `ParentContextReceipt`와
+  table/figure `BridgeContextReceipt`를 발급한다.
+- parent는 context-only `ProvenanceParent`로 보존해 evidence/support/citation으로 승격하지 않고, bridge는
+  실제 `EvidenceStore.bridge`의 linked evidence 또는 `empty` 시도를 봉인한다.
+- at-most-once claim/history/cache를 exact owner root source 수명에 묶어 중간 semantic obligation GC와
+  동등 obligation 재발급을 통한 authority remint를 차단했다.
+
+### Tests
+
+- TDD RED 뒤 focused 8/8, semantic/retrieval/action/state 관련 114/114, 전체 1,220/1,220,
+  repository safety 850파일 PASS.
+- 독립 감사의 root-lifetime P1을 최소 수리하고 semantic GC 회귀를 추가했다.
+- API·OpenAI·model-provider·Langfuse·VLM·golden 호출은 0이며 synthetic/offline fixture만 실행했다.
+
+### Next
+
+- `EH2.6.c3.2`: ID-less exact-once rerank receipt와 parent/bridge/rerank를 반영한 derived semantic
+  obligation을 새 원샷딜 폼에서 계약-first로 구현한다.
+- refs: `../test/errorlogs/backend/2026-09-05-c3-context-source-lifetime.md`,
+  `../architecture/specs/evidence-harness-progress-flow-validation.md`.

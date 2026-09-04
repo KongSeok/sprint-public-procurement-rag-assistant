@@ -1,6 +1,6 @@
 # EH-RC0 재개 체크포인트
 
-갱신: 2026-09-05 · EH2.6.c2 완료, 다음 READY는 EH2.6.c3. 토큰 절약을 위해 이 문서의 한눈에 보는 상태와 계약 §16.10부터 읽기.
+갱신: 2026-09-05 · EH2.6.c3.1 완료, 다음 READY는 EH2.6.c3.2. 토큰 절약을 위해 이 문서의 한눈에 보는 상태와 계약 §16.10부터 읽기.
 
 ## 중단/애매함 발생 시
 
@@ -21,8 +21,8 @@
   후속 전체 범위의 선택 commit·검증이 끝난 뒤 `feat/local-qwen-mini131-eval`에 병합한다.
   새 브랜치는 만들지 않는다.
 - 완료: EH-A.1~3 감사·기준선·계약/flow 초안. 805 tests PASS, 실패/skip 0 (변경 전).
-- 현재 IN_PROGRESS: **Phase 2**. EH2.1~2.5와 EH2.6.a~c2 PASS. 다음 leaf는 typed source receipt를
-  state-free effect/absence로 봉인하는 `EH2.6.c3`다.
+- 현재 IN_PROGRESS: **Phase 2**. EH2.1~2.5와 EH2.6.a~c3.1 PASS. 다음 leaf는 ID-less exact-once
+  rerank receipt와 derived semantic obligation을 봉인하는 `EH2.6.c3.2`다.
 - 기존 평가 Batch 2의 활성 책임은 `EH2.EVAL`로 통합했다. EVAL.1~3은 완료, 사람 승인·qrels 보강과
   sealed held-out 실행은 EVAL.4~6에 남아 있으며 EH2 runtime에는 gold 값을 주입하지 않는다.
 - blocker: 없음. 실제 생성/API 호출은 계속 0이며 Phase 2는 provider-free 합성 테스트로 진행한다.
@@ -33,7 +33,10 @@
   fixed error로 소비한다. 전역·Unicode dependency rebinding, authority clone/mixed store, 동시 호출과 raw
   provider 비누출을 focused gate로 차단했다. focused26·관련118·전체1212·safety846와 HTML desktop/mobile
   검증이 PASS했다. API·Langfuse·실제 model/provider 호출은 0이고 synthetic verifier만 실행했다.
-  EH2.6 controller 전체 구현·실행 완료 주장이 아니며 원샷 전체는 미완료다.
+  EH2.6.c3.1은 immutable candidate seed prefix에서 parent=context-only와 table/figure actual bridge
+  `applied|empty` receipt를 caller ID 없이 발급한다. root source 수명에 claim/history/cache를 결합해 중간
+  semantic obligation GC·동등 재발급 뒤의 authority remint를 차단했다. focused8·관련114·전체1220·safety850
+  PASS, API·model·Langfuse 호출 0이다. EH2.6 controller 전체 구현·실행 완료 주장이 아니며 원샷 전체는 미완료다.
 
 ## 완료된 첫 leaf 참고: EH0.1.a (현재 작업 아님)
 
@@ -88,6 +91,7 @@
 | EH2.6.b5 | COMPLETED | b3/b4 production 변경 없이 lexical-only rescue, fact empty state-free, pre-call zero-dispatch, provider-error diagnostic/no-fusion. focused4/b3~b5 68/related218/full1179/safety829 PASS; 다음 EH2.6.c1 |
 | EH2.6.c1 | COMPLETED | `a9ac527` push. follow-up outcome을 E1 candidate/all-open state로 안전 투영. metadata fail-closed, retrieval 0, clone·단일 private drift 방어. focused7/related60/full1186/safety837, 독립 리뷰 3건 APPROVE; 다음 EH2.6.c2 |
 | EH2.6.c2 | COMPLETED | `05fc4cc` push. exact owner-derived semantic obligation + one-call/zero-call verifier receipt. typed support/value/contradiction, at-most-once·dependency rebinding·clone/mixed-store·비누출 방어. focused26/related118/full1212/safety846, HTML desktop/mobile PASS; 다음 EH2.6.c3 |
+| EH2.6.c3.1 | COMPLETED | parent/bridge source receipt. bounded candidate seed, parent nonpromotion, table/figure actual/empty attempt, root-lifetime replay guard. focused8/related114/full1220/safety850, provider 0; 다음 EH2.6.c3.2 |
 
 ## 안전/컨텍스트 규칙
 

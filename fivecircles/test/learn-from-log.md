@@ -343,3 +343,19 @@ Preventive rule:
 
 Reference:
 - `errorlogs/frontend/2026-09-05-report-playwright-runtime-discovery.md`
+
+### At-most-once history must follow the root authority lifetime (2026-09-05)
+
+Cause:
+- c3.1 context receipt history was initially keyed to an intermediate semantic obligation object. That object could be
+  garbage-collected while the owning retrieval/follow-up source remained live, allowing an equivalent obligation to
+  mint a second authority with the same payload.
+
+Preventive rule:
+- Bind claim, completion cache, and retry tombstones to the exact root source issuance authority, not to a replaceable
+  intermediate receipt or obligation.
+- Add a regression that drops only the intermediate semantic object, forces GC, reissues the equivalent semantic
+  obligation, and requires exact receipt tuple/item identity reuse while the root source remains live.
+
+Reference:
+- `errorlogs/backend/2026-09-05-c3-context-source-lifetime.md`

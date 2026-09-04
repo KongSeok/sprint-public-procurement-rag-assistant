@@ -25,7 +25,12 @@ from typing import Any, Mapping
 from weakref import ReferenceType, ref
 
 import midprojectrag.evidence as _EVIDENCE_RUNTIME_MODULE
-from midprojectrag.evidence import Evidence, EvidenceStore, validate_evidence_store_snapshot
+from midprojectrag.evidence import (
+    Evidence,
+    EvidenceStore,
+    ProvenanceParent,
+    validate_evidence_store_snapshot,
+)
 from midprojectrag.retrieval import dense as _DENSE_RUNTIME_MODULE
 from midprojectrag.retrieval import fusion as _FUSION_RUNTIME_MODULE
 from midprojectrag.retrieval import kiwi_bm25 as _LEXICAL_RUNTIME_MODULE
@@ -49,6 +54,8 @@ _RUNTIME_TOKEN = object()
 _SEMANTIC_OBLIGATION_TOKEN = object()
 _SEMANTIC_REQUEST_TOKEN = object()
 _SEMANTIC_RECEIPT_TOKEN = object()
+_PARENT_CONTEXT_RECEIPT_TOKEN = object()
+_BRIDGE_CONTEXT_RECEIPT_TOKEN = object()
 _ISSUED_VALIDATE_EVIDENCE_STORE_SNAPSHOT = validate_evidence_store_snapshot
 _ISSUED_HYBRID_SEARCH_LANE = type.__getattribute__(
     object.__getattribute__(_FUSION_RUNTIME_MODULE, "HybridChildRetriever"),
@@ -9144,6 +9151,1012 @@ def validate_semantic_verification_obligation(
     )
 
 
+# EH2.6.c3.1 bounded parent/bridge source receipts -----------------------------
+
+_CONTEXT_BRIDGE_KIND_PAIRS = (
+    ("table", "table_row_group"),
+    ("figure", "figure_object"),
+)
+_CONTEXT_PENDING = object()
+_CONTEXT_COMPLETED = object()
+_CONTEXT_FAILED = object()
+
+
+@dataclass(frozen=True, slots=True, weakref_slot=True, init=False)
+class ParentContextReceipt:
+    """Content-free proof that a semantic seed resolved to its exact parent."""
+
+    outcome: str
+    semantic_obligation_sha256: str
+    seed_evidence_id: str
+    seed_stable_anchor: StableEvidenceAnchor
+    parent_id: str
+    parent_kind: str
+    parent_doc_id: str
+    parent_content_sha256: str
+    parent_locator_sha256: str
+    evidence_store_sha256: str
+    execution_config_sha256: str
+    runtime_binding_sha256: str
+    receipt_sha256: str
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        raise TypeError("parent_context_receipt_factory_required")
+
+    def __copy__(self) -> object:
+        raise TypeError("parent_context_receipt_not_serializable")
+
+    def __deepcopy__(self, memo: object) -> object:
+        raise TypeError("parent_context_receipt_not_serializable")
+
+    def __reduce__(self) -> object:
+        raise TypeError("parent_context_receipt_not_serializable")
+
+    def __reduce_ex__(self, protocol: int) -> object:
+        raise TypeError("parent_context_receipt_not_serializable")
+
+    @classmethod
+    def _create(
+        cls,
+        *,
+        payload: Mapping[str, Any],
+        _token: object,
+    ) -> ParentContextReceipt:
+        if _token is not _PARENT_CONTEXT_RECEIPT_TOKEN:
+            raise ValueError("parent_context_receipt_factory_required")
+        result = object.__new__(cls)
+        for name in cls.__slots__:
+            if name != "__weakref__":
+                object.__setattr__(result, name, payload[name])
+        _validate_parent_context_receipt_payload(result)
+        return result
+
+    def to_dict(self) -> dict[str, Any]:
+        _validate_parent_context_receipt_payload(self)
+        return _parent_context_receipt_payload(self, include_hash=True)
+
+
+def _parent_context_receipt_payload(
+    receipt: ParentContextReceipt,
+    *,
+    include_hash: bool,
+) -> dict[str, Any]:
+    payload = {
+        "schema_version": SCHEMA_VERSION,
+        "outcome": object.__getattribute__(receipt, "outcome"),
+        "semantic_obligation_sha256": object.__getattribute__(
+            receipt, "semantic_obligation_sha256"
+        ),
+        "seed_evidence_id": object.__getattribute__(
+            receipt, "seed_evidence_id"
+        ),
+        "seed_stable_anchor": object.__getattribute__(
+            receipt, "seed_stable_anchor"
+        ).to_dict(),
+        "parent_id": object.__getattribute__(receipt, "parent_id"),
+        "parent_kind": object.__getattribute__(receipt, "parent_kind"),
+        "parent_doc_id": object.__getattribute__(receipt, "parent_doc_id"),
+        "parent_content_sha256": object.__getattribute__(
+            receipt, "parent_content_sha256"
+        ),
+        "parent_locator_sha256": object.__getattribute__(
+            receipt, "parent_locator_sha256"
+        ),
+        "evidence_store_sha256": object.__getattribute__(
+            receipt, "evidence_store_sha256"
+        ),
+        "execution_config_sha256": object.__getattribute__(
+            receipt, "execution_config_sha256"
+        ),
+        "runtime_binding_sha256": object.__getattribute__(
+            receipt, "runtime_binding_sha256"
+        ),
+    }
+    if include_hash:
+        payload["receipt_sha256"] = object.__getattribute__(
+            receipt, "receipt_sha256"
+        )
+    return payload
+
+
+def _validate_parent_context_receipt_payload(
+    receipt: ParentContextReceipt,
+) -> None:
+    if type(receipt) is not ParentContextReceipt:
+        raise TypeError("parent_context_receipt_required")
+    if object.__getattribute__(receipt, "outcome") != "applied":
+        raise ValueError("parent_context_receipt_outcome_mismatch")
+    for name in ("seed_evidence_id", "parent_id", "parent_kind", "parent_doc_id"):
+        value = object.__getattribute__(receipt, name)
+        if type(value) is not str or not value:
+            raise ValueError("invalid_parent_context_receipt_identity")
+    for name in (
+        "semantic_obligation_sha256",
+        "parent_content_sha256",
+        "parent_locator_sha256",
+        "evidence_store_sha256",
+        "execution_config_sha256",
+        "runtime_binding_sha256",
+        "receipt_sha256",
+    ):
+        _require_hash(object.__getattribute__(receipt, name), f"invalid_{name}")
+    anchor = object.__getattribute__(receipt, "seed_stable_anchor")
+    if type(anchor) is not StableEvidenceAnchor:
+        raise TypeError("parent_context_seed_anchor_required")
+    if object.__getattribute__(anchor, "doc_id") != object.__getattribute__(
+        receipt, "parent_doc_id"
+    ):
+        raise ValueError("parent_context_seed_parent_doc_mismatch")
+    expected = _canonical_sha256(
+        _parent_context_receipt_payload(receipt, include_hash=False)
+    )
+    if object.__getattribute__(receipt, "receipt_sha256") != expected:
+        raise ValueError("parent_context_receipt_hash_mismatch")
+
+
+@dataclass(frozen=True, slots=True, weakref_slot=True, init=False)
+class BridgeContextReceipt:
+    """Content-free exact result of one table or figure bridge lookup."""
+
+    bridge_kind: str
+    evidence_kind: str
+    outcome: str
+    semantic_obligation_sha256: str
+    seed_evidence_id: str
+    seed_stable_anchor: StableEvidenceAnchor
+    linked_evidence_ids: tuple[str, ...]
+    ordered_stable_anchors: tuple[StableEvidenceAnchor, ...]
+    evidence_store_sha256: str
+    execution_config_sha256: str
+    runtime_binding_sha256: str
+    receipt_sha256: str
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        raise TypeError("bridge_context_receipt_factory_required")
+
+    def __copy__(self) -> object:
+        raise TypeError("bridge_context_receipt_not_serializable")
+
+    def __deepcopy__(self, memo: object) -> object:
+        raise TypeError("bridge_context_receipt_not_serializable")
+
+    def __reduce__(self) -> object:
+        raise TypeError("bridge_context_receipt_not_serializable")
+
+    def __reduce_ex__(self, protocol: int) -> object:
+        raise TypeError("bridge_context_receipt_not_serializable")
+
+    @classmethod
+    def _create(
+        cls,
+        *,
+        payload: Mapping[str, Any],
+        _token: object,
+    ) -> BridgeContextReceipt:
+        if _token is not _BRIDGE_CONTEXT_RECEIPT_TOKEN:
+            raise ValueError("bridge_context_receipt_factory_required")
+        result = object.__new__(cls)
+        for name in cls.__slots__:
+            if name != "__weakref__":
+                object.__setattr__(result, name, payload[name])
+        _validate_bridge_context_receipt_payload(result)
+        return result
+
+    def to_dict(self) -> dict[str, Any]:
+        _validate_bridge_context_receipt_payload(self)
+        return _bridge_context_receipt_payload(self, include_hash=True)
+
+
+def _bridge_context_receipt_payload(
+    receipt: BridgeContextReceipt,
+    *,
+    include_hash: bool,
+) -> dict[str, Any]:
+    payload = {
+        "schema_version": SCHEMA_VERSION,
+        "bridge_kind": object.__getattribute__(receipt, "bridge_kind"),
+        "evidence_kind": object.__getattribute__(receipt, "evidence_kind"),
+        "outcome": object.__getattribute__(receipt, "outcome"),
+        "semantic_obligation_sha256": object.__getattribute__(
+            receipt, "semantic_obligation_sha256"
+        ),
+        "seed_evidence_id": object.__getattribute__(
+            receipt, "seed_evidence_id"
+        ),
+        "seed_stable_anchor": object.__getattribute__(
+            receipt, "seed_stable_anchor"
+        ).to_dict(),
+        "linked_evidence_ids": list(
+            object.__getattribute__(receipt, "linked_evidence_ids")
+        ),
+        "ordered_stable_anchors": [
+            anchor.to_dict()
+            for anchor in object.__getattribute__(
+                receipt, "ordered_stable_anchors"
+            )
+        ],
+        "evidence_store_sha256": object.__getattribute__(
+            receipt, "evidence_store_sha256"
+        ),
+        "execution_config_sha256": object.__getattribute__(
+            receipt, "execution_config_sha256"
+        ),
+        "runtime_binding_sha256": object.__getattribute__(
+            receipt, "runtime_binding_sha256"
+        ),
+    }
+    if include_hash:
+        payload["receipt_sha256"] = object.__getattribute__(
+            receipt, "receipt_sha256"
+        )
+    return payload
+
+
+def _validate_bridge_context_receipt_payload(
+    receipt: BridgeContextReceipt,
+) -> None:
+    if type(receipt) is not BridgeContextReceipt:
+        raise TypeError("bridge_context_receipt_required")
+    bridge_kind = object.__getattribute__(receipt, "bridge_kind")
+    evidence_kind = object.__getattribute__(receipt, "evidence_kind")
+    expected_evidence_kind = dict(_CONTEXT_BRIDGE_KIND_PAIRS).get(bridge_kind)
+    if expected_evidence_kind is None or evidence_kind != expected_evidence_kind:
+        raise ValueError("bridge_context_kind_mismatch")
+    outcome = object.__getattribute__(receipt, "outcome")
+    if outcome not in {"applied", "empty"}:
+        raise ValueError("bridge_context_outcome_mismatch")
+    seed_evidence_id = object.__getattribute__(receipt, "seed_evidence_id")
+    if type(seed_evidence_id) is not str or not seed_evidence_id:
+        raise ValueError("invalid_bridge_context_seed_evidence_id")
+    for name in (
+        "semantic_obligation_sha256",
+        "evidence_store_sha256",
+        "execution_config_sha256",
+        "runtime_binding_sha256",
+        "receipt_sha256",
+    ):
+        _require_hash(object.__getattribute__(receipt, name), f"invalid_{name}")
+    seed_anchor = object.__getattribute__(receipt, "seed_stable_anchor")
+    linked_ids = _exact_string_tuple_value(
+        object.__getattribute__(receipt, "linked_evidence_ids"),
+        "bridge_context_linked_evidence_ids",
+        allow_empty=True,
+    )
+    anchors = object.__getattribute__(receipt, "ordered_stable_anchors")
+    if (
+        type(seed_anchor) is not StableEvidenceAnchor
+        or type(anchors) is not tuple
+        or len(anchors) != len(linked_ids)
+        or any(
+            type(anchor) is not StableEvidenceAnchor
+            or object.__getattribute__(anchor, "evidence_kind") != evidence_kind
+            or object.__getattribute__(anchor, "doc_id")
+            != object.__getattribute__(seed_anchor, "doc_id")
+            for anchor in anchors
+        )
+    ):
+        raise ValueError("bridge_context_anchor_mismatch")
+    if (outcome == "applied") is not bool(linked_ids):
+        raise ValueError("bridge_context_outcome_mismatch")
+    expected = _canonical_sha256(
+        _bridge_context_receipt_payload(receipt, include_hash=False)
+    )
+    if object.__getattribute__(receipt, "receipt_sha256") != expected:
+        raise ValueError("bridge_context_receipt_hash_mismatch")
+
+
+@dataclass(frozen=True, slots=True)
+class _ParentContextReceiptAuthority:
+    weak: ReferenceType[ParentContextReceipt]
+    root_source_weak: ReferenceType[object]
+    semantic_issuance_key: tuple[object, ...]
+    seed: Evidence
+    seed_anchor: StableEvidenceAnchor
+    parent: ProvenanceParent
+    store: EvidenceStore
+    config: HarnessExecutionConfig
+    runtime: HarnessRuntimeBinding
+    execution_key: tuple[object, ...]
+    issued_payload_sha256: str
+
+
+@dataclass(frozen=True, slots=True)
+class _BridgeContextReceiptAuthority:
+    weak: ReferenceType[BridgeContextReceipt]
+    root_source_weak: ReferenceType[object]
+    semantic_issuance_key: tuple[object, ...]
+    seed: Evidence
+    seed_anchor: StableEvidenceAnchor
+    bridge_kind: str
+    evidence_kind: str
+    linked_evidence: tuple[Evidence, ...]
+    linked_anchors: tuple[StableEvidenceAnchor, ...]
+    store: EvidenceStore
+    config: HarnessExecutionConfig
+    runtime: HarnessRuntimeBinding
+    execution_key: tuple[object, ...]
+    issued_payload_sha256: str
+
+
+_PARENT_CONTEXT_RECEIPT_AUTHORITIES: dict[
+    int, _ParentContextReceiptAuthority
+] = {}
+_ISSUED_PARENT_CONTEXT_RECEIPT_AUTHORITIES = (
+    _PARENT_CONTEXT_RECEIPT_AUTHORITIES
+)
+_BRIDGE_CONTEXT_RECEIPT_AUTHORITIES: dict[
+    int, _BridgeContextReceiptAuthority
+] = {}
+_ISSUED_BRIDGE_CONTEXT_RECEIPT_AUTHORITIES = (
+    _BRIDGE_CONTEXT_RECEIPT_AUTHORITIES
+)
+
+
+def _build_context_receipt_accessors(
+    visible: dict[int, object],
+    authority_type: type,
+    error_prefix: str,
+) -> tuple[FunctionType, FunctionType, FunctionType]:
+    shadow: dict[int, tuple[object, ...]] = {}
+    authority_lock = Lock()
+
+    def snapshot(authority: object) -> tuple[object, ...]:
+        return tuple(
+            object.__getattribute__(authority, name)
+            for name in type.__getattribute__(authority_type, "__slots__")
+        )
+
+    def register(receipt: object, authority: object) -> None:
+        if type(authority) is not authority_type:
+            raise TypeError(f"{error_prefix}_authority_required")
+        with authority_lock:
+            identity = id(receipt)
+            if dict.get(visible, identity) is not None or dict.get(shadow, identity) is not None:
+                raise ValueError(f"{error_prefix}_authority_drift")
+            dict.__setitem__(visible, identity, authority)
+            dict.__setitem__(shadow, identity, snapshot(authority))
+
+    def read(receipt: object) -> object:
+        with authority_lock:
+            identity = id(receipt)
+            current = dict.get(visible, identity)
+            sealed = dict.get(shadow, identity)
+            slots = type.__getattribute__(authority_type, "__slots__")
+            if (
+                type(current) is not authority_type
+                or type(sealed) is not tuple
+                or object.__getattribute__(current, "weak")() is not receipt
+                or len(sealed) != len(slots)
+                or any(
+                    object.__getattribute__(current, name) is not value
+                    for name, value in zip(slots, sealed)
+                )
+            ):
+                raise ValueError(f"{error_prefix}_authority_required")
+            return current
+
+    def drop(identity: int, dead: ReferenceType[object]) -> None:
+        with authority_lock:
+            sealed = dict.get(shadow, identity)
+            if type(sealed) is tuple and sealed and tuple.__getitem__(sealed, 0) is dead:
+                dict.pop(visible, identity, None)
+                dict.pop(shadow, identity, None)
+
+    return register, read, drop
+
+
+(
+    _register_parent_context_receipt_authority,
+    _read_parent_context_receipt_authority,
+    _drop_parent_context_receipt_authority,
+) = _build_context_receipt_accessors(
+    _ISSUED_PARENT_CONTEXT_RECEIPT_AUTHORITIES,
+    _ParentContextReceiptAuthority,
+    "parent_context_receipt",
+)
+(
+    _register_bridge_context_receipt_authority,
+    _read_bridge_context_receipt_authority,
+    _drop_bridge_context_receipt_authority,
+) = _build_context_receipt_accessors(
+    _ISSUED_BRIDGE_CONTEXT_RECEIPT_AUTHORITIES,
+    _BridgeContextReceiptAuthority,
+    "bridge_context_receipt",
+)
+
+
+def _build_context_issuance_accessors() -> tuple[
+    FunctionType,
+    FunctionType,
+    FunctionType,
+    FunctionType,
+    FunctionType,
+]:
+    history: dict[tuple[object, ...], object] = {}
+    history_shadow: dict[tuple[object, ...], object] = {}
+    cache: dict[tuple[object, ...], tuple[object, ...]] = {}
+    cache_shadow: dict[tuple[object, ...], tuple[object, ...]] = {}
+    source_refs: dict[int, ReferenceType[object]] = {}
+    source_keys: dict[int, set[tuple[object, ...]]] = {}
+    issuance_lock = Lock()
+
+    def drop_source(
+        identity: int,
+        dead: ReferenceType[object],
+    ) -> None:
+        with issuance_lock:
+            if dict.get(source_refs, identity) is not dead:
+                return
+            keys = dict.pop(source_keys, identity, set())
+            for key in tuple(keys):
+                dict.pop(history, key, None)
+                dict.pop(history_shadow, key, None)
+                dict.pop(cache, key, None)
+                dict.pop(cache_shadow, key, None)
+            dict.pop(source_refs, identity, None)
+
+    def begin(
+        source: object,
+        execution_key: tuple[object, ...],
+        receipt_type: type,
+    ) -> tuple[object, ...] | None:
+        with issuance_lock:
+            source_identity = id(source)
+            source_weak = dict.get(source_refs, source_identity)
+            if source_weak is None:
+                source_weak = ref(
+                    source,
+                    lambda dead, source_identity=source_identity: drop_source(
+                        source_identity, dead
+                    ),
+                )
+                dict.__setitem__(source_refs, source_identity, source_weak)
+                dict.__setitem__(source_keys, source_identity, set())
+            elif source_weak() is not source:
+                raise ValueError("context_receipt_source_history_drift")
+            current = dict.get(history, execution_key)
+            mirror = dict.get(history_shadow, execution_key)
+            if current is not mirror:
+                raise ValueError("context_receipt_issuance_history_drift")
+            if current is None:
+                dict.__setitem__(history, execution_key, _CONTEXT_PENDING)
+                dict.__setitem__(history_shadow, execution_key, _CONTEXT_PENDING)
+                dict.__getitem__(source_keys, source_identity).add(execution_key)
+                return None
+            if current is not _CONTEXT_COMPLETED:
+                raise ValueError("context_receipt_issuance_already_consumed")
+            cached = dict.get(cache, execution_key)
+            cached_mirror = dict.get(cache_shadow, execution_key)
+            if cached is not cached_mirror or type(cached) is not tuple:
+                raise ValueError("context_receipt_issuance_history_drift")
+            if any(type(item) is not receipt_type for item in cached):
+                raise ValueError("context_receipt_issuance_already_consumed")
+            return cached
+
+    def complete(
+        execution_key: tuple[object, ...],
+        receipts: tuple[object, ...],
+    ) -> None:
+        with issuance_lock:
+            if (
+                dict.get(history, execution_key) is not _CONTEXT_PENDING
+                or dict.get(history_shadow, execution_key) is not _CONTEXT_PENDING
+            ):
+                raise ValueError("context_receipt_issuance_history_drift")
+            dict.__setitem__(cache, execution_key, receipts)
+            dict.__setitem__(cache_shadow, execution_key, receipts)
+            dict.__setitem__(history, execution_key, _CONTEXT_COMPLETED)
+            dict.__setitem__(history_shadow, execution_key, _CONTEXT_COMPLETED)
+
+    def fail(execution_key: tuple[object, ...]) -> None:
+        with issuance_lock:
+            if (
+                dict.get(history, execution_key) is not _CONTEXT_PENDING
+                or dict.get(history_shadow, execution_key) is not _CONTEXT_PENDING
+            ):
+                raise ValueError("context_receipt_issuance_history_drift")
+            dict.__setitem__(history, execution_key, _CONTEXT_FAILED)
+            dict.__setitem__(history_shadow, execution_key, _CONTEXT_FAILED)
+
+    def status(execution_key: tuple[object, ...]) -> object | None:
+        with issuance_lock:
+            current = dict.get(history, execution_key)
+            mirror = dict.get(history_shadow, execution_key)
+            if current is not mirror:
+                raise ValueError("context_receipt_issuance_history_drift")
+            return current
+
+    return begin, complete, fail, status, drop_source
+
+
+(
+    _begin_context_receipt_issuance,
+    _complete_context_receipt_issuance,
+    _fail_context_receipt_issuance,
+    _context_receipt_issuance_status,
+    _drop_context_receipt_source_history,
+) = _build_context_issuance_accessors()
+
+
+def _context_seed_evidence_ids(
+    obligation: SemanticVerificationObligation,
+    config: HarnessExecutionConfig,
+) -> tuple[str, ...]:
+    candidates = object.__getattribute__(obligation, "candidate_evidence_ids")
+    limit = object.__getattribute__(config, "max_context_targets_per_obligation")
+    return tuple(sorted(candidates)[:limit])
+
+
+def _context_issuance_key(
+    family: str,
+    semantic_authority: _SemanticVerificationObligationAuthority,
+    obligation: SemanticVerificationObligation,
+    store: EvidenceStore,
+    config: HarnessExecutionConfig,
+    runtime: HarnessRuntimeBinding,
+) -> tuple[object, ...]:
+    return (
+        "semantic-context-v1",
+        family,
+        object.__getattribute__(semantic_authority, "issuance_key"),
+        object.__getattribute__(obligation, "obligation_sha256"),
+        id(store),
+        id(config),
+        id(runtime),
+    )
+
+
+def _parent_locator_sha256(parent: ProvenanceParent) -> str:
+    locator = object.__getattribute__(parent, "locator")
+    return _canonical_sha256(locator.to_dict())
+
+
+def _mint_parent_context_receipt(
+    *,
+    obligation: SemanticVerificationObligation,
+    semantic_authority: _SemanticVerificationObligationAuthority,
+    seed: Evidence,
+    parent: ProvenanceParent,
+    store: EvidenceStore,
+    config: HarnessExecutionConfig,
+    runtime: HarnessRuntimeBinding,
+    execution_key: tuple[object, ...],
+) -> ParentContextReceipt:
+    seed_anchor = _stable_anchor(seed)
+    payload = {
+        "outcome": "applied",
+        "semantic_obligation_sha256": object.__getattribute__(
+            obligation, "obligation_sha256"
+        ),
+        "seed_evidence_id": object.__getattribute__(seed, "evidence_id"),
+        "seed_stable_anchor": seed_anchor,
+        "parent_id": object.__getattribute__(parent, "parent_id"),
+        "parent_kind": object.__getattribute__(parent, "kind"),
+        "parent_doc_id": object.__getattribute__(parent, "doc_id"),
+        "parent_content_sha256": object.__getattribute__(
+            parent, "content_sha256"
+        ),
+        "parent_locator_sha256": _parent_locator_sha256(parent),
+        "evidence_store_sha256": object.__getattribute__(
+            store, "bundle_sha256"
+        ),
+        "execution_config_sha256": object.__getattribute__(
+            config, "config_sha256"
+        ),
+        "runtime_binding_sha256": object.__getattribute__(
+            runtime, "binding_sha256"
+        ),
+    }
+    temporary = object.__new__(ParentContextReceipt)
+    for name, value in payload.items():
+        object.__setattr__(temporary, name, value)
+    object.__setattr__(temporary, "receipt_sha256", "0" * 64)
+    payload["receipt_sha256"] = _canonical_sha256(
+        _parent_context_receipt_payload(temporary, include_hash=False)
+    )
+    receipt = ParentContextReceipt._create(
+        payload=payload, _token=_PARENT_CONTEXT_RECEIPT_TOKEN
+    )
+    identity = id(receipt)
+    weak = ref(
+        receipt,
+        lambda dead, identity=identity: _drop_parent_context_receipt_authority(
+            identity, dead
+        ),
+    )
+    _register_parent_context_receipt_authority(
+        receipt,
+        _ParentContextReceiptAuthority(
+            weak=weak,
+            root_source_weak=ref(
+                object.__getattribute__(semantic_authority, "source")
+            ),
+            semantic_issuance_key=object.__getattribute__(
+                semantic_authority, "issuance_key"
+            ),
+            seed=seed,
+            seed_anchor=seed_anchor,
+            parent=parent,
+            store=store,
+            config=config,
+            runtime=runtime,
+            execution_key=execution_key,
+            issued_payload_sha256=_canonical_sha256(receipt.to_dict()),
+        ),
+    )
+    return receipt
+
+
+def _mint_bridge_context_receipt(
+    *,
+    obligation: SemanticVerificationObligation,
+    semantic_authority: _SemanticVerificationObligationAuthority,
+    seed: Evidence,
+    bridge_kind: str,
+    evidence_kind: str,
+    linked_evidence: tuple[Evidence, ...],
+    store: EvidenceStore,
+    config: HarnessExecutionConfig,
+    runtime: HarnessRuntimeBinding,
+    execution_key: tuple[object, ...],
+) -> BridgeContextReceipt:
+    seed_anchor = _stable_anchor(seed)
+    linked_anchors = tuple(_stable_anchor(item) for item in linked_evidence)
+    linked_ids = tuple(
+        object.__getattribute__(item, "evidence_id") for item in linked_evidence
+    )
+    payload = {
+        "bridge_kind": bridge_kind,
+        "evidence_kind": evidence_kind,
+        "outcome": "applied" if linked_ids else "empty",
+        "semantic_obligation_sha256": object.__getattribute__(
+            obligation, "obligation_sha256"
+        ),
+        "seed_evidence_id": object.__getattribute__(seed, "evidence_id"),
+        "seed_stable_anchor": seed_anchor,
+        "linked_evidence_ids": linked_ids,
+        "ordered_stable_anchors": linked_anchors,
+        "evidence_store_sha256": object.__getattribute__(
+            store, "bundle_sha256"
+        ),
+        "execution_config_sha256": object.__getattribute__(
+            config, "config_sha256"
+        ),
+        "runtime_binding_sha256": object.__getattribute__(
+            runtime, "binding_sha256"
+        ),
+    }
+    temporary = object.__new__(BridgeContextReceipt)
+    for name, value in payload.items():
+        object.__setattr__(temporary, name, value)
+    object.__setattr__(temporary, "receipt_sha256", "0" * 64)
+    payload["receipt_sha256"] = _canonical_sha256(
+        _bridge_context_receipt_payload(temporary, include_hash=False)
+    )
+    receipt = BridgeContextReceipt._create(
+        payload=payload, _token=_BRIDGE_CONTEXT_RECEIPT_TOKEN
+    )
+    identity = id(receipt)
+    weak = ref(
+        receipt,
+        lambda dead, identity=identity: _drop_bridge_context_receipt_authority(
+            identity, dead
+        ),
+    )
+    _register_bridge_context_receipt_authority(
+        receipt,
+        _BridgeContextReceiptAuthority(
+            weak=weak,
+            root_source_weak=ref(
+                object.__getattribute__(semantic_authority, "source")
+            ),
+            semantic_issuance_key=object.__getattribute__(
+                semantic_authority, "issuance_key"
+            ),
+            seed=seed,
+            seed_anchor=seed_anchor,
+            bridge_kind=bridge_kind,
+            evidence_kind=evidence_kind,
+            linked_evidence=linked_evidence,
+            linked_anchors=linked_anchors,
+            store=store,
+            config=config,
+            runtime=runtime,
+            execution_key=execution_key,
+            issued_payload_sha256=_canonical_sha256(receipt.to_dict()),
+        ),
+    )
+    return receipt
+
+
+def _validate_parent_context_receipt_exact(
+    *,
+    receipt: ParentContextReceipt,
+    obligation: SemanticVerificationObligation,
+    store: EvidenceStore,
+    config: HarnessExecutionConfig,
+    runtime: HarnessRuntimeBinding,
+) -> _ParentContextReceiptAuthority:
+    semantic_authority = _validate_semantic_verification_obligation_exact(
+        obligation=obligation, store=store, config=config, runtime=runtime
+    )
+    _validate_parent_context_receipt_payload(receipt)
+    authority = _read_parent_context_receipt_authority(receipt)
+    execution_key = _context_issuance_key(
+        "parent", semantic_authority, obligation, store, config, runtime
+    )
+    root_source = object.__getattribute__(semantic_authority, "source")
+    if (
+        object.__getattribute__(authority, "root_source_weak")() is not root_source
+        or object.__getattribute__(authority, "semantic_issuance_key")
+        != object.__getattribute__(semantic_authority, "issuance_key")
+        or object.__getattribute__(authority, "store") is not store
+        or object.__getattribute__(authority, "config") is not config
+        or object.__getattribute__(authority, "runtime") is not runtime
+        or object.__getattribute__(authority, "execution_key") != execution_key
+        or _context_receipt_issuance_status(execution_key)
+        is not _CONTEXT_COMPLETED
+    ):
+        raise ValueError("parent_context_receipt_dependency_identity_mismatch")
+    if object.__getattribute__(authority, "issued_payload_sha256") != _canonical_sha256(
+        receipt.to_dict()
+    ):
+        raise ValueError("parent_context_receipt_authority_drift")
+    seed = object.__getattribute__(authority, "seed")
+    parent = object.__getattribute__(authority, "parent")
+    seed_id = object.__getattribute__(receipt, "seed_evidence_id")
+    if (
+        seed_id not in _context_seed_evidence_ids(obligation, config)
+        or EvidenceStore.get(store, seed_id) is not seed
+        or EvidenceStore.parent(store, object.__getattribute__(seed, "parent_id"))
+        is not parent
+        or object.__getattribute__(receipt, "seed_stable_anchor")
+        is not object.__getattribute__(authority, "seed_anchor")
+        or object.__getattribute__(receipt, "semantic_obligation_sha256")
+        != object.__getattribute__(obligation, "obligation_sha256")
+        or object.__getattribute__(receipt, "parent_id")
+        != object.__getattribute__(parent, "parent_id")
+        or object.__getattribute__(receipt, "parent_kind")
+        != object.__getattribute__(parent, "kind")
+        or object.__getattribute__(receipt, "parent_doc_id")
+        != object.__getattribute__(parent, "doc_id")
+        or object.__getattribute__(receipt, "parent_content_sha256")
+        != object.__getattribute__(parent, "content_sha256")
+        or object.__getattribute__(receipt, "parent_locator_sha256")
+        != _parent_locator_sha256(parent)
+        or object.__getattribute__(receipt, "evidence_store_sha256")
+        != object.__getattribute__(store, "bundle_sha256")
+        or object.__getattribute__(receipt, "execution_config_sha256")
+        != object.__getattribute__(config, "config_sha256")
+        or object.__getattribute__(receipt, "runtime_binding_sha256")
+        != object.__getattribute__(runtime, "binding_sha256")
+    ):
+        raise ValueError("parent_context_receipt_projection_mismatch")
+    return authority
+
+
+def _validate_bridge_context_receipt_exact(
+    *,
+    receipt: BridgeContextReceipt,
+    obligation: SemanticVerificationObligation,
+    store: EvidenceStore,
+    config: HarnessExecutionConfig,
+    runtime: HarnessRuntimeBinding,
+) -> _BridgeContextReceiptAuthority:
+    semantic_authority = _validate_semantic_verification_obligation_exact(
+        obligation=obligation, store=store, config=config, runtime=runtime
+    )
+    _validate_bridge_context_receipt_payload(receipt)
+    authority = _read_bridge_context_receipt_authority(receipt)
+    execution_key = _context_issuance_key(
+        "bridge", semantic_authority, obligation, store, config, runtime
+    )
+    root_source = object.__getattribute__(semantic_authority, "source")
+    if (
+        object.__getattribute__(authority, "root_source_weak")() is not root_source
+        or object.__getattribute__(authority, "semantic_issuance_key")
+        != object.__getattribute__(semantic_authority, "issuance_key")
+        or object.__getattribute__(authority, "store") is not store
+        or object.__getattribute__(authority, "config") is not config
+        or object.__getattribute__(authority, "runtime") is not runtime
+        or object.__getattribute__(authority, "execution_key") != execution_key
+        or _context_receipt_issuance_status(execution_key)
+        is not _CONTEXT_COMPLETED
+    ):
+        raise ValueError("bridge_context_receipt_dependency_identity_mismatch")
+    if object.__getattribute__(authority, "issued_payload_sha256") != _canonical_sha256(
+        receipt.to_dict()
+    ):
+        raise ValueError("bridge_context_receipt_authority_drift")
+    seed = object.__getattribute__(authority, "seed")
+    seed_id = object.__getattribute__(receipt, "seed_evidence_id")
+    evidence_kind = object.__getattribute__(authority, "evidence_kind")
+    linked = EvidenceStore.bridge(store, seed_id, kinds=(evidence_kind,))
+    issued_linked = object.__getattribute__(authority, "linked_evidence")
+    if (
+        seed_id not in _context_seed_evidence_ids(obligation, config)
+        or EvidenceStore.get(store, seed_id) is not seed
+        or object.__getattribute__(receipt, "seed_stable_anchor")
+        is not object.__getattribute__(authority, "seed_anchor")
+        or object.__getattribute__(receipt, "bridge_kind")
+        != object.__getattribute__(authority, "bridge_kind")
+        or object.__getattribute__(receipt, "evidence_kind") != evidence_kind
+        or type(linked) is not tuple
+        or len(linked) != len(issued_linked)
+        or any(current is not issued for current, issued in zip(linked, issued_linked))
+        or object.__getattribute__(receipt, "linked_evidence_ids")
+        != tuple(object.__getattribute__(item, "evidence_id") for item in linked)
+        or object.__getattribute__(receipt, "ordered_stable_anchors")
+        is not object.__getattribute__(authority, "linked_anchors")
+        or object.__getattribute__(receipt, "semantic_obligation_sha256")
+        != object.__getattribute__(obligation, "obligation_sha256")
+        or object.__getattribute__(receipt, "evidence_store_sha256")
+        != object.__getattribute__(store, "bundle_sha256")
+        or object.__getattribute__(receipt, "execution_config_sha256")
+        != object.__getattribute__(config, "config_sha256")
+        or object.__getattribute__(receipt, "runtime_binding_sha256")
+        != object.__getattribute__(runtime, "binding_sha256")
+    ):
+        raise ValueError("bridge_context_receipt_projection_mismatch")
+    return authority
+
+
+def issue_parent_context_receipts(
+    *,
+    obligation: SemanticVerificationObligation,
+    store: EvidenceStore,
+    config: HarnessExecutionConfig,
+    runtime: HarnessRuntimeBinding,
+    _dependency_checker=None,
+    _dependency_checker_code=None,
+) -> tuple[ParentContextReceipt, ...]:
+    _semantic_public_entry(_dependency_checker, _dependency_checker_code)
+    semantic_authority = _validate_semantic_verification_obligation_exact(
+        obligation=obligation, store=store, config=config, runtime=runtime
+    )
+    seed_ids = _context_seed_evidence_ids(obligation, config)
+    execution_key = _context_issuance_key(
+        "parent", semantic_authority, obligation, store, config, runtime
+    )
+    cached = _begin_context_receipt_issuance(
+        object.__getattribute__(semantic_authority, "source"),
+        execution_key,
+        ParentContextReceipt,
+    )
+    if cached is not None:
+        for receipt in cached:
+            _validate_parent_context_receipt_exact(
+                receipt=receipt,
+                obligation=obligation,
+                store=store,
+                config=config,
+                runtime=runtime,
+            )
+        return cached
+    try:
+        receipts = tuple(
+            _mint_parent_context_receipt(
+                obligation=obligation,
+                semantic_authority=semantic_authority,
+                seed=EvidenceStore.get(store, seed_id),
+                parent=EvidenceStore.parent(
+                    store,
+                    object.__getattribute__(
+                        EvidenceStore.get(store, seed_id), "parent_id"
+                    ),
+                ),
+                store=store,
+                config=config,
+                runtime=runtime,
+                execution_key=execution_key,
+            )
+            for seed_id in seed_ids
+        )
+        _complete_context_receipt_issuance(execution_key, receipts)
+        return receipts
+    except Exception:
+        _fail_context_receipt_issuance(execution_key)
+        raise
+
+
+def issue_bridge_context_receipts(
+    *,
+    obligation: SemanticVerificationObligation,
+    store: EvidenceStore,
+    config: HarnessExecutionConfig,
+    runtime: HarnessRuntimeBinding,
+    _dependency_checker=None,
+    _dependency_checker_code=None,
+) -> tuple[BridgeContextReceipt, ...]:
+    _semantic_public_entry(_dependency_checker, _dependency_checker_code)
+    semantic_authority = _validate_semantic_verification_obligation_exact(
+        obligation=obligation, store=store, config=config, runtime=runtime
+    )
+    seed_ids = _context_seed_evidence_ids(obligation, config)
+    execution_key = _context_issuance_key(
+        "bridge", semantic_authority, obligation, store, config, runtime
+    )
+    cached = _begin_context_receipt_issuance(
+        object.__getattribute__(semantic_authority, "source"),
+        execution_key,
+        BridgeContextReceipt,
+    )
+    if cached is not None:
+        for receipt in cached:
+            _validate_bridge_context_receipt_exact(
+                receipt=receipt,
+                obligation=obligation,
+                store=store,
+                config=config,
+                runtime=runtime,
+            )
+        return cached
+    try:
+        receipts = tuple(
+            _mint_bridge_context_receipt(
+                obligation=obligation,
+                semantic_authority=semantic_authority,
+                seed=EvidenceStore.get(store, seed_id),
+                bridge_kind=bridge_kind,
+                evidence_kind=evidence_kind,
+                linked_evidence=EvidenceStore.bridge(
+                    store, seed_id, kinds=(evidence_kind,)
+                ),
+                store=store,
+                config=config,
+                runtime=runtime,
+                execution_key=execution_key,
+            )
+            for bridge_kind, evidence_kind in _CONTEXT_BRIDGE_KIND_PAIRS
+            for seed_id in seed_ids
+        )
+        _complete_context_receipt_issuance(execution_key, receipts)
+        return receipts
+    except Exception:
+        _fail_context_receipt_issuance(execution_key)
+        raise
+
+
+def validate_parent_context_receipt(
+    *,
+    receipt: ParentContextReceipt,
+    obligation: SemanticVerificationObligation,
+    store: EvidenceStore,
+    config: HarnessExecutionConfig,
+    runtime: HarnessRuntimeBinding,
+    _dependency_checker=None,
+    _dependency_checker_code=None,
+) -> None:
+    _semantic_public_entry(_dependency_checker, _dependency_checker_code)
+    _validate_parent_context_receipt_exact(
+        receipt=receipt,
+        obligation=obligation,
+        store=store,
+        config=config,
+        runtime=runtime,
+    )
+
+
+def validate_bridge_context_receipt(
+    *,
+    receipt: BridgeContextReceipt,
+    obligation: SemanticVerificationObligation,
+    store: EvidenceStore,
+    config: HarnessExecutionConfig,
+    runtime: HarnessRuntimeBinding,
+    _dependency_checker=None,
+    _dependency_checker_code=None,
+) -> None:
+    _semantic_public_entry(_dependency_checker, _dependency_checker_code)
+    _validate_bridge_context_receipt_exact(
+        receipt=receipt,
+        obligation=obligation,
+        store=store,
+        config=config,
+        runtime=runtime,
+    )
+
+
 def _validate_snapshot_callable(
     function: object,
     pin: tuple[object, ...],
@@ -9942,6 +10955,18 @@ issue_followup_semantic_verification_obligation.__kwdefaults__.update(
 validate_semantic_verification_obligation.__kwdefaults__.update(
     _RUNTIME_GATE_PUBLIC_KWDEFAULTS
 )
+issue_parent_context_receipts.__kwdefaults__.update(
+    _RUNTIME_GATE_PUBLIC_KWDEFAULTS
+)
+issue_bridge_context_receipts.__kwdefaults__.update(
+    _RUNTIME_GATE_PUBLIC_KWDEFAULTS
+)
+validate_parent_context_receipt.__kwdefaults__.update(
+    _RUNTIME_GATE_PUBLIC_KWDEFAULTS
+)
+validate_bridge_context_receipt.__kwdefaults__.update(
+    _RUNTIME_GATE_PUBLIC_KWDEFAULTS
+)
 execute_semantic_verification.__kwdefaults__.update(
     _RUNTIME_GATE_PUBLIC_KWDEFAULTS
 )
@@ -10303,6 +11328,70 @@ _RUNTIME_GATE_FUNCTION_PINS = tuple(
             "validate_semantic_verification_obligation",
             validate_semantic_verification_obligation,
         ),
+        ("_parent_context_receipt_payload", _parent_context_receipt_payload),
+        (
+            "_validate_parent_context_receipt_payload",
+            _validate_parent_context_receipt_payload,
+        ),
+        ("_bridge_context_receipt_payload", _bridge_context_receipt_payload),
+        (
+            "_validate_bridge_context_receipt_payload",
+            _validate_bridge_context_receipt_payload,
+        ),
+        ("_build_context_receipt_accessors", _build_context_receipt_accessors),
+        (
+            "_register_parent_context_receipt_authority",
+            _register_parent_context_receipt_authority,
+        ),
+        (
+            "_read_parent_context_receipt_authority",
+            _read_parent_context_receipt_authority,
+        ),
+        (
+            "_drop_parent_context_receipt_authority",
+            _drop_parent_context_receipt_authority,
+        ),
+        (
+            "_register_bridge_context_receipt_authority",
+            _register_bridge_context_receipt_authority,
+        ),
+        (
+            "_read_bridge_context_receipt_authority",
+            _read_bridge_context_receipt_authority,
+        ),
+        (
+            "_drop_bridge_context_receipt_authority",
+            _drop_bridge_context_receipt_authority,
+        ),
+        ("_build_context_issuance_accessors", _build_context_issuance_accessors),
+        ("_begin_context_receipt_issuance", _begin_context_receipt_issuance),
+        (
+            "_complete_context_receipt_issuance",
+            _complete_context_receipt_issuance,
+        ),
+        ("_fail_context_receipt_issuance", _fail_context_receipt_issuance),
+        ("_context_receipt_issuance_status", _context_receipt_issuance_status),
+        (
+            "_drop_context_receipt_source_history",
+            _drop_context_receipt_source_history,
+        ),
+        ("_context_seed_evidence_ids", _context_seed_evidence_ids),
+        ("_context_issuance_key", _context_issuance_key),
+        ("_parent_locator_sha256", _parent_locator_sha256),
+        ("_mint_parent_context_receipt", _mint_parent_context_receipt),
+        ("_mint_bridge_context_receipt", _mint_bridge_context_receipt),
+        (
+            "_validate_parent_context_receipt_exact",
+            _validate_parent_context_receipt_exact,
+        ),
+        (
+            "_validate_bridge_context_receipt_exact",
+            _validate_bridge_context_receipt_exact,
+        ),
+        ("issue_parent_context_receipts", issue_parent_context_receipts),
+        ("issue_bridge_context_receipts", issue_bridge_context_receipts),
+        ("validate_parent_context_receipt", validate_parent_context_receipt),
+        ("validate_bridge_context_receipt", validate_bridge_context_receipt),
         ("_validate_snapshot_callable", _validate_snapshot_callable),
         ("_validate_snapshot_class", _validate_snapshot_class),
         ("_validate_action_effects_dependency", _validate_action_effects_dependency),
@@ -10365,6 +11454,7 @@ _RUNTIME_GATE_OBJECT_PINS = (
     ("HarnessRuntimeBinding", HarnessRuntimeBinding, type),
     ("StableEvidenceAnchor", StableEvidenceAnchor, type),
     ("Evidence", Evidence, type),
+    ("ProvenanceParent", ProvenanceParent, type),
     ("RuleRegistry", RuleRegistry, type),
     ("BoundFollowup", BoundFollowup, type),
     ("FollowupEvidencePolicy", FollowupEvidencePolicy, type),
@@ -10402,6 +11492,18 @@ _RUNTIME_GATE_OBJECT_PINS = (
     (
         "_SemanticVerificationObligationAuthority",
         _SemanticVerificationObligationAuthority,
+        type,
+    ),
+    ("ParentContextReceipt", ParentContextReceipt, type),
+    ("BridgeContextReceipt", BridgeContextReceipt, type),
+    (
+        "_ParentContextReceiptAuthority",
+        _ParentContextReceiptAuthority,
+        type,
+    ),
+    (
+        "_BridgeContextReceiptAuthority",
+        _BridgeContextReceiptAuthority,
         type,
     ),
     ("SemanticVerificationReceipt", SemanticVerificationReceipt, type),
@@ -10506,6 +11608,26 @@ _RUNTIME_GATE_OBJECT_PINS = (
         dict,
     ),
     (
+        "_PARENT_CONTEXT_RECEIPT_AUTHORITIES",
+        _ISSUED_PARENT_CONTEXT_RECEIPT_AUTHORITIES,
+        dict,
+    ),
+    (
+        "_ISSUED_PARENT_CONTEXT_RECEIPT_AUTHORITIES",
+        _ISSUED_PARENT_CONTEXT_RECEIPT_AUTHORITIES,
+        dict,
+    ),
+    (
+        "_BRIDGE_CONTEXT_RECEIPT_AUTHORITIES",
+        _ISSUED_BRIDGE_CONTEXT_RECEIPT_AUTHORITIES,
+        dict,
+    ),
+    (
+        "_ISSUED_BRIDGE_CONTEXT_RECEIPT_AUTHORITIES",
+        _ISSUED_BRIDGE_CONTEXT_RECEIPT_AUTHORITIES,
+        dict,
+    ),
+    (
         "_ISSUED_HYBRID_SEARCH_LANE",
         _ISSUED_HYBRID_SEARCH_LANE,
         FunctionType,
@@ -10537,6 +11659,8 @@ _RUNTIME_GATE_OBJECT_PINS = (
     ("_SEMANTIC_OBLIGATION_TOKEN", _SEMANTIC_OBLIGATION_TOKEN, object),
     ("_SEMANTIC_REQUEST_TOKEN", _SEMANTIC_REQUEST_TOKEN, object),
     ("_SEMANTIC_RECEIPT_TOKEN", _SEMANTIC_RECEIPT_TOKEN, object),
+    ("_PARENT_CONTEXT_RECEIPT_TOKEN", _PARENT_CONTEXT_RECEIPT_TOKEN, object),
+    ("_BRIDGE_CONTEXT_RECEIPT_TOKEN", _BRIDGE_CONTEXT_RECEIPT_TOKEN, object),
     ("_LOCK_TYPE", _LOCK_TYPE, type),
     (
         "_RETRIEVAL_OWNER_SPECS",
@@ -10569,6 +11693,10 @@ _RUNTIME_GATE_OBJECT_PINS = (
     ("_SEMANTIC_TARGET_KINDS", _SEMANTIC_TARGET_KINDS, frozenset),
     ("_SEMANTIC_ROLES", _SEMANTIC_ROLES, frozenset),
     ("_SEMANTIC_DISPOSITIONS", _SEMANTIC_DISPOSITIONS, frozenset),
+    ("_CONTEXT_BRIDGE_KIND_PAIRS", _CONTEXT_BRIDGE_KIND_PAIRS, tuple),
+    ("_CONTEXT_PENDING", _CONTEXT_PENDING, object),
+    ("_CONTEXT_COMPLETED", _CONTEXT_COMPLETED, object),
+    ("_CONTEXT_FAILED", _CONTEXT_FAILED, object),
     ("_ComponentAuthority", _ComponentAuthority, type),
     (
         "_HarnessRuntimeAuthorityDraft",
@@ -10664,6 +11792,11 @@ _RUNTIME_GATE_MODULE_ATTRIBUTE_PINS = (
         _EVIDENCE_RUNTIME_MODULE,
         "validate_evidence_store_snapshot",
         _ISSUED_VALIDATE_EVIDENCE_STORE_SNAPSHOT,
+    ),
+    (
+        _EVIDENCE_RUNTIME_MODULE,
+        "ProvenanceParent",
+        ProvenanceParent,
     ),
     (
         _FUSION_RUNTIME_MODULE,
@@ -10897,6 +12030,32 @@ _RUNTIME_GATE_CLASS_PINS = (
         ("__init__",),
     ),
     _runtime_gate_class_pin(
+        ParentContextReceipt,
+        (
+            "__init__",
+            "__copy__",
+            "__deepcopy__",
+            "__reduce__",
+            "__reduce_ex__",
+            "_create",
+            "to_dict",
+        ),
+    ),
+    _runtime_gate_class_pin(
+        BridgeContextReceipt,
+        (
+            "__init__",
+            "__copy__",
+            "__deepcopy__",
+            "__reduce__",
+            "__reduce_ex__",
+            "_create",
+            "to_dict",
+        ),
+    ),
+    _runtime_gate_class_pin(_ParentContextReceiptAuthority, ("__init__",)),
+    _runtime_gate_class_pin(_BridgeContextReceiptAuthority, ("__init__",)),
+    _runtime_gate_class_pin(
         SemanticVerificationReceipt,
         ("__init__", "_create", "to_dict"),
     ),
@@ -10923,6 +12082,7 @@ _validate_runtime_gate_dependencies.__defaults__ = (
 
 
 __all__ = (
+    "BridgeContextReceipt",
     "E0ControlReceipt",
     "E0ObligationResult",
     "FusionReceipt",
@@ -10930,6 +12090,7 @@ __all__ = (
     "HarnessExecutionConfig",
     "HarnessRuntimeBinding",
     "LaneSearchReceipt",
+    "ParentContextReceipt",
     "RetrievalObligation",
     "SemanticValueSupport",
     "SemanticVerificationObligation",
@@ -10942,14 +12103,18 @@ __all__ = (
     "execute_retrieval_lane",
     "issue_compare_retrieval_obligations",
     "issue_compare_semantic_verification_obligation",
+    "issue_bridge_context_receipts",
     "issue_fact_retrieval_obligations",
     "issue_fact_semantic_verification_obligation",
     "issue_followup_semantic_verification_obligation",
+    "issue_parent_context_receipts",
+    "validate_bridge_context_receipt",
     "validate_harness_execution_config",
     "validate_harness_runtime_binding",
     "validate_e0_control_receipt",
     "validate_fusion_receipt",
     "validate_lane_search_receipt",
+    "validate_parent_context_receipt",
     "validate_retrieval_obligation",
     "validate_semantic_verification_obligation",
     "validate_semantic_verification_receipt",

@@ -830,7 +830,10 @@ parent/child 혼합, 골든 값 의존을 검출한다. 정확한 새 파일/메
   `store.bridge(...)`를 table/figure kind별로 실행한 `applied|empty` 결과와 실제 linked Evidence ID/anchor만
   봉인한다. 두 receipt factory는 caller target/ID를 받지 않고 semantic obligation의 immutable seed candidate를
   evidence-ID 오름차순으로 정렬한 config-bounded prefix 전체에서 결정론적으로 발급한다. bridge 결과는 다시
-  context action seed가 될 수 없다.
+  context action seed가 될 수 없다. 발급 claim·완료 cache·재시도 차단 이력의 수명은 중간
+  `SemanticVerificationObligation` 객체가 아니라 exact owner의 root source authority에 묶는다. root가 살아 있는
+  동안 동등 semantic obligation을 재발급하거나 중간 객체를 GC해도 같은 receipt 객체를 재사용하며 새 mint를
+  허용하지 않는다.
 - `RerankReceipt`는 candidate+bridge의 owner-derived nonempty ordered input을 ID 없는 contiguous private request로
   exact pinned `rerank(self, request)`에 최대 한 번 전달한다. raw output은 index의 nonempty unique 부분순열만
   허용하고 executor만 owner-issued ID/anchor로 복원한다. unavailable은 zero-call, provider/contract/post-call
