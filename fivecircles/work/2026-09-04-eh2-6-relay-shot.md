@@ -196,5 +196,7 @@
 
 - 관련 회귀 218/218, 전체 unittest 1,179/1,179, repository safety 829 files PASS.
 - commit/push: b5 문서·테스트만 선별 stage하고 사용자 소유 변경은 제외한다.
+- 구현·gate commit: `f794915 test(harness): close b5 retrieval gate`.
+- push: `origin/feat/total-integration`에 `f794915`까지 동기화했다.
 - Relay: `CONTINUE_WITH_NEXT_FORM` → `EH2.6.c1`.
-- 상태: COMPLETED. 선택 커밋·푸시 기록만 closeout에서 덧붙인다.
+- 상태: COMPLETED.
