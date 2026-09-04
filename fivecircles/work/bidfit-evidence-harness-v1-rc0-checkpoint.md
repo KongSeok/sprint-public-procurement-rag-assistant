@@ -1,6 +1,6 @@
 # EH-RC0 재개 체크포인트
 
-갱신: 2026-09-05 · EH2.6.c3.2 완료, 다음 READY는 EH2.6.c3.3.a. 토큰 절약을 위해 이 문서의 한눈에 보는 상태와 계약 §16.10부터 읽기.
+갱신: 2026-09-05 · EH2.6.c3.3 완료, 다음 READY는 EH2.6.c3.4. 토큰 절약을 위해 이 문서의 한눈에 보는 상태와 계약 §16.10부터 읽기.
 
 ## 중단/애매함 발생 시
 
@@ -21,8 +21,8 @@
   후속 전체 범위의 선택 commit·검증이 끝난 뒤 `feat/local-qwen-mini131-eval`에 병합한다.
   새 브랜치는 만들지 않는다.
 - 완료: EH-A.1~3 감사·기준선·계약/flow 초안. 805 tests PASS, 실패/skip 0 (변경 전).
-- 현재 IN_PROGRESS: **Phase 2**. EH2.1~2.5와 EH2.6.a~c3.2 PASS. 다음 leaf는 bounded absence의
-  세 사유·선행 receipt matrix와 closed DTO/API를 봉인하는 `EH2.6.c3.3.a`다.
+- 현재 IN_PROGRESS: **Phase 2**. EH2.1~2.5와 EH2.6.a~c3.3 PASS. 다음 leaf는 public mint 없이
+  닫힌 schema와 pure validator만 추가하는 `EH2.6.c3.4`다.
 - 기존 평가 Batch 2의 활성 책임은 `EH2.EVAL`로 통합했다. EVAL.1~3은 완료, 사람 승인·qrels 보강과
   sealed held-out 실행은 EVAL.4~6에 남아 있으며 EH2 runtime에는 gold 값을 주입하지 않는다.
 - blocker: 없음. 실제 생성/API 호출은 계속 0이며 Phase 2는 provider-free 합성 테스트로 진행한다.
@@ -41,6 +41,9 @@
   owner budget으로 자른 derived semantic obligation을 발급한다. parent는 verifier의 unindexed auxiliary context로만
   전달하며 base/derived route는 root lifetime에서 한 번만 소비된다. provider 예외 뒤 dependency drift도 공통
   post-call gate에서 sanitized contract error로 닫았다. focused9·관련128·전체1229·safety854 PASS, 외부 호출 0이다.
+  EH2.6.c3.3은 exact owner의 정상 종결만 three-reason `AbsenceConfirmationReceipt`로 봉인한다. cache hit도
+  full validation하고 visible+closure-private authority, follow-up root-lifetime exact-once FSM, production/synthetic
+  runtime kind 일치를 추가했다. focused67·관련192·전체1267·safety858·Playwright·독립 APPROVE, 외부 호출 0이다.
 
 ## 완료된 첫 leaf 참고: EH0.1.a (현재 작업 아님)
 
@@ -97,6 +100,7 @@
 | EH2.6.c2 | COMPLETED | `05fc4cc` push. exact owner-derived semantic obligation + one-call/zero-call verifier receipt. typed support/value/contradiction, at-most-once·dependency rebinding·clone/mixed-store·비누출 방어. focused26/related118/full1212/safety846, HTML desktop/mobile PASS; 다음 EH2.6.c3 |
 | EH2.6.c3.1 | COMPLETED | parent/bridge source receipt. bounded candidate seed, parent nonpromotion, table/figure actual/empty attempt, root-lifetime replay guard. focused8/related114/full1220/safety850, provider 0; 다음 EH2.6.c3.2 |
 | EH2.6.c3.2 | COMPLETED | ID-less rerank + derived semantic. global role order, owner budget, exact context batch, auxiliary parent 비승격, base/derived route와 provider-error post-call gate. focused9/related128/full1229/safety854, provider 0; 다음 EH2.6.c3.3.a |
+| EH2.6.c3.3 | COMPLETED | three-reason bounded absence, exact proof matrix, zero-provider/nonpromotion, cache authority와 follow-up root-lifetime exact-once. focused67/related192/full1267/safety858, Playwright, independent APPROVE; 다음 EH2.6.c3.4 |
 
 ## 안전/컨텍스트 규칙
 

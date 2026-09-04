@@ -910,6 +910,53 @@ parent/child 혼합, 골든 값 의존을 검출한다. 정확한 새 파일/메
   한해 `bounded_no_candidate|bounded_no_verified_support|followup_approved_paths_exhausted`를 기록한다.
   이는 해당 query/scope/budget에서 support를 확보하지 못했다는 뜻이며 corpus에 사실이 없다는 주장이 아니다.
   timeout, provider error, unavailable capability, unresolved scope만으로는 발급할 수 없다.
+- c3.3 reason은 caller 입력이 아니라 exact owner authority와 아래 선행 receipt matrix에서만 유도한다.
+
+  | reason | source | 발급에 필요한 exact 정상 종결 | 발급 금지 |
+  | --- | --- | --- | --- |
+  | `bounded_no_candidate` | `fact|compare` | 동일 `RetrievalObligation`의 dense와 lexical이 모두 `empty`이고 error가 없으며, 그 pair에서 발급된 `FusionReceipt`도 `empty`이고 candidate count가 0 | 한 lane/top-k/raw result만 empty, EH2.4 provisional missing, error/unavailable/deadline, mixed obligation/root |
+  | `bounded_no_verified_support` | `fact|compare|follow_up` | `derivation_kind=reranked`인 exact derived semantic obligation에 대해 실제 verifier를 한 번 호출한 exact `SemanticVerificationReceipt`가 `unsupported`; supplied는 nonempty이고 support/value/contradiction은 empty | base semantic receipt, verifier unavailable, supported/contradicted, provider/contract error, derived route 미완료 |
+  | `followup_approved_paths_exhausted` | `follow_up` | c1 safe projection에서 해당 obligation candidate가 0이고 primary가 정상 종결; fallback이 승인됐으면 exact fallback도 실행·정상 종결되어 해당 obligation projection이 0, 승인되지 않았으면 primary가 유일한 승인 경로 | empty/unresolved scope, uncalled primary, 승인 fallback 미실행, target 후보 존재, metadata predicate, partial/rebuilt/mixed lineage |
+
+  follow-up empty 판정은 전체 `SearchResult`가 아니라 **해당 obligation projection** 기준이다. required slot은 다른
+  문서 후보가 존재해도 자기 `doc_id` 후보가 없으면 empty일 수 있고, `$answer_support`만 전체 후보 empty와 같다.
+  optional reranker의 `skipped_unavailable` 자체는 absence 근거가 아니지만 그 identity-derived obligation을 실제
+  verifier가 `unsupported`로 닫았다면 `bounded_no_verified_support`를 허용한다. base semantic unsupported는
+  context→bridge→rerank 승인 경로를 건너뛰므로 production absence로 승격하지 않는다.
+- factory-only `AbsenceConfirmationReceipt`는 `stage=absence_confirmation`, source/reason/execution/obligation,
+  owner binding·plan·plan config·budget SHA, source receipt, query와 scope projection/SHA, store/config/runtime SHA,
+  reason별 nullable proof SHA, `fallback_authorized|fallback_executed`, candidate/supplied/support count,
+  `call_performed=false`, prerequisite SHA와 receipt SHA만 담는다. raw query, evidence ID/anchor/text, value,
+  parent/context, citation, gold/qrels, timeout/deadline/action/effect/state/ready/abstain은 넣지 않는다.
+  `bounded_no_candidate`는 retrieval/dense/lexical/fusion proof만 non-null, semantic/follow-up proof와 fallback flag는
+  null이다. `bounded_no_verified_support`는 semantic obligation/receipt proof만 non-null이고 fallback flag는
+  null이다. `followup_approved_paths_exhausted`는 outcome/primary와 승인됐을 때만 fallback proof를 non-null로
+  두고 retrieval/semantic proof는 null로 둔다. no-candidate와 follow-up exhaustion은 candidate/supplied/support
+  count가 모두 0이다. no-verified-support는 candidate count가 derived candidate role 수와 같아 bridge-only이면
+  0일 수 있고, supplied count는 derived supplied 수와 같아 1 이상이며 support count는 0이다.
+- module-visible issuer는 caller reason을 받지 않는
+  `issue_retrieval_absence_confirmation`, `issue_semantic_absence_confirmation`,
+  `issue_followup_absence_confirmation` 세 개로 닫는다. package root에는 DTO와 pure
+  `validate_absence_confirmation_receipt(*, receipt, store, config, runtime)`만 공개한다. issuer와 validator는
+  retriever/verifier/reranker/clock/provider를 0회 호출하고, d2 permit 전에는 state/effect/citation/support 또는
+  terminal/abstain 권한을 만들지 않는다.
+- issuance key는 exact root `BoundFact|BoundCompare|BoundFollowup`, obligation key, derived reason,
+  canonical prerequisite SHA와 exact store/config/runtime identity에 묶는다. 전 선행조건 검증 뒤 lock/CAS로 한
+  winner만 mint하고 exact prerequisites가 live인 동일 재호출은 root 수명 동안 동일 receipt 객체를 돌려준다.
+  receipt/semantic/fusion 등 중간 객체 GC는 remint를 열지 않으며, GC 뒤 issuer 재호출은 exact prerequisite가
+  없으므로 fail-closed한다. 이미 발급된 absence receipt는 root-owned completion projection으로 계속 검증할 수 있다.
+  completion cache는 receipt만 strong하게
+  잡고 root와 prerequisite는 weak reference+immutable issued projection으로 보존해 root cleanup을 막는 순환을
+  만들지 않는다. validator는 살아 있는 dependency는 exact identity/hash로 재검증하고, GC된 중간 dependency는
+  root-owned completion projection과 prerequisite SHA로 기존 receipt만 감사한다. root GC 시 cache/history/authority를 함께
+  제거한다. clone, rebuilt-equal, subset/reorder, cross-root/store/config/runtime은 zero-call로 거부한다.
+- follow-up의 public retrieval 경계는 동일한 exact `BoundFollowup`에 대해 root 수명 전체에서 하나의
+  `primary_pending→primary_done→progress_pending→progress_done→finalize_pending→finalized` 체인만 허용한다.
+  호출 전 ABI·identity 거부는 체인을 소비하지 않지만, provider 호출 뒤 오류·malformed output·dependency drift는
+  각각 `primary_failed|progress_failed|finalize_failed` terminal로 닫혀 재시도할 수 없다. 동시 호출과 재진입은
+  lock/CAS의 한 winner만 provider를 호출하며, primary/progress 같은 중간 객체 GC는 같은 root의 실행 체인을 다시
+  열지 않는다. root GC 때에만 visible·closure-private claim authority를 함께 제거하고 validator는 provider를
+  호출하거나 상태를 전이하지 않는 pure 경계로 남는다.
 - fact 또는 follow-up plan에 metadata predicate가 있으면 EH3.1 filtered-scope receipt 전에는 not-ready로
   닫는다. syntactically supported predicate도 무시한 채 unfiltered/citation-only retrieval로 실행하지 않는다.
   missing/partial/full abstention은

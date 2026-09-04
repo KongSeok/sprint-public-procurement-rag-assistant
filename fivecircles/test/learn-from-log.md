@@ -367,3 +367,26 @@ Cause:
 
 Preventive rule:
 - After any attempted provider call, validate exact lineage and component state before classifying outcome or minting a receipt.
+
+### Fast-path authority and replay history must remain root-bound (2026-09-05)
+
+Cause:
+- Absence cache hits skipped the full authority gate, while follow-up stage methods could be replayed on the same live root.
+
+Preventive rule:
+- Revalidate cached receipts exactly like newly minted receipts and keep a closure-private authority shadow.
+- Bind the whole primary→progress→finalize claim chain and production/synthetic runtime kind to the exact root lifetime.
+
+Reference:
+- `errorlogs/backend/2026-09-05-c3-absence-authority-followup-replay.md`
+
+### Full tests with private locks need the intended permission boundary (2026-09-05)
+
+Cause:
+- The default tool sandbox blocked an ignored private index lock and nested OS sandbox probe.
+
+Preventive rule:
+- Rerun only the affected tests with project permission first; if both pass, repeat the full gate under that same boundary and record both results.
+
+Reference:
+- `errorlogs/backend/2026-09-05-full-regression-sandbox-boundary.md`

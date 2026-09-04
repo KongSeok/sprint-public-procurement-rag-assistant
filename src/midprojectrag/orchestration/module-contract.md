@@ -275,7 +275,64 @@ fusion and the run then ends with a sanitized error.
 
 Confirmed absence means only that all approved actions for one sealed query/scope/budget were
 exhausted without support. It cannot be minted from timeout, provider error, unavailable
-capability, unresolved scope, or an empty top-k alone. Reducer transitions are monotonic and
+capability, unresolved scope, or an empty top-k alone. Its reason is owner-derived, never a
+caller argument. `bounded_no_candidate` is fact/compare-only and requires the exact same
+retrieval obligation's normal-empty dense and lexical receipts plus their normal-empty fusion.
+`bounded_no_verified_support` accepts fact/compare/follow-up only from an exact reranked-derived
+semantic obligation whose verifier was actually called and returned unsupported; base semantic,
+unavailable, supported, contradicted, and provider/contract failure are not absence authority.
+An unavailable optional reranker is not itself absence, but its identity-derived verifier receipt
+may qualify after a real unsupported result.
+
+`followup_approved_paths_exhausted` requires the c1 safe projection for the target obligation to
+have no candidates after a normally completed primary path. If fallback was authorized it must
+also be present, executed, normally completed, and empty for that target; if it was not authorized,
+primary is the only approved path. Empty is per-obligation: a required slot filters candidates to
+its document, whereas `$answer_support` covers the whole result. Empty/unresolved scope, uncalled
+primary, ignored metadata predicates, partial or mixed lineage, and a skipped authorized fallback
+cannot mint absence.
+
+Three module-only issuers derive these reasons without accepting reason, Evidence IDs,
+timeout/deadline,
+budget-exhaustion, action, state, effect, gold, or qrels input:
+`issue_retrieval_absence_confirmation`, `issue_semantic_absence_confirmation`, and
+`issue_followup_absence_confirmation`; the follow-up issuer may accept its owner-derived
+`obligation_key` target. The package root exports only the factory-issued frozen
+`AbsenceConfirmationReceipt` DTO and pure
+`validate_absence_confirmation_receipt(*, receipt, store, config, runtime)`. The closed receipt
+contains source/query/scope/owner-budget and runtime hashes, an exact reason-specific nullable
+proof-SHA matrix, and exact counts. No-candidate and follow-up exhaustion have candidate,
+supplied, and support counts of zero. No-verified-support has candidate count equal to its
+derived candidate-role count (possibly zero for bridge-only), nonzero supplied count equal to
+the derived supplied tuple, and zero support count. It also records
+`call_performed=false`; it contains no query text, Evidence ID/anchor/text, value, parent, citation,
+state/effect/readiness, or abstention authority. Issuers and validator call retriever, verifier,
+reranker, provider, and clock zero times.
+
+Absence issuance is root-lifetime, keyed by the exact BoundFact/BoundCompare/BoundFollowup,
+obligation key, derived reason, prerequisite hash, and exact store/config/runtime. A lock/CAS mints
+one winner and an exact repeat while its prerequisite objects remain live returns the same receipt
+object. Intermediate receipt or semantic-obligation GC never opens remint; a post-GC issuer repeat
+fails closed because it cannot supply the exact prerequisite, while the already-issued absence
+receipt remains validatable from the root-owned completion projection. The completion cache may
+strongly retain only the absence receipt; root and
+prerequisite objects are weakly held with immutable issued projections so cleanup is not defeated by
+an authority cycle. Live dependencies are revalidated by identity/hash, GC'd intermediates by the
+root-owned completion projection and prerequisite hash for validation of the existing receipt only,
+and root GC removes cache/history/authority.
+Clone, rebuilt-equal, subset/reorder, or mixed root/store/config/runtime input fails before calls.
+The receipt remains state-free and cannot mint effect/transition/terminal authority before d2.
+
+The public follow-up retrieval boundary owns one root-lifetime execution chain per exact
+`BoundFollowup`: `primary_pending -> primary_done -> progress_pending -> progress_done ->
+finalize_pending -> finalized`. Preflight ABI or identity rejection does not consume the chain,
+but provider/post-call failure closes it terminally as `primary_failed`, `progress_failed`, or
+`finalize_failed`. One lock/CAS gives concurrent or re-entrant callers a single winner, intermediate
+primary/progress GC cannot reopen the chain while the root lives, and root GC alone removes both
+the visible and closure-private claim authority. Validation is pure and never calls a provider or
+advances this state machine.
+
+Reducer transitions are monotonic and
 change at most one obligation. Lane, parent-context, and terminal effects retain the exact same
 state object; only a semantic state change mints a new state whose source receipt is the effect.
 No-progress uses a semantic fingerprint that excludes hashes, ordinals, time, and counters;

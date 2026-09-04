@@ -756,3 +756,12 @@ This file summarizes recent updates so other agents can continue without re‑di
 ### Tests
 
 - focused9/related128/full1229/safety854·Playwright PASS; provider 예외 post-call P1을 수리했다.
+## Addendum (2026-09-05) - EH2.6.c3.3 bounded absence receipt
+### Backend
+- Three-reason zero-provider absence와 follow-up root-lifetime exact-once를 구현했다.
+
+### Tests
+- focused67·related192·full1267·safety858·Playwright PASS; API/model/Langfuse 0.
+
+### Next
+- EH2.6.c3.4 closed ActionEffectReceipt DTO/validator를 새 원샷딜 폼으로 시작한다.

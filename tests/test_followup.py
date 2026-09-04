@@ -513,8 +513,8 @@ class ActualCitationFollowupTests(unittest.TestCase):
                 },
             ),
         )
-        bound = self.bind(self.request())
         for result in malformed:
+            bound = self.bind(self.request())
             retriever = _FakeRetriever(result, _result(self.store, (self.ev_b,)))
             with self.subTest(trace=result.trace), self.assertRaises(
                 (TypeError, ValueError)
@@ -523,12 +523,13 @@ class ActualCitationFollowupTests(unittest.TestCase):
             self.assertEqual(len(retriever.calls), 1)
 
     def test_retriever_errors_and_invalid_fallback_are_not_retried(self):
-        bound = self.bind(self.request())
+        error_bound = self.bind(self.request())
         exploding = _FakeRetriever(RuntimeError("primary failed"))
         with self.assertRaisesRegex(RuntimeError, "primary failed"):
-            self._primary(bound, exploding)
+            self._primary(error_bound, exploding)
         self.assertEqual(len(exploding.calls), 1)
 
+        bound = self.bind(self.request())
         malformed_fallback = _FakeRetriever(
             _result(self.store, (self.ev_a,)),
             _result(self.store, (self.ev_b,), bundle="0" * 64),

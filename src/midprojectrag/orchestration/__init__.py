@@ -86,6 +86,7 @@ from .actions import (
 )
 from .action_effects import SemanticValueSupport
 from .execution_contracts import (
+    AbsenceConfirmationReceipt,
     BridgeContextReceipt,
     E0ControlReceipt,
     E0ObligationResult,
@@ -124,9 +125,11 @@ from .execution_contracts import (
     validate_retrieval_obligation,
     validate_semantic_verification_obligation,
     validate_semantic_verification_receipt,
+    validate_absence_confirmation_receipt,
 )
 
 __all__ = (
+    "AbsenceConfirmationReceipt",
     "BudgetRule",
     "PlanConstraint",
     "PlanEntity",
@@ -232,4 +235,5 @@ __all__ = (
     "validate_retrieval_obligation",
     "validate_semantic_verification_obligation",
     "validate_semantic_verification_receipt",
+    "validate_absence_confirmation_receipt",
 )

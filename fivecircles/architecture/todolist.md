@@ -193,8 +193,18 @@ runtime은 local profile 기본·LLM provider 교체형으로 유지하며 새 �
           만들고 auxiliary parent를 support index 밖에 둔다.
         - [x] **EH2.6.c3.2.d** cross-role reorder, budget, base-vs-derived race, malformed/clone/GC/비누출
           focused gate와 관련·전체·safety 회귀를 통과한다.
-      - [ ] **EH2.6.c3.3** 모든 승인 경로가 bounded하게 닫힌 경우에만 three-reason
+      - [x] **EH2.6.c3.3** 모든 승인 경로가 bounded하게 닫힌 경우에만 three-reason
         `AbsenceConfirmationReceipt`를 zero-provider로 발급하고 timeout/error/unavailable/unresolved 단독 발급을 금지한다.
+        - [x] **EH2.6.c3.3.a** fact/compare/follow-up별 세 reason과 exact prerequisite matrix,
+          closed DTO/API, root-lifetime/nonpromotion 계약을 고정하고 TDD RED를 만든다.
+        - [x] **EH2.6.c3.3.b** fact/compare의 모든 승인 검색 경로가 정상 empty로 닫힌 경우에만
+          `bounded_no_candidate`를 owner-derived zero-provider receipt로 발급한다.
+        - [x] **EH2.6.c3.3.c** nonempty 후보의 허용 verify 경로가 모두 정상 종결됐지만 support가 없을 때만
+          `bounded_no_verified_support`를 발급하고 error/unavailable/drift를 차단한다.
+        - [x] **EH2.6.c3.3.d** follow-up primary/승인 fallback exhaustion을 봉인하고 timeout/error/unavailable/
+          unresolved/metadata predicate/partial·mixed lineage·단순 top-k empty의 no-mint와 회귀를 통과했다.
+          cache-hit 재검증, closure-private authority, root-lifetime follow-up exact-once와 production/synthetic
+          runtime kind 일치를 수리했으며 focused67·관련192·전체1267·safety858·독립 APPROVE·Playwright PASS다.
       - [ ] **EH2.6.c3.4** closed `ActionEffectReceipt` DTO/validator를 추가하되 public mint는 exact d2
         `ControllerDecisionReceipt` permit 전까지 fail-closed한다.
       - [ ] **EH2.6.c3.5** source/store/config/runtime clone·drift·mixed authority, replay/serialization,

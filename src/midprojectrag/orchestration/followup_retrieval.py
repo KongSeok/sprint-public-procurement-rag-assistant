@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from hashlib import sha256
 import json
 import re
+from threading import Lock
 from typing import Any, Protocol
 from weakref import ReferenceType, ref
 
@@ -73,6 +74,259 @@ _RETRIEVAL_OUTCOME_AUTHORITY_MIRROR: dict[
         str,
     ],
 ] = {}
+
+
+@dataclass(frozen=True, slots=True)
+class _FollowupExecutionClaim:
+    root_weak: ReferenceType[BoundFollowup]
+    binding_sha256: str
+    state: str
+    primary_weak: ReferenceType[FollowupRetrievalAttempt] | None = None
+    primary_result_sha256: str | None = None
+    progress_weak: ReferenceType[PrimaryEvidenceProgress] | None = None
+    progress_sha256: str | None = None
+
+
+_FOLLOWUP_EXECUTION_CLAIMS: dict[int, _FollowupExecutionClaim] = {}
+
+
+def _build_followup_execution_claim_accessors(
+    visible: dict[int, _FollowupExecutionClaim],
+):
+    """Keep exact-once history in a closure-private mirror until the root dies."""
+
+    shadow: dict[
+        int, tuple[_FollowupExecutionClaim, tuple[object, ...]]
+    ] = {}
+    claim_lock = Lock()
+
+    def snapshot(claim: _FollowupExecutionClaim) -> tuple[object, ...]:
+        return tuple(
+            object.__getattribute__(claim, name)
+            for name in _FollowupExecutionClaim.__slots__
+        )
+
+    def read_unlocked(
+        bound: BoundFollowup, *, check_binding: bool = True
+    ) -> _FollowupExecutionClaim | None:
+        identity = id(bound)
+        current = dict.get(visible, identity)
+        sealed = dict.get(shadow, identity)
+        if current is None and sealed is None:
+            return None
+        if (
+            type(current) is not _FollowupExecutionClaim
+            or type(sealed) is not tuple
+            or len(sealed) != 2
+            or tuple.__getitem__(sealed, 0) is not current
+            or type(tuple.__getitem__(sealed, 1)) is not tuple
+            or len(tuple.__getitem__(sealed, 1))
+            != len(_FollowupExecutionClaim.__slots__)
+            or any(
+                object.__getattribute__(current, name) is not value
+                for name, value in zip(
+                    _FollowupExecutionClaim.__slots__,
+                    tuple.__getitem__(sealed, 1),
+                )
+            )
+            or current.root_weak() is not bound
+        ):
+            raise ValueError("followup_execution_claim_authority_drift")
+        if check_binding and current.binding_sha256 != _binding_sha256(bound):
+            raise ValueError("followup_execution_claim_authority_drift")
+        return current
+
+    def write_unlocked(identity: int, claim: _FollowupExecutionClaim) -> None:
+        dict.__setitem__(visible, identity, claim)
+        dict.__setitem__(shadow, identity, (claim, snapshot(claim)))
+
+    def drop_root(identity: int, dead: ReferenceType[BoundFollowup]) -> None:
+        with claim_lock:
+            sealed = dict.get(shadow, identity)
+            if (
+                type(sealed) is tuple
+                and len(sealed) == 2
+                and type(tuple.__getitem__(sealed, 1)) is tuple
+                and tuple.__getitem__(tuple.__getitem__(sealed, 1), 0) is dead
+            ):
+                dict.pop(visible, identity, None)
+                dict.pop(shadow, identity, None)
+
+    def claim_primary(bound: BoundFollowup) -> None:
+        with claim_lock:
+            if read_unlocked(bound) is not None:
+                raise ValueError("followup_primary_already_consumed")
+            identity = id(bound)
+            root_weak = ref(
+                bound,
+                lambda dead, identity=identity: drop_root(identity, dead),
+            )
+            write_unlocked(
+                identity,
+                _FollowupExecutionClaim(
+                    root_weak=root_weak,
+                    binding_sha256=_binding_sha256(bound),
+                    state="primary_pending",
+                ),
+            )
+
+    def finish_primary(
+        bound: BoundFollowup,
+        primary: FollowupRetrievalAttempt | None,
+    ) -> None:
+        with claim_lock:
+            current = read_unlocked(bound, check_binding=False)
+            if current is None or current.state != "primary_pending":
+                raise ValueError("followup_execution_claim_authority_drift")
+            binding_drift = current.binding_sha256 != _binding_sha256(bound)
+            if primary is None or binding_drift:
+                updated = _FollowupExecutionClaim(
+                    root_weak=current.root_weak,
+                    binding_sha256=current.binding_sha256,
+                    state="primary_failed",
+                )
+            else:
+                updated = _FollowupExecutionClaim(
+                    root_weak=current.root_weak,
+                    binding_sha256=current.binding_sha256,
+                    state="primary_done",
+                    primary_weak=ref(primary),
+                    primary_result_sha256=primary.result_sha256,
+                )
+            write_unlocked(id(bound), updated)
+            if binding_drift:
+                raise ValueError("followup_execution_claim_authority_drift")
+
+    def claim_progress(
+        bound: BoundFollowup,
+        primary: FollowupRetrievalAttempt,
+    ) -> None:
+        with claim_lock:
+            current = read_unlocked(bound)
+            if (
+                current is None
+                or current.state != "primary_done"
+                or current.primary_weak is None
+                or current.primary_weak() is not primary
+                or current.primary_result_sha256 != primary.result_sha256
+            ):
+                raise ValueError("followup_progress_already_consumed")
+            write_unlocked(
+                id(bound),
+                _FollowupExecutionClaim(
+                    root_weak=current.root_weak,
+                    binding_sha256=current.binding_sha256,
+                    state="progress_pending",
+                    primary_weak=current.primary_weak,
+                    primary_result_sha256=current.primary_result_sha256,
+                ),
+            )
+
+    def finish_progress(
+        bound: BoundFollowup,
+        primary: FollowupRetrievalAttempt,
+        progress: PrimaryEvidenceProgress | None,
+    ) -> None:
+        with claim_lock:
+            current = read_unlocked(bound, check_binding=False)
+            if (
+                current is None
+                or current.state != "progress_pending"
+                or current.primary_weak is None
+                or current.primary_weak() is not primary
+            ):
+                raise ValueError("followup_execution_claim_authority_drift")
+            binding_drift = current.binding_sha256 != _binding_sha256(bound)
+            updated = _FollowupExecutionClaim(
+                root_weak=current.root_weak,
+                binding_sha256=current.binding_sha256,
+                state=(
+                    "progress_failed"
+                    if progress is None or binding_drift
+                    else "progress_done"
+                ),
+                primary_weak=current.primary_weak,
+                primary_result_sha256=current.primary_result_sha256,
+                progress_weak=None if progress is None else ref(progress),
+                progress_sha256=None if progress is None else progress.progress_sha256,
+            )
+            write_unlocked(id(bound), updated)
+            if binding_drift:
+                raise ValueError("followup_execution_claim_authority_drift")
+
+    def claim_finalize(
+        bound: BoundFollowup,
+        primary: FollowupRetrievalAttempt,
+        progress: PrimaryEvidenceProgress,
+    ) -> None:
+        with claim_lock:
+            current = read_unlocked(bound)
+            if (
+                current is None
+                or current.state != "progress_done"
+                or current.primary_weak is None
+                or current.primary_weak() is not primary
+                or current.progress_weak is None
+                or current.progress_weak() is not progress
+                or current.progress_sha256 != progress.progress_sha256
+            ):
+                raise ValueError("followup_finalize_already_consumed")
+            write_unlocked(
+                id(bound),
+                _FollowupExecutionClaim(
+                    root_weak=current.root_weak,
+                    binding_sha256=current.binding_sha256,
+                    state="finalize_pending",
+                    primary_weak=current.primary_weak,
+                    primary_result_sha256=current.primary_result_sha256,
+                    progress_weak=current.progress_weak,
+                    progress_sha256=current.progress_sha256,
+                ),
+            )
+
+    def finish_finalize(bound: BoundFollowup, *, succeeded: bool) -> None:
+        with claim_lock:
+            current = read_unlocked(bound, check_binding=False)
+            if current is None or current.state != "finalize_pending":
+                raise ValueError("followup_execution_claim_authority_drift")
+            binding_drift = current.binding_sha256 != _binding_sha256(bound)
+            write_unlocked(
+                id(bound),
+                _FollowupExecutionClaim(
+                    root_weak=current.root_weak,
+                    binding_sha256=current.binding_sha256,
+                    state=(
+                        "finalized"
+                        if succeeded and not binding_drift
+                        else "finalize_failed"
+                    ),
+                    primary_weak=current.primary_weak,
+                    primary_result_sha256=current.primary_result_sha256,
+                    progress_weak=current.progress_weak,
+                    progress_sha256=current.progress_sha256,
+                ),
+            )
+            if binding_drift:
+                raise ValueError("followup_execution_claim_authority_drift")
+
+    return (
+        claim_primary,
+        finish_primary,
+        claim_progress,
+        finish_progress,
+        claim_finalize,
+        finish_finalize,
+    )
+
+
+(
+    _claim_followup_primary,
+    _finish_followup_primary,
+    _claim_followup_progress,
+    _finish_followup_progress,
+    _claim_followup_finalize,
+    _finish_followup_finalize,
+) = _build_followup_execution_claim_accessors(_FOLLOWUP_EXECUTION_CLAIMS)
 
 
 class ChildRetriever(Protocol):
@@ -607,44 +861,111 @@ def retrieve_followup_primary(
         doc_ids=frozenset(plan.resolved_doc_ids),
         origin=plan.scope_origin,
     )
-    if scope.state == "empty":
-        result = SearchResult(
-            (),
-            {
-                "lane": "orchestration_empty_scope",
-                "granularity": "child",
-                "bundle_sha256": store.bundle_sha256,
-                "empty_scope": True,
-                "retriever_calls": 0,
-            },
-        )
-        called = False
-    else:
+    search = None
+    if scope.state != "empty":
         search = getattr(retriever, "search", None)
         if not callable(search):
             raise TypeError("child_retriever_required")
-        result = search(
-            plan.normalized_query,
-            dense_k=plan.dense_k,
-            lexical_k=plan.lexical_k,
-            scope=scope,
+    _claim_followup_primary(bound)
+    try:
+        if scope.state == "empty":
+            result = SearchResult(
+                (),
+                {
+                    "lane": "orchestration_empty_scope",
+                    "granularity": "child",
+                    "bundle_sha256": store.bundle_sha256,
+                    "empty_scope": True,
+                    "retriever_calls": 0,
+                },
+            )
+            called = False
+        else:
+            result = search(
+                plan.normalized_query,
+                dense_k=plan.dense_k,
+                lexical_k=plan.lexical_k,
+                scope=scope,
+            )
+            called = True
+            _validate_bound(bound, store, registry)
+        _validate_result(
+            result,
+            store,
+            allowed_doc_ids=None if scope.state == "unfiltered" else scope.doc_ids,
         )
-        called = True
-    _validate_result(
-        result,
-        store,
-        allowed_doc_ids=None if scope.state == "unfiltered" else scope.doc_ids,
+        result = _project_result(result, store)
+        primary = FollowupRetrievalAttempt._create(
+            attempt_kind="primary",
+            result=result,
+            scope=scope,
+            bound=bound,
+            store=store,
+            retriever_called=called,
+            _token=_RETRIEVAL_ATTEMPT_TOKEN,
+        )
+    except Exception:
+        _finish_followup_primary(bound, None)
+        raise
+    _finish_followup_primary(bound, primary)
+    return primary
+
+
+def _normalize_primary_progress(
+    *,
+    bound: BoundFollowup,
+    primary: FollowupRetrievalAttempt,
+    store: EvidenceStore,
+    policy: FollowupEvidencePolicy,
+    verified_answer_evidence_ids: tuple[str, ...],
+    verified_slot_evidence: tuple[tuple[str, str], ...],
+    verifier_id: str,
+    verifier_config_sha256: str,
+) -> tuple[
+    tuple[str, ...],
+    tuple[tuple[str, str], ...],
+    tuple[str, ...],
+    bool,
+]:
+    verified_ids = tuple(
+        sorted(_ids(verified_answer_evidence_ids, "verified_answer_evidence_ids"))
     )
-    result = _project_result(result, store)
-    return FollowupRetrievalAttempt._create(
-        attempt_kind="primary",
-        result=result,
-        scope=scope,
-        bound=bound,
-        store=store,
-        retriever_called=called,
-        _token=_RETRIEVAL_ATTEMPT_TOKEN,
+    if type(verified_slot_evidence) is not tuple:
+        raise TypeError("verified_slot_evidence")
+    pairs: list[tuple[str, str]] = []
+    for pair in verified_slot_evidence:
+        if (
+            type(pair) is not tuple
+            or len(pair) != 2
+            or any(type(value) is not str or not value for value in pair)
+        ):
+            raise ValueError("invalid_verified_slot_evidence")
+        pairs.append(pair)
+    ordered_pairs = tuple(sorted(pairs))
+    if len({key for key, _ in ordered_pairs}) != len(ordered_pairs):
+        raise ValueError("duplicate_verified_slot_key")
+
+    candidate_ids = {candidate.evidence_id for candidate in primary.result.candidates}
+    if not set(verified_ids).issubset(candidate_ids):
+        raise ValueError("verified_evidence_not_in_primary")
+    for evidence_id in verified_ids:
+        store.get(evidence_id)
+    slots = {slot.key: slot for slot in bound.plan.required_slots}
+    for slot_key, evidence_id in ordered_pairs:
+        if slot_key not in slots:
+            raise ValueError("unknown_verified_slot")
+        if evidence_id not in verified_ids:
+            raise ValueError("slot_evidence_not_verified")
+        if store.get(evidence_id).doc_id != slots[slot_key].doc_id:
+            raise ValueError("slot_evidence_document_mismatch")
+    missing = tuple(sorted(set(slots) - {key for key, _ in ordered_pairs}))
+    sufficient = (
+        len(verified_ids) >= policy.min_verified_answer_evidence and not missing
     )
+    if verifier_id not in _VERIFIER_IDS:
+        raise ValueError("invalid_verifier_id")
+    _require_hash(verifier_config_sha256, "invalid_verifier_config_sha256")
+    return verified_ids, ordered_pairs, missing, sufficient
 
 
 @dataclass(frozen=True, slots=True, weakref_slot=True, init=False)
@@ -677,48 +998,17 @@ class PrimaryEvidenceProgress:
         verified_slot_evidence: tuple[tuple[str, str], ...],
         verifier_id: str,
         verifier_config_sha256: str,
+        normalized: tuple[
+            tuple[str, ...],
+            tuple[tuple[str, str], ...],
+            tuple[str, ...],
+            bool,
+        ],
         _token: object,
     ) -> PrimaryEvidenceProgress:
         if _token is not _PRIMARY_PROGRESS_TOKEN:
             raise ValueError("primary_progress_factory_required")
-        verified_ids = tuple(sorted(_ids(
-            verified_answer_evidence_ids, "verified_answer_evidence_ids"
-        )))
-        if type(verified_slot_evidence) is not tuple:
-            raise TypeError("verified_slot_evidence")
-        pairs: list[tuple[str, str]] = []
-        for pair in verified_slot_evidence:
-            if (
-                type(pair) is not tuple
-                or len(pair) != 2
-                or any(type(value) is not str or not value for value in pair)
-            ):
-                raise ValueError("invalid_verified_slot_evidence")
-            pairs.append(pair)
-        ordered_pairs = tuple(sorted(pairs))
-        if len({key for key, _ in ordered_pairs}) != len(ordered_pairs):
-            raise ValueError("duplicate_verified_slot_key")
-
-        candidate_ids = {candidate.evidence_id for candidate in primary.result.candidates}
-        if not set(verified_ids).issubset(candidate_ids):
-            raise ValueError("verified_evidence_not_in_primary")
-        for evidence_id in verified_ids:
-            store.get(evidence_id)
-        slots = {slot.key: slot for slot in bound.plan.required_slots}
-        for slot_key, evidence_id in ordered_pairs:
-            if slot_key not in slots:
-                raise ValueError("unknown_verified_slot")
-            if evidence_id not in verified_ids:
-                raise ValueError("slot_evidence_not_verified")
-            if store.get(evidence_id).doc_id != slots[slot_key].doc_id:
-                raise ValueError("slot_evidence_document_mismatch")
-        missing = tuple(sorted(set(slots) - {key for key, _ in ordered_pairs}))
-        sufficient = (
-            len(verified_ids) >= policy.min_verified_answer_evidence and not missing
-        )
-        if verifier_id not in _VERIFIER_IDS:
-            raise ValueError("invalid_verifier_id")
-        _require_hash(verifier_config_sha256, "invalid_verifier_config_sha256")
+        verified_ids, ordered_pairs, missing, sufficient = normalized
         payload = {
             "schema_version": "1.0",
             "request_fingerprint": bound.trace.request_fingerprint,
@@ -841,7 +1131,7 @@ def bind_primary_evidence_progress(
     if type(policy) is not FollowupEvidencePolicy:
         raise TypeError("followup_evidence_policy_required")
     policy._validate()
-    progress = PrimaryEvidenceProgress._create(
+    normalized = _normalize_primary_progress(
         bound=bound,
         primary=primary,
         store=store,
@@ -850,15 +1140,32 @@ def bind_primary_evidence_progress(
         verified_slot_evidence=verified_slot_evidence,
         verifier_id=verifier_id,
         verifier_config_sha256=verifier_config_sha256,
-        _token=_PRIMARY_PROGRESS_TOKEN,
     )
-    _require_progress_authority(
-        progress,
-        bound=bound,
-        primary=primary,
-        store=store,
-        policy=policy,
-    )
+    _claim_followup_progress(bound, primary)
+    try:
+        progress = PrimaryEvidenceProgress._create(
+            bound=bound,
+            primary=primary,
+            store=store,
+            policy=policy,
+            verified_answer_evidence_ids=verified_answer_evidence_ids,
+            verified_slot_evidence=verified_slot_evidence,
+            verifier_id=verifier_id,
+            verifier_config_sha256=verifier_config_sha256,
+            normalized=normalized,
+            _token=_PRIMARY_PROGRESS_TOKEN,
+        )
+        _require_progress_authority(
+            progress,
+            bound=bound,
+            primary=primary,
+            store=store,
+            policy=policy,
+        )
+    except Exception:
+        _finish_followup_progress(bound, primary, None)
+        raise
+    _finish_followup_progress(bound, primary, progress)
     return progress
 
 
@@ -1242,53 +1549,73 @@ def finalize_followup_retrieval(
         raise ValueError("primary_progress_binding_mismatch")
 
     fallback_authorized = _fallback_authorized(bound)
-    fallback = None
+    search = None
     if not progress.sufficient and fallback_authorized:
         search = getattr(retriever, "search", None)
         if not callable(search):
             raise TypeError("child_retriever_required")
-        fallback_scope = ResolvedScope()
-        fallback_result = search(
-            bound.plan.normalized_query,
-            dense_k=bound.plan.dense_k,
-            lexical_k=bound.plan.lexical_k,
-            scope=fallback_scope,
+    _claim_followup_finalize(bound, primary, progress)
+    try:
+        fallback = None
+        if not progress.sufficient and fallback_authorized:
+            fallback_scope = ResolvedScope()
+            fallback_result = search(
+                bound.plan.normalized_query,
+                dense_k=bound.plan.dense_k,
+                lexical_k=bound.plan.lexical_k,
+                scope=fallback_scope,
+            )
+            _validate_bound(bound, store, registry)
+            _validate_attempt(
+                primary, expected_kind="primary", bound=bound, store=store
+            )
+            _require_progress_authority(
+                progress,
+                bound=bound,
+                primary=primary,
+                store=store,
+                policy=policy,
+            )
+            progress._validate(policy)
+            _validate_result(fallback_result, store, allowed_doc_ids=None)
+            fallback_result = _project_result(fallback_result, store)
+            fallback = FollowupRetrievalAttempt._create(
+                attempt_kind="global_fallback",
+                result=fallback_result,
+                scope=fallback_scope,
+                bound=bound,
+                store=store,
+                retriever_called=True,
+                _token=_RETRIEVAL_ATTEMPT_TOKEN,
+            )
+
+        trace = _build_followup_retrieval_trace(
+            bound=bound,
+            primary=primary,
+            progress=progress,
+            fallback=fallback,
+            store=store,
+            policy=policy,
         )
-        _validate_result(fallback_result, store, allowed_doc_ids=None)
-        fallback_result = _project_result(fallback_result, store)
-        fallback = FollowupRetrievalAttempt._create(
-            attempt_kind="global_fallback",
-            result=fallback_result,
-            scope=fallback_scope,
+        outcome = FollowupRetrievalOutcome._create(
+            primary=primary,
+            progress=progress,
+            fallback=fallback,
+            trace=trace,
             bound=bound,
             store=store,
-            retriever_called=True,
-            _token=_RETRIEVAL_ATTEMPT_TOKEN,
+            policy=policy,
+            _token=_RETRIEVAL_OUTCOME_TOKEN,
         )
-
-    trace = _build_followup_retrieval_trace(
-        bound=bound,
-        primary=primary,
-        progress=progress,
-        fallback=fallback,
-        store=store,
-        policy=policy,
-    )
-    outcome = FollowupRetrievalOutcome._create(
-        primary=primary,
-        progress=progress,
-        fallback=fallback,
-        trace=trace,
-        bound=bound,
-        store=store,
-        policy=policy,
-        _token=_RETRIEVAL_OUTCOME_TOKEN,
-    )
-    validate_followup_retrieval_outcome(
-        bound=bound,
-        outcome=outcome,
-        store=store,
-        registry=registry,
-        policy=policy,
-    )
+        validate_followup_retrieval_outcome(
+            bound=bound,
+            outcome=outcome,
+            store=store,
+            registry=registry,
+            policy=policy,
+        )
+    except Exception:
+        _finish_followup_finalize(bound, succeeded=False)
+        raise
+    _finish_followup_finalize(bound, succeeded=True)
     return outcome

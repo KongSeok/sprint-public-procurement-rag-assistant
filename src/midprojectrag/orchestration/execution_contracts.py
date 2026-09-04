@@ -43,7 +43,11 @@ from . import fact_binding as _FACT_OWNER_MODULE
 from .action_effects import SemanticValueSupport
 from .contracts import RuleRegistry
 from .followup_binding import BoundFollowup
-from .followup_retrieval import FollowupEvidencePolicy, FollowupRetrievalOutcome
+from .followup_retrieval import (
+    FollowupEvidencePolicy,
+    FollowupRetrievalAttempt,
+    FollowupRetrievalOutcome,
+)
 from .harness_state import HarnessState, build_e1_followup_harness_state, validate_harness_state
 
 
@@ -58,6 +62,7 @@ _PARENT_CONTEXT_RECEIPT_TOKEN = object()
 _BRIDGE_CONTEXT_RECEIPT_TOKEN = object()
 _RERANK_RECEIPT_TOKEN = object()
 _RERANK_REQUEST_TOKEN = object()
+_ABSENCE_CONFIRMATION_TOKEN = object()
 _ISSUED_VALIDATE_EVIDENCE_STORE_SNAPSHOT = validate_evidence_store_snapshot
 _ISSUED_HYBRID_SEARCH_LANE = type.__getattribute__(
     object.__getattribute__(_FUSION_RUNTIME_MODULE, "HybridChildRetriever"),
@@ -12874,6 +12879,979 @@ def validate_semantic_verification_receipt(
         raise ValueError("semantic_verification_receipt_projection_mismatch")
 
 
+# EH2.6.c3.3 bounded absence confirmation ------------------------------------
+
+_ABSENCE_REASONS = frozenset(
+    {
+        "bounded_no_candidate",
+        "bounded_no_verified_support",
+        "followup_approved_paths_exhausted",
+    }
+)
+
+
+@dataclass(frozen=True, slots=True, weakref_slot=True, init=False)
+class AbsenceConfirmationReceipt:
+    """Content-free proof that one bounded obligation exhausted its paths."""
+
+    stage: str
+    source_kind: str
+    reason: str
+    execution_kind: str
+    obligation_key: str
+    owner_binding_sha256: str
+    owner_plan_sha256: str
+    owner_plan_config_sha256: str
+    owner_budget_sha256: str
+    source_receipt_sha256: str
+    query_sha256: str
+    scope_doc_ids: tuple[str, ...]
+    scope_sha256: str
+    evidence_store_sha256: str
+    execution_config_sha256: str
+    runtime_binding_sha256: str
+    retrieval_obligation_sha256: str | None
+    dense_receipt_sha256: str | None
+    lexical_receipt_sha256: str | None
+    fusion_receipt_sha256: str | None
+    semantic_obligation_sha256: str | None
+    semantic_receipt_sha256: str | None
+    followup_outcome_sha256: str | None
+    primary_receipt_sha256: str | None
+    fallback_receipt_sha256: str | None
+    fallback_authorized: bool | None
+    fallback_executed: bool | None
+    candidate_count: int
+    supplied_count: int
+    support_count: int
+    call_performed: bool
+    prerequisite_sha256: str
+    receipt_sha256: str
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        raise TypeError("absence_confirmation_receipt_factory_required")
+
+    def __copy__(self) -> object:
+        raise TypeError("absence_confirmation_receipt_not_serializable")
+
+    def __deepcopy__(self, memo: object) -> object:
+        raise TypeError("absence_confirmation_receipt_not_serializable")
+
+    def __reduce__(self) -> object:
+        raise TypeError("absence_confirmation_receipt_not_serializable")
+
+    def __reduce_ex__(self, protocol: int) -> object:
+        raise TypeError("absence_confirmation_receipt_not_serializable")
+
+    @classmethod
+    def _create(
+        cls,
+        *,
+        payload: Mapping[str, Any],
+        _token: object,
+    ) -> AbsenceConfirmationReceipt:
+        if _token is not _ABSENCE_CONFIRMATION_TOKEN:
+            raise ValueError("absence_confirmation_receipt_factory_required")
+        result = object.__new__(cls)
+        for name in cls.__slots__:
+            if name != "__weakref__":
+                object.__setattr__(result, name, payload[name])
+        _validate_absence_confirmation_receipt_payload(result)
+        return result
+
+    def to_dict(self) -> dict[str, Any]:
+        _validate_absence_confirmation_receipt_payload(self)
+        return _absence_confirmation_receipt_payload(self, include_hash=True)
+
+
+def _absence_confirmation_receipt_payload(
+    receipt: AbsenceConfirmationReceipt,
+    *,
+    include_hash: bool,
+) -> dict[str, Any]:
+    payload = {
+        "schema_version": SCHEMA_VERSION,
+        **{
+            name: (
+                list(value)
+                if name == "scope_doc_ids"
+                else value
+            )
+            for name, value in (
+                ("stage", object.__getattribute__(receipt, "stage")),
+                ("source_kind", object.__getattribute__(receipt, "source_kind")),
+                ("reason", object.__getattribute__(receipt, "reason")),
+                ("execution_kind", object.__getattribute__(receipt, "execution_kind")),
+                ("obligation_key", object.__getattribute__(receipt, "obligation_key")),
+                ("owner_binding_sha256", object.__getattribute__(receipt, "owner_binding_sha256")),
+                ("owner_plan_sha256", object.__getattribute__(receipt, "owner_plan_sha256")),
+                ("owner_plan_config_sha256", object.__getattribute__(receipt, "owner_plan_config_sha256")),
+                ("owner_budget_sha256", object.__getattribute__(receipt, "owner_budget_sha256")),
+                ("source_receipt_sha256", object.__getattribute__(receipt, "source_receipt_sha256")),
+                ("query_sha256", object.__getattribute__(receipt, "query_sha256")),
+                ("scope_doc_ids", object.__getattribute__(receipt, "scope_doc_ids")),
+                ("scope_sha256", object.__getattribute__(receipt, "scope_sha256")),
+                ("evidence_store_sha256", object.__getattribute__(receipt, "evidence_store_sha256")),
+                ("execution_config_sha256", object.__getattribute__(receipt, "execution_config_sha256")),
+                ("runtime_binding_sha256", object.__getattribute__(receipt, "runtime_binding_sha256")),
+                ("retrieval_obligation_sha256", object.__getattribute__(receipt, "retrieval_obligation_sha256")),
+                ("dense_receipt_sha256", object.__getattribute__(receipt, "dense_receipt_sha256")),
+                ("lexical_receipt_sha256", object.__getattribute__(receipt, "lexical_receipt_sha256")),
+                ("fusion_receipt_sha256", object.__getattribute__(receipt, "fusion_receipt_sha256")),
+                ("semantic_obligation_sha256", object.__getattribute__(receipt, "semantic_obligation_sha256")),
+                ("semantic_receipt_sha256", object.__getattribute__(receipt, "semantic_receipt_sha256")),
+                ("followup_outcome_sha256", object.__getattribute__(receipt, "followup_outcome_sha256")),
+                ("primary_receipt_sha256", object.__getattribute__(receipt, "primary_receipt_sha256")),
+                ("fallback_receipt_sha256", object.__getattribute__(receipt, "fallback_receipt_sha256")),
+                ("fallback_authorized", object.__getattribute__(receipt, "fallback_authorized")),
+                ("fallback_executed", object.__getattribute__(receipt, "fallback_executed")),
+                ("candidate_count", object.__getattribute__(receipt, "candidate_count")),
+                ("supplied_count", object.__getattribute__(receipt, "supplied_count")),
+                ("support_count", object.__getattribute__(receipt, "support_count")),
+                ("call_performed", object.__getattribute__(receipt, "call_performed")),
+                ("prerequisite_sha256", object.__getattribute__(receipt, "prerequisite_sha256")),
+            )
+        },
+    }
+    if include_hash:
+        payload["receipt_sha256"] = object.__getattribute__(receipt, "receipt_sha256")
+    return payload
+
+
+def _validate_absence_confirmation_receipt_payload(
+    receipt: AbsenceConfirmationReceipt,
+) -> None:
+    if type(receipt) is not AbsenceConfirmationReceipt:
+        raise TypeError("absence_confirmation_receipt_required")
+    source_kind = object.__getattribute__(receipt, "source_kind")
+    reason = object.__getattribute__(receipt, "reason")
+    if (
+        object.__getattribute__(receipt, "stage") != "absence_confirmation"
+        or source_kind not in _SEMANTIC_SOURCE_KINDS
+        or reason not in _ABSENCE_REASONS
+        or object.__getattribute__(receipt, "execution_kind") not in {"production", "synthetic"}
+        or type(object.__getattribute__(receipt, "obligation_key")) is not str
+        or not object.__getattribute__(receipt, "obligation_key")
+    ):
+        raise ValueError("invalid_absence_confirmation_identity")
+    for name in (
+        "owner_binding_sha256", "owner_plan_sha256", "owner_plan_config_sha256",
+        "owner_budget_sha256", "source_receipt_sha256", "query_sha256",
+        "scope_sha256", "evidence_store_sha256", "execution_config_sha256",
+        "runtime_binding_sha256", "prerequisite_sha256", "receipt_sha256",
+    ):
+        _require_hash(object.__getattribute__(receipt, name), f"invalid_absence_{name}")
+    for name in (
+        "retrieval_obligation_sha256", "dense_receipt_sha256",
+        "lexical_receipt_sha256", "fusion_receipt_sha256",
+        "semantic_obligation_sha256", "semantic_receipt_sha256",
+        "followup_outcome_sha256", "primary_receipt_sha256",
+        "fallback_receipt_sha256",
+    ):
+        value = object.__getattribute__(receipt, name)
+        if value is not None:
+            _require_hash(value, f"invalid_absence_{name}")
+    scope_doc_ids = object.__getattribute__(receipt, "scope_doc_ids")
+    if not _exact_string_tuple(scope_doc_ids) or len(scope_doc_ids) != len(set(scope_doc_ids)):
+        raise ValueError("invalid_absence_scope_projection")
+    counts = tuple(
+        object.__getattribute__(receipt, name)
+        for name in ("candidate_count", "supplied_count", "support_count")
+    )
+    if any(type(value) is not int or value < 0 for value in counts):
+        raise ValueError("invalid_absence_confirmation_count")
+    retrieval_proof = tuple(
+        object.__getattribute__(receipt, name)
+        for name in (
+            "retrieval_obligation_sha256", "dense_receipt_sha256",
+            "lexical_receipt_sha256", "fusion_receipt_sha256",
+        )
+    )
+    semantic_proof = tuple(
+        object.__getattribute__(receipt, name)
+        for name in ("semantic_obligation_sha256", "semantic_receipt_sha256")
+    )
+    followup_proof = tuple(
+        object.__getattribute__(receipt, name)
+        for name in ("followup_outcome_sha256", "primary_receipt_sha256")
+    )
+    fallback_authorized = object.__getattribute__(receipt, "fallback_authorized")
+    fallback_executed = object.__getattribute__(receipt, "fallback_executed")
+    fallback_proof = object.__getattribute__(receipt, "fallback_receipt_sha256")
+    if reason == "bounded_no_candidate":
+        valid_matrix = (
+            source_kind in _RETRIEVAL_SOURCE_KINDS
+            and all(value is not None for value in retrieval_proof)
+            and all(value is None for value in semantic_proof + followup_proof)
+            and fallback_proof is None
+            and fallback_authorized is None
+            and fallback_executed is None
+            and counts == (0, 0, 0)
+        )
+    elif reason == "bounded_no_verified_support":
+        valid_matrix = (
+            all(value is None for value in retrieval_proof + followup_proof)
+            and all(value is not None for value in semantic_proof)
+            and fallback_proof is None
+            and fallback_authorized is None
+            and fallback_executed is None
+            and counts[1] > 0
+            and counts[2] == 0
+        )
+    else:
+        valid_matrix = (
+            source_kind == "follow_up"
+            and all(value is None for value in retrieval_proof + semantic_proof)
+            and all(value is not None for value in followup_proof)
+            and type(fallback_authorized) is bool
+            and type(fallback_executed) is bool
+            and fallback_executed is fallback_authorized
+            and (fallback_proof is not None) is fallback_authorized
+            and counts == (0, 0, 0)
+        )
+    if not valid_matrix or object.__getattribute__(receipt, "call_performed") is not False:
+        raise ValueError("absence_confirmation_proof_matrix_mismatch")
+    if object.__getattribute__(receipt, "receipt_sha256") != _canonical_sha256(
+        _absence_confirmation_receipt_payload(receipt, include_hash=False)
+    ):
+        raise ValueError("absence_confirmation_receipt_hash_mismatch")
+
+
+@dataclass(frozen=True, slots=True)
+class _AbsenceConfirmationAuthority:
+    receipt: AbsenceConfirmationReceipt
+    root_weak: ReferenceType[object]
+    prerequisite_weaks: tuple[ReferenceType[object], ...]
+    prerequisite_payload_sha256s: tuple[str, ...]
+    store_weak: ReferenceType[EvidenceStore]
+    config_weak: ReferenceType[HarnessExecutionConfig]
+    runtime_weak: ReferenceType[HarnessRuntimeBinding]
+    root_payload_sha256: str
+    owner_projection: tuple[str, str, str, str]
+    issued_payload_sha256: str
+
+
+_ABSENCE_CONFIRMATION_AUTHORITIES: dict[tuple[object, ...], _AbsenceConfirmationAuthority] = {}
+_ISSUED_ABSENCE_CONFIRMATION_AUTHORITIES = _ABSENCE_CONFIRMATION_AUTHORITIES
+
+
+def _build_absence_confirmation_authority_accessors(
+    visible: dict[tuple[object, ...], _AbsenceConfirmationAuthority],
+) -> tuple[FunctionType, FunctionType, FunctionType, FunctionType]:
+    """Seal the root-lifetime completion cache outside its visible audit map."""
+
+    shadow: dict[tuple[object, ...], tuple[object, ...]] = {}
+    known_keys: set[tuple[object, ...]] = set()
+    authority_lock = Lock()
+
+    def snapshot(authority: _AbsenceConfirmationAuthority) -> tuple[object, ...]:
+        return tuple(
+            object.__getattribute__(authority, name)
+            for name in _AbsenceConfirmationAuthority.__slots__
+        )
+
+    def validated_unlocked(
+        key: tuple[object, ...],
+    ) -> _AbsenceConfirmationAuthority | None:
+        current = dict.get(visible, key)
+        sealed = dict.get(shadow, key)
+        if current is None and sealed is None:
+            if key in known_keys:
+                raise ValueError("absence_confirmation_completion_authority_drift")
+            return None
+        if (
+            type(current) is not _AbsenceConfirmationAuthority
+            or type(sealed) is not tuple
+            or len(sealed) != len(_AbsenceConfirmationAuthority.__slots__)
+            or any(
+                object.__getattribute__(current, name) is not value
+                for name, value in zip(
+                    _AbsenceConfirmationAuthority.__slots__, sealed
+                )
+            )
+        ):
+            raise ValueError("absence_confirmation_completion_authority_drift")
+        return current
+
+    def register_or_read(
+        key: tuple[object, ...],
+        authority: _AbsenceConfirmationAuthority,
+    ) -> _AbsenceConfirmationAuthority:
+        with authority_lock:
+            current = validated_unlocked(key)
+            if current is not None:
+                return current
+            if type(authority) is not _AbsenceConfirmationAuthority:
+                raise TypeError("absence_confirmation_authority_required")
+            values = snapshot(authority)
+            dict.__setitem__(visible, key, authority)
+            dict.__setitem__(shadow, key, values)
+            known_keys.add(key)
+            return authority
+
+    def read(
+        key: tuple[object, ...],
+    ) -> _AbsenceConfirmationAuthority | None:
+        with authority_lock:
+            return validated_unlocked(key)
+
+    def find(receipt: AbsenceConfirmationReceipt) -> _AbsenceConfirmationAuthority:
+        with authority_lock:
+            if set(visible) != set(shadow) or set(visible) != known_keys:
+                raise ValueError("absence_confirmation_completion_authority_drift")
+            matched = None
+            for key in tuple(known_keys):
+                current = validated_unlocked(key)
+                if current is not None and object.__getattribute__(current, "receipt") is receipt:
+                    if matched is not None:
+                        raise ValueError("absence_confirmation_completion_authority_drift")
+                    matched = current
+            if matched is None:
+                raise ValueError("absence_confirmation_runtime_authority_required")
+            return matched
+
+    def drop_root(root_identity: int, dead: ReferenceType[object]) -> None:
+        with authority_lock:
+            for key in tuple(known_keys):
+                current = validated_unlocked(key)
+                if (
+                    current is not None
+                    and tuple.__getitem__(key, 0) == root_identity
+                    and object.__getattribute__(current, "root_weak") is dead
+                ):
+                    dict.pop(visible, key)
+                    dict.pop(shadow, key)
+                    known_keys.remove(key)
+
+    return register_or_read, read, find, drop_root
+
+
+(
+    _register_or_read_absence_confirmation_authority,
+    _read_absence_confirmation_authority,
+    _find_absence_confirmation_authority,
+    _drop_absence_confirmation_root,
+) = _build_absence_confirmation_authority_accessors(
+    _ISSUED_ABSENCE_CONFIRMATION_AUTHORITIES
+)
+
+
+def _mint_absence_confirmation_receipt(payload: Mapping[str, Any]) -> AbsenceConfirmationReceipt:
+    temporary = object.__new__(AbsenceConfirmationReceipt)
+    for name, value in payload.items():
+        object.__setattr__(temporary, name, value)
+    object.__setattr__(temporary, "receipt_sha256", "0" * 64)
+    sealed = dict(payload)
+    sealed["receipt_sha256"] = _canonical_sha256(
+        _absence_confirmation_receipt_payload(temporary, include_hash=False)
+    )
+    return AbsenceConfirmationReceipt._create(
+        payload=sealed, _token=_ABSENCE_CONFIRMATION_TOKEN
+    )
+
+
+def _absence_owner_projection(root: object) -> tuple[str, str, str, str, str, tuple[str, ...], str]:
+    plan = object.__getattribute__(root, "plan")
+    binding_sha256 = object.__getattribute__(root, "binding_sha256")
+    plan_sha256 = _canonical_sha256(plan.to_dict())
+    plan_config_sha256 = object.__getattribute__(plan, "config_sha256")
+    budget_sha256 = _canonical_sha256(object.__getattribute__(plan, "budget").to_dict())
+    query_sha256 = _query_sha256(object.__getattribute__(plan, "normalized_query"))
+    scope_doc_ids = object.__getattribute__(plan, "resolved_doc_ids")
+    scope_sha256 = _canonical_sha256(
+        {
+            "schema_version": SCHEMA_VERSION,
+            "state": object.__getattribute__(plan, "scope_state"),
+            "origin": object.__getattribute__(plan, "scope_origin"),
+            "doc_ids": list(scope_doc_ids),
+        }
+    )
+    for value, code in (
+        (binding_sha256, "invalid_absence_owner_binding"),
+        (plan_config_sha256, "invalid_absence_owner_plan_config"),
+    ):
+        _require_hash(value, code)
+    return (
+        binding_sha256, plan_sha256, plan_config_sha256, budget_sha256,
+        query_sha256, scope_doc_ids, scope_sha256,
+    )
+
+
+def _validate_cached_absence_confirmation_authority(
+    *,
+    authority: _AbsenceConfirmationAuthority,
+    root: object,
+    prerequisites: tuple[object, ...],
+    store: EvidenceStore,
+    config: HarnessExecutionConfig,
+    runtime: HarnessRuntimeBinding,
+    payload: Mapping[str, Any],
+) -> AbsenceConfirmationReceipt:
+    if type(authority) is not _AbsenceConfirmationAuthority:
+        raise TypeError("absence_confirmation_authority_required")
+    receipt = object.__getattribute__(authority, "receipt")
+    _validate_absence_confirmation_receipt_payload(receipt)
+    prerequisite_weaks = object.__getattribute__(authority, "prerequisite_weaks")
+    prerequisite_hashes = object.__getattribute__(
+        authority, "prerequisite_payload_sha256s"
+    )
+    if (
+        object.__getattribute__(authority, "root_weak")() is not root
+        or object.__getattribute__(authority, "store_weak")() is not store
+        or object.__getattribute__(authority, "config_weak")() is not config
+        or object.__getattribute__(authority, "runtime_weak")() is not runtime
+        or type(prerequisite_weaks) is not tuple
+        or type(prerequisite_hashes) is not tuple
+        or len(prerequisite_weaks) != len(prerequisites)
+        or len(prerequisite_hashes) != len(prerequisites)
+        or any(
+            weak() is not item
+            or _canonical_sha256(item.to_dict()) != prerequisite_hashes[index]
+            for index, (weak, item) in enumerate(
+                zip(prerequisite_weaks, prerequisites)
+            )
+        )
+        or object.__getattribute__(authority, "root_payload_sha256")
+        != _canonical_sha256(root.to_dict())
+        or object.__getattribute__(authority, "owner_projection")
+        != tuple(
+            payload[name]
+            for name in (
+                "owner_binding_sha256",
+                "owner_plan_sha256",
+                "owner_plan_config_sha256",
+                "owner_budget_sha256",
+            )
+        )
+        or any(
+            object.__getattribute__(receipt, name) != value
+            for name, value in payload.items()
+        )
+        or object.__getattribute__(authority, "issued_payload_sha256")
+        != _canonical_sha256(receipt.to_dict())
+    ):
+        raise ValueError("absence_confirmation_completion_authority_drift")
+    return receipt
+
+
+def _register_or_read_absence_confirmation(
+    *,
+    root: object,
+    prerequisites: tuple[object, ...],
+    store: EvidenceStore,
+    config: HarnessExecutionConfig,
+    runtime: HarnessRuntimeBinding,
+    payload: Mapping[str, Any],
+) -> AbsenceConfirmationReceipt:
+    prerequisite_sha256 = payload["prerequisite_sha256"]
+    key = (
+        id(root), payload["obligation_key"], payload["reason"], prerequisite_sha256,
+        id(store), id(config), id(runtime),
+    )
+    cached = _read_absence_confirmation_authority(key)
+    if cached is not None:
+        return _validate_cached_absence_confirmation_authority(
+            authority=cached,
+            root=root,
+            prerequisites=prerequisites,
+            store=store,
+            config=config,
+            runtime=runtime,
+            payload=payload,
+        )
+    receipt = _mint_absence_confirmation_receipt(payload)
+    root_identity = id(root)
+    root_weak = ref(
+        root,
+        lambda dead, root_identity=root_identity: _drop_absence_confirmation_root(
+            root_identity, dead
+        ),
+    )
+    authority = _AbsenceConfirmationAuthority(
+        receipt=receipt,
+        root_weak=root_weak,
+        prerequisite_weaks=tuple(ref(item) for item in prerequisites),
+        prerequisite_payload_sha256s=tuple(
+            _canonical_sha256(item.to_dict()) for item in prerequisites
+        ),
+        store_weak=ref(store),
+        config_weak=ref(config),
+        runtime_weak=ref(runtime),
+        root_payload_sha256=_canonical_sha256(root.to_dict()),
+        owner_projection=tuple(
+            payload[name]
+            for name in (
+                "owner_binding_sha256",
+                "owner_plan_sha256",
+                "owner_plan_config_sha256",
+                "owner_budget_sha256",
+            )
+        ),
+        issued_payload_sha256=_canonical_sha256(receipt.to_dict()),
+    )
+    current = _register_or_read_absence_confirmation_authority(key, authority)
+    return _validate_cached_absence_confirmation_authority(
+        authority=current,
+        root=root,
+        prerequisites=prerequisites,
+        store=store,
+        config=config,
+        runtime=runtime,
+        payload=payload,
+    )
+
+
+def issue_retrieval_absence_confirmation(
+    *,
+    obligation: RetrievalObligation,
+    dense_receipt: LaneSearchReceipt,
+    lexical_receipt: LaneSearchReceipt,
+    fusion_receipt: FusionReceipt,
+    store: EvidenceStore,
+    config: HarnessExecutionConfig,
+    runtime: HarnessRuntimeBinding,
+) -> AbsenceConfirmationReceipt:
+    """Issue ``bounded_no_candidate`` from one exact normal-empty lane pair."""
+
+    _ISSUED_RUNTIME_GATE_DEPENDENCY_CHECKER()
+    validate_fusion_receipt(
+        receipt=fusion_receipt,
+        obligation=obligation,
+        dense_receipt=dense_receipt,
+        lexical_receipt=lexical_receipt,
+        store=store,
+        config=config,
+        runtime=runtime,
+    )
+    if (
+        object.__getattribute__(dense_receipt, "outcome") != "empty"
+        or object.__getattribute__(lexical_receipt, "outcome") != "empty"
+        or object.__getattribute__(fusion_receipt, "outcome") != "empty"
+        or object.__getattribute__(dense_receipt, "candidate_count") != 0
+        or object.__getattribute__(lexical_receipt, "candidate_count") != 0
+        or object.__getattribute__(fusion_receipt, "candidate_count") != 0
+    ):
+        raise ValueError("retrieval_absence_requires_normal_empty_fusion")
+    retrieval_authority = _require_retrieval_obligation_authority(obligation)
+    root = object.__getattribute__(retrieval_authority, "source")
+    owner = _absence_owner_projection(root)
+    projected = object.__getattribute__(retrieval_authority, "source_projector")(
+        bound=root, store=store
+    )
+    projections = _normalized_owner_projections(
+        source_kind=object.__getattribute__(obligation, "source_kind"),
+        projected=projected,
+    )
+    source_projection = projections[
+        object.__getattribute__(retrieval_authority, "projection_ordinal") - 1
+    ]
+    if (
+        source_projection["obligation_key"]
+        != object.__getattribute__(obligation, "obligation_key")
+        or _query_sha256(source_projection["query"])
+        != object.__getattribute__(obligation, "query_sha256")
+        or source_projection["scope_doc_ids"]
+        != object.__getattribute__(obligation, "scope_doc_ids")
+        or source_projection["source_receipt_sha256"]
+        != object.__getattribute__(obligation, "source_receipt_sha256")
+    ):
+        raise ValueError("retrieval_absence_owner_projection_mismatch")
+    prerequisite_sha256 = _canonical_sha256(
+        {
+            "schema_version": SCHEMA_VERSION,
+            "reason": "bounded_no_candidate",
+            "retrieval_obligation_sha256": object.__getattribute__(obligation, "obligation_sha256"),
+            "dense_receipt_sha256": object.__getattribute__(dense_receipt, "receipt_sha256"),
+            "lexical_receipt_sha256": object.__getattribute__(lexical_receipt, "receipt_sha256"),
+            "fusion_receipt_sha256": object.__getattribute__(fusion_receipt, "receipt_sha256"),
+        }
+    )
+    payload = {
+        "stage": "absence_confirmation",
+        "source_kind": object.__getattribute__(obligation, "source_kind"),
+        "reason": "bounded_no_candidate",
+        "execution_kind": object.__getattribute__(obligation, "execution_kind"),
+        "obligation_key": object.__getattribute__(obligation, "obligation_key"),
+        "owner_binding_sha256": owner[0],
+        "owner_plan_sha256": owner[1],
+        "owner_plan_config_sha256": owner[2],
+        "owner_budget_sha256": owner[3],
+        "source_receipt_sha256": object.__getattribute__(obligation, "source_receipt_sha256"),
+        "query_sha256": object.__getattribute__(obligation, "query_sha256"),
+        "scope_doc_ids": object.__getattribute__(obligation, "scope_doc_ids"),
+        "scope_sha256": object.__getattribute__(obligation, "scope_sha256"),
+        "evidence_store_sha256": object.__getattribute__(store, "bundle_sha256"),
+        "execution_config_sha256": object.__getattribute__(config, "config_sha256"),
+        "runtime_binding_sha256": object.__getattribute__(runtime, "binding_sha256"),
+        "retrieval_obligation_sha256": object.__getattribute__(obligation, "obligation_sha256"),
+        "dense_receipt_sha256": object.__getattribute__(dense_receipt, "receipt_sha256"),
+        "lexical_receipt_sha256": object.__getattribute__(lexical_receipt, "receipt_sha256"),
+        "fusion_receipt_sha256": object.__getattribute__(fusion_receipt, "receipt_sha256"),
+        "semantic_obligation_sha256": None,
+        "semantic_receipt_sha256": None,
+        "followup_outcome_sha256": None,
+        "primary_receipt_sha256": None,
+        "fallback_receipt_sha256": None,
+        "fallback_authorized": None,
+        "fallback_executed": None,
+        "candidate_count": 0,
+        "supplied_count": 0,
+        "support_count": 0,
+        "call_performed": False,
+        "prerequisite_sha256": prerequisite_sha256,
+    }
+    return _register_or_read_absence_confirmation(
+        root=root,
+        prerequisites=(obligation, dense_receipt, lexical_receipt, fusion_receipt),
+        store=store,
+        config=config,
+        runtime=runtime,
+        payload=payload,
+    )
+
+
+def issue_semantic_absence_confirmation(
+    *,
+    obligation: SemanticVerificationObligation,
+    receipt: SemanticVerificationReceipt,
+    store: EvidenceStore,
+    config: HarnessExecutionConfig,
+    runtime: HarnessRuntimeBinding,
+) -> AbsenceConfirmationReceipt:
+    """Issue ``bounded_no_verified_support`` from an actual derived verify."""
+
+    _ISSUED_RUNTIME_GATE_DEPENDENCY_CHECKER()
+    if type(obligation) is not SemanticVerificationObligation:
+        raise TypeError("semantic_verification_obligation_required")
+    if type(receipt) is not SemanticVerificationReceipt:
+        raise TypeError("semantic_verification_receipt_required")
+    validate_semantic_verification_receipt(
+        receipt=receipt,
+        obligation=obligation,
+        store=store,
+        config=config,
+        runtime=runtime,
+    )
+    if (
+        object.__getattribute__(obligation, "derivation_kind") != "reranked"
+        or object.__getattribute__(receipt, "disposition") != "unsupported"
+        or object.__getattribute__(receipt, "call_performed") is not True
+        or not object.__getattribute__(obligation, "supplied_evidence_ids")
+        or object.__getattribute__(receipt, "verified_evidence_ids")
+        or object.__getattribute__(receipt, "contradicted_evidence_ids")
+        or object.__getattribute__(receipt, "values")
+    ):
+        raise ValueError("semantic_absence_requires_called_derived_unsupported")
+    semantic_authority = _validate_semantic_verification_obligation_exact(
+        obligation=obligation, store=store, config=config, runtime=runtime
+    )
+    receipt_authority = _read_semantic_receipt_authority(receipt)
+    if object.__getattribute__(receipt_authority, "obligation") is not obligation:
+        raise ValueError("semantic_absence_lineage_mismatch")
+    root = object.__getattribute__(semantic_authority, "source")
+    planning = object.__getattribute__(root, "planning")
+    owner_plan = object.__getattribute__(planning, "plan")
+    owner_plan_sha256 = _canonical_sha256(owner_plan.to_dict())
+    owner_plan_config_sha256 = object.__getattribute__(owner_plan, "config_sha256")
+    retrieval = object.__getattribute__(semantic_authority, "retrieval_obligation")
+    expected_owner_binding_sha256 = (
+        object.__getattribute__(root, "binding_sha256")
+        if retrieval is None
+        else object.__getattribute__(retrieval, "execution_binding_sha256")
+    )
+    if (
+        owner_plan_sha256
+        != object.__getattribute__(obligation, "owner_plan_sha256")
+        or owner_plan_config_sha256
+        != object.__getattribute__(obligation, "owner_plan_config_sha256")
+        or expected_owner_binding_sha256
+        != object.__getattribute__(obligation, "owner_binding_sha256")
+    ):
+        raise ValueError("semantic_absence_owner_projection_mismatch")
+    if retrieval is not None:
+        scope_doc_ids = object.__getattribute__(retrieval, "scope_doc_ids")
+        scope_sha256 = object.__getattribute__(retrieval, "scope_sha256")
+    else:
+        scope_doc_ids = object.__getattribute__(owner_plan, "resolved_doc_ids")
+        scope_sha256 = _canonical_sha256(
+            {
+                "schema_version": SCHEMA_VERSION,
+                "state": object.__getattribute__(owner_plan, "scope_state"),
+                "origin": object.__getattribute__(owner_plan, "scope_origin"),
+                "doc_ids": list(scope_doc_ids),
+            }
+        )
+    prerequisite_sha256 = _canonical_sha256(
+        {
+            "schema_version": SCHEMA_VERSION,
+            "reason": "bounded_no_verified_support",
+            "semantic_obligation_sha256": object.__getattribute__(obligation, "obligation_sha256"),
+            "semantic_receipt_sha256": object.__getattribute__(receipt, "receipt_sha256"),
+        }
+    )
+    payload = {
+        "stage": "absence_confirmation",
+        "source_kind": object.__getattribute__(obligation, "source_kind"),
+        "reason": "bounded_no_verified_support",
+        "execution_kind": object.__getattribute__(obligation, "execution_kind"),
+        "obligation_key": object.__getattribute__(obligation, "obligation_key"),
+        "owner_binding_sha256": object.__getattribute__(obligation, "owner_binding_sha256"),
+        "owner_plan_sha256": owner_plan_sha256,
+        "owner_plan_config_sha256": owner_plan_config_sha256,
+        "owner_budget_sha256": _canonical_sha256(object.__getattribute__(owner_plan, "budget").to_dict()),
+        "source_receipt_sha256": object.__getattribute__(obligation, "candidate_receipt_sha256"),
+        "query_sha256": object.__getattribute__(obligation, "query_sha256"),
+        "scope_doc_ids": scope_doc_ids,
+        "scope_sha256": scope_sha256,
+        "evidence_store_sha256": object.__getattribute__(store, "bundle_sha256"),
+        "execution_config_sha256": object.__getattribute__(config, "config_sha256"),
+        "runtime_binding_sha256": object.__getattribute__(runtime, "binding_sha256"),
+        "retrieval_obligation_sha256": None,
+        "dense_receipt_sha256": None,
+        "lexical_receipt_sha256": None,
+        "fusion_receipt_sha256": None,
+        "semantic_obligation_sha256": object.__getattribute__(obligation, "obligation_sha256"),
+        "semantic_receipt_sha256": object.__getattribute__(receipt, "receipt_sha256"),
+        "followup_outcome_sha256": None,
+        "primary_receipt_sha256": None,
+        "fallback_receipt_sha256": None,
+        "fallback_authorized": None,
+        "fallback_executed": None,
+        "candidate_count": len(object.__getattribute__(obligation, "candidate_evidence_ids")),
+        "supplied_count": len(object.__getattribute__(obligation, "supplied_evidence_ids")),
+        "support_count": 0,
+        "call_performed": False,
+        "prerequisite_sha256": prerequisite_sha256,
+    }
+    return _register_or_read_absence_confirmation(
+        root=root,
+        prerequisites=(obligation, receipt),
+        store=store,
+        config=config,
+        runtime=runtime,
+        payload=payload,
+    )
+
+
+def issue_followup_absence_confirmation(
+    *,
+    bound: BoundFollowup,
+    outcome: FollowupRetrievalOutcome,
+    obligation_key: str,
+    store: EvidenceStore,
+    registry: RuleRegistry,
+    policy: FollowupEvidencePolicy,
+    config: HarnessExecutionConfig,
+    runtime: HarnessRuntimeBinding,
+) -> AbsenceConfirmationReceipt:
+    """Issue exhaustion only for an empty target across approved follow-up paths."""
+
+    _ISSUED_RUNTIME_GATE_DEPENDENCY_CHECKER()
+    _semantic_common_preflight(store=store, config=config, runtime=runtime)
+    if type(bound) is not BoundFollowup:
+        raise TypeError("bound_followup_required")
+    if type(outcome) is not FollowupRetrievalOutcome:
+        raise TypeError("followup_retrieval_outcome_required")
+    plan = object.__getattribute__(bound, "plan")
+    if (
+        object.__getattribute__(plan, "scope_state") != "restricted"
+        or not object.__getattribute__(plan, "resolved_doc_ids")
+        or object.__getattribute__(plan, "unresolved_constraints")
+        or object.__getattribute__(plan, "metadata_predicates")
+    ):
+        raise ValueError("followup_absence_resolved_scope_required")
+    state = build_e1_followup_harness_state(
+        bound=bound,
+        outcome=outcome,
+        store=store,
+        registry=registry,
+        policy=policy,
+    )
+    validate_harness_state(state=state, store=store)
+    bound_execution_kind = object.__getattribute__(
+        object.__getattribute__(
+            object.__getattribute__(bound, "planning"), "trace"
+        ),
+        "execution_kind",
+    )
+    validate_harness_runtime_binding(
+        binding=runtime,
+        store=store,
+        expected_execution_kind=bound_execution_kind,
+    )
+    if type(obligation_key) is not str or not obligation_key:
+        raise ValueError("invalid_followup_absence_obligation_key")
+    entry = next(
+        (
+            item
+            for item in object.__getattribute__(
+                object.__getattribute__(state, "belief"), "evidence_map"
+            )
+            if object.__getattribute__(item, "obligation_key") == obligation_key
+        ),
+        None,
+    )
+    if entry is None:
+        raise ValueError("unknown_followup_absence_obligation_key")
+    if (
+        object.__getattribute__(entry, "candidate_evidence_ids")
+        or object.__getattribute__(entry, "observation_stage") != "provisional_missing"
+    ):
+        raise ValueError("followup_absence_target_candidate_present")
+    primary = object.__getattribute__(outcome, "primary")
+    fallback = object.__getattribute__(outcome, "fallback")
+    trace = object.__getattribute__(outcome, "trace")
+    fallback_authorized = object.__getattribute__(trace, "fallback_authorized")
+    fallback_executed = object.__getattribute__(trace, "fallback_executed")
+    if (
+        object.__getattribute__(primary, "retriever_called") is not True
+        or object.__getattribute__(outcome, "progress").sufficient
+        or type(fallback_authorized) is not bool
+        or type(fallback_executed) is not bool
+        or fallback_executed is not fallback_authorized
+        or (fallback is not None) is not fallback_authorized
+        or (
+            fallback is not None
+            and object.__getattribute__(fallback, "retriever_called") is not True
+        )
+    ):
+        raise ValueError("followup_absence_approved_paths_incomplete")
+    outcome_sha256 = _canonical_sha256(outcome.to_dict())
+    primary_sha256 = object.__getattribute__(primary, "result_sha256")
+    fallback_sha256 = (
+        None
+        if fallback is None
+        else object.__getattribute__(fallback, "result_sha256")
+    )
+    prerequisite_sha256 = _canonical_sha256(
+        {
+            "schema_version": SCHEMA_VERSION,
+            "reason": "followup_approved_paths_exhausted",
+            "obligation_key": obligation_key,
+            "source_state_sha256": object.__getattribute__(state, "state_sha256"),
+            "followup_outcome_sha256": outcome_sha256,
+            "primary_receipt_sha256": primary_sha256,
+            "fallback_receipt_sha256": fallback_sha256,
+        }
+    )
+    owner = _absence_owner_projection(bound)
+    payload = {
+        "stage": "absence_confirmation",
+        "source_kind": "follow_up",
+        "reason": "followup_approved_paths_exhausted",
+        "execution_kind": bound_execution_kind,
+        "obligation_key": obligation_key,
+        "owner_binding_sha256": owner[0],
+        "owner_plan_sha256": owner[1],
+        "owner_plan_config_sha256": owner[2],
+        "owner_budget_sha256": owner[3],
+        "source_receipt_sha256": outcome_sha256,
+        "query_sha256": owner[4],
+        "scope_doc_ids": owner[5],
+        "scope_sha256": owner[6],
+        "evidence_store_sha256": object.__getattribute__(store, "bundle_sha256"),
+        "execution_config_sha256": object.__getattribute__(config, "config_sha256"),
+        "runtime_binding_sha256": object.__getattribute__(runtime, "binding_sha256"),
+        "retrieval_obligation_sha256": None,
+        "dense_receipt_sha256": None,
+        "lexical_receipt_sha256": None,
+        "fusion_receipt_sha256": None,
+        "semantic_obligation_sha256": None,
+        "semantic_receipt_sha256": None,
+        "followup_outcome_sha256": outcome_sha256,
+        "primary_receipt_sha256": primary_sha256,
+        "fallback_receipt_sha256": fallback_sha256,
+        "fallback_authorized": fallback_authorized,
+        "fallback_executed": fallback_executed,
+        "candidate_count": 0,
+        "supplied_count": 0,
+        "support_count": 0,
+        "call_performed": False,
+        "prerequisite_sha256": prerequisite_sha256,
+    }
+    prerequisites = (outcome, primary) + (() if fallback is None else (fallback,))
+    return _register_or_read_absence_confirmation(
+        root=bound,
+        prerequisites=prerequisites,
+        store=store,
+        config=config,
+        runtime=runtime,
+        payload=payload,
+    )
+
+
+def validate_absence_confirmation_receipt(
+    *,
+    receipt: AbsenceConfirmationReceipt,
+    store: EvidenceStore,
+    config: HarnessExecutionConfig,
+    runtime: HarnessRuntimeBinding,
+) -> None:
+    """Purely audit an issued receipt without invoking any execution capability."""
+
+    _ISSUED_RUNTIME_GATE_DEPENDENCY_CHECKER()
+    _validate_absence_confirmation_receipt_payload(receipt)
+    validate_harness_execution_config(config)
+    validate_harness_runtime_binding(binding=runtime, store=store)
+    match = _find_absence_confirmation_authority(receipt)
+    root = match.root_weak()
+    live_prerequisites = tuple(weak() for weak in match.prerequisite_weaks)
+    expected_types: tuple[type, ...]
+    if object.__getattribute__(receipt, "reason") == "bounded_no_candidate":
+        expected_types = (
+            RetrievalObligation,
+            LaneSearchReceipt,
+            LaneSearchReceipt,
+            FusionReceipt,
+        )
+    elif object.__getattribute__(receipt, "reason") == "bounded_no_verified_support":
+        expected_types = (
+            SemanticVerificationObligation,
+            SemanticVerificationReceipt,
+        )
+    else:
+        expected_types = (
+            FollowupRetrievalOutcome,
+            FollowupRetrievalAttempt,
+        ) + (
+            (FollowupRetrievalAttempt,)
+            if object.__getattribute__(receipt, "fallback_authorized")
+            else ()
+        )
+    if (
+        len(match.prerequisite_payload_sha256s) != len(live_prerequisites)
+        or len(expected_types) != len(live_prerequisites)
+        or any(
+            item is not None
+            and (
+                type(item) is not expected_types[index]
+                or _canonical_sha256(item.to_dict())
+                != match.prerequisite_payload_sha256s[index]
+            )
+            for index, item in enumerate(live_prerequisites)
+        )
+    ):
+        raise ValueError("absence_confirmation_prerequisite_drift")
+    if (
+        root is None
+        or match.store_weak() is not store
+        or match.config_weak() is not config
+        or match.runtime_weak() is not runtime
+        or match.root_payload_sha256 != _canonical_sha256(root.to_dict())
+        or match.issued_payload_sha256 != _canonical_sha256(receipt.to_dict())
+        or object.__getattribute__(receipt, "evidence_store_sha256") != object.__getattribute__(store, "bundle_sha256")
+        or object.__getattribute__(receipt, "execution_config_sha256") != object.__getattribute__(config, "config_sha256")
+        or object.__getattribute__(receipt, "runtime_binding_sha256") != object.__getattribute__(runtime, "binding_sha256")
+        or match.owner_projection != (
+            object.__getattribute__(receipt, "owner_binding_sha256"),
+            object.__getattribute__(receipt, "owner_plan_sha256"),
+            object.__getattribute__(receipt, "owner_plan_config_sha256"),
+            object.__getattribute__(receipt, "owner_budget_sha256"),
+        )
+    ):
+        raise ValueError("absence_confirmation_runtime_authority_drift")
+
+
 (
     _claim_e0_execution,
     _close_e0_execution,
@@ -13478,6 +14456,63 @@ _RUNTIME_GATE_FUNCTION_PINS = tuple(
             "validate_semantic_verification_receipt",
             validate_semantic_verification_receipt,
         ),
+        (
+            "_absence_confirmation_receipt_payload",
+            _absence_confirmation_receipt_payload,
+        ),
+        (
+            "_validate_absence_confirmation_receipt_payload",
+            _validate_absence_confirmation_receipt_payload,
+        ),
+        (
+            "_build_absence_confirmation_authority_accessors",
+            _build_absence_confirmation_authority_accessors,
+        ),
+        (
+            "_register_or_read_absence_confirmation_authority",
+            _register_or_read_absence_confirmation_authority,
+        ),
+        (
+            "_read_absence_confirmation_authority",
+            _read_absence_confirmation_authority,
+        ),
+        (
+            "_find_absence_confirmation_authority",
+            _find_absence_confirmation_authority,
+        ),
+        (
+            "_drop_absence_confirmation_root",
+            _drop_absence_confirmation_root,
+        ),
+        (
+            "_mint_absence_confirmation_receipt",
+            _mint_absence_confirmation_receipt,
+        ),
+        ("_absence_owner_projection", _absence_owner_projection),
+        (
+            "_validate_cached_absence_confirmation_authority",
+            _validate_cached_absence_confirmation_authority,
+        ),
+        (
+            "_register_or_read_absence_confirmation",
+            _register_or_read_absence_confirmation,
+        ),
+        (
+            "issue_retrieval_absence_confirmation",
+            issue_retrieval_absence_confirmation,
+        ),
+        (
+            "issue_semantic_absence_confirmation",
+            issue_semantic_absence_confirmation,
+        ),
+        (
+            "issue_followup_absence_confirmation",
+            issue_followup_absence_confirmation,
+        ),
+        (
+            "validate_absence_confirmation_receipt",
+            validate_absence_confirmation_receipt,
+        ),
     )
 )
 _ISSUED_RUNTIME_GATE_FUNCTION_PINS = _RUNTIME_GATE_FUNCTION_PINS
@@ -13515,6 +14550,7 @@ _RUNTIME_GATE_OBJECT_PINS = (
     ("RuleRegistry", RuleRegistry, type),
     ("BoundFollowup", BoundFollowup, type),
     ("FollowupEvidencePolicy", FollowupEvidencePolicy, type),
+    ("FollowupRetrievalAttempt", FollowupRetrievalAttempt, type),
     ("FollowupRetrievalOutcome", FollowupRetrievalOutcome, type),
     ("HarnessState", HarnessState, type),
     ("SemanticValueSupport", SemanticValueSupport, type),
@@ -13670,6 +14706,16 @@ _RUNTIME_GATE_OBJECT_PINS = (
         dict,
     ),
     (
+        "_ABSENCE_CONFIRMATION_AUTHORITIES",
+        _ISSUED_ABSENCE_CONFIRMATION_AUTHORITIES,
+        dict,
+    ),
+    (
+        "_ISSUED_ABSENCE_CONFIRMATION_AUTHORITIES",
+        _ISSUED_ABSENCE_CONFIRMATION_AUTHORITIES,
+        dict,
+    ),
+    (
         "_PARENT_CONTEXT_RECEIPT_AUTHORITIES",
         _ISSUED_PARENT_CONTEXT_RECEIPT_AUTHORITIES,
         dict,
@@ -13735,6 +14781,7 @@ _RUNTIME_GATE_OBJECT_PINS = (
     ("_BRIDGE_CONTEXT_RECEIPT_TOKEN", _BRIDGE_CONTEXT_RECEIPT_TOKEN, object),
     ("_RERANK_RECEIPT_TOKEN", _RERANK_RECEIPT_TOKEN, object),
     ("_RERANK_REQUEST_TOKEN", _RERANK_REQUEST_TOKEN, object),
+    ("_ABSENCE_CONFIRMATION_TOKEN", _ABSENCE_CONFIRMATION_TOKEN, object),
     ("_LOCK_TYPE", _LOCK_TYPE, type),
     (
         "_RETRIEVAL_OWNER_SPECS",
@@ -13767,6 +14814,7 @@ _RUNTIME_GATE_OBJECT_PINS = (
     ("_SEMANTIC_TARGET_KINDS", _SEMANTIC_TARGET_KINDS, frozenset),
     ("_SEMANTIC_ROLES", _SEMANTIC_ROLES, frozenset),
     ("_SEMANTIC_DISPOSITIONS", _SEMANTIC_DISPOSITIONS, frozenset),
+    ("_ABSENCE_REASONS", _ABSENCE_REASONS, frozenset),
     ("_CONTEXT_BRIDGE_KIND_PAIRS", _CONTEXT_BRIDGE_KIND_PAIRS, tuple),
     ("_CONTEXT_PENDING", _CONTEXT_PENDING, object),
     ("_CONTEXT_COMPLETED", _CONTEXT_COMPLETED, object),
@@ -14218,6 +15266,19 @@ _RUNTIME_GATE_CLASS_PINS = (
         _SemanticVerificationReceiptAuthority,
         ("__init__",),
     ),
+    _runtime_gate_class_pin(
+        AbsenceConfirmationReceipt,
+        (
+            "__init__",
+            "__copy__",
+            "__deepcopy__",
+            "__reduce__",
+            "__reduce_ex__",
+            "_create",
+            "to_dict",
+        ),
+    ),
+    _runtime_gate_class_pin(_AbsenceConfirmationAuthority, ("__init__",)),
 )
 _ISSUED_RUNTIME_GATE_CLASS_PINS = _RUNTIME_GATE_CLASS_PINS
 _RUNTIME_GATE_DEPENDENCY_DEFAULTS = (
@@ -14237,6 +15298,7 @@ _validate_runtime_gate_dependencies.__defaults__ = (
 
 
 __all__ = (
+    "AbsenceConfirmationReceipt",
     "BridgeContextReceipt",
     "E0ControlReceipt",
     "E0ObligationResult",
@@ -14265,6 +15327,9 @@ __all__ = (
     "issue_followup_semantic_verification_obligation",
     "issue_parent_context_receipts",
     "issue_derived_semantic_verification_obligation",
+    "issue_retrieval_absence_confirmation",
+    "issue_semantic_absence_confirmation",
+    "issue_followup_absence_confirmation",
     "validate_bridge_context_receipt",
     "validate_harness_execution_config",
     "validate_harness_runtime_binding",
@@ -14276,4 +15341,5 @@ __all__ = (
     "validate_retrieval_obligation",
     "validate_semantic_verification_obligation",
     "validate_semantic_verification_receipt",
+    "validate_absence_confirmation_receipt",
 )

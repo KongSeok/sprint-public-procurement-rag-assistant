@@ -1,7 +1,7 @@
 # Local RAG Baseline → Evidence-Harness Challenger 평가 진행 보고서
 
 
-기준: 2026-09-05 · 현재 작업대 `feat/total-integration` · EH2.6.c3.2 완료 시점
+기준: 2026-09-05 · 현재 작업대 `feat/total-integration` · EH2.6.c3.3 완료 시점
 최종 통합 대상: `feat/local-qwen-mini131-eval`
 
 > **고정된 목적:** 기존 local KURE page-v1 RAG baseline은 최종 구조가 아니라 비교를 위한 control이다. GPT retrieval 연구,
@@ -20,13 +20,13 @@
 | --- | --- | --- | --- |
 | 주 비교 통제군 B0 | KURE page-v1 + local Qwen 계열 | Mac-equivalent 측정 완료·provisional | local-first retrieval 비교의 authoritative control. 계속 보존한다. |
 | 별도 API arm | `text-embedding-3-small` + `gpt-5-nano` + Streamlit | 사용자-facing 호환 경로 | API-first는 과거 구현 순서이며 local control을 대체하지 않는다. |
-| 현재 개발 대상 | `feat/total-integration`의 Evidence-Harness challenger | EH2.6.c3.2까지 구현 | E0 검색, follow-up 초기 투영, semantic·context·ID-less rerank/derived semantic까지 완료. absence/effect/reducer/생성 E2E는 미완성이다. |
+| 현재 개발 대상 | `feat/total-integration`의 Evidence-Harness challenger | EH2.6.c3.3까지 구현 | E0 검색, follow-up 초기 투영, semantic·context·ID-less rerank/derived semantic, bounded absence까지 완료. effect/reducer/생성 E2E는 미완성이다. |
 | 최종 전달 대상 | `feat/local-qwen-mini131-eval` | 병합·선택 전 | 같은 Evidence Pack 뒤에서 local/API generator를 갈아 끼운다. |
 | 최종 선택 | baseline 대 assembled challenger | **미실행·미선정** | 동일 골든셋 A/B와 gate/Pareto 판정 뒤 결정한다. |
 
 따라서 **현재 비교할 때 쓰는 것은 local baseline**, **현재 만드는 것은 challenger**, **나중에 기본으로 쓸 것은
-아직 미정**이다. EH2.6.c3.2 작업은 실제 API를 실행한 것이 아니라 API·모델·Langfuse 호출 0회의
-synthetic/offline rerank·derived-semantic 계약 조립·검증 단계다.
+아직 미정**이다. EH2.6.c3.3 작업은 실제 API를 실행한 것이 아니라 API·모델·Langfuse 호출 0회의
+synthetic/offline absence·follow-up exact-once 계약 조립·검증 단계다.
 
 ### 현재 relay 판정
 
@@ -36,7 +36,10 @@ synthetic/offline rerank·derived-semantic 계약 조립·검증 단계다.
 | --- | ---: | --- | --- |
 | EH2.6.c3.1 | 10 | DONE | MATCHED — bounded parent/bridge source receipt와 root-lifetime replay guard 완료 |
 | EH2.6.c3.2 | 10 | DONE | MATCHED — ID-less rerank, global role order, owner budget, derived semantic/route one-shot 완료 |
-| EH2.6.c3.3 | 8 | SELECTED | GAP — bounded zero-provider absence receipt |
+| EH2.6.c3.3 | 8 | DONE | MATCHED — three-reason bounded zero-provider absence와 follow-up root-lifetime exact-once 완료 |
+| EH2.6.c3.4 | 9 | SELECTED | GAP — closed ActionEffectReceipt DTO/validator, public mint fail-closed |
+| EH2.6.c3.5 | 8 | WAIT | GAP — c3.4 뒤 authority/replay/nonpromotion focused gate |
+| EH2.6.d1 | 8 | WAIT | GAP — c3 순서 완료 뒤 execution aggregate |
 | EH2.6.c4 | 7 | BLOCKED | GAP — d2 controller decision permit 선행 필요 |
 | EH2.EVAL.4 | 5 | WAIT | GAP — 사람 승인·private qrels 선행 필요 |
 
@@ -140,7 +143,8 @@ Mini131 결과와 unit/full regression은 출발점·안전성 증거지만 새 
 | DONE | semantic 검증 receipt | source-derived target, exact one-call, typed support/contradiction, zero-call unavailable, state-free receipt | EH2.6.c3 effect/absence |
 | DONE | parent/bridge source receipt | candidate-only bounded seed, parent context-only, table/figure actual link와 empty attempt, root-source replay 방지 | 회귀 유지 |
 | DONE | rerank/derived semantic | ID-less strict ABI, cross-role global order, exact owner budget, auxiliary parent 비승격, base/derived route 단일 소비 | EH2.6.c3.3 absence |
-| NOT DONE | 상태 전이·종료 | effect/absence/reducer/bounded controller가 없음 | EH2.6.c3~e, EH2.G |
+| DONE | bounded absence | 세 owner-derived reason, exact proof matrix, zero-provider·state-free receipt, follow-up exact-once | EH2.6.c3.4 effect DTO |
+| NOT DONE | 상태 전이·종료 | effect DTO/mint, reducer, bounded controller가 없음 | EH2.6.c3.4~e, EH2.G |
 | NOT DONE | 전문 lane E2E | analytics/list/table/figure가 controller 밖 | EH3.1~EH3.G |
 | NOT DONE | 생성·평가 조립 | reranker/generator/CLI/layer evaluator 미완성 | EH4.1~EH4.G |
 | NOT DONE | 공정 비교 동결 | 공통 freeze receipt와 threshold 미동결 | EXP-SELECT.2 |
@@ -149,7 +153,7 @@ Mini131 결과와 unit/full regression은 출발점·안전성 증거지만 새 
 
 ## 다음 실행 순서
 
-1. EH2.6.c3.3 bounded absence부터 decision-bound effect→bounded E1 controller를 순차 완성한다.
+1. EH2.6.c3.4 closed effect DTO부터 decision-bound effect→bounded E1 controller를 순차 완성한다.
 2. EH3에서 catalog/analytics/list/table/figure specialist를 같은 evidence contract에 연결한다.
 3. EH4에서 identity/reranker, local/API generator adapter, CLI와 계층별 evaluator를 완성한다.
 4. baseline·local control·challenger의 corpus/gold/qrels/judge/budget/hash와 metric threshold를 동결한다.
@@ -159,11 +163,13 @@ Mini131 결과와 unit/full regression은 출발점·안전성 증거지만 새 
 
 ## 검증 상태
 
-- EH2.6.c3.2 focused 9/9, semantic/retrieval/action/state 관련 회귀 128/128, 전체 회귀 1,229/1,229 PASS.
-- c3.2 과정의 API/OpenAI/model-provider/Langfuse 호출은 0이며 synthetic/offline fixture만 사용했다.
+- EH2.6.c3.3 focused 67/67, semantic/retrieval/action/state 관련 회귀 192/192 PASS.
+- 전체 회귀는 권한 환경에서 1,267/1,267, repository safety는 858파일 PASS다. c3.3 과정의
+  API/OpenAI/model-provider/Langfuse 호출은 0이고 synthetic/offline fixture만 사용했다.
 - 이 수치는 구현 무결성 결과이며 retrieval 성능 향상 수치가 아니다.
-- current Mermaid PNG 재생성·직접 시각 검사와 HTML 로컬 자산/상태 참조 확인 PASS.
+- current/target Mermaid PNG 재생성·직접 시각 검사와 HTML 로컬 자산/상태 참조 확인 PASS.
 - 설치된 Chrome+bundled Playwright desktop/mobile QA: images2, tables8, page errors0, mobile overflow0 PASS.
+  증거: `../../test/playwright-screenshots/evidence-harness-progress-eh26-c3-3-2026-09-05.png`.
 - repository safety 854 files PASS.
 
 판정: **실험 방향은 고정됐고 challenger 골격은 부분 구현됐지만, 동일 골든셋 성능 비교와 최종 아키텍처
