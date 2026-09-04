@@ -672,6 +672,12 @@ parent/child 혼합, 골든 값 의존을 검출한다. 정확한 새 파일/메
   EH2.5 follow-up state가 verified/stop으로 보이더라도 E1 시작 상태로 직접 사용할 수 없다. 실제
   `ControllerDecisionReceipt`는 `HarnessState + ExecutionLedger`에서 allowed
   action을 다시 계산하고 직전 `transition_sha256`에 연결한다.
+- EH2.6 runtime authority는 무결성 경계이지 Python sandbox가 아니다. 공개 입력 위조, 동일 payload clone,
+  발급 후 object drift, mutable public dependency alias와 단일 private registry/pin drift는 호출 전에
+  fail-closed한다. 반면 동일 프로세스에서 여러 private module registry 또는 closure cell을 함께 고쳐
+  구현과 검증 root를 동시에 교체할 수 있는 arbitrary-code 실행은 구현 자체 패치와 같으므로 비범위다.
+  그 위협은 배포 process isolation과 repository artifact 검증이 담당하며, runtime DTO 회귀의 P1로
+  무한 확장하지 않는다.
 - E1은 `fact`, `compare`, `follow_up`을 지원한다. `BoundFact`는 동일 request를 동일 planner로 replay해
   fact plan/catalog/config/store identity를 봉인하고 `$answer_support` 하나가 unsearched인 초기 state를
   만든다. restricted scope의 모든 doc ID가 sealed catalog universe와 exact live `EvidenceStore` 양쪽에

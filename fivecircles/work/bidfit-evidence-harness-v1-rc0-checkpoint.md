@@ -1,6 +1,6 @@
 # EH-RC0 재개 체크포인트
 
-갱신: 2026-09-05 · EH2.6.b5 gate 완료, 다음 READY는 EH2.6.c1. 토큰 절약을 위해 이 문서의 한눈에 보는 상태와 계약 §16.10부터 읽기.
+갱신: 2026-09-05 · EH2.6.c1 완료, 다음 READY는 EH2.6.c2. 토큰 절약을 위해 이 문서의 한눈에 보는 상태와 계약 §16.10부터 읽기.
 
 ## 중단/애매함 발생 시
 
@@ -21,19 +21,18 @@
   후속 전체 범위의 선택 commit·검증이 끝난 뒤 `feat/local-qwen-mini131-eval`에 병합한다.
   새 브랜치는 만들지 않는다.
 - 완료: EH-A.1~3 감사·기준선·계약/flow 초안. 805 tests PASS, 실패/skip 0 (변경 전).
-- 현재 IN_PROGRESS: **Phase 2**. EH2.1~2.5와 EH2.6.a~b5 PASS. 다음 leaf는 EH2.3의 verified 주장을
-  candidate로 낮추고 follow-up 실제 slot에 retrieval outcome을 투영하는 `EH2.6.c1`이다.
+- 현재 IN_PROGRESS: **Phase 2**. EH2.1~2.5와 EH2.6.a~c1 PASS. 다음 leaf는 exact runtime verifier만
+  supplied evidence의 support/value/contradiction을 발급하게 하는 `EH2.6.c2`다.
 - 기존 평가 Batch 2의 활성 책임은 `EH2.EVAL`로 통합했다. EVAL.1~3은 완료, 사람 승인·qrels 보강과
   sealed held-out 실행은 EVAL.4~6에 남아 있으며 EH2 runtime에는 gold 값을 주입하지 않는다.
 - blocker: 없음. 실제 생성/API 호출은 계속 0이며 Phase 2는 provider-free 합성 테스트로 진행한다.
-- 직전 코드 상태: EH2.6.b3 copied-globals provenance repair를 닫고, b4에서 same-round
-  `FusionReceipt`와 state-free `E0ControlReceipt`를 구현했다. obligation마다 dense→lexical→fusion을 끝낸 뒤
-  다음 obligation으로 이동하고, post-provider child validator 재검증, closure-cell identity pin,
-  receipt GC와 독립적인 ledger-lifetime dual immutable history로 replay를 차단한다. focused27,
-  b3+b4 64, 관련214, 전체1,175 PASS와 독립 최종 APPROVE를 받았다. API·Langfuse·실제
-  model/provider 호출은 0이다. b5는 이 production surface를 바꾸지 않고 lexical-only rescue,
-  fact all-empty state-free 완료, pre-call zero-dispatch, provider-error lexical diagnostic/no-fusion을
-  전용 4건과 public validator·비누출 assertion으로 고정했다.
+- 직전 코드 상태: EH2.6.c1은 기존 EH2.5 compatibility builder를 바꾸지 않고 전용
+  `build_e1_followup_harness_state`를 추가했다. 이미 완료된 follow-up primary/fallback 후보를 추가 검색 없이
+  primary-first dedupe하고, `$answer_support`에는 전체 후보, 실제 slot에는 같은 sealed-store `doc_id` 후보만
+  투영한다. 기존 verified 주장은 모두 candidate로 낮추며 초기 coverage=0, all-open, stop=false다.
+  metadata predicate는 filtered-scope receipt 전까지 fail-closed한다. public extra/gold 입력, outcome/store clone,
+  발급 후 drift와 단일 private pin/registry drift를 차단했고 focused7·관련60·독립 리뷰 3건 APPROVE다.
+  API·Langfuse·실제 model/provider 호출은 0이다.
   EH2.6 controller 전체 구현·실행 완료 주장이 아니며 원샷 전체는 미완료다.
 
 ## 완료된 첫 leaf 참고: EH0.1.a (현재 작업 아님)
@@ -87,6 +86,7 @@
 | EH2.6.b3 | COMPLETED | exact code+module namespace provenance로 copied-globals clone 차단. b4와 함께 focused64/related214/full1175, 독립 재리뷰 PASS |
 | EH2.6.b4 | COMPLETED | stage-4 same-round FusionReceipt + state-free E0 control; post-provider validation, strict obligation order, closure-cell/dual-history replay 방어. focused27/full1175, API·model·Langfuse 0; 다음 EH2.6.b5 |
 | EH2.6.b5 | COMPLETED | b3/b4 production 변경 없이 lexical-only rescue, fact empty state-free, pre-call zero-dispatch, provider-error diagnostic/no-fusion. focused4/b3~b5 68/related218/full1179/safety829 PASS; 다음 EH2.6.c1 |
+| EH2.6.c1 | COMPLETED | follow-up outcome을 E1 candidate/all-open state로 안전 투영. metadata fail-closed, 추가 retrieval 0, clone·단일 private drift 방어. focused7/related60/full1186/safety837, 독립 리뷰 3건 APPROVE; 다음 EH2.6.c2 |
 
 ## 안전/컨텍스트 규칙
 

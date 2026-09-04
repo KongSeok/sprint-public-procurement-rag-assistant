@@ -132,6 +132,25 @@ receipt verifies them. Fact and follow-up metadata predicates fail closed until 
 an exact filtered-scope receipt. Restricted fact IDs must exist in both the sealed catalog
 universe and exact live, canonically rehashed evidence store.
 
+`build_e1_followup_harness_state` is the only EH2.6.c1 initial projection boundary. It accepts
+the exact `BoundFollowup` and already finalized `FollowupRetrievalOutcome`, validates exact store
+identity plus registry-config/policy-SHA value authority, and never accepts a retriever, verifier, runtime, evaluator, or
+gold input. Primary candidates precede optional-fallback candidates with first-seen dedupe;
+`$answer_support` receives the complete candidate sequence and each actual required slot receives
+only candidates whose sealed-store `doc_id` matches the slot. Every initial obligation remains
+open with zero verified coverage. A metadata predicate requires the future EH3.1 filtered-scope
+receipt and therefore fails closed here. The EH2.5 compatibility builder and generic replay keep
+their existing semantics; controller start must rebuild E1 state through this dedicated boundary,
+and persisted E1 replay remains an EH2.6.d5 responsibility.
+
+Runtime authority here is an integrity boundary, not a Python sandbox. It must reject public-input
+forgery, equal-looking clones, post-issuance object drift, mutable public dependency aliases, and a
+single private registry/pin drift. Code already able to rewrite multiple coordinated private module
+registries or closure cells in-process is equivalent to patching the implementation and is outside
+this contract; deployment/process isolation and repository artifact verification own that threat.
+This limit must be stated in reviews so same-process arbitrary-code mutation is not misreported as a
+finite DTO hardening requirement.
+
 The v1 controller permits one retrieval round per obligation because no distinct-query
 rewrite policy exists. Its immutable config bounds nonterminal actions, no-progress, and an
 integer-millisecond monotonic-clock deadline; terminal receipts do not consume that budget.

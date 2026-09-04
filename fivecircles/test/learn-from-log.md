@@ -114,6 +114,7 @@ Review this file before implementation and test execution.
 - Visual adapter network isolation: `errorlogs/backend/2026-08-30-visual-adapter-network-isolation.md`
 - Visual integration contract gaps: `errorlogs/backend/2026-08-30-visual-integration-contract-gaps.md`
 - Flow report local-file browser policy: `errorlogs/frontend/2026-08-30-flow-report-file-url-policy.md`
+- HTML5 validator mismatch: `errorlogs/frontend/2026-09-05-c1-html-validation-tooling.md`
 - Current-tree visual crop blank regression: `errorlogs/backend/2026-08-31-visual-crop-blank-regression.md`
 - Mini131 live provider recovery: `errorlogs/backend/2026-08-31-mini131-live-provider-recovery.md`
 - Mini131 judge timestamp ordering: `errorlogs/backend/2026-08-31-mini131-judge-timestamp-order.md`
@@ -229,3 +230,71 @@ Preventive rule:
 
 Reference:
 - `errorlogs/backend/2026-09-05-eh26-b4-fusion-e0-integrity.md`
+
+### One-shot relay must re-enter execution (2026-09-05)
+
+Cause:
+- `CONTINUE_WITH_NEXT_FORM` was recorded after push, but leaf closeout was treated as turn completion.
+
+Preventive rule:
+- An open continuation request plus a safe READY TODO requires a fresh flow form and immediate next-cycle start.
+- A relay may stop only with an explicit, evidence-backed `STOP_WITH_REASON`.
+
+Reference:
+- `errorlogs/backend/2026-09-05-one-shot-relay-reentry.md`
+
+### Patch anchors must be byte-exact (2026-09-05)
+
+Cause:
+- A multiline patch anchor was copied from a truncated view with a different line wrap.
+
+Preventive rule:
+- Read narrow exact context and split unrelated file patches before editing.
+
+Reference:
+- `errorlogs/backend/2026-09-05-c1-contract-patch-context.md`
+
+### Repeated call sites require function-scoped patches (2026-09-05)
+
+Cause:
+- A validator repair matched the first identical call and touched the EH2.5 compatibility builder.
+
+Preventive rule:
+- Anchor repeated-call patches on the enclosing function and inspect the resulting line range before rerunning tests.
+
+Reference:
+- `errorlogs/backend/2026-09-05-c1-wrong-validator-callsite.md`
+
+### Authority roots cannot share mutable aliases (2026-09-05)
+
+Cause:
+- The live validator and its trust anchor were both replaceable module globals; the first closure left the validator cell unpinned.
+
+Preventive rule:
+- Capture the authority root privately, pin every captured callable, and delete direct unvalidated implementation aliases.
+- Keep coordinated global/code/default/dependency/closure attacks in the focused gate.
+
+Reference:
+- `errorlogs/backend/2026-09-05-c1-validator-root-authority.md`
+
+### `py_compile` is not write-free (2026-09-05)
+
+Cause:
+- `py_compile` writes `__pycache__` despite `PYTHONDONTWRITEBYTECODE=1`.
+
+Preventive rule:
+- In a read-only authority root, rely on write-free unittest imports instead of bytecode compilation.
+
+Reference:
+- `errorlogs/backend/2026-09-05-c1-pycompile-cache-permission.md`
+
+### Tests must not depend on deleted initialization helpers (2026-09-05)
+
+Cause:
+- A regression fixture called a private pin helper that production deletes after initialization.
+
+Preventive rule:
+- Reconstruct fixture-only immutable shapes inside the test instead of depending on deleted private helpers.
+
+Reference:
+- `errorlogs/backend/2026-09-05-c1-deleted-pin-helper-test.md`

@@ -163,8 +163,9 @@ runtime은 local profile 기본·LLM provider 교체형으로 유지하며 새 �
       dense-empty→lexical-only fusion, fact all-empty retrieval-complete/state-free, pre-call zero-dispatch,
       provider-error lexical diagnostic/no-fusion을 전용 4건으로 고정하고 public validator·비누출까지 PASS.
   - [ ] **EH2.6.c** effect/reducer/absence transition을 구현한다.
-    - [ ] **EH2.6.c1** EH2.3 verified 주장을 candidate로 낮추고 follow-up 실제 slot에 doc-matching outcome
-      candidate를 투영하며 추가 검색 0회를 고정한다.
+    - [x] **EH2.6.c1** EH2.3 verified 주장을 candidate로 낮추고 follow-up 실제 slot에 doc-matching outcome
+      candidate를 투영하며 추가 검색 0회를 고정했다. metadata predicate는 EH3.1 receipt 전까지 fail-closed,
+      public extra/gold 입력과 foreign outcome/store clone을 차단했다. focused7·관련60 PASS, 독립 리뷰 3건 APPROVE.
     - [ ] **EH2.6.c2** exact runtime verifier 호출로만 발급되는 supplied-evidence-bound semantic
       support/value/contradiction receipt를 구현한다.
     - [ ] **EH2.6.c3** expansion/bridge/rerank/verify `ActionEffectReceipt`와 빈 후보 zero-provider exhaustion을

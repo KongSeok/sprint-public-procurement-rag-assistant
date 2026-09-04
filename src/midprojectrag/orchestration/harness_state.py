@@ -8,6 +8,7 @@ from hashlib import sha256
 import json
 import math
 import re
+from types import FunctionType
 from typing import Any
 from weakref import ReferenceType, ref
 
@@ -17,6 +18,7 @@ from .compare_coverage import CompareCoverage
 from .compare_slots import BoundCompare
 from .contracts import PlanConstraint, PlanEntity, RuleRegistry
 from .fact_binding import BoundFact, validate_bound_fact
+from . import followup_retrieval as _FOLLOWUP_RETRIEVAL_MODULE
 from .followup_binding import BoundFollowup
 from .followup_retrieval import (
     FollowupEvidencePolicy,
@@ -24,6 +26,136 @@ from .followup_retrieval import (
     PrimaryEvidenceProgress,
     validate_followup_retrieval_outcome,
 )
+
+
+def _e1_callable_pin(function: FunctionType) -> tuple[Any, ...]:
+    kwdefaults = object.__getattribute__(function, "__kwdefaults__")
+    closure = object.__getattribute__(function, "__closure__")
+    return (
+        function,
+        object.__getattribute__(function, "__name__"),
+        object.__getattribute__(function, "__code__"),
+        object.__getattribute__(function, "__defaults__"),
+        kwdefaults,
+        None if kwdefaults is None else tuple(sorted(dict.items(kwdefaults))),
+        object.__getattribute__(function, "__globals__"),
+        closure,
+        (
+            None
+            if closure is None
+            else tuple(cell.cell_contents for cell in closure)
+        ),
+    )
+
+
+def _e1_class_pin(owner: type) -> tuple[Any, ...]:
+    namespace = type.__getattribute__(owner, "__dict__")
+    names = tuple(sorted(namespace))
+    members = []
+    for name in names:
+        member = namespace[name]
+        callables = []
+        if type(member) is FunctionType:
+            callables.append(("function", _e1_callable_pin(member)))
+        elif type(member) in {classmethod, staticmethod}:
+            callables.append(
+                (
+                    "wrapped",
+                    _e1_callable_pin(object.__getattribute__(member, "__func__")),
+                )
+            )
+        elif type(member) is property:
+            for role in ("fget", "fset", "fdel"):
+                function = object.__getattribute__(member, role)
+                if function is not None:
+                    callables.append((role, _e1_callable_pin(function)))
+        members.append((name, member, type(member), tuple(callables)))
+    return names, tuple(members)
+
+
+def _e1_module_pin(module: object) -> tuple[Any, ...]:
+    namespace = object.__getattribute__(module, "__dict__")
+    names = tuple(sorted(name for name in namespace if not name.startswith("__")))
+    members = []
+    for name in names:
+        value = dict.__getitem__(namespace, name)
+        members.append(
+            (
+                name,
+                value,
+                type(value),
+                _e1_callable_pin(value) if type(value) is FunctionType else None,
+                _e1_class_pin(value) if type(value) is type else None,
+            )
+        )
+    return names, tuple(members)
+
+
+_E1_FOLLOWUP_VALIDATOR_MODULE_PIN = _e1_module_pin(_FOLLOWUP_RETRIEVAL_MODULE)
+del _e1_callable_pin
+del _e1_class_pin
+del _e1_module_pin
+
+
+def _validate_callable_pin(function: object, pin: tuple[Any, ...]) -> None:
+    (
+        issued,
+        name,
+        code,
+        defaults,
+        kwdefaults,
+        kwdefault_items,
+        globals_state,
+        closure,
+        closure_values,
+    ) = pin
+    current_kwdefaults = object.__getattribute__(issued, "__kwdefaults__")
+    current_closure = object.__getattribute__(issued, "__closure__")
+    if (
+        function is not issued
+        or object.__getattribute__(issued, "__name__") != name
+        or object.__getattribute__(issued, "__code__") is not code
+        or object.__getattribute__(issued, "__defaults__") is not defaults
+        or current_kwdefaults is not kwdefaults
+        or (
+            None
+            if current_kwdefaults is None
+            else tuple(sorted(dict.items(current_kwdefaults)))
+        )
+        != kwdefault_items
+        or object.__getattribute__(issued, "__globals__") is not globals_state
+        or current_closure is not closure
+        or (
+            None
+            if current_closure is None
+            else tuple(cell.cell_contents for cell in current_closure)
+        )
+        != closure_values
+    ):
+        raise ValueError("harness_state_projection_dependency_drift")
+
+
+def _validate_class_pin(
+    owner: object,
+    pin: tuple[Any, ...],
+    callable_validator: Any,
+) -> None:
+    names, members = pin
+    namespace = type.__getattribute__(owner, "__dict__")
+    if tuple(sorted(namespace)) != names:
+        raise ValueError("harness_state_projection_dependency_drift")
+    for name, issued, issued_type, callables in members:
+        current = namespace.get(name)
+        if current is not issued or type(current) is not issued_type:
+            raise ValueError("harness_state_projection_dependency_drift")
+        for role, callable_pin in callables:
+            if role == "function":
+                function = current
+            elif role == "wrapped":
+                function = object.__getattribute__(current, "__func__")
+            else:
+                function = object.__getattribute__(current, role)
+            callable_validator(function, callable_pin)
 
 
 _HEX64 = re.compile(r"^[0-9a-f]{64}$")
@@ -976,6 +1108,209 @@ def build_followup_harness_state(
     )
 
 
+def _build_e1_followup_harness_state_impl(
+    *,
+    bound: BoundFollowup,
+    outcome: FollowupRetrievalOutcome,
+    store: EvidenceStore,
+    registry: RuleRegistry,
+    policy: FollowupEvidencePolicy,
+) -> HarnessState:
+    """Project finalized follow-up candidates into a safe E1 initial state.
+
+    EH2.3 progress is compatibility lineage, not terminal semantic authority.
+    This boundary therefore ignores its verified/sufficient claims, performs no
+    retrieval, and leaves every projected obligation open for E1 verification.
+    """
+
+    if bound.plan.metadata_predicates:
+        raise ValueError("followup_metadata_scope_receipt_required")
+
+    candidates: list[str] = []
+    seen: set[str] = set()
+    for attempt in (outcome.primary, outcome.fallback):
+        if attempt is None:
+            continue
+        for candidate in attempt.result.candidates:
+            if candidate.evidence_id not in seen:
+                seen.add(candidate.evidence_id)
+                candidates.append(candidate.evidence_id)
+    ordered_candidates = tuple(candidates)
+
+    entries = [
+        EvidenceBeliefEntry._create(
+            obligation_key="$answer_support",
+            observation_stage=(
+                "candidate" if ordered_candidates else "provisional_missing"
+            ),
+            candidate_evidence_ids=ordered_candidates,
+            verified_evidence_ids=(),
+            _token=_ENTRY_TOKEN,
+        )
+    ]
+    for slot in bound.plan.required_slots:
+        slot_candidates = tuple(
+            evidence_id
+            for evidence_id in ordered_candidates
+            if store.get(evidence_id).doc_id == slot.doc_id
+        )
+        entries.append(
+            EvidenceBeliefEntry._create(
+                obligation_key=slot.key,
+                observation_stage=(
+                    "candidate" if slot_candidates else "provisional_missing"
+                ),
+                candidate_evidence_ids=slot_candidates,
+                verified_evidence_ids=(),
+                _token=_ENTRY_TOKEN,
+            )
+        )
+    evidence_map = tuple(entries)
+    belief = _make_belief(
+        source_kind="follow_up",
+        request_fingerprint=bound.trace.request_fingerprint,
+        binding_sha256=bound.binding_sha256,
+        effective_plan_sha256=bound.trace.effective_plan_sha256,
+        config_sha256=bound.trace.config_sha256,
+        evidence_bundle_sha256=store.bundle_sha256,
+        query_type=bound.plan.query_type,
+        entities=bound.plan.entities,
+        constraints=bound.plan.constraints,
+        scope_state=bound.plan.scope_state,
+        scope_origin=bound.plan.scope_origin,
+        scope_doc_ids=bound.plan.resolved_doc_ids,
+        evidence_map=evidence_map,
+        source_receipt_sha256=_canonical_sha256(outcome.to_dict()),
+    )
+    projected_progress = _make_progress(
+        evidence_map=evidence_map,
+        slot_coverage_ratio=0.0,
+        answerability="in_progress",
+        normal_stop_allowed=False,
+        abstain_required=False,
+    )
+    return HarnessState._create(
+        belief=belief,
+        progress=projected_progress,
+        store=store,
+        _token=_STATE_TOKEN,
+    )
+
+
+def _close_e1_followup_projection_boundary(
+    implementation: FunctionType,
+    followup_module: object,
+    module_pin: tuple[Any, ...],
+    module_pin_mirror: tuple[Any, ...],
+    callable_validator: FunctionType,
+    class_validator: FunctionType,
+) -> FunctionType:
+    """Capture the issued validation root outside mutable module aliases."""
+
+    harness_globals = globals()
+
+    def simple_pin(function: FunctionType) -> tuple[Any, ...]:
+        return (
+            function,
+            object.__getattribute__(function, "__code__"),
+            object.__getattribute__(function, "__defaults__"),
+            object.__getattribute__(function, "__kwdefaults__"),
+            object.__getattribute__(function, "__globals__"),
+            object.__getattribute__(function, "__closure__"),
+        )
+
+    implementation_pin = simple_pin(implementation)
+    callable_validator_pin = simple_pin(callable_validator)
+    class_validator_pin = simple_pin(class_validator)
+
+    def build_e1_followup_harness_state(
+        *,
+        bound: BoundFollowup,
+        outcome: FollowupRetrievalOutcome,
+        store: EvidenceStore,
+        registry: RuleRegistry,
+        policy: FollowupEvidencePolicy,
+    ) -> HarnessState:
+        """Validate sealed follow-up lineage and issue a safe E1 state."""
+
+        if module_pin_mirror is not module_pin:
+            raise ValueError("harness_state_projection_dependency_drift")
+        for current, pin in (
+            (implementation, implementation_pin),
+            (callable_validator, callable_validator_pin),
+            (class_validator, class_validator_pin),
+        ):
+            issued, code, defaults, kwdefaults, globals_state, closure = pin
+            if (
+                current is not issued
+                or object.__getattribute__(current, "__code__") is not code
+                or object.__getattribute__(current, "__defaults__") is not defaults
+                or object.__getattribute__(current, "__kwdefaults__") is not kwdefaults
+                or object.__getattribute__(current, "__globals__") is not globals_state
+                or object.__getattribute__(current, "__closure__") is not closure
+            ):
+                raise ValueError("harness_state_projection_dependency_drift")
+        if harness_globals.get("_validate_callable_pin") is not callable_validator:
+            raise ValueError("harness_state_projection_dependency_drift")
+        if harness_globals.get("_validate_class_pin") is not class_validator:
+            raise ValueError("harness_state_projection_dependency_drift")
+
+        names, members = module_pin
+        namespace = object.__getattribute__(followup_module, "__dict__")
+        if tuple(
+            sorted(name for name in namespace if not name.startswith("__"))
+        ) != names:
+            raise ValueError("harness_state_projection_dependency_drift")
+        outcome_validator = None
+        for name, issued, issued_type, callable_pin, class_pin in members:
+            current = namespace.get(name)
+            if current is not issued or type(current) is not issued_type:
+                raise ValueError("harness_state_projection_dependency_drift")
+            if callable_pin is not None:
+                callable_validator(current, callable_pin)
+            if class_pin is not None:
+                class_validator(current, class_pin, callable_validator)
+            if name == "validate_followup_retrieval_outcome":
+                outcome_validator = issued
+
+        if (
+            type(outcome_validator) is not FunctionType
+            or harness_globals.get("validate_followup_retrieval_outcome")
+            is not outcome_validator
+        ):
+            raise ValueError("harness_state_projection_dependency_drift")
+
+        outcome_validator(
+            bound=bound,
+            outcome=outcome,
+            store=store,
+            registry=registry,
+            policy=policy,
+        )
+        return implementation(
+            bound=bound,
+            outcome=outcome,
+            store=store,
+            registry=registry,
+            policy=policy,
+        )
+
+    return build_e1_followup_harness_state
+
+
+build_e1_followup_harness_state = _close_e1_followup_projection_boundary(
+    _build_e1_followup_harness_state_impl,
+    _FOLLOWUP_RETRIEVAL_MODULE,
+    _E1_FOLLOWUP_VALIDATOR_MODULE_PIN,
+    _E1_FOLLOWUP_VALIDATOR_MODULE_PIN,
+    _validate_callable_pin,
+    _validate_class_pin,
+)
+del _close_e1_followup_projection_boundary
+del _E1_FOLLOWUP_VALIDATOR_MODULE_PIN
+del _build_e1_followup_harness_state_impl
+
+
 def validate_harness_state(*, state: HarnessState, store: EvidenceStore) -> None:
     """Require the exact unchanged state issued for the exact EvidenceStore."""
 
@@ -1052,6 +1387,7 @@ __all__ = (
     "HarnessState",
     "Progress",
     "build_compare_harness_state",
+    "build_e1_followup_harness_state",
     "build_fact_harness_state",
     "build_followup_harness_state",
     "replay_harness_state",

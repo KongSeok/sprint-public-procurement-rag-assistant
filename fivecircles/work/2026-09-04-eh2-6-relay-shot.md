@@ -200,3 +200,68 @@
 - push: `origin/feat/total-integration`에 `f794915`까지 동기화했다.
 - Relay: `CONTINUE_WITH_NEXT_FORM` → `EH2.6.c1`.
 - 상태: COMPLETED.
+
+## Cycle 4 — EH2.6.c1 E1 follow-up safe projection
+
+### 0. One-shot flow form
+
+| 단계 | 상태 | 판정 |
+| --- | --- | --- |
+| Scope | COMPLETED | `feat/total-integration`, 사용자 dirty/VLM/resources 보존, provider 호출 0 |
+| Report | COMPLETED | EH2.5 호환 state와 E1 안전 초기 state의 의미 차이 확인 |
+| Relay select | COMPLETED | `EH2.6.c1`, `CONTINUE_WITH_NEXT_FORM` |
+| Doc / Contract | COMPLETED | 별도 E1 projection, metadata predicate fail-closed, finite integrity threat boundary |
+| Implementation | COMPLETED | test-first public API와 outcome/pin mirror 추가 |
+| Validation / Report | COMPLETED | focused7→related60→full1186→safety837, Mermaid PNG/static PASS |
+| Repair / Review | COMPLETED | 독립 P1 반복 수리 후 reviewer 3명 최종 APPROVE |
+| Push | PENDING | 대상 파일만 선별 commit/push |
+| Closeout | PENDING | TODO/checkpoint/update/review/ledger 갱신 |
+| Relay | PENDING | 완료 즉시 다음 READY 재채점 후 새 form 진입 |
+
+### 1. Relay score
+
+점수식: `upstream + connection + safety + validation - risk`.
+
+| 후보 | upstream | connection | safety | validation | risk | 합계 | 분류 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| EH2.6.c1 | 4 | 3 | 2 | 2 | 0 | 11 | MATCHED / 선택 |
+| EH2.6.c2 | 3 | 3 | 2 | 2 | 1 | 9 | PARTIAL / c1 선행 |
+| EH2.EVAL.4 | 2 | 2 | 1 | 1 | 1 | 5 | GAP / 사람·private qrels 필요 |
+
+### 2. Failure log / recurrence guard
+
+- 직전 Cycle 3은 로그올과 push까지 끝났지만 `CONTINUE_WITH_NEXT_FORM` 뒤 새 form을 열지 않고 종료했다.
+- 원샷딜 종료 조건을 leaf 완료로 잘못 해석한 프로세스 실패이며 B5 구현 실패는 아니다.
+- 열린 사용자 요청과 안전한 READY TODO가 함께 있으면 push 뒤 final을 금지하고 새 form부터 즉시 시작한다.
+- 근거: `../test/errorlogs/backend/2026-09-05-one-shot-relay-reentry.md`.
+
+### 3. TDD red
+
+- 신규 `tests.test_e1_followup_projection`을 먼저 추가했다.
+- 예상대로 public `build_e1_followup_harness_state` import 부재로 1 module ERROR가 발생했다.
+- production 구현 전 계약 부재를 재현한 red이며 다음 단계에서 최소 API로 green 전환한다.
+
+### 4. Implementation / contract
+
+- 전용 `build_e1_followup_harness_state`만 추가하고 EH2.5 compatibility builder/replay는 바꾸지 않았다.
+- primary→fallback first-seen dedupe, answer 전체 후보, slot별 sealed-store 동일 doc 후보를 투영한다.
+- 기존 verified는 candidate로 강등하고 coverage 0, all-open, stop/abstain false로 시작한다.
+- metadata predicate는 EH3.1 filtered-scope receipt 전까지 fail-closed한다.
+- runtime integrity는 공개 위조·clone·발급 후 drift·public alias·단일 private pin/registry drift를 막는다.
+
+### 5. Validation / repair / review
+
+- focused 7/7, 관련 60/60, 전체 unittest 1,186/1,186, repository safety 837 files PASS.
+- API/OpenAI/model/Langfuse 및 추가 retrieval 호출 0회.
+- current Mermaid PNG 재생성·직접 검사와 HTML 자산/상태 정적 참조 PASS.
+- HTML browser visual QA는 local file URL 정책으로 environment-blocked이며 우회하지 않았다.
+- mutable validator root, 잘못 고친 EH2.5 callsite, single-map forge, validator closure,
+  public aliases+single private pin 조합을 순차 수리했다.
+- 최종 독립 리뷰: contract/adversarial/authority 모두 APPROVE, P0/P1/P2 없음.
+
+### 6. Push / closeout / relay
+
+- 사용자 소유 dirty 변경을 broad-add하지 않고 c1 code/test/contract/report/log hunk만 선별 stage한다.
+- commit/push: PENDING.
+- closeout flow: c1 MATCHED, c2 MATCHED/NEXT, EH2.EVAL.4 GAP/WAIT.
+- Relay: push 후 `EH2.6.c2` 새 form을 열고 즉시 시작한다.

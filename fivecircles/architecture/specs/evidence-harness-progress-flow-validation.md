@@ -1,7 +1,7 @@
 # Local RAG Baseline → Evidence-Harness Challenger 평가 진행 보고서
 
 
-기준: 2026-09-05 · 현재 작업대 `feat/total-integration` · EH2.6.b5 완료 시점
+기준: 2026-09-05 · 현재 작업대 `feat/total-integration` · EH2.6.c1 완료 시점
 최종 통합 대상: `feat/local-qwen-mini131-eval`
 
 > **고정된 목적:** 기존 local KURE page-v1 RAG baseline은 최종 구조가 아니라 비교를 위한 control이다. GPT retrieval 연구,
@@ -20,13 +20,23 @@
 | --- | --- | --- | --- |
 | 주 비교 통제군 B0 | KURE page-v1 + local Qwen 계열 | Mac-equivalent 측정 완료·provisional | local-first retrieval 비교의 authoritative control. 계속 보존한다. |
 | 별도 API arm | `text-embedding-3-small` + `gpt-5-nano` + Streamlit | 사용자-facing 호환 경로 | API-first는 과거 구현 순서이며 local control을 대체하지 않는다. |
-| 현재 개발 대상 | `feat/total-integration`의 Evidence-Harness challenger | EH2.6.b5까지 구현 | 독립 lane·RRF fusion·state-free E0와 focused retrieval gate까지 완료. E1/생성 E2E는 미완성이다. |
+| 현재 개발 대상 | `feat/total-integration`의 Evidence-Harness challenger | EH2.6.c1까지 구현 | E0 검색과 follow-up E1 안전 초기 투영까지 완료. effect/reducer/생성 E2E는 미완성이다. |
 | 최종 전달 대상 | `feat/local-qwen-mini131-eval` | 병합·선택 전 | 같은 Evidence Pack 뒤에서 local/API generator를 갈아 끼운다. |
 | 최종 선택 | baseline 대 assembled challenger | **미실행·미선정** | 동일 골든셋 A/B와 gate/Pareto 판정 뒤 결정한다. |
 
 따라서 **현재 비교할 때 쓰는 것은 local baseline**, **현재 만드는 것은 challenger**, **나중에 기본으로 쓸 것은
-아직 미정**이다. EH2.6.b5 작업은 API를 실행한 것이 아니라 API·모델·Langfuse 호출 0회의 provider-free
+아직 미정**이다. EH2.6.c1 작업은 API를 실행한 것이 아니라 API·모델·Langfuse 호출 0회의 provider-free
 조립·검증 단계다.
+
+### 현재 relay 판정
+
+점수식은 `upstream + connection + safety + validation - risk`다.
+
+| 후보 | 점수 | 상태 | 판정 |
+| --- | ---: | --- | --- |
+| EH2.6.c1 | 11 | DONE | MATCHED — E1 follow-up candidate projection 완료 |
+| EH2.6.c2 | 11 | NEXT | MATCHED — c1 직후 exact semantic verifier receipt |
+| EH2.EVAL.4 | 5 | WAIT | GAP — 사람 승인·private qrels 선행 필요 |
 
 ## 이전 → 현재 → 목표
 
@@ -123,8 +133,9 @@ Mini131 결과와 unit/full regression은 출발점·안전성 증거지만 새 
 | DONE | baseline 보존 | page-only/API·local control 계보 보존 | 매 비교에서 재현 확인 |
 | DONE | challenger 검색 골격 | EvidenceStore, child KURE, Kiwi, RRF, QueryPlan/상태 타입 | 회귀 유지 |
 | DONE | 실행 권한 경계 | immutable config + exact runtime authority + zero-dispatch | 회귀 유지 |
-| DONE | E0 검색 실행·focused gate | owner obligation → dense → lexical → RRF fusion exact-once; rescue/empty/pre-call/error 경계 | EH2.6.c1 candidate projection |
-| NOT DONE | 상태 전이·종료 | effect/reducer/bounded controller가 없음 | EH2.6.c~e, EH2.G |
+| DONE | E0 검색 실행·focused gate | owner obligation → dense → lexical → RRF fusion exact-once; rescue/empty/pre-call/error 경계 | 회귀 유지 |
+| DONE | follow-up E1 초기 투영 | verified→candidate, primary/fallback dedupe, slot doc-match, metadata fail-closed, 추가 검색 0 | EH2.6.c2 semantic receipt |
+| NOT DONE | 상태 전이·종료 | semantic effect/reducer/bounded controller가 없음 | EH2.6.c2~e, EH2.G |
 | NOT DONE | 전문 lane E2E | analytics/list/table/figure가 controller 밖 | EH3.1~EH3.G |
 | NOT DONE | 생성·평가 조립 | reranker/generator/CLI/layer evaluator 미완성 | EH4.1~EH4.G |
 | NOT DONE | 공정 비교 동결 | 공통 freeze receipt와 threshold 미동결 | EXP-SELECT.2 |
@@ -133,7 +144,7 @@ Mini131 결과와 unit/full regression은 출발점·안전성 증거지만 새 
 
 ## 다음 실행 순서
 
-1. EH2.6.c1 candidate projection부터 effect/reducer→bounded E1 controller를 순차 완성한다.
+1. EH2.6.c2 semantic receipt부터 effect/reducer→bounded E1 controller를 순차 완성한다.
 2. EH3에서 catalog/analytics/list/table/figure specialist를 같은 evidence contract에 연결한다.
 3. EH4에서 identity/reranker, local/API generator adapter, CLI와 계층별 evaluator를 완성한다.
 4. baseline·local control·challenger의 corpus/gold/qrels/judge/budget/hash와 metric threshold를 동결한다.
@@ -143,12 +154,12 @@ Mini131 결과와 unit/full regression은 출발점·안전성 증거지만 새 
 
 ## 검증 상태
 
-- EH2.6.b5 focused 4/4, b3+b4+b5 68/68, 관련 회귀 218/218, 전체 1,179/1,179 PASS.
-- b5 focused gate 과정의 API/OpenAI/model-provider/Langfuse 호출은 0이다.
+- EH2.6.c1 focused 7/7, EH2.5/follow-up 관련 회귀 60/60, 전체 회귀 1,186/1,186 PASS.
+- c1 과정의 API/OpenAI/model-provider/Langfuse 및 추가 retrieval 호출은 0이다.
 - 이 수치는 구현 무결성 결과이며 retrieval 성능 향상 수치가 아니다.
-- 갱신된 Mermaid PNG 2개 생성·직접 시각 검사 PASS.
-- HTML parse·로컬 참조·headless Chrome 1440×1100 렌더 PASS.
-- repository safety 829 files PASS.
+- current Mermaid PNG 재생성·직접 시각 검사와 HTML 로컬 자산/상태 참조 정적 확인 PASS.
+- HTML browser visual QA는 local `file://` URL 정책으로 environment-blocked이며 우회하지 않았다.
+- repository safety 837 files PASS.
 
 판정: **실험 방향은 고정됐고 challenger 골격은 부분 구현됐지만, 동일 골든셋 성능 비교와 최종 아키텍처
 선택은 아직 시작 전이다.**

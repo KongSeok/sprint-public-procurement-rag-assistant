@@ -59,6 +59,20 @@ _RETRIEVAL_OUTCOME_AUTHORITIES: dict[
         str,
     ],
 ] = {}
+_RETRIEVAL_OUTCOME_AUTHORITY_MIRROR: dict[
+    int,
+    tuple[
+        ReferenceType[FollowupRetrievalOutcome],
+        str,
+        FollowupRetrievalAttempt,
+        PrimaryEvidenceProgress,
+        FollowupRetrievalAttempt | None,
+        FollowupRetrievalTrace,
+        BoundFollowup,
+        EvidenceStore,
+        str,
+    ],
+] = {}
 
 
 class ChildRetriever(Protocol):
@@ -240,11 +254,14 @@ def _register_outcome_authority(
     identity = id(outcome)
     weak = ref(
         outcome,
-        lambda dead, identity=identity: _drop_authority(
-            _RETRIEVAL_OUTCOME_AUTHORITIES, identity, dead
+        lambda dead, identity=identity: (
+            _drop_authority(_RETRIEVAL_OUTCOME_AUTHORITIES, identity, dead),
+            _drop_authority(
+                _RETRIEVAL_OUTCOME_AUTHORITY_MIRROR, identity, dead
+            ),
         ),
     )
-    _RETRIEVAL_OUTCOME_AUTHORITIES[identity] = (
+    record = (
         weak,
         _sha256(outcome.to_dict()),
         outcome.primary,
@@ -255,6 +272,8 @@ def _register_outcome_authority(
         store,
         policy.policy_sha256,
     )
+    _RETRIEVAL_OUTCOME_AUTHORITIES[identity] = record
+    _RETRIEVAL_OUTCOME_AUTHORITY_MIRROR[identity] = record
 
 
 def _require_outcome_authority(
@@ -267,6 +286,9 @@ def _require_outcome_authority(
     if type(outcome) is not FollowupRetrievalOutcome:
         raise TypeError("followup_retrieval_outcome_required")
     current = _RETRIEVAL_OUTCOME_AUTHORITIES.get(id(outcome))
+    mirror = _RETRIEVAL_OUTCOME_AUTHORITY_MIRROR.get(id(outcome))
+    if mirror is not current:
+        raise ValueError("followup_outcome_authority_mirror_drift")
     if current is None or current[0]() is not outcome:
         raise ValueError("followup_outcome_runtime_authority_required")
     if (
