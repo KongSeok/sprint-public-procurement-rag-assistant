@@ -746,3 +746,13 @@ This file summarizes recent updates so other agents can continue without re‑di
   obligation을 새 원샷딜 폼에서 계약-first로 구현한다.
 - refs: `../test/errorlogs/backend/2026-09-05-c3-context-source-lifetime.md`,
   `../architecture/specs/evidence-harness-progress-flow-validation.md`.
+
+## Addendum (2026-09-05) - EH2.6.c3.2 rerank and derived semantic
+
+### Backend
+
+- ID-less rerank, owner budget, global role order, unindexed parent, one-shot derived route를 구현했다.
+
+### Tests
+
+- focused9/related128/full1229/safety854·Playwright PASS; provider 예외 post-call P1을 수리했다.

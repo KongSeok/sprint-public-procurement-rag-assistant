@@ -274,6 +274,7 @@ class SemanticVerificationExecutionTests(unittest.TestCase):
             set(obligation_payload),
             {
                 "schema_version",
+                "derivation_kind",
                 "source_kind",
                 "target_kind",
                 "obligation_key",
@@ -284,6 +285,14 @@ class SemanticVerificationExecutionTests(unittest.TestCase):
                 "retrieval_obligation_sha256",
                 "candidate_receipt_sha256",
                 "source_state_sha256",
+                "base_semantic_obligation_sha256",
+                "parent_context_receipt_sha256s",
+                "bridge_context_receipt_sha256s",
+                "rerank_receipt_sha256",
+                "owner_plan_sha256",
+                "owner_plan_config_sha256",
+                "rerank_k",
+                "final_evidence_budget",
                 "query_sha256",
                 "evidence_store_sha256",
                 "execution_config_sha256",
@@ -296,6 +305,15 @@ class SemanticVerificationExecutionTests(unittest.TestCase):
                 "obligation_sha256",
             },
         )
+        self.assertEqual(obligation.derivation_kind, "base")
+        self.assertIsNone(obligation.base_semantic_obligation_sha256)
+        self.assertEqual(obligation.parent_context_receipt_sha256s, ())
+        self.assertEqual(obligation.bridge_context_receipt_sha256s, ())
+        self.assertIsNone(obligation.rerank_receipt_sha256)
+        self.assertIsNone(obligation.owner_plan_sha256)
+        self.assertIsNone(obligation.owner_plan_config_sha256)
+        self.assertIsNone(obligation.rerank_k)
+        self.assertIsNone(obligation.final_evidence_budget)
         self.assertEqual(obligation.bridge_evidence_ids, ())
         self.assertEqual(obligation.context_evidence_ids, ())
         self.assertEqual(

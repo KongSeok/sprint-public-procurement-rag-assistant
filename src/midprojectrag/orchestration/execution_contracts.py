@@ -56,6 +56,8 @@ _SEMANTIC_REQUEST_TOKEN = object()
 _SEMANTIC_RECEIPT_TOKEN = object()
 _PARENT_CONTEXT_RECEIPT_TOKEN = object()
 _BRIDGE_CONTEXT_RECEIPT_TOKEN = object()
+_RERANK_RECEIPT_TOKEN = object()
+_RERANK_REQUEST_TOKEN = object()
 _ISSUED_VALIDATE_EVIDENCE_STORE_SNAPSHOT = validate_evidence_store_snapshot
 _ISSUED_HYBRID_SEARCH_LANE = type.__getattribute__(
     object.__getattribute__(_FUSION_RUNTIME_MODULE, "HybridChildRetriever"),
@@ -191,9 +193,19 @@ _ACTION_EFFECTS_NORMALIZER = object.__getattribute__(
 _ACTION_EFFECTS_PROJECTION_CLASS = object.__getattribute__(
     _ACTION_EFFECTS_MODULE, "_SemanticVerificationProjection"
 )
+_ACTION_EFFECTS_RERANK_NORMALIZER = object.__getattribute__(
+    _ACTION_EFFECTS_MODULE, "_normalize_reranker_result"
+)
+_ACTION_EFFECTS_RERANK_PROJECTION_CLASS = object.__getattribute__(
+    _ACTION_EFFECTS_MODULE, "_RerankProjection"
+)
 _ACTION_EFFECTS_MODULE_PIN = _owner_module_pins(_ACTION_EFFECTS_MODULE)
 _ISSUED_ACTION_EFFECTS_NORMALIZER = _ACTION_EFFECTS_NORMALIZER
 _ISSUED_ACTION_EFFECTS_PROJECTION_CLASS = _ACTION_EFFECTS_PROJECTION_CLASS
+_ISSUED_ACTION_EFFECTS_RERANK_NORMALIZER = _ACTION_EFFECTS_RERANK_NORMALIZER
+_ISSUED_ACTION_EFFECTS_RERANK_PROJECTION_CLASS = (
+    _ACTION_EFFECTS_RERANK_PROJECTION_CLASS
+)
 _ISSUED_ACTION_EFFECTS_MODULE_PIN = _ACTION_EFFECTS_MODULE_PIN
 del _owner_callable_pin
 del _owner_class_pin
@@ -8048,6 +8060,7 @@ _SEMANTIC_DISPOSITIONS = frozenset(
 class SemanticVerificationObligation:
     """Trace-free verifier target issued only from an exact source owner."""
 
+    derivation_kind: str
     source_kind: str
     target_kind: str
     obligation_key: str
@@ -8058,6 +8071,14 @@ class SemanticVerificationObligation:
     retrieval_obligation_sha256: str | None
     candidate_receipt_sha256: str
     source_state_sha256: str | None
+    base_semantic_obligation_sha256: str | None
+    parent_context_receipt_sha256s: tuple[str, ...]
+    bridge_context_receipt_sha256s: tuple[str, ...]
+    rerank_receipt_sha256: str | None
+    owner_plan_sha256: str | None
+    owner_plan_config_sha256: str | None
+    rerank_k: int | None
+    final_evidence_budget: int | None
     query_sha256: str
     evidence_store_sha256: str
     execution_config_sha256: str
@@ -8100,6 +8121,9 @@ def _semantic_verification_obligation_payload(
 ) -> dict[str, Any]:
     payload = {
         "schema_version": SCHEMA_VERSION,
+        "derivation_kind": object.__getattribute__(
+            obligation, "derivation_kind"
+        ),
         "source_kind": object.__getattribute__(obligation, "source_kind"),
         "target_kind": object.__getattribute__(obligation, "target_kind"),
         "obligation_key": object.__getattribute__(obligation, "obligation_key"),
@@ -8117,6 +8141,32 @@ def _semantic_verification_obligation_payload(
         ),
         "source_state_sha256": object.__getattribute__(
             obligation, "source_state_sha256"
+        ),
+        "base_semantic_obligation_sha256": object.__getattribute__(
+            obligation, "base_semantic_obligation_sha256"
+        ),
+        "parent_context_receipt_sha256s": list(
+            object.__getattribute__(
+                obligation, "parent_context_receipt_sha256s"
+            )
+        ),
+        "bridge_context_receipt_sha256s": list(
+            object.__getattribute__(
+                obligation, "bridge_context_receipt_sha256s"
+            )
+        ),
+        "rerank_receipt_sha256": object.__getattribute__(
+            obligation, "rerank_receipt_sha256"
+        ),
+        "owner_plan_sha256": object.__getattribute__(
+            obligation, "owner_plan_sha256"
+        ),
+        "owner_plan_config_sha256": object.__getattribute__(
+            obligation, "owner_plan_config_sha256"
+        ),
+        "rerank_k": object.__getattribute__(obligation, "rerank_k"),
+        "final_evidence_budget": object.__getattribute__(
+            obligation, "final_evidence_budget"
         ),
         "query_sha256": object.__getattribute__(obligation, "query_sha256"),
         "evidence_store_sha256": object.__getattribute__(
@@ -8159,13 +8209,15 @@ def _validate_semantic_verification_obligation_payload(
 ) -> None:
     if type(obligation) is not SemanticVerificationObligation:
         raise TypeError("semantic_verification_obligation_required")
+    derivation_kind = object.__getattribute__(obligation, "derivation_kind")
     source_kind = object.__getattribute__(obligation, "source_kind")
     target_kind = object.__getattribute__(obligation, "target_kind")
     obligation_key = object.__getattribute__(obligation, "obligation_key")
     target_doc_id = object.__getattribute__(obligation, "target_doc_id")
     field = object.__getattribute__(obligation, "field")
     if (
-        type(source_kind) is not str
+        derivation_kind not in {"base", "reranked"}
+        or type(source_kind) is not str
         or source_kind not in _SEMANTIC_SOURCE_KINDS
         or type(target_kind) is not str
         or target_kind not in _SEMANTIC_TARGET_KINDS
@@ -8215,10 +8267,36 @@ def _validate_semantic_verification_obligation_payload(
         if retrieval_sha is not None:
             raise ValueError("semantic_retrieval_obligation_mismatch")
         _require_hash(state_sha, "invalid_semantic_source_state_sha256")
+    base_sha = object.__getattribute__(
+        obligation, "base_semantic_obligation_sha256"
+    )
+    parent_shas = _exact_string_tuple_value(
+        object.__getattribute__(
+            obligation, "parent_context_receipt_sha256s"
+        ),
+        "semantic_parent_context_receipt_sha256s",
+        allow_empty=True,
+    )
+    bridge_receipt_shas = _exact_string_tuple_value(
+        object.__getattribute__(
+            obligation, "bridge_context_receipt_sha256s"
+        ),
+        "semantic_bridge_context_receipt_sha256s",
+        allow_empty=True,
+    )
+    rerank_receipt_sha = object.__getattribute__(
+        obligation, "rerank_receipt_sha256"
+    )
+    owner_plan_sha = object.__getattribute__(obligation, "owner_plan_sha256")
+    owner_plan_config_sha = object.__getattribute__(
+        obligation, "owner_plan_config_sha256"
+    )
+    rerank_k = object.__getattribute__(obligation, "rerank_k")
+    final_budget = object.__getattribute__(obligation, "final_evidence_budget")
     candidates = _exact_string_tuple_value(
         object.__getattribute__(obligation, "candidate_evidence_ids"),
         "semantic_candidate_evidence_ids",
-        allow_empty=False,
+        allow_empty=derivation_kind == "reranked",
     )
     bridges = _exact_string_tuple_value(
         object.__getattribute__(obligation, "bridge_evidence_ids"),
@@ -8235,8 +8313,51 @@ def _validate_semantic_verification_obligation_payload(
         "semantic_supplied_evidence_ids",
         allow_empty=False,
     )
-    if bridges or contexts or supplied != candidates + bridges + contexts:
-        raise ValueError("semantic_evidence_role_partition_mismatch")
+    if derivation_kind == "base":
+        if (
+            base_sha is not None
+            or parent_shas
+            or bridge_receipt_shas
+            or rerank_receipt_sha is not None
+            or owner_plan_sha is not None
+            or owner_plan_config_sha is not None
+            or rerank_k is not None
+            or final_budget is not None
+            or bridges
+            or contexts
+            or supplied != candidates
+        ):
+            raise ValueError("semantic_base_derivation_binding_mismatch")
+    else:
+        for name, value in (
+            ("base_semantic_obligation_sha256", base_sha),
+            ("rerank_receipt_sha256", rerank_receipt_sha),
+            ("owner_plan_sha256", owner_plan_sha),
+            ("owner_plan_config_sha256", owner_plan_config_sha),
+        ):
+            _require_hash(value, f"invalid_semantic_{name}")
+        for name, values in (
+            ("parent_context_receipt_sha256s", parent_shas),
+            ("bridge_context_receipt_sha256s", bridge_receipt_shas),
+        ):
+            for value in values:
+                _require_hash(value, f"invalid_semantic_{name}")
+        if (
+            type(rerank_k) is not int
+            or rerank_k < 1
+            or type(final_budget) is not int
+            or final_budget < 1
+            or final_budget > rerank_k
+            or len(supplied) > final_budget
+            or contexts
+            or set(candidates).intersection(bridges)
+            or set(candidates).union(bridges) != set(supplied)
+            or tuple(item for item in supplied if item in set(candidates))
+            != candidates
+            or tuple(item for item in supplied if item in set(bridges))
+            != bridges
+        ):
+            raise ValueError("semantic_reranked_derivation_binding_mismatch")
     anchors = object.__getattribute__(obligation, "ordered_stable_anchors")
     if (
         type(anchors) is not tuple
@@ -8311,6 +8432,61 @@ class _SemanticVerifierEvidence:
 
 
 @dataclass(frozen=True, slots=True, repr=False, init=False)
+class _SemanticVerifierParentContext:
+    parent_id: str
+    parent_kind: str
+    doc_id: str
+    content: str
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        raise TypeError("semantic_verifier_parent_context_factory_required")
+
+    def __copy__(self) -> object:
+        raise TypeError("semantic_verifier_parent_context_not_serializable")
+
+    def __deepcopy__(self, memo: object) -> object:
+        raise TypeError("semantic_verifier_parent_context_not_serializable")
+
+    def __reduce__(self) -> object:
+        raise TypeError("semantic_verifier_parent_context_not_serializable")
+
+    def __reduce_ex__(self, protocol: int) -> object:
+        raise TypeError("semantic_verifier_parent_context_not_serializable")
+
+    @classmethod
+    def _create(
+        cls,
+        *,
+        parent_id: str,
+        parent_kind: str,
+        doc_id: str,
+        content: str,
+        _token: object,
+    ) -> _SemanticVerifierParentContext:
+        if _token is not _SEMANTIC_REQUEST_TOKEN:
+            raise ValueError("semantic_verifier_parent_context_factory_required")
+        if any(
+            type(value) is not str or (name != "content" and not value)
+            for name, value in (
+                ("parent_id", parent_id),
+                ("parent_kind", parent_kind),
+                ("doc_id", doc_id),
+                ("content", content),
+            )
+        ):
+            raise ValueError("semantic_verifier_parent_context_mismatch")
+        result = object.__new__(cls)
+        for name, value in (
+            ("parent_id", parent_id),
+            ("parent_kind", parent_kind),
+            ("doc_id", doc_id),
+            ("content", content),
+        ):
+            object.__setattr__(result, name, value)
+        return result
+
+
+@dataclass(frozen=True, slots=True, repr=False, init=False)
 class _SemanticVerifierRequest:
     source_kind: str
     target_kind: str
@@ -8319,6 +8495,7 @@ class _SemanticVerifierRequest:
     field: str | None
     query: str
     evidence: tuple[_SemanticVerifierEvidence, ...]
+    auxiliary_parent_context: tuple[_SemanticVerifierParentContext, ...]
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         raise TypeError("semantic_verifier_request_factory_required")
@@ -8340,6 +8517,7 @@ class _SemanticVerifierRequest:
         field: str | None,
         query: str,
         evidence: tuple[_SemanticVerifierEvidence, ...],
+        auxiliary_parent_context: tuple[_SemanticVerifierParentContext, ...],
         _token: object,
     ) -> _SemanticVerifierRequest:
         if _token is not _SEMANTIC_REQUEST_TOKEN:
@@ -8353,6 +8531,7 @@ class _SemanticVerifierRequest:
             ("field", field),
             ("query", query),
             ("evidence", evidence),
+            ("auxiliary_parent_context", auxiliary_parent_context),
         ):
             object.__setattr__(result, name, value)
         return result
@@ -8375,6 +8554,19 @@ class _SemanticVerificationObligationAuthority:
     raw_query: str
     evidence: tuple[Evidence, ...]
     roles: tuple[str, ...]
+    origin_seed_ids: tuple[str, ...]
+    auxiliary_parents: tuple[ProvenanceParent, ...]
+    base_obligation: SemanticVerificationObligation | None
+    base_issuance_key: tuple[object, ...] | None
+    parent_receipts: tuple[ParentContextReceipt, ...]
+    bridge_receipts: tuple[BridgeContextReceipt, ...]
+    rerank_receipt: object | None
+    route_key: tuple[object, ...]
+    execution_key: tuple[object, ...]
+    owner_plan_sha256: str | None
+    owner_plan_config_sha256: str | None
+    rerank_k: int | None
+    final_evidence_budget: int | None
     store: EvidenceStore
     config: HarnessExecutionConfig
     runtime: HarnessRuntimeBinding
@@ -8470,10 +8662,7 @@ def _build_semantic_obligation_accessors(
                 )
                 dict.__setitem__(source_refs, source_identity, source_weak)
                 dict.__setitem__(source_execution_keys, source_identity, set())
-            execution_key = (
-                authority.issuance_key,
-                object.__getattribute__(obligation, "obligation_sha256"),
-            )
+            execution_key = object.__getattribute__(authority, "execution_key")
             dict.__getitem__(source_execution_keys, source_identity).add(
                 execution_key
             )
@@ -8559,10 +8748,10 @@ def _semantic_execution_key(
     authority: _SemanticVerificationObligationAuthority,
     obligation: SemanticVerificationObligation,
 ) -> tuple[object, ...]:
-    return (
-        object.__getattribute__(authority, "issuance_key"),
-        object.__getattribute__(obligation, "obligation_sha256"),
-    )
+    execution_key = object.__getattribute__(authority, "execution_key")
+    if type(execution_key) is not tuple:
+        raise ValueError("semantic_verification_execution_authority_drift")
+    return execution_key
 
 
 def _semantic_public_entry(
@@ -8608,6 +8797,40 @@ def _semantic_common_preflight(
     validate_harness_runtime_binding(binding=runtime, store=store)
     runtime_authority = _require_harness_runtime_authority(runtime)
     return runtime_authority
+
+
+def _semantic_owner_plan_budget(
+    authority: _SemanticVerificationObligationAuthority,
+) -> tuple[str, str, int, int]:
+    if type(authority) is not _SemanticVerificationObligationAuthority:
+        raise TypeError("semantic_verification_obligation_authority_required")
+    source = object.__getattribute__(authority, "source")
+    planning = object.__getattribute__(source, "planning")
+    plan = object.__getattribute__(planning, "plan")
+    budget = object.__getattribute__(plan, "budget")
+    rerank_k = object.__getattribute__(budget, "rerank_k")
+    final_evidence_budget = object.__getattribute__(
+        budget, "final_evidence_budget"
+    )
+    owner_plan_config_sha256 = object.__getattribute__(plan, "config_sha256")
+    _require_hash(
+        owner_plan_config_sha256,
+        "invalid_semantic_owner_plan_config_sha256",
+    )
+    if (
+        type(rerank_k) is not int
+        or rerank_k < 1
+        or type(final_evidence_budget) is not int
+        or final_evidence_budget < 1
+        or final_evidence_budget > rerank_k
+    ):
+        raise ValueError("invalid_semantic_owner_rerank_budget")
+    return (
+        _canonical_sha256(plan.to_dict()),
+        owner_plan_config_sha256,
+        rerank_k,
+        final_evidence_budget,
+    )
 
 
 def _derive_followup_semantic_target(
@@ -8709,6 +8932,7 @@ def _create_semantic_verification_obligation(
         raise ValueError("semantic_verification_target_doc_mismatch")
     supplied = candidate_evidence_ids
     payload = {
+        "derivation_kind": "base",
         "source_kind": source_kind,
         "target_kind": target_kind,
         "obligation_key": obligation_key,
@@ -8723,6 +8947,14 @@ def _create_semantic_verification_obligation(
             if source_state is None
             else object.__getattribute__(source_state, "state_sha256")
         ),
+        "base_semantic_obligation_sha256": None,
+        "parent_context_receipt_sha256s": (),
+        "bridge_context_receipt_sha256s": (),
+        "rerank_receipt_sha256": None,
+        "owner_plan_sha256": None,
+        "owner_plan_config_sha256": None,
+        "rerank_k": None,
+        "final_evidence_budget": None,
         "query_sha256": _query_sha256(raw_query),
         "evidence_store_sha256": object.__getattribute__(store, "bundle_sha256"),
         "execution_config_sha256": object.__getattribute__(config, "config_sha256"),
@@ -8766,6 +8998,34 @@ def _create_semantic_verification_obligation(
         raw_query=raw_query,
         evidence=evidence,
         roles=tuple("candidate" for _ in evidence),
+        origin_seed_ids=candidate_evidence_ids,
+        auxiliary_parents=(),
+        base_obligation=None,
+        base_issuance_key=None,
+        parent_receipts=(),
+        bridge_receipts=(),
+        rerank_receipt=None,
+        route_key=(
+            "semantic-route-v1",
+            issuance_key,
+            obligation_key,
+            id(store),
+            id(config),
+            id(runtime),
+        ),
+        execution_key=(
+            "semantic-execution-v2",
+            "base",
+            issuance_key,
+            object.__getattribute__(result, "obligation_sha256"),
+            id(store),
+            id(config),
+            id(runtime),
+        ),
+        owner_plan_sha256=None,
+        owner_plan_config_sha256=None,
+        rerank_k=None,
+        final_evidence_budget=None,
         store=store,
         config=config,
         runtime=runtime,
@@ -9032,11 +9292,27 @@ def _validate_semantic_verification_obligation_exact(
     evidence = object.__getattribute__(authority, "evidence")
     supplied = object.__getattribute__(obligation, "supplied_evidence_ids")
     roles = object.__getattribute__(authority, "roles")
+    derivation_kind = object.__getattribute__(obligation, "derivation_kind")
+    if derivation_kind == "base":
+        expected_roles = tuple("candidate" for _ in evidence)
+    else:
+        candidate_ids = set(
+            object.__getattribute__(obligation, "candidate_evidence_ids")
+        )
+        bridge_ids = set(
+            object.__getattribute__(obligation, "bridge_evidence_ids")
+        )
+        expected_roles = tuple(
+            "candidate" if evidence_id in candidate_ids else "bridge"
+            for evidence_id in supplied
+        )
+        if any(evidence_id not in candidate_ids | bridge_ids for evidence_id in supplied):
+            raise ValueError("semantic_verification_evidence_authority_drift")
     if (
         type(evidence) is not tuple
         or len(evidence) != len(supplied)
         or type(roles) is not tuple
-        or roles != tuple("candidate" for _ in evidence)
+        or roles != expected_roles
     ):
         raise ValueError("semantic_verification_evidence_authority_drift")
     for index, item in enumerate(evidence):
@@ -9052,6 +9328,67 @@ def _validate_semantic_verification_obligation_exact(
     raw_query = object.__getattribute__(authority, "raw_query")
     if object.__getattribute__(obligation, "query_sha256") != _query_sha256(raw_query):
         raise ValueError("semantic_verification_query_authority_drift")
+    if derivation_kind == "reranked":
+        base = object.__getattribute__(authority, "base_obligation")
+        parents = object.__getattribute__(authority, "parent_receipts")
+        bridges = object.__getattribute__(authority, "bridge_receipts")
+        rerank_receipt = object.__getattribute__(authority, "rerank_receipt")
+        if (
+            type(base) is not SemanticVerificationObligation
+            or type(parents) is not tuple
+            or type(bridges) is not tuple
+            or type(rerank_receipt) is not RerankReceipt
+        ):
+            raise ValueError("semantic_derived_authority_drift")
+        base_authority = _validate_semantic_verification_obligation_exact(
+            obligation=base, store=store, config=config, runtime=runtime
+        )
+        rerank_authority = _validate_rerank_receipt_exact(
+            receipt=rerank_receipt,
+            obligation=base,
+            parent_receipts=parents,
+            bridge_receipts=bridges,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+        final_budget = object.__getattribute__(
+            obligation, "final_evidence_budget"
+        )
+        expected_evidence = object.__getattribute__(
+            rerank_authority, "ordered_evidence"
+        )[:final_budget]
+        expected_origins = object.__getattribute__(
+            rerank_authority, "ordered_origin_seed_ids"
+        )[:final_budget]
+        if (
+            object.__getattribute__(base, "derivation_kind") != "base"
+            or object.__getattribute__(authority, "source")
+            is not object.__getattribute__(base_authority, "source")
+            or object.__getattribute__(authority, "base_issuance_key")
+            != object.__getattribute__(base_authority, "issuance_key")
+            or object.__getattribute__(obligation, "base_semantic_obligation_sha256")
+            != object.__getattribute__(base, "obligation_sha256")
+            or object.__getattribute__(obligation, "parent_context_receipt_sha256s")
+            != tuple(object.__getattribute__(item, "receipt_sha256") for item in parents)
+            or object.__getattribute__(obligation, "bridge_context_receipt_sha256s")
+            != tuple(object.__getattribute__(item, "receipt_sha256") for item in bridges)
+            or object.__getattribute__(obligation, "rerank_receipt_sha256")
+            != object.__getattribute__(rerank_receipt, "receipt_sha256")
+            or object.__getattribute__(obligation, "owner_plan_sha256")
+            != object.__getattribute__(rerank_receipt, "owner_plan_sha256")
+            or object.__getattribute__(obligation, "owner_plan_config_sha256")
+            != object.__getattribute__(rerank_receipt, "owner_plan_config_sha256")
+            or object.__getattribute__(obligation, "rerank_k")
+            != object.__getattribute__(rerank_receipt, "rerank_k")
+            or len(supplied) > final_budget
+            or len(evidence) != len(expected_evidence)
+            or any(current is not expected for current, expected in zip(evidence, expected_evidence))
+            or object.__getattribute__(authority, "origin_seed_ids")
+            != expected_origins
+        ):
+            raise ValueError("semantic_derived_authority_drift")
+        return authority
     source_kind = object.__getattribute__(obligation, "source_kind")
     if source_kind in {"fact", "compare"}:
         retrieval = object.__getattribute__(authority, "retrieval_obligation")
@@ -9680,10 +10017,21 @@ def _build_context_issuance_accessors() -> tuple[
 
 def _context_seed_evidence_ids(
     obligation: SemanticVerificationObligation,
+    semantic_authority: _SemanticVerificationObligationAuthority,
     config: HarnessExecutionConfig,
 ) -> tuple[str, ...]:
+    if object.__getattribute__(obligation, "derivation_kind") != "base":
+        raise ValueError("semantic_context_requires_base_obligation")
     candidates = object.__getattribute__(obligation, "candidate_evidence_ids")
-    limit = object.__getattribute__(config, "max_context_targets_per_obligation")
+    _, _, rerank_k, final_evidence_budget = _semantic_owner_plan_budget(
+        semantic_authority
+    )
+    limit = min(
+        object.__getattribute__(config, "max_context_targets_per_obligation"),
+        final_evidence_budget,
+        rerank_k,
+        len(candidates),
+    )
     return tuple(sorted(candidates)[:limit])
 
 
@@ -9906,7 +10254,10 @@ def _validate_parent_context_receipt_exact(
     parent = object.__getattribute__(authority, "parent")
     seed_id = object.__getattribute__(receipt, "seed_evidence_id")
     if (
-        seed_id not in _context_seed_evidence_ids(obligation, config)
+        seed_id
+        not in _context_seed_evidence_ids(
+            obligation, semantic_authority, config
+        )
         or EvidenceStore.get(store, seed_id) is not seed
         or EvidenceStore.parent(store, object.__getattribute__(seed, "parent_id"))
         is not parent
@@ -9974,7 +10325,10 @@ def _validate_bridge_context_receipt_exact(
     linked = EvidenceStore.bridge(store, seed_id, kinds=(evidence_kind,))
     issued_linked = object.__getattribute__(authority, "linked_evidence")
     if (
-        seed_id not in _context_seed_evidence_ids(obligation, config)
+        seed_id
+        not in _context_seed_evidence_ids(
+            obligation, semantic_authority, config
+        )
         or EvidenceStore.get(store, seed_id) is not seed
         or object.__getattribute__(receipt, "seed_stable_anchor")
         is not object.__getattribute__(authority, "seed_anchor")
@@ -10014,7 +10368,9 @@ def issue_parent_context_receipts(
     semantic_authority = _validate_semantic_verification_obligation_exact(
         obligation=obligation, store=store, config=config, runtime=runtime
     )
-    seed_ids = _context_seed_evidence_ids(obligation, config)
+    seed_ids = _context_seed_evidence_ids(
+        obligation, semantic_authority, config
+    )
     execution_key = _context_issuance_key(
         "parent", semantic_authority, obligation, store, config, runtime
     )
@@ -10072,7 +10428,9 @@ def issue_bridge_context_receipts(
     semantic_authority = _validate_semantic_verification_obligation_exact(
         obligation=obligation, store=store, config=config, runtime=runtime
     )
-    seed_ids = _context_seed_evidence_ids(obligation, config)
+    seed_ids = _context_seed_evidence_ids(
+        obligation, semantic_authority, config
+    )
     execution_key = _context_issuance_key(
         "bridge", semantic_authority, obligation, store, config, runtime
     )
@@ -10155,6 +10513,1620 @@ def validate_bridge_context_receipt(
         config=config,
         runtime=runtime,
     )
+
+
+# EH2.6.c3.2 bounded rerank and derived semantic obligation -------------------
+
+_RERANK_OUTCOMES = frozenset(
+    {"applied", "skipped_unavailable", "provider_error", "contract_error"}
+)
+_RERANK_ERROR_CODES = frozenset(
+    {
+        "none",
+        "reranker_unavailable",
+        "reranker_provider_error",
+        "reranker_contract_error",
+    }
+)
+_RERANK_PENDING = object()
+_RERANK_COMPLETED = object()
+_RERANK_FAILED = object()
+
+
+@dataclass(frozen=True, slots=True, weakref_slot=True, init=False)
+class RerankReceipt:
+    """Content-free owner-bound projection of one bounded rerank attempt."""
+
+    stage: str
+    outcome: str
+    error_code: str
+    call_performed: bool
+    semantic_obligation_sha256: str
+    prerequisite_sha256: str
+    parent_context_receipt_sha256s: tuple[str, ...]
+    bridge_context_receipt_sha256s: tuple[str, ...]
+    owner_plan_sha256: str
+    owner_plan_config_sha256: str
+    query_sha256: str
+    rerank_k: int
+    final_evidence_budget: int
+    input_evidence_ids: tuple[str, ...]
+    input_evidence_roles: tuple[str, ...]
+    input_count: int
+    ordered_evidence_ids: tuple[str, ...]
+    ordered_stable_anchors: tuple[StableEvidenceAnchor, ...]
+    candidate_evidence_ids: tuple[str, ...]
+    bridge_evidence_ids: tuple[str, ...]
+    effective_output_count: int
+    reranker_id: str
+    reranker_implementation_sha256: str
+    reranker_config_sha256: str
+    evidence_store_sha256: str
+    execution_config_sha256: str
+    runtime_binding_sha256: str
+    result_sha256: str
+    receipt_sha256: str
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        raise TypeError("rerank_receipt_factory_required")
+
+    def __copy__(self) -> object:
+        raise TypeError("rerank_receipt_not_serializable")
+
+    def __deepcopy__(self, memo: object) -> object:
+        raise TypeError("rerank_receipt_not_serializable")
+
+    def __reduce__(self) -> object:
+        raise TypeError("rerank_receipt_not_serializable")
+
+    def __reduce_ex__(self, protocol: int) -> object:
+        raise TypeError("rerank_receipt_not_serializable")
+
+    @classmethod
+    def _create(
+        cls,
+        *,
+        payload: Mapping[str, Any],
+        _token: object,
+    ) -> RerankReceipt:
+        if _token is not _RERANK_RECEIPT_TOKEN:
+            raise ValueError("rerank_receipt_factory_required")
+        result = object.__new__(cls)
+        for name in cls.__slots__:
+            if name != "__weakref__":
+                object.__setattr__(result, name, payload[name])
+        _validate_rerank_receipt_payload(result)
+        return result
+
+    def to_dict(self) -> dict[str, Any]:
+        _validate_rerank_receipt_payload(self)
+        return _rerank_receipt_payload(self, include_hash=True)
+
+
+def _rerank_receipt_payload(
+    receipt: RerankReceipt,
+    *,
+    include_hash: bool,
+) -> dict[str, Any]:
+    payload = {
+        "schema_version": SCHEMA_VERSION,
+        "stage": object.__getattribute__(receipt, "stage"),
+        "outcome": object.__getattribute__(receipt, "outcome"),
+        "error_code": object.__getattribute__(receipt, "error_code"),
+        "call_performed": object.__getattribute__(receipt, "call_performed"),
+        "semantic_obligation_sha256": object.__getattribute__(
+            receipt, "semantic_obligation_sha256"
+        ),
+        "prerequisite_sha256": object.__getattribute__(
+            receipt, "prerequisite_sha256"
+        ),
+        "parent_context_receipt_sha256s": list(
+            object.__getattribute__(
+                receipt, "parent_context_receipt_sha256s"
+            )
+        ),
+        "bridge_context_receipt_sha256s": list(
+            object.__getattribute__(
+                receipt, "bridge_context_receipt_sha256s"
+            )
+        ),
+        "owner_plan_sha256": object.__getattribute__(
+            receipt, "owner_plan_sha256"
+        ),
+        "owner_plan_config_sha256": object.__getattribute__(
+            receipt, "owner_plan_config_sha256"
+        ),
+        "query_sha256": object.__getattribute__(receipt, "query_sha256"),
+        "rerank_k": object.__getattribute__(receipt, "rerank_k"),
+        "final_evidence_budget": object.__getattribute__(
+            receipt, "final_evidence_budget"
+        ),
+        "input_evidence_ids": list(
+            object.__getattribute__(receipt, "input_evidence_ids")
+        ),
+        "input_evidence_roles": list(
+            object.__getattribute__(receipt, "input_evidence_roles")
+        ),
+        "input_count": object.__getattribute__(receipt, "input_count"),
+        "ordered_evidence_ids": list(
+            object.__getattribute__(receipt, "ordered_evidence_ids")
+        ),
+        "ordered_stable_anchors": [
+            anchor.to_dict()
+            for anchor in object.__getattribute__(
+                receipt, "ordered_stable_anchors"
+            )
+        ],
+        "candidate_evidence_ids": list(
+            object.__getattribute__(receipt, "candidate_evidence_ids")
+        ),
+        "bridge_evidence_ids": list(
+            object.__getattribute__(receipt, "bridge_evidence_ids")
+        ),
+        "effective_output_count": object.__getattribute__(
+            receipt, "effective_output_count"
+        ),
+        "reranker_id": object.__getattribute__(receipt, "reranker_id"),
+        "reranker_implementation_sha256": object.__getattribute__(
+            receipt, "reranker_implementation_sha256"
+        ),
+        "reranker_config_sha256": object.__getattribute__(
+            receipt, "reranker_config_sha256"
+        ),
+        "evidence_store_sha256": object.__getattribute__(
+            receipt, "evidence_store_sha256"
+        ),
+        "execution_config_sha256": object.__getattribute__(
+            receipt, "execution_config_sha256"
+        ),
+        "runtime_binding_sha256": object.__getattribute__(
+            receipt, "runtime_binding_sha256"
+        ),
+        "result_sha256": object.__getattribute__(receipt, "result_sha256"),
+    }
+    if include_hash:
+        payload["receipt_sha256"] = object.__getattribute__(
+            receipt, "receipt_sha256"
+        )
+    return payload
+
+
+def _validate_rerank_receipt_payload(receipt: RerankReceipt) -> None:
+    if type(receipt) is not RerankReceipt:
+        raise TypeError("rerank_receipt_required")
+    outcome = object.__getattribute__(receipt, "outcome")
+    error_code = object.__getattribute__(receipt, "error_code")
+    call_performed = object.__getattribute__(receipt, "call_performed")
+    if (
+        object.__getattribute__(receipt, "stage") != "semantic_rerank"
+        or outcome not in _RERANK_OUTCOMES
+        or error_code not in _RERANK_ERROR_CODES
+        or type(call_performed) is not bool
+    ):
+        raise ValueError("invalid_rerank_receipt_outcome")
+    expected_error = {
+        "applied": "none",
+        "skipped_unavailable": "reranker_unavailable",
+        "provider_error": "reranker_provider_error",
+        "contract_error": "reranker_contract_error",
+    }[outcome]
+    if error_code != expected_error or call_performed is (
+        outcome == "skipped_unavailable"
+    ):
+        raise ValueError("invalid_rerank_receipt_outcome")
+    for name in (
+        "semantic_obligation_sha256",
+        "prerequisite_sha256",
+        "owner_plan_sha256",
+        "owner_plan_config_sha256",
+        "query_sha256",
+        "reranker_implementation_sha256",
+        "reranker_config_sha256",
+        "evidence_store_sha256",
+        "execution_config_sha256",
+        "runtime_binding_sha256",
+        "result_sha256",
+        "receipt_sha256",
+    ):
+        _require_hash(object.__getattribute__(receipt, name), f"invalid_{name}")
+    for name in (
+        "parent_context_receipt_sha256s",
+        "bridge_context_receipt_sha256s",
+    ):
+        values = _exact_string_tuple_value(
+            object.__getattribute__(receipt, name),
+            f"rerank_{name}",
+            allow_empty=True,
+        )
+        for value in values:
+            _require_hash(value, f"invalid_rerank_{name}")
+    rerank_k = object.__getattribute__(receipt, "rerank_k")
+    final_budget = object.__getattribute__(receipt, "final_evidence_budget")
+    input_count = object.__getattribute__(receipt, "input_count")
+    effective_count = object.__getattribute__(receipt, "effective_output_count")
+    if (
+        type(rerank_k) is not int
+        or rerank_k < 1
+        or type(final_budget) is not int
+        or final_budget < 1
+        or final_budget > rerank_k
+        or type(input_count) is not int
+        or input_count < 1
+        or type(effective_count) is not int
+        or effective_count < 0
+        or effective_count > min(rerank_k, input_count)
+    ):
+        raise ValueError("invalid_rerank_receipt_budget")
+    inputs = _exact_string_tuple_value(
+        object.__getattribute__(receipt, "input_evidence_ids"),
+        "rerank_input_evidence_ids",
+        allow_empty=False,
+    )
+    roles = object.__getattribute__(receipt, "input_evidence_roles")
+    ordered = _exact_string_tuple_value(
+        object.__getattribute__(receipt, "ordered_evidence_ids"),
+        "rerank_ordered_evidence_ids",
+        allow_empty=outcome in {"provider_error", "contract_error"},
+    )
+    candidates = _exact_string_tuple_value(
+        object.__getattribute__(receipt, "candidate_evidence_ids"),
+        "rerank_candidate_evidence_ids",
+        allow_empty=True,
+    )
+    bridges = _exact_string_tuple_value(
+        object.__getattribute__(receipt, "bridge_evidence_ids"),
+        "rerank_bridge_evidence_ids",
+        allow_empty=True,
+    )
+    anchors = object.__getattribute__(receipt, "ordered_stable_anchors")
+    role_by_id = dict(zip(inputs, roles)) if type(roles) is tuple else {}
+    expected_candidates = tuple(
+        item for item in ordered if role_by_id.get(item) == "candidate"
+    )
+    expected_bridges = tuple(
+        item for item in ordered if role_by_id.get(item) == "bridge"
+    )
+    if (
+        len(inputs) != input_count
+        or type(roles) is not tuple
+        or len(roles) != input_count
+        or any(role not in {"candidate", "bridge"} for role in roles)
+        or len(ordered) != effective_count
+        or not set(ordered).issubset(inputs)
+        or set(candidates).intersection(bridges)
+        or set(candidates).union(bridges) != set(ordered)
+        or candidates != expected_candidates
+        or bridges != expected_bridges
+        or type(anchors) is not tuple
+        or len(anchors) != effective_count
+        or any(type(anchor) is not StableEvidenceAnchor for anchor in anchors)
+    ):
+        raise ValueError("rerank_receipt_projection_mismatch")
+    if outcome in {"provider_error", "contract_error"} and (
+        ordered or candidates or bridges or anchors or effective_count
+    ):
+        raise ValueError("rerank_failure_projection_mismatch")
+    if outcome == "skipped_unavailable" and ordered != inputs[: min(rerank_k, input_count)]:
+        raise ValueError("rerank_unavailable_identity_projection_mismatch")
+    reranker_id = object.__getattribute__(receipt, "reranker_id")
+    if (outcome == "skipped_unavailable") is not (reranker_id == "none"):
+        raise ValueError("rerank_receipt_capability_mismatch")
+    expected = _canonical_sha256(
+        _rerank_receipt_payload(receipt, include_hash=False)
+    )
+    if object.__getattribute__(receipt, "receipt_sha256") != expected:
+        raise ValueError("rerank_receipt_hash_mismatch")
+
+
+@dataclass(frozen=True, slots=True, repr=False, init=False)
+class _RerankerEvidence:
+    index: int
+    role: str
+    doc_id: str
+    content_kind: str
+    content: str
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        raise TypeError("reranker_request_factory_required")
+
+    def __copy__(self) -> object:
+        raise TypeError("reranker_request_not_serializable")
+
+    def __deepcopy__(self, memo: object) -> object:
+        raise TypeError("reranker_request_not_serializable")
+
+    def __reduce__(self) -> object:
+        raise TypeError("reranker_request_not_serializable")
+
+    def __reduce_ex__(self, protocol: int) -> object:
+        raise TypeError("reranker_request_not_serializable")
+
+    @classmethod
+    def _create(
+        cls,
+        *,
+        index: int,
+        role: str,
+        doc_id: str,
+        content_kind: str,
+        content: str,
+        _token: object,
+    ) -> _RerankerEvidence:
+        if _token is not _RERANK_REQUEST_TOKEN:
+            raise ValueError("reranker_request_factory_required")
+        if (
+            type(index) is not int
+            or index < 0
+            or role not in {"candidate", "bridge"}
+            or type(doc_id) is not str
+            or not doc_id
+            or type(content_kind) is not str
+            or not content_kind
+            or type(content) is not str
+        ):
+            raise ValueError("reranker_request_evidence_mismatch")
+        result = object.__new__(cls)
+        for name, value in (
+            ("index", index),
+            ("role", role),
+            ("doc_id", doc_id),
+            ("content_kind", content_kind),
+            ("content", content),
+        ):
+            object.__setattr__(result, name, value)
+        return result
+
+
+@dataclass(frozen=True, slots=True, repr=False, init=False)
+class _RerankerRequest:
+    query: str
+    evidence: tuple[_RerankerEvidence, ...]
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        raise TypeError("reranker_request_factory_required")
+
+    def __copy__(self) -> object:
+        raise TypeError("reranker_request_not_serializable")
+
+    def __deepcopy__(self, memo: object) -> object:
+        raise TypeError("reranker_request_not_serializable")
+
+    def __reduce__(self) -> object:
+        raise TypeError("reranker_request_not_serializable")
+
+    def __reduce_ex__(self, protocol: int) -> object:
+        raise TypeError("reranker_request_not_serializable")
+
+    @classmethod
+    def _create(
+        cls,
+        *,
+        query: str,
+        evidence: tuple[_RerankerEvidence, ...],
+        _token: object,
+    ) -> _RerankerRequest:
+        if _token is not _RERANK_REQUEST_TOKEN:
+            raise ValueError("reranker_request_factory_required")
+        if (
+            type(query) is not str
+            or not query
+            or type(evidence) is not tuple
+            or not evidence
+            or any(
+                type(item) is not _RerankerEvidence or item.index != index
+                for index, item in enumerate(evidence)
+            )
+        ):
+            raise ValueError("reranker_request_mismatch")
+        result = object.__new__(cls)
+        object.__setattr__(result, "query", query)
+        object.__setattr__(result, "evidence", evidence)
+        return result
+
+
+@dataclass(frozen=True, slots=True)
+class _RerankReceiptAuthority:
+    weak: ReferenceType[RerankReceipt]
+    root_source_weak: ReferenceType[object]
+    semantic_issuance_key: tuple[object, ...]
+    parent_receipts: tuple[ParentContextReceipt, ...]
+    bridge_receipts: tuple[BridgeContextReceipt, ...]
+    input_evidence: tuple[Evidence, ...]
+    input_roles: tuple[str, ...]
+    origin_seed_ids: tuple[str, ...]
+    ordered_evidence: tuple[Evidence, ...]
+    ordered_roles: tuple[str, ...]
+    ordered_origin_seed_ids: tuple[str, ...]
+    store: EvidenceStore
+    config: HarnessExecutionConfig
+    runtime: HarnessRuntimeBinding
+    execution_key: tuple[object, ...]
+    route_key: tuple[object, ...]
+    projection: object | None
+    issued_payload_sha256: str
+
+
+_RERANK_RECEIPT_AUTHORITIES: dict[int, _RerankReceiptAuthority] = {}
+_ISSUED_RERANK_RECEIPT_AUTHORITIES = _RERANK_RECEIPT_AUTHORITIES
+
+
+def _build_rerank_receipt_accessors(
+    visible: dict[int, _RerankReceiptAuthority],
+) -> tuple[FunctionType, FunctionType, FunctionType]:
+    shadow: dict[int, tuple[object, ...]] = {}
+    authority_lock = Lock()
+
+    def snapshot(authority: _RerankReceiptAuthority) -> tuple[object, ...]:
+        return tuple(
+            object.__getattribute__(authority, name)
+            for name in _RerankReceiptAuthority.__slots__
+        )
+
+    def register(
+        receipt: RerankReceipt,
+        authority: _RerankReceiptAuthority,
+    ) -> None:
+        with authority_lock:
+            identity = id(receipt)
+            if dict.get(visible, identity) is not None or dict.get(
+                shadow, identity
+            ) is not None:
+                raise ValueError("rerank_receipt_authority_drift")
+            dict.__setitem__(visible, identity, authority)
+            dict.__setitem__(shadow, identity, snapshot(authority))
+
+    def read(receipt: RerankReceipt) -> _RerankReceiptAuthority:
+        with authority_lock:
+            identity = id(receipt)
+            current = dict.get(visible, identity)
+            sealed = dict.get(shadow, identity)
+            if (
+                type(current) is not _RerankReceiptAuthority
+                or type(sealed) is not tuple
+                or object.__getattribute__(current, "weak")() is not receipt
+                or len(sealed) != len(_RerankReceiptAuthority.__slots__)
+                or any(
+                    object.__getattribute__(current, name) is not value
+                    for name, value in zip(
+                        _RerankReceiptAuthority.__slots__, sealed
+                    )
+                )
+            ):
+                raise ValueError("rerank_receipt_authority_required")
+            return current
+
+    def drop(identity: int, dead: ReferenceType[RerankReceipt]) -> None:
+        with authority_lock:
+            sealed = dict.get(shadow, identity)
+            if (
+                type(sealed) is tuple
+                and sealed
+                and tuple.__getitem__(sealed, 0) is dead
+            ):
+                dict.pop(visible, identity, None)
+                dict.pop(shadow, identity, None)
+
+    return register, read, drop
+
+
+(
+    _register_rerank_receipt_authority,
+    _read_rerank_receipt_authority,
+    _drop_rerank_receipt_authority,
+) = _build_rerank_receipt_accessors(_ISSUED_RERANK_RECEIPT_AUTHORITIES)
+
+
+def _build_semantic_route_accessors() -> tuple[
+    FunctionType,
+    FunctionType,
+    FunctionType,
+    FunctionType,
+    FunctionType,
+    FunctionType,
+]:
+    routes: dict[tuple[object, ...], str] = {}
+    route_shadow: dict[tuple[object, ...], str] = {}
+    history: dict[tuple[object, ...], object] = {}
+    history_shadow: dict[tuple[object, ...], object] = {}
+    cache: dict[tuple[object, ...], RerankReceipt] = {}
+    cache_shadow: dict[tuple[object, ...], RerankReceipt] = {}
+    source_refs: dict[int, ReferenceType[object]] = {}
+    source_keys: dict[int, set[tuple[str, tuple[object, ...]]]] = {}
+    route_lock = Lock()
+
+    def drop_source(identity: int, dead: ReferenceType[object]) -> None:
+        with route_lock:
+            if dict.get(source_refs, identity) is not dead:
+                return
+            keys = dict.pop(source_keys, identity, set())
+            for family, key in tuple(keys):
+                if family == "route":
+                    dict.pop(routes, key, None)
+                    dict.pop(route_shadow, key, None)
+                else:
+                    dict.pop(history, key, None)
+                    dict.pop(history_shadow, key, None)
+                    dict.pop(cache, key, None)
+                    dict.pop(cache_shadow, key, None)
+            dict.pop(source_refs, identity, None)
+
+    def register_source(
+        source: object,
+        family: str,
+        key: tuple[object, ...],
+    ) -> None:
+        source_identity = id(source)
+        source_weak = dict.get(source_refs, source_identity)
+        if source_weak is None:
+            source_weak = ref(
+                source,
+                lambda dead, source_identity=source_identity: drop_source(
+                    source_identity, dead
+                ),
+            )
+            dict.__setitem__(source_refs, source_identity, source_weak)
+            dict.__setitem__(source_keys, source_identity, set())
+        elif source_weak() is not source:
+            raise ValueError("semantic_route_source_history_drift")
+        dict.__getitem__(source_keys, source_identity).add((family, key))
+
+    def claim_base(source: object, route_key: tuple[object, ...]) -> None:
+        with route_lock:
+            register_source(source, "route", route_key)
+            current = dict.get(routes, route_key)
+            mirror = dict.get(route_shadow, route_key)
+            if current != mirror:
+                raise ValueError("semantic_route_history_drift")
+            if current is not None:
+                raise ValueError("semantic_route_already_consumed")
+            dict.__setitem__(routes, route_key, "base_pending")
+            dict.__setitem__(route_shadow, route_key, "base_pending")
+
+    def complete_base(route_key: tuple[object, ...]) -> None:
+        with route_lock:
+            if (
+                dict.get(routes, route_key) != "base_pending"
+                or dict.get(route_shadow, route_key) != "base_pending"
+            ):
+                raise ValueError("semantic_route_history_drift")
+            dict.__setitem__(routes, route_key, "base_consumed")
+            dict.__setitem__(route_shadow, route_key, "base_consumed")
+
+    def begin_rerank(
+        source: object,
+        route_key: tuple[object, ...],
+        execution_key: tuple[object, ...],
+    ) -> RerankReceipt | None:
+        with route_lock:
+            register_source(source, "route", route_key)
+            register_source(source, "rerank", execution_key)
+            route = dict.get(routes, route_key)
+            route_mirror = dict.get(route_shadow, route_key)
+            current = dict.get(history, execution_key)
+            mirror = dict.get(history_shadow, execution_key)
+            if route != route_mirror or current is not mirror:
+                raise ValueError("semantic_route_history_drift")
+            if current is None:
+                if route is not None:
+                    raise ValueError("semantic_route_already_consumed")
+                dict.__setitem__(routes, route_key, "rerank_pending")
+                dict.__setitem__(route_shadow, route_key, "rerank_pending")
+                dict.__setitem__(history, execution_key, _RERANK_PENDING)
+                dict.__setitem__(history_shadow, execution_key, _RERANK_PENDING)
+                return None
+            if current is _RERANK_COMPLETED and route == "rerank_consumed":
+                receipt = dict.get(cache, execution_key)
+                if (
+                    receipt is not dict.get(cache_shadow, execution_key)
+                    or type(receipt) is not RerankReceipt
+                ):
+                    raise ValueError("semantic_rerank_history_drift")
+            raise ValueError("semantic_rerank_already_consumed")
+
+    def complete_rerank(
+        route_key: tuple[object, ...],
+        execution_key: tuple[object, ...],
+        receipt: RerankReceipt,
+    ) -> None:
+        with route_lock:
+            if (
+                dict.get(routes, route_key) != "rerank_pending"
+                or dict.get(route_shadow, route_key) != "rerank_pending"
+                or dict.get(history, execution_key) is not _RERANK_PENDING
+                or dict.get(history_shadow, execution_key) is not _RERANK_PENDING
+            ):
+                raise ValueError("semantic_rerank_history_drift")
+            dict.__setitem__(cache, execution_key, receipt)
+            dict.__setitem__(cache_shadow, execution_key, receipt)
+            dict.__setitem__(history, execution_key, _RERANK_COMPLETED)
+            dict.__setitem__(history_shadow, execution_key, _RERANK_COMPLETED)
+            dict.__setitem__(routes, route_key, "rerank_consumed")
+            dict.__setitem__(route_shadow, route_key, "rerank_consumed")
+
+    def fail_rerank(
+        route_key: tuple[object, ...],
+        execution_key: tuple[object, ...],
+    ) -> None:
+        with route_lock:
+            if (
+                dict.get(routes, route_key) != "rerank_pending"
+                or dict.get(route_shadow, route_key) != "rerank_pending"
+                or dict.get(history, execution_key) is not _RERANK_PENDING
+                or dict.get(history_shadow, execution_key) is not _RERANK_PENDING
+            ):
+                raise ValueError("semantic_rerank_history_drift")
+            dict.__setitem__(history, execution_key, _RERANK_FAILED)
+            dict.__setitem__(history_shadow, execution_key, _RERANK_FAILED)
+            dict.__setitem__(routes, route_key, "rerank_consumed")
+            dict.__setitem__(route_shadow, route_key, "rerank_consumed")
+
+    def status(route_key: tuple[object, ...]) -> str | None:
+        with route_lock:
+            current = dict.get(routes, route_key)
+            mirror = dict.get(route_shadow, route_key)
+            if current != mirror:
+                raise ValueError("semantic_route_history_drift")
+            return current
+
+    return claim_base, complete_base, begin_rerank, complete_rerank, fail_rerank, status
+
+
+(
+    _claim_base_semantic_route,
+    _complete_base_semantic_route,
+    _begin_semantic_rerank,
+    _complete_semantic_rerank,
+    _fail_semantic_rerank,
+    _semantic_route_status,
+) = _build_semantic_route_accessors()
+
+
+def _validate_complete_context_receipts(
+    *,
+    obligation: SemanticVerificationObligation,
+    semantic_authority: _SemanticVerificationObligationAuthority,
+    parent_receipts: tuple[ParentContextReceipt, ...],
+    bridge_receipts: tuple[BridgeContextReceipt, ...],
+    store: EvidenceStore,
+    config: HarnessExecutionConfig,
+    runtime: HarnessRuntimeBinding,
+) -> tuple[
+    tuple[_ParentContextReceiptAuthority, ...],
+    tuple[_BridgeContextReceiptAuthority, ...],
+]:
+    if object.__getattribute__(obligation, "derivation_kind") != "base":
+        raise ValueError("semantic_rerank_requires_base_obligation")
+    if type(parent_receipts) is not tuple or type(bridge_receipts) is not tuple:
+        raise TypeError("semantic_rerank_context_receipt_tuple_required")
+    expected_batches = []
+    for family, receipts, receipt_type in (
+        ("parent", parent_receipts, ParentContextReceipt),
+        ("bridge", bridge_receipts, BridgeContextReceipt),
+    ):
+        execution_key = _context_issuance_key(
+            family,
+            semantic_authority,
+            obligation,
+            store,
+            config,
+            runtime,
+        )
+        if _context_receipt_issuance_status(execution_key) is not _CONTEXT_COMPLETED:
+            raise ValueError("semantic_rerank_context_receipts_incomplete")
+        cached = _begin_context_receipt_issuance(
+            object.__getattribute__(semantic_authority, "source"),
+            execution_key,
+            receipt_type,
+        )
+        if (
+            cached is None
+            or receipts is not cached
+        ):
+            raise ValueError("semantic_rerank_context_receipt_identity_mismatch")
+        expected_batches.append(cached)
+    parent_authorities = tuple(
+        _validate_parent_context_receipt_exact(
+            receipt=receipt,
+            obligation=obligation,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+        for receipt in parent_receipts
+    )
+    bridge_authorities = tuple(
+        _validate_bridge_context_receipt_exact(
+            receipt=receipt,
+            obligation=obligation,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+        for receipt in bridge_receipts
+    )
+    return parent_authorities, bridge_authorities
+
+
+def _rerank_prerequisite_sha256(
+    *,
+    obligation: SemanticVerificationObligation,
+    parent_receipts: tuple[ParentContextReceipt, ...],
+    bridge_receipts: tuple[BridgeContextReceipt, ...],
+    owner_plan_sha256: str,
+    owner_plan_config_sha256: str,
+    rerank_k: int,
+    final_evidence_budget: int,
+) -> str:
+    return _canonical_sha256(
+        {
+            "schema_version": SCHEMA_VERSION,
+            "semantic_obligation_sha256": object.__getattribute__(
+                obligation, "obligation_sha256"
+            ),
+            "parent_context_receipt_sha256s": [
+                object.__getattribute__(item, "receipt_sha256")
+                for item in parent_receipts
+            ],
+            "parent_context_receipt_count": len(parent_receipts),
+            "bridge_context_receipt_sha256s": [
+                object.__getattribute__(item, "receipt_sha256")
+                for item in bridge_receipts
+            ],
+            "bridge_context_receipt_count": len(bridge_receipts),
+            "owner_plan_sha256": owner_plan_sha256,
+            "owner_plan_config_sha256": owner_plan_config_sha256,
+            "rerank_k": rerank_k,
+            "final_evidence_budget": final_evidence_budget,
+        }
+    )
+
+
+def _rerank_evidence_pool(
+    *,
+    obligation: SemanticVerificationObligation,
+    semantic_authority: _SemanticVerificationObligationAuthority,
+    bridge_authorities: tuple[_BridgeContextReceiptAuthority, ...],
+) -> tuple[tuple[Evidence, ...], tuple[str, ...], tuple[str, ...]]:
+    evidence: list[Evidence] = []
+    roles: list[str] = []
+    origins: list[str] = []
+    seen: set[str] = set()
+    for item in object.__getattribute__(semantic_authority, "evidence"):
+        evidence_id = object.__getattribute__(item, "evidence_id")
+        if evidence_id in seen:
+            raise ValueError("semantic_rerank_candidate_duplicate")
+        seen.add(evidence_id)
+        evidence.append(item)
+        roles.append("candidate")
+        origins.append(evidence_id)
+    for bridge_authority in bridge_authorities:
+        seed_id = object.__getattribute__(
+            object.__getattribute__(bridge_authority, "seed"), "evidence_id"
+        )
+        for item in object.__getattribute__(bridge_authority, "linked_evidence"):
+            evidence_id = object.__getattribute__(item, "evidence_id")
+            if evidence_id in seen:
+                continue
+            seen.add(evidence_id)
+            evidence.append(item)
+            roles.append("bridge")
+            origins.append(seed_id)
+    result = (tuple(evidence), tuple(roles), tuple(origins))
+    if not result[0] or len(result[0]) != len(result[1]) or len(result[0]) != len(result[2]):
+        raise ValueError("semantic_rerank_evidence_pool_mismatch")
+    return result
+
+
+def _validate_reranker_protocol(reranker: _ComponentAuthority) -> None:
+    _validate_component_authority(reranker)
+    component = object.__getattribute__(reranker, "component")
+    if component is None:
+        return
+    method = object.__getattribute__(reranker, "method")
+    code = object.__getattribute__(reranker, "method_code")
+    if (
+        type(method) is not FunctionType
+        or type(code) is not CodeType
+        or object.__getattribute__(method, "__defaults__") is not None
+        or object.__getattribute__(method, "__kwdefaults__") is not None
+        or object.__getattribute__(code, "co_argcount") != 2
+        or object.__getattribute__(code, "co_posonlyargcount") != 0
+        or object.__getattribute__(code, "co_kwonlyargcount") != 0
+        or object.__getattribute__(code, "co_flags") & 0x0C
+    ):
+        raise ValueError("semantic_reranker_protocol_mismatch")
+
+
+def _reranker_request(
+    *,
+    query: str,
+    evidence: tuple[Evidence, ...],
+    roles: tuple[str, ...],
+) -> _RerankerRequest:
+    items = tuple(
+        _RerankerEvidence._create(
+            index=index,
+            role=roles[index],
+            doc_id=object.__getattribute__(item, "doc_id"),
+            content_kind=object.__getattribute__(item, "kind"),
+            content=object.__getattribute__(item, "text"),
+            _token=_RERANK_REQUEST_TOKEN,
+        )
+        for index, item in enumerate(evidence)
+    )
+    return _RerankerRequest._create(
+        query=query,
+        evidence=items,
+        _token=_RERANK_REQUEST_TOKEN,
+    )
+
+
+def _rerank_execution_key(
+    *,
+    semantic_authority: _SemanticVerificationObligationAuthority,
+    obligation: SemanticVerificationObligation,
+    prerequisite_sha256: str,
+    store: EvidenceStore,
+    config: HarnessExecutionConfig,
+    runtime: HarnessRuntimeBinding,
+) -> tuple[object, ...]:
+    return (
+        "semantic-rerank-v1",
+        object.__getattribute__(semantic_authority, "issuance_key"),
+        object.__getattribute__(obligation, "obligation_key"),
+        prerequisite_sha256,
+        id(store),
+        id(config),
+        id(runtime),
+    )
+
+
+def _mint_rerank_receipt(
+    *,
+    obligation: SemanticVerificationObligation,
+    semantic_authority: _SemanticVerificationObligationAuthority,
+    parent_receipts: tuple[ParentContextReceipt, ...],
+    bridge_receipts: tuple[BridgeContextReceipt, ...],
+    evidence: tuple[Evidence, ...],
+    roles: tuple[str, ...],
+    origins: tuple[str, ...],
+    ordered_indexes: tuple[int, ...],
+    projection: object | None,
+    outcome: str,
+    error_code: str,
+    call_performed: bool,
+    result_sha256: str,
+    owner_plan_sha256: str,
+    owner_plan_config_sha256: str,
+    rerank_k: int,
+    final_evidence_budget: int,
+    prerequisite_sha256: str,
+    execution_key: tuple[object, ...],
+) -> RerankReceipt:
+    store = object.__getattribute__(semantic_authority, "store")
+    config = object.__getattribute__(semantic_authority, "config")
+    runtime = object.__getattribute__(semantic_authority, "runtime")
+    ordered_evidence = tuple(evidence[index] for index in ordered_indexes)
+    ordered_roles = tuple(roles[index] for index in ordered_indexes)
+    ordered_origins = tuple(origins[index] for index in ordered_indexes)
+    ordered_ids = tuple(
+        object.__getattribute__(item, "evidence_id") for item in ordered_evidence
+    )
+    candidate_ids = tuple(
+        evidence_id
+        for evidence_id, role in zip(ordered_ids, ordered_roles)
+        if role == "candidate"
+    )
+    bridge_ids = tuple(
+        evidence_id
+        for evidence_id, role in zip(ordered_ids, ordered_roles)
+        if role == "bridge"
+    )
+    payload = {
+        "stage": "semantic_rerank",
+        "outcome": outcome,
+        "error_code": error_code,
+        "call_performed": call_performed,
+        "semantic_obligation_sha256": object.__getattribute__(
+            obligation, "obligation_sha256"
+        ),
+        "prerequisite_sha256": prerequisite_sha256,
+        "parent_context_receipt_sha256s": tuple(
+            object.__getattribute__(item, "receipt_sha256")
+            for item in parent_receipts
+        ),
+        "bridge_context_receipt_sha256s": tuple(
+            object.__getattribute__(item, "receipt_sha256")
+            for item in bridge_receipts
+        ),
+        "owner_plan_sha256": owner_plan_sha256,
+        "owner_plan_config_sha256": owner_plan_config_sha256,
+        "query_sha256": object.__getattribute__(obligation, "query_sha256"),
+        "rerank_k": rerank_k,
+        "final_evidence_budget": final_evidence_budget,
+        "input_evidence_ids": tuple(
+            object.__getattribute__(item, "evidence_id") for item in evidence
+        ),
+        "input_evidence_roles": roles,
+        "input_count": len(evidence),
+        "ordered_evidence_ids": ordered_ids,
+        "ordered_stable_anchors": tuple(
+            _stable_anchor(item) for item in ordered_evidence
+        ),
+        "candidate_evidence_ids": candidate_ids,
+        "bridge_evidence_ids": bridge_ids,
+        "effective_output_count": len(ordered_evidence),
+        "reranker_id": object.__getattribute__(runtime, "reranker_id"),
+        "reranker_implementation_sha256": object.__getattribute__(
+            runtime, "reranker_implementation_sha256"
+        ),
+        "reranker_config_sha256": object.__getattribute__(
+            runtime, "reranker_config_sha256"
+        ),
+        "evidence_store_sha256": object.__getattribute__(
+            store, "bundle_sha256"
+        ),
+        "execution_config_sha256": object.__getattribute__(
+            config, "config_sha256"
+        ),
+        "runtime_binding_sha256": object.__getattribute__(
+            runtime, "binding_sha256"
+        ),
+        "result_sha256": result_sha256,
+    }
+    temporary = object.__new__(RerankReceipt)
+    for name, value in payload.items():
+        object.__setattr__(temporary, name, value)
+    object.__setattr__(temporary, "receipt_sha256", "0" * 64)
+    payload["receipt_sha256"] = _canonical_sha256(
+        _rerank_receipt_payload(temporary, include_hash=False)
+    )
+    receipt = RerankReceipt._create(
+        payload=payload,
+        _token=_RERANK_RECEIPT_TOKEN,
+    )
+    identity = id(receipt)
+    weak = ref(
+        receipt,
+        lambda dead, identity=identity: _drop_rerank_receipt_authority(
+            identity, dead
+        ),
+    )
+    _register_rerank_receipt_authority(
+        receipt,
+        _RerankReceiptAuthority(
+            weak=weak,
+            root_source_weak=ref(
+                object.__getattribute__(semantic_authority, "source")
+            ),
+            semantic_issuance_key=object.__getattribute__(
+                semantic_authority, "issuance_key"
+            ),
+            parent_receipts=parent_receipts,
+            bridge_receipts=bridge_receipts,
+            input_evidence=evidence,
+            input_roles=roles,
+            origin_seed_ids=origins,
+            ordered_evidence=ordered_evidence,
+            ordered_roles=ordered_roles,
+            ordered_origin_seed_ids=ordered_origins,
+            store=store,
+            config=config,
+            runtime=runtime,
+            execution_key=execution_key,
+            route_key=object.__getattribute__(semantic_authority, "route_key"),
+            projection=projection,
+            issued_payload_sha256=_canonical_sha256(receipt.to_dict()),
+        ),
+    )
+    return receipt
+
+
+def _validate_rerank_receipt_exact(
+    *,
+    receipt: RerankReceipt,
+    obligation: SemanticVerificationObligation,
+    parent_receipts: tuple[ParentContextReceipt, ...],
+    bridge_receipts: tuple[BridgeContextReceipt, ...],
+    store: EvidenceStore,
+    config: HarnessExecutionConfig,
+    runtime: HarnessRuntimeBinding,
+) -> _RerankReceiptAuthority:
+    semantic_authority = _validate_semantic_verification_obligation_exact(
+        obligation=obligation, store=store, config=config, runtime=runtime
+    )
+    if object.__getattribute__(obligation, "derivation_kind") != "base":
+        raise ValueError("semantic_rerank_requires_base_obligation")
+    _, bridge_authorities = _validate_complete_context_receipts(
+        obligation=obligation,
+        semantic_authority=semantic_authority,
+        parent_receipts=parent_receipts,
+        bridge_receipts=bridge_receipts,
+        store=store,
+        config=config,
+        runtime=runtime,
+    )
+    owner_plan_sha, owner_config_sha, rerank_k, final_budget = (
+        _semantic_owner_plan_budget(semantic_authority)
+    )
+    prerequisite_sha = _rerank_prerequisite_sha256(
+        obligation=obligation,
+        parent_receipts=parent_receipts,
+        bridge_receipts=bridge_receipts,
+        owner_plan_sha256=owner_plan_sha,
+        owner_plan_config_sha256=owner_config_sha,
+        rerank_k=rerank_k,
+        final_evidence_budget=final_budget,
+    )
+    execution_key = _rerank_execution_key(
+        semantic_authority=semantic_authority,
+        obligation=obligation,
+        prerequisite_sha256=prerequisite_sha,
+        store=store,
+        config=config,
+        runtime=runtime,
+    )
+    evidence, roles, origins = _rerank_evidence_pool(
+        obligation=obligation,
+        semantic_authority=semantic_authority,
+        bridge_authorities=bridge_authorities,
+    )
+    _validate_rerank_receipt_payload(receipt)
+    authority = _read_rerank_receipt_authority(receipt)
+    ordered_evidence = object.__getattribute__(authority, "ordered_evidence")
+    if (
+        object.__getattribute__(authority, "root_source_weak")()
+        is not object.__getattribute__(semantic_authority, "source")
+        or object.__getattribute__(authority, "semantic_issuance_key")
+        != object.__getattribute__(semantic_authority, "issuance_key")
+        or object.__getattribute__(authority, "parent_receipts")
+        is not parent_receipts
+        or object.__getattribute__(authority, "bridge_receipts")
+        is not bridge_receipts
+        or object.__getattribute__(authority, "store") is not store
+        or object.__getattribute__(authority, "config") is not config
+        or object.__getattribute__(authority, "runtime") is not runtime
+        or object.__getattribute__(authority, "execution_key") != execution_key
+        or object.__getattribute__(authority, "route_key")
+        != object.__getattribute__(semantic_authority, "route_key")
+        or _semantic_route_status(
+            object.__getattribute__(semantic_authority, "route_key")
+        )
+        != "rerank_consumed"
+        or object.__getattribute__(authority, "input_evidence") != evidence
+        or any(
+            current is not expected
+            for current, expected in zip(
+                object.__getattribute__(authority, "input_evidence"), evidence
+            )
+        )
+        or object.__getattribute__(authority, "input_roles") != roles
+        or object.__getattribute__(authority, "origin_seed_ids") != origins
+        or object.__getattribute__(receipt, "prerequisite_sha256")
+        != prerequisite_sha
+        or object.__getattribute__(receipt, "owner_plan_sha256")
+        != owner_plan_sha
+        or object.__getattribute__(receipt, "owner_plan_config_sha256")
+        != owner_config_sha
+        or object.__getattribute__(receipt, "rerank_k") != rerank_k
+        or object.__getattribute__(receipt, "final_evidence_budget")
+        != final_budget
+        or object.__getattribute__(receipt, "semantic_obligation_sha256")
+        != object.__getattribute__(obligation, "obligation_sha256")
+        or object.__getattribute__(receipt, "ordered_evidence_ids")
+        != tuple(
+            object.__getattribute__(item, "evidence_id")
+            for item in ordered_evidence
+        )
+        or object.__getattribute__(authority, "issued_payload_sha256")
+        != _canonical_sha256(receipt.to_dict())
+    ):
+        raise ValueError("rerank_receipt_authority_drift")
+    return authority
+
+
+def _rerank_sanitized_result_sha256(
+    *,
+    outcome: str,
+    obligation: SemanticVerificationObligation,
+    prerequisite_sha256: str,
+    ordered_indexes: tuple[int, ...],
+) -> str:
+    return _canonical_sha256(
+        {
+            "schema_version": SCHEMA_VERSION,
+            "outcome": outcome,
+            "semantic_obligation_sha256": object.__getattribute__(
+                obligation, "obligation_sha256"
+            ),
+            "prerequisite_sha256": prerequisite_sha256,
+            "ordered_indexes": list(ordered_indexes),
+        }
+    )
+
+
+def execute_semantic_rerank(
+    *,
+    obligation: SemanticVerificationObligation,
+    parent_receipts: tuple[ParentContextReceipt, ...],
+    bridge_receipts: tuple[BridgeContextReceipt, ...],
+    store: EvidenceStore,
+    config: HarnessExecutionConfig,
+    runtime: HarnessRuntimeBinding,
+    _dependency_checker=None,
+    _dependency_checker_code=None,
+) -> RerankReceipt:
+    """Execute the exact c3.2 rerank branch; intentionally module-visible."""
+
+    _semantic_public_entry(_dependency_checker, _dependency_checker_code)
+    _validate_action_effects_dependency()
+    semantic_authority = _validate_semantic_verification_obligation_exact(
+        obligation=obligation, store=store, config=config, runtime=runtime
+    )
+    if object.__getattribute__(obligation, "derivation_kind") != "base":
+        raise ValueError("semantic_rerank_requires_base_obligation")
+    _, bridge_authorities = _validate_complete_context_receipts(
+        obligation=obligation,
+        semantic_authority=semantic_authority,
+        parent_receipts=parent_receipts,
+        bridge_receipts=bridge_receipts,
+        store=store,
+        config=config,
+        runtime=runtime,
+    )
+    owner_plan_sha, owner_config_sha, rerank_k, final_budget = (
+        _semantic_owner_plan_budget(semantic_authority)
+    )
+    evidence, roles, origins = _rerank_evidence_pool(
+        obligation=obligation,
+        semantic_authority=semantic_authority,
+        bridge_authorities=bridge_authorities,
+    )
+    prerequisite_sha = _rerank_prerequisite_sha256(
+        obligation=obligation,
+        parent_receipts=parent_receipts,
+        bridge_receipts=bridge_receipts,
+        owner_plan_sha256=owner_plan_sha,
+        owner_plan_config_sha256=owner_config_sha,
+        rerank_k=rerank_k,
+        final_evidence_budget=final_budget,
+    )
+    runtime_authority = _semantic_common_preflight(
+        store=store, config=config, runtime=runtime
+    )
+    reranker = object.__getattribute__(runtime_authority, "reranker")
+    _validate_reranker_protocol(reranker)
+    request = _reranker_request(
+        query=object.__getattribute__(semantic_authority, "raw_query"),
+        evidence=evidence,
+        roles=roles,
+    )
+    route_key = object.__getattribute__(semantic_authority, "route_key")
+    execution_key = _rerank_execution_key(
+        semantic_authority=semantic_authority,
+        obligation=obligation,
+        prerequisite_sha256=prerequisite_sha,
+        store=store,
+        config=config,
+        runtime=runtime,
+    )
+    cached = _begin_semantic_rerank(
+        object.__getattribute__(semantic_authority, "source"),
+        route_key,
+        execution_key,
+    )
+    if cached is not None:
+        _validate_rerank_receipt_exact(
+            receipt=cached,
+            obligation=obligation,
+            parent_receipts=parent_receipts,
+            bridge_receipts=bridge_receipts,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+        return cached
+    if object.__getattribute__(reranker, "component") is None:
+        ordered_indexes = tuple(range(min(rerank_k, len(evidence))))
+        result_sha = _rerank_sanitized_result_sha256(
+            outcome="skipped_unavailable",
+            obligation=obligation,
+            prerequisite_sha256=prerequisite_sha,
+            ordered_indexes=ordered_indexes,
+        )
+        try:
+            receipt = _mint_rerank_receipt(
+                obligation=obligation,
+                semantic_authority=semantic_authority,
+                parent_receipts=parent_receipts,
+                bridge_receipts=bridge_receipts,
+                evidence=evidence,
+                roles=roles,
+                origins=origins,
+                ordered_indexes=ordered_indexes,
+                projection=None,
+                outcome="skipped_unavailable",
+                error_code="reranker_unavailable",
+                call_performed=False,
+                result_sha256=result_sha,
+                owner_plan_sha256=owner_plan_sha,
+                owner_plan_config_sha256=owner_config_sha,
+                rerank_k=rerank_k,
+                final_evidence_budget=final_budget,
+                prerequisite_sha256=prerequisite_sha,
+                execution_key=execution_key,
+            )
+            _complete_semantic_rerank(route_key, execution_key, receipt)
+            return receipt
+        except Exception:
+            _fail_semantic_rerank(route_key, execution_key)
+            raise ValueError("semantic_reranker_contract_error") from None
+    provider_failed = False
+    try:
+        raw_result = object.__getattribute__(reranker, "method")(
+            object.__getattribute__(reranker, "component"), request
+        )
+    except Exception:
+        provider_failed = True
+        raw_result = None
+    try:
+        _semantic_public_entry(_dependency_checker, _dependency_checker_code)
+        _validate_action_effects_dependency()
+        authority_after = _validate_semantic_verification_obligation_exact(
+            obligation=obligation,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+        if authority_after is not semantic_authority:
+            raise ValueError("semantic_verification_obligation_authority_drift")
+        _, bridge_after = _validate_complete_context_receipts(
+            obligation=obligation,
+            semantic_authority=semantic_authority,
+            parent_receipts=parent_receipts,
+            bridge_receipts=bridge_receipts,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+        if _semantic_owner_plan_budget(semantic_authority) != (
+            owner_plan_sha,
+            owner_config_sha,
+            rerank_k,
+            final_budget,
+        ):
+            raise ValueError("semantic_owner_plan_drift")
+        if _rerank_evidence_pool(
+            obligation=obligation,
+            semantic_authority=semantic_authority,
+            bridge_authorities=bridge_after,
+        ) != (evidence, roles, origins):
+            raise ValueError("semantic_rerank_evidence_pool_drift")
+        runtime_after = _semantic_common_preflight(
+            store=store, config=config, runtime=runtime
+        )
+        reranker_after = object.__getattribute__(runtime_after, "reranker")
+        _validate_reranker_protocol(reranker_after)
+        if reranker_after is not reranker:
+            raise ValueError("semantic_reranker_authority_drift")
+        if provider_failed:
+            outcome = "provider_error"
+            projection = None
+            ordered_indexes = ()
+        else:
+            projection = _ISSUED_ACTION_EFFECTS_RERANK_NORMALIZER(
+                raw_result,
+                input_count=len(evidence),
+                rerank_k=rerank_k,
+            )
+            if type(projection) is not _ISSUED_ACTION_EFFECTS_RERANK_PROJECTION_CLASS:
+                raise ValueError("semantic_reranker_projection_mismatch")
+            ordered_indexes = object.__getattribute__(
+                projection, "ordered_indexes"
+            )
+            outcome = "applied"
+    except Exception:
+        outcome = "contract_error"
+        projection = None
+        ordered_indexes = ()
+    error_code = {
+        "applied": "none",
+        "provider_error": "reranker_provider_error",
+        "contract_error": "reranker_contract_error",
+    }[outcome]
+    result_sha = (
+        object.__getattribute__(projection, "result_sha256")
+        if projection is not None
+        else _rerank_sanitized_result_sha256(
+            outcome=outcome,
+            obligation=obligation,
+            prerequisite_sha256=prerequisite_sha,
+            ordered_indexes=(),
+        )
+    )
+    try:
+        receipt = _mint_rerank_receipt(
+            obligation=obligation,
+            semantic_authority=semantic_authority,
+            parent_receipts=parent_receipts,
+            bridge_receipts=bridge_receipts,
+            evidence=evidence,
+            roles=roles,
+            origins=origins,
+            ordered_indexes=ordered_indexes,
+            projection=projection,
+            outcome=outcome,
+            error_code=error_code,
+            call_performed=True,
+            result_sha256=result_sha,
+            owner_plan_sha256=owner_plan_sha,
+            owner_plan_config_sha256=owner_config_sha,
+            rerank_k=rerank_k,
+            final_evidence_budget=final_budget,
+            prerequisite_sha256=prerequisite_sha,
+            execution_key=execution_key,
+        )
+        _complete_semantic_rerank(route_key, execution_key, receipt)
+        return receipt
+    except Exception:
+        _fail_semantic_rerank(route_key, execution_key)
+        raise ValueError("semantic_reranker_contract_error") from None
+
+
+def validate_rerank_receipt(
+    *,
+    receipt: RerankReceipt,
+    obligation: SemanticVerificationObligation,
+    parent_receipts: tuple[ParentContextReceipt, ...],
+    bridge_receipts: tuple[BridgeContextReceipt, ...],
+    store: EvidenceStore,
+    config: HarnessExecutionConfig,
+    runtime: HarnessRuntimeBinding,
+    _dependency_checker=None,
+    _dependency_checker_code=None,
+) -> None:
+    _semantic_public_entry(_dependency_checker, _dependency_checker_code)
+    _validate_action_effects_dependency()
+    _validate_rerank_receipt_exact(
+        receipt=receipt,
+        obligation=obligation,
+        parent_receipts=parent_receipts,
+        bridge_receipts=bridge_receipts,
+        store=store,
+        config=config,
+        runtime=runtime,
+    )
+
+
+def issue_derived_semantic_verification_obligation(
+    *,
+    obligation: SemanticVerificationObligation,
+    parent_receipts: tuple[ParentContextReceipt, ...],
+    bridge_receipts: tuple[BridgeContextReceipt, ...],
+    rerank_receipt: RerankReceipt,
+    store: EvidenceStore,
+    config: HarnessExecutionConfig,
+    runtime: HarnessRuntimeBinding,
+    _dependency_checker=None,
+    _dependency_checker_code=None,
+) -> SemanticVerificationObligation:
+    _semantic_public_entry(_dependency_checker, _dependency_checker_code)
+    semantic_authority = _validate_semantic_verification_obligation_exact(
+        obligation=obligation, store=store, config=config, runtime=runtime
+    )
+    if object.__getattribute__(obligation, "derivation_kind") != "base":
+        raise ValueError("semantic_derived_recursion_forbidden")
+    parent_authorities, _ = _validate_complete_context_receipts(
+        obligation=obligation,
+        semantic_authority=semantic_authority,
+        parent_receipts=parent_receipts,
+        bridge_receipts=bridge_receipts,
+        store=store,
+        config=config,
+        runtime=runtime,
+    )
+    rerank_authority = _validate_rerank_receipt_exact(
+        receipt=rerank_receipt,
+        obligation=obligation,
+        parent_receipts=parent_receipts,
+        bridge_receipts=bridge_receipts,
+        store=store,
+        config=config,
+        runtime=runtime,
+    )
+    if object.__getattribute__(rerank_receipt, "outcome") not in {
+        "applied",
+        "skipped_unavailable",
+    }:
+        raise ValueError("semantic_derived_rerank_outcome_failed")
+    final_budget = object.__getattribute__(
+        rerank_receipt, "final_evidence_budget"
+    )
+    evidence = object.__getattribute__(rerank_authority, "ordered_evidence")[
+        :final_budget
+    ]
+    roles = object.__getattribute__(rerank_authority, "ordered_roles")[
+        :final_budget
+    ]
+    origins = object.__getattribute__(
+        rerank_authority, "ordered_origin_seed_ids"
+    )[:final_budget]
+    supplied = tuple(
+        object.__getattribute__(item, "evidence_id") for item in evidence
+    )
+    if not supplied:
+        raise ValueError("semantic_derived_evidence_required")
+    candidates = tuple(
+        evidence_id
+        for evidence_id, role in zip(supplied, roles)
+        if role == "candidate"
+    )
+    bridges = tuple(
+        evidence_id
+        for evidence_id, role in zip(supplied, roles)
+        if role == "bridge"
+    )
+    parent_by_seed = {
+        object.__getattribute__(authority, "seed").evidence_id: object.__getattribute__(
+            authority, "parent"
+        )
+        for authority in parent_authorities
+    }
+    auxiliary_parents: list[ProvenanceParent] = []
+    seen_parent_ids: set[str] = set()
+    for origin in origins:
+        parent = parent_by_seed.get(origin)
+        if parent is None:
+            continue
+        parent_id = object.__getattribute__(parent, "parent_id")
+        if parent_id not in seen_parent_ids:
+            seen_parent_ids.add(parent_id)
+            auxiliary_parents.append(parent)
+    owner_plan_sha = object.__getattribute__(rerank_receipt, "owner_plan_sha256")
+    owner_config_sha = object.__getattribute__(
+        rerank_receipt, "owner_plan_config_sha256"
+    )
+    rerank_k = object.__getattribute__(rerank_receipt, "rerank_k")
+    issuance_key = (
+        "semantic-reranked-v1",
+        object.__getattribute__(semantic_authority, "issuance_key"),
+        object.__getattribute__(rerank_receipt, "receipt_sha256"),
+        id(store),
+        id(config),
+        id(runtime),
+    )
+    cached = _cached_semantic_obligation(issuance_key)
+    if cached is not None:
+        _validate_semantic_verification_obligation_exact(
+            obligation=cached, store=store, config=config, runtime=runtime
+        )
+        return cached
+    payload = {
+        "derivation_kind": "reranked",
+        "source_kind": object.__getattribute__(obligation, "source_kind"),
+        "target_kind": object.__getattribute__(obligation, "target_kind"),
+        "obligation_key": object.__getattribute__(obligation, "obligation_key"),
+        "target_doc_id": object.__getattribute__(obligation, "target_doc_id"),
+        "field": object.__getattribute__(obligation, "field"),
+        "execution_kind": object.__getattribute__(obligation, "execution_kind"),
+        "owner_binding_sha256": object.__getattribute__(
+            obligation, "owner_binding_sha256"
+        ),
+        "retrieval_obligation_sha256": object.__getattribute__(
+            obligation, "retrieval_obligation_sha256"
+        ),
+        "candidate_receipt_sha256": object.__getattribute__(
+            obligation, "candidate_receipt_sha256"
+        ),
+        "source_state_sha256": object.__getattribute__(
+            obligation, "source_state_sha256"
+        ),
+        "base_semantic_obligation_sha256": object.__getattribute__(
+            obligation, "obligation_sha256"
+        ),
+        "parent_context_receipt_sha256s": tuple(
+            object.__getattribute__(item, "receipt_sha256")
+            for item in parent_receipts
+        ),
+        "bridge_context_receipt_sha256s": tuple(
+            object.__getattribute__(item, "receipt_sha256")
+            for item in bridge_receipts
+        ),
+        "rerank_receipt_sha256": object.__getattribute__(
+            rerank_receipt, "receipt_sha256"
+        ),
+        "owner_plan_sha256": owner_plan_sha,
+        "owner_plan_config_sha256": owner_config_sha,
+        "rerank_k": rerank_k,
+        "final_evidence_budget": final_budget,
+        "query_sha256": object.__getattribute__(obligation, "query_sha256"),
+        "evidence_store_sha256": object.__getattribute__(
+            obligation, "evidence_store_sha256"
+        ),
+        "execution_config_sha256": object.__getattribute__(
+            obligation, "execution_config_sha256"
+        ),
+        "runtime_binding_sha256": object.__getattribute__(
+            obligation, "runtime_binding_sha256"
+        ),
+        "candidate_evidence_ids": candidates,
+        "bridge_evidence_ids": bridges,
+        "context_evidence_ids": (),
+        "supplied_evidence_ids": supplied,
+        "ordered_stable_anchors": tuple(_stable_anchor(item) for item in evidence),
+    }
+    temporary = object.__new__(SemanticVerificationObligation)
+    for name, value in payload.items():
+        object.__setattr__(temporary, name, value)
+    object.__setattr__(temporary, "obligation_sha256", "0" * 64)
+    payload["obligation_sha256"] = _canonical_sha256(
+        _semantic_verification_obligation_payload(temporary, include_hash=False)
+    )
+    result = SemanticVerificationObligation._create(
+        payload=payload, _token=_SEMANTIC_OBLIGATION_TOKEN
+    )
+    identity = id(result)
+    weak = ref(
+        result,
+        lambda dead, identity=identity: _drop_semantic_obligation_authority(
+            identity, dead
+        ),
+    )
+    runtime_authority = _semantic_common_preflight(
+        store=store, config=config, runtime=runtime
+    )
+    authority = _SemanticVerificationObligationAuthority(
+        weak=weak,
+        issued_payload_sha256=_canonical_sha256(result.to_dict()),
+        issuance_key=issuance_key,
+        source=object.__getattribute__(semantic_authority, "source"),
+        candidate_receipt=object.__getattribute__(
+            semantic_authority, "candidate_receipt"
+        ),
+        source_state=object.__getattribute__(semantic_authority, "source_state"),
+        retrieval_obligation=object.__getattribute__(
+            semantic_authority, "retrieval_obligation"
+        ),
+        fusion_receipt=object.__getattribute__(semantic_authority, "fusion_receipt"),
+        dense_receipt=object.__getattribute__(semantic_authority, "dense_receipt"),
+        lexical_receipt=object.__getattribute__(
+            semantic_authority, "lexical_receipt"
+        ),
+        registry=object.__getattribute__(semantic_authority, "registry"),
+        policy=object.__getattribute__(semantic_authority, "policy"),
+        raw_query=object.__getattribute__(semantic_authority, "raw_query"),
+        evidence=evidence,
+        roles=roles,
+        origin_seed_ids=origins,
+        auxiliary_parents=tuple(auxiliary_parents),
+        base_obligation=obligation,
+        base_issuance_key=object.__getattribute__(
+            semantic_authority, "issuance_key"
+        ),
+        parent_receipts=parent_receipts,
+        bridge_receipts=bridge_receipts,
+        rerank_receipt=rerank_receipt,
+        route_key=object.__getattribute__(semantic_authority, "route_key"),
+        execution_key=(
+            "semantic-execution-v2",
+            "reranked",
+            object.__getattribute__(semantic_authority, "issuance_key"),
+            object.__getattribute__(rerank_receipt, "receipt_sha256"),
+            id(store),
+            id(config),
+            id(runtime),
+        ),
+        owner_plan_sha256=owner_plan_sha,
+        owner_plan_config_sha256=owner_config_sha,
+        rerank_k=rerank_k,
+        final_evidence_budget=final_budget,
+        store=store,
+        config=config,
+        runtime=runtime,
+        verifier_authority=object.__getattribute__(runtime_authority, "verifier"),
+    )
+    _register_semantic_obligation_authority(result, authority)
+    return result
 
 
 def _validate_snapshot_callable(
@@ -10256,6 +12228,10 @@ def _validate_action_effects_dependency() -> None:
         is not _ISSUED_ACTION_EFFECTS_NORMALIZER
         or dict.get(namespace, "_SemanticVerificationProjection")
         is not _ISSUED_ACTION_EFFECTS_PROJECTION_CLASS
+        or dict.get(namespace, "_normalize_reranker_result")
+        is not _ISSUED_ACTION_EFFECTS_RERANK_NORMALIZER
+        or dict.get(namespace, "_RerankProjection")
+        is not _ISSUED_ACTION_EFFECTS_RERANK_PROJECTION_CLASS
         or dict.get(namespace, "SemanticValueSupport") is not SemanticValueSupport
     ):
         raise ValueError("semantic_normalizer_dependency_drift")
@@ -10579,6 +12555,16 @@ def _semantic_verifier_request(
         for index, item in enumerate(evidence)
     ):
         raise ValueError("semantic_verifier_request_mismatch")
+    auxiliary_parent_context = tuple(
+        _SemanticVerifierParentContext._create(
+            parent_id=object.__getattribute__(parent, "parent_id"),
+            parent_kind=object.__getattribute__(parent, "kind"),
+            doc_id=object.__getattribute__(parent, "doc_id"),
+            content=object.__getattribute__(parent, "text"),
+            _token=_SEMANTIC_REQUEST_TOKEN,
+        )
+        for parent in object.__getattribute__(authority, "auxiliary_parents")
+    )
     return _SemanticVerifierRequest._create(
         source_kind=object.__getattribute__(obligation, "source_kind"),
         target_kind=object.__getattribute__(obligation, "target_kind"),
@@ -10587,6 +12573,7 @@ def _semantic_verifier_request(
         field=object.__getattribute__(obligation, "field"),
         query=object.__getattribute__(authority, "raw_query"),
         evidence=evidence,
+        auxiliary_parent_context=auxiliary_parent_context,
         _token=_SEMANTIC_REQUEST_TOKEN,
     )
 
@@ -10717,6 +12704,17 @@ def execute_semantic_verification(
     verifier = object.__getattribute__(authority, "verifier_authority")
     _validate_semantic_verifier_protocol(verifier)
     execution_key = _semantic_execution_key(authority, obligation)
+    derivation_kind = object.__getattribute__(obligation, "derivation_kind")
+    route_key = object.__getattribute__(authority, "route_key")
+    is_base = derivation_kind == "base"
+    if is_base:
+        if _semantic_execution_status(execution_key) is not None:
+            raise ValueError("semantic_verification_already_consumed")
+        _claim_base_semantic_route(
+            object.__getattribute__(authority, "source"), route_key
+        )
+    elif _semantic_route_status(route_key) != "rerank_consumed":
+        raise ValueError("semantic_derived_route_not_ready")
     _transition_semantic_execution(execution_key, None, "pending")
     if object.__getattribute__(verifier, "component") is None:
         result_sha256 = _canonical_sha256(
@@ -10740,8 +12738,12 @@ def execute_semantic_verification(
             )
         except Exception:
             _transition_semantic_execution(execution_key, "pending", "failed")
+            if is_base:
+                _complete_base_semantic_route(route_key)
             raise ValueError("semantic_verifier_contract_error") from None
         _transition_semantic_execution(execution_key, "pending", "completed")
+        if is_base:
+            _complete_base_semantic_route(route_key)
         return receipt
     request = _semantic_verifier_request(
         obligation=obligation, authority=authority
@@ -10752,6 +12754,8 @@ def execute_semantic_verification(
         )
     except Exception:
         _transition_semantic_execution(execution_key, "pending", "failed")
+        if is_base:
+            _complete_base_semantic_route(route_key)
         raise ValueError("semantic_verifier_provider_error") from None
     try:
         _semantic_public_entry(_dependency_checker, _dependency_checker_code)
@@ -10768,12 +12772,18 @@ def execute_semantic_verification(
                 obligation, "supplied_evidence_ids"
             ),
             promotable_ids=(
-                object.__getattribute__(obligation, "candidate_evidence_ids")
-                + object.__getattribute__(obligation, "bridge_evidence_ids")
+                object.__getattribute__(obligation, "supplied_evidence_ids")
+                if derivation_kind == "reranked"
+                else (
+                    object.__getattribute__(obligation, "candidate_evidence_ids")
+                    + object.__getattribute__(obligation, "bridge_evidence_ids")
+                )
             ),
         )
     except Exception:
         _transition_semantic_execution(execution_key, "pending", "failed")
+        if is_base:
+            _complete_base_semantic_route(route_key)
         raise ValueError("semantic_verifier_contract_error") from None
     disposition = object.__getattribute__(projection, "disposition")
     result_sha256 = object.__getattribute__(projection, "result_sha256")
@@ -10789,8 +12799,12 @@ def execute_semantic_verification(
         )
     except Exception:
         _transition_semantic_execution(execution_key, "pending", "failed")
+        if is_base:
+            _complete_base_semantic_route(route_key)
         raise ValueError("semantic_verifier_contract_error") from None
     _transition_semantic_execution(execution_key, "pending", "completed")
+    if is_base:
+        _complete_base_semantic_route(route_key)
     return receipt
 
 
@@ -10965,6 +12979,15 @@ validate_parent_context_receipt.__kwdefaults__.update(
     _RUNTIME_GATE_PUBLIC_KWDEFAULTS
 )
 validate_bridge_context_receipt.__kwdefaults__.update(
+    _RUNTIME_GATE_PUBLIC_KWDEFAULTS
+)
+execute_semantic_rerank.__kwdefaults__.update(
+    _RUNTIME_GATE_PUBLIC_KWDEFAULTS
+)
+validate_rerank_receipt.__kwdefaults__.update(
+    _RUNTIME_GATE_PUBLIC_KWDEFAULTS
+)
+issue_derived_semantic_verification_obligation.__kwdefaults__.update(
     _RUNTIME_GATE_PUBLIC_KWDEFAULTS
 )
 execute_semantic_verification.__kwdefaults__.update(
@@ -11261,6 +13284,11 @@ _RUNTIME_GATE_FUNCTION_PINS = tuple(
             "_ISSUED_ACTION_EFFECTS_NORMALIZER",
             _ISSUED_ACTION_EFFECTS_NORMALIZER,
         ),
+        ("_ACTION_EFFECTS_RERANK_NORMALIZER", _ACTION_EFFECTS_RERANK_NORMALIZER),
+        (
+            "_ISSUED_ACTION_EFFECTS_RERANK_NORMALIZER",
+            _ISSUED_ACTION_EFFECTS_RERANK_NORMALIZER,
+        ),
         ("_exact_string_tuple_value", _exact_string_tuple_value),
         (
             "_semantic_verification_obligation_payload",
@@ -11296,6 +13324,7 @@ _RUNTIME_GATE_FUNCTION_PINS = tuple(
         ("_semantic_execution_key", _semantic_execution_key),
         ("_semantic_public_entry", _semantic_public_entry),
         ("_semantic_common_preflight", _semantic_common_preflight),
+        ("_semantic_owner_plan_budget", _semantic_owner_plan_budget),
         (
             "_derive_followup_semantic_target",
             _derive_followup_semantic_target,
@@ -11392,6 +13421,34 @@ _RUNTIME_GATE_FUNCTION_PINS = tuple(
         ("issue_bridge_context_receipts", issue_bridge_context_receipts),
         ("validate_parent_context_receipt", validate_parent_context_receipt),
         ("validate_bridge_context_receipt", validate_bridge_context_receipt),
+        ("_rerank_receipt_payload", _rerank_receipt_payload),
+        ("_validate_rerank_receipt_payload", _validate_rerank_receipt_payload),
+        ("_build_rerank_receipt_accessors", _build_rerank_receipt_accessors),
+        ("_register_rerank_receipt_authority", _register_rerank_receipt_authority),
+        ("_read_rerank_receipt_authority", _read_rerank_receipt_authority),
+        ("_drop_rerank_receipt_authority", _drop_rerank_receipt_authority),
+        ("_build_semantic_route_accessors", _build_semantic_route_accessors),
+        ("_claim_base_semantic_route", _claim_base_semantic_route),
+        ("_complete_base_semantic_route", _complete_base_semantic_route),
+        ("_begin_semantic_rerank", _begin_semantic_rerank),
+        ("_complete_semantic_rerank", _complete_semantic_rerank),
+        ("_fail_semantic_rerank", _fail_semantic_rerank),
+        ("_semantic_route_status", _semantic_route_status),
+        ("_validate_complete_context_receipts", _validate_complete_context_receipts),
+        ("_rerank_prerequisite_sha256", _rerank_prerequisite_sha256),
+        ("_rerank_evidence_pool", _rerank_evidence_pool),
+        ("_validate_reranker_protocol", _validate_reranker_protocol),
+        ("_reranker_request", _reranker_request),
+        ("_rerank_execution_key", _rerank_execution_key),
+        ("_mint_rerank_receipt", _mint_rerank_receipt),
+        ("_validate_rerank_receipt_exact", _validate_rerank_receipt_exact),
+        ("_rerank_sanitized_result_sha256", _rerank_sanitized_result_sha256),
+        ("execute_semantic_rerank", execute_semantic_rerank),
+        ("validate_rerank_receipt", validate_rerank_receipt),
+        (
+            "issue_derived_semantic_verification_obligation",
+            issue_derived_semantic_verification_obligation,
+        ),
         ("_validate_snapshot_callable", _validate_snapshot_callable),
         ("_validate_snapshot_class", _validate_snapshot_class),
         ("_validate_action_effects_dependency", _validate_action_effects_dependency),
@@ -11488,6 +13545,7 @@ _RUNTIME_GATE_OBJECT_PINS = (
         type,
     ),
     ("_SemanticVerifierEvidence", _SemanticVerifierEvidence, type),
+    ("_SemanticVerifierParentContext", _SemanticVerifierParentContext, type),
     ("_SemanticVerifierRequest", _SemanticVerifierRequest, type),
     (
         "_SemanticVerificationObligationAuthority",
@@ -11496,6 +13554,10 @@ _RUNTIME_GATE_OBJECT_PINS = (
     ),
     ("ParentContextReceipt", ParentContextReceipt, type),
     ("BridgeContextReceipt", BridgeContextReceipt, type),
+    ("RerankReceipt", RerankReceipt, type),
+    ("_RerankerEvidence", _RerankerEvidence, type),
+    ("_RerankerRequest", _RerankerRequest, type),
+    ("_RerankReceiptAuthority", _RerankReceiptAuthority, type),
     (
         "_ParentContextReceiptAuthority",
         _ParentContextReceiptAuthority,
@@ -11628,6 +13690,16 @@ _RUNTIME_GATE_OBJECT_PINS = (
         dict,
     ),
     (
+        "_RERANK_RECEIPT_AUTHORITIES",
+        _ISSUED_RERANK_RECEIPT_AUTHORITIES,
+        dict,
+    ),
+    (
+        "_ISSUED_RERANK_RECEIPT_AUTHORITIES",
+        _ISSUED_RERANK_RECEIPT_AUTHORITIES,
+        dict,
+    ),
+    (
         "_ISSUED_HYBRID_SEARCH_LANE",
         _ISSUED_HYBRID_SEARCH_LANE,
         FunctionType,
@@ -11661,6 +13733,8 @@ _RUNTIME_GATE_OBJECT_PINS = (
     ("_SEMANTIC_RECEIPT_TOKEN", _SEMANTIC_RECEIPT_TOKEN, object),
     ("_PARENT_CONTEXT_RECEIPT_TOKEN", _PARENT_CONTEXT_RECEIPT_TOKEN, object),
     ("_BRIDGE_CONTEXT_RECEIPT_TOKEN", _BRIDGE_CONTEXT_RECEIPT_TOKEN, object),
+    ("_RERANK_RECEIPT_TOKEN", _RERANK_RECEIPT_TOKEN, object),
+    ("_RERANK_REQUEST_TOKEN", _RERANK_REQUEST_TOKEN, object),
     ("_LOCK_TYPE", _LOCK_TYPE, type),
     (
         "_RETRIEVAL_OWNER_SPECS",
@@ -11697,6 +13771,11 @@ _RUNTIME_GATE_OBJECT_PINS = (
     ("_CONTEXT_PENDING", _CONTEXT_PENDING, object),
     ("_CONTEXT_COMPLETED", _CONTEXT_COMPLETED, object),
     ("_CONTEXT_FAILED", _CONTEXT_FAILED, object),
+    ("_RERANK_OUTCOMES", _RERANK_OUTCOMES, frozenset),
+    ("_RERANK_ERROR_CODES", _RERANK_ERROR_CODES, frozenset),
+    ("_RERANK_PENDING", _RERANK_PENDING, object),
+    ("_RERANK_COMPLETED", _RERANK_COMPLETED, object),
+    ("_RERANK_FAILED", _RERANK_FAILED, object),
     ("_ComponentAuthority", _ComponentAuthority, type),
     (
         "_HarnessRuntimeAuthorityDraft",
@@ -11767,6 +13846,26 @@ _RUNTIME_GATE_OBJECT_PINS = (
     (
         "_ISSUED_ACTION_EFFECTS_PROJECTION_CLASS",
         _ISSUED_ACTION_EFFECTS_PROJECTION_CLASS,
+        type,
+    ),
+    (
+        "_ACTION_EFFECTS_RERANK_NORMALIZER",
+        _ISSUED_ACTION_EFFECTS_RERANK_NORMALIZER,
+        FunctionType,
+    ),
+    (
+        "_ISSUED_ACTION_EFFECTS_RERANK_NORMALIZER",
+        _ISSUED_ACTION_EFFECTS_RERANK_NORMALIZER,
+        FunctionType,
+    ),
+    (
+        "_ACTION_EFFECTS_RERANK_PROJECTION_CLASS",
+        _ISSUED_ACTION_EFFECTS_RERANK_PROJECTION_CLASS,
+        type,
+    ),
+    (
+        "_ISSUED_ACTION_EFFECTS_RERANK_PROJECTION_CLASS",
+        _ISSUED_ACTION_EFFECTS_RERANK_PROJECTION_CLASS,
         type,
     ),
     (
@@ -11873,6 +13972,16 @@ _RUNTIME_GATE_MODULE_ATTRIBUTE_PINS = (
         _ACTION_EFFECTS_MODULE,
         "_SemanticVerificationProjection",
         _ISSUED_ACTION_EFFECTS_PROJECTION_CLASS,
+    ),
+    (
+        _ACTION_EFFECTS_MODULE,
+        "_normalize_reranker_result",
+        _ISSUED_ACTION_EFFECTS_RERANK_NORMALIZER,
+    ),
+    (
+        _ACTION_EFFECTS_MODULE,
+        "_RerankProjection",
+        _ISSUED_ACTION_EFFECTS_RERANK_PROJECTION_CLASS,
     ),
     (
         _ACTION_EFFECTS_MODULE,
@@ -12022,6 +14131,17 @@ _RUNTIME_GATE_CLASS_PINS = (
         ("__init__", "__reduce__", "__reduce_ex__", "_create"),
     ),
     _runtime_gate_class_pin(
+        _SemanticVerifierParentContext,
+        (
+            "__init__",
+            "__copy__",
+            "__deepcopy__",
+            "__reduce__",
+            "__reduce_ex__",
+            "_create",
+        ),
+    ),
+    _runtime_gate_class_pin(
         _SemanticVerifierRequest,
         ("__init__", "__reduce__", "__reduce_ex__", "_create"),
     ),
@@ -12055,6 +14175,41 @@ _RUNTIME_GATE_CLASS_PINS = (
     ),
     _runtime_gate_class_pin(_ParentContextReceiptAuthority, ("__init__",)),
     _runtime_gate_class_pin(_BridgeContextReceiptAuthority, ("__init__",)),
+    _runtime_gate_class_pin(
+        RerankReceipt,
+        (
+            "__init__",
+            "__copy__",
+            "__deepcopy__",
+            "__reduce__",
+            "__reduce_ex__",
+            "_create",
+            "to_dict",
+        ),
+    ),
+    _runtime_gate_class_pin(
+        _RerankerEvidence,
+        (
+            "__init__",
+            "__copy__",
+            "__deepcopy__",
+            "__reduce__",
+            "__reduce_ex__",
+            "_create",
+        ),
+    ),
+    _runtime_gate_class_pin(
+        _RerankerRequest,
+        (
+            "__init__",
+            "__copy__",
+            "__deepcopy__",
+            "__reduce__",
+            "__reduce_ex__",
+            "_create",
+        ),
+    ),
+    _runtime_gate_class_pin(_RerankReceiptAuthority, ("__init__",)),
     _runtime_gate_class_pin(
         SemanticVerificationReceipt,
         ("__init__", "_create", "to_dict"),
@@ -12091,6 +14246,7 @@ __all__ = (
     "HarnessRuntimeBinding",
     "LaneSearchReceipt",
     "ParentContextReceipt",
+    "RerankReceipt",
     "RetrievalObligation",
     "SemanticValueSupport",
     "SemanticVerificationObligation",
@@ -12108,6 +14264,7 @@ __all__ = (
     "issue_fact_semantic_verification_obligation",
     "issue_followup_semantic_verification_obligation",
     "issue_parent_context_receipts",
+    "issue_derived_semantic_verification_obligation",
     "validate_bridge_context_receipt",
     "validate_harness_execution_config",
     "validate_harness_runtime_binding",
@@ -12115,6 +14272,7 @@ __all__ = (
     "validate_fusion_receipt",
     "validate_lane_search_receipt",
     "validate_parent_context_receipt",
+    "validate_rerank_receipt",
     "validate_retrieval_obligation",
     "validate_semantic_verification_obligation",
     "validate_semantic_verification_receipt",

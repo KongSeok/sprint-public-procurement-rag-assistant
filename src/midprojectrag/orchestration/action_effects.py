@@ -28,6 +28,7 @@ _VALUE_TYPES = frozenset(
 _RESULT_FIELDS = frozenset(
     {"schema_version", "disposition", "support_indexes", "values"}
 )
+_RERANK_RESULT_FIELDS = frozenset({"schema_version", "ordered_indexes"})
 _VALUE_FIELDS = frozenset(
     {"value_type", "canonical_value", "support_indexes"}
 )
@@ -63,6 +64,7 @@ _FIELD_VALUE_TYPES = MappingProxyType({
 })
 _VALUE_TOKEN = object()
 _PROJECTION_TOKEN = object()
+_RERANK_PROJECTION_TOKEN = object()
 
 
 def _canonical_json(value: Any) -> str:
@@ -508,6 +510,88 @@ def _normalize_semantic_verifier_result(
         contradicted_evidence_ids=contradicted_ids,
         values=normalized_values,
         _token=_PROJECTION_TOKEN,
+    )
+
+
+@dataclass(frozen=True, slots=True, repr=False, init=False)
+class _RerankProjection:
+    """Closed, non-authoritative projection of one reranker result."""
+
+    ordered_indexes: tuple[int, ...]
+    result_sha256: str
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        raise TypeError("rerank_projection_factory_required")
+
+    def __copy__(self) -> object:
+        raise TypeError("rerank_projection_not_serializable")
+
+    def __deepcopy__(self, memo: object) -> object:
+        raise TypeError("rerank_projection_not_serializable")
+
+    def __reduce__(self) -> object:
+        raise TypeError("rerank_projection_not_serializable")
+
+    def __reduce_ex__(self, protocol: int) -> object:
+        raise TypeError("rerank_projection_not_serializable")
+
+    @classmethod
+    def _create(
+        cls,
+        *,
+        ordered_indexes: tuple[int, ...],
+        _token: object,
+    ) -> _RerankProjection:
+        if _token is not _RERANK_PROJECTION_TOKEN:
+            raise ValueError("rerank_projection_factory_required")
+        if (
+            type(ordered_indexes) is not tuple
+            or not ordered_indexes
+            or any(type(index) is not int or index < 0 for index in ordered_indexes)
+            or len(ordered_indexes) != len(set(ordered_indexes))
+        ):
+            raise ValueError("invalid_rerank_projection_indexes")
+        payload = {
+            "schema_version": _SCHEMA_VERSION,
+            "ordered_indexes": list(ordered_indexes),
+        }
+        result = object.__new__(cls)
+        object.__setattr__(result, "ordered_indexes", ordered_indexes)
+        object.__setattr__(result, "result_sha256", _canonical_sha256(payload))
+        return result
+
+
+def _normalize_reranker_result(
+    raw_result: object,
+    *,
+    input_count: int,
+    rerank_k: int,
+) -> _RerankProjection:
+    """Normalize an ID-less reranker response into a bounded index projection."""
+
+    if type(input_count) is not int or input_count < 1:
+        raise ValueError("invalid_reranker_input_count")
+    if type(rerank_k) is not int or rerank_k < 1:
+        raise ValueError("invalid_reranker_limit")
+    raw = _closed_dict(
+        raw_result,
+        _RERANK_RESULT_FIELDS,
+        "reranker_result_fields",
+    )
+    if raw["schema_version"] != _SCHEMA_VERSION:
+        raise ValueError("unsupported_reranker_result_version")
+    ordered_indexes = _exact_indexes(
+        raw["ordered_indexes"],
+        "reranker_ordered_indexes",
+        maximum=min(rerank_k, input_count),
+    )
+    if not ordered_indexes:
+        raise ValueError("reranker_ordered_indexes_required")
+    if any(index >= input_count for index in ordered_indexes):
+        raise ValueError("reranker_ordered_index_out_of_range")
+    return _RerankProjection._create(
+        ordered_indexes=ordered_indexes,
+        _token=_RERANK_PROJECTION_TOKEN,
     )
 
 

@@ -359,3 +359,11 @@ Preventive rule:
 
 Reference:
 - `errorlogs/backend/2026-09-05-c3-context-source-lifetime.md`
+
+### Reranker exception paths need the same post-call gate
+
+Cause:
+- Exceptional control flow bypassed the dependency revalidation shared by normal returns.
+
+Preventive rule:
+- After any attempted provider call, validate exact lineage and component state before classifying outcome or minting a receipt.

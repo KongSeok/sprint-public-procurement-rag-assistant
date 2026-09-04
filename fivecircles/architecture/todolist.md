@@ -183,15 +183,15 @@ runtime은 local profile 기본·LLM provider 교체형으로 유지하며 새 �
         `applied|empty`를 caller ID 없이 발급하는 typed context receipt를 구현했다. root source 수명에 묶인
         at-most-once history로 중간 semantic obligation GC 뒤 재발급도 차단했다. focused8·관련114·전체1220·
         safety850 PASS, API/model/Langfuse 호출 0.
-      - [ ] **EH2.6.c3.2** ID-less exact-once rerank receipt와 parent/bridge/rerank를 반영한 derived semantic
+      - [x] **EH2.6.c3.2** ID-less exact-once rerank receipt와 parent/bridge/rerank를 반영한 derived semantic
         obligation을 구현하며 parent support/citation 승격을 금지한다.
         - [x] **EH2.6.c3.2.a** global rerank order↔role partition, owner `rerank_k`/`final_evidence_budget`,
           base/derived verifier slot과 parent unindexed ABI를 계약으로 교정한다.
-        - [ ] **EH2.6.c3.2.b** factory-only `RerankReceipt`와 exact one-call/zero-call unavailable,
+        - [x] **EH2.6.c3.2.b** factory-only `RerankReceipt`와 exact one-call/zero-call unavailable,
           sanitized consumed failure·root-lifetime replay guard를 구현한다.
-        - [ ] **EH2.6.c3.2.c** rerank final prefix와 parent/bridge/rerank SHA에 묶인 derived semantic obligation을
+        - [x] **EH2.6.c3.2.c** rerank final prefix와 parent/bridge/rerank SHA에 묶인 derived semantic obligation을
           만들고 auxiliary parent를 support index 밖에 둔다.
-        - [ ] **EH2.6.c3.2.d** cross-role reorder, budget, base-vs-derived race, malformed/clone/GC/비누출
+        - [x] **EH2.6.c3.2.d** cross-role reorder, budget, base-vs-derived race, malformed/clone/GC/비누출
           focused gate와 관련·전체·safety 회귀를 통과한다.
       - [ ] **EH2.6.c3.3** 모든 승인 경로가 bounded하게 닫힌 경우에만 three-reason
         `AbsenceConfirmationReceipt`를 zero-provider로 발급하고 timeout/error/unavailable/unresolved 단독 발급을 금지한다.
