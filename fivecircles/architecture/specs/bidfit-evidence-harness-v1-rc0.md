@@ -768,9 +768,11 @@ parent/child 혼합, 골든 값 의존을 검출한다. 정확한 새 파일/메
   capability-gap abstain이다. EH2.6은 EH2.5 public action constructor를 넓히지 않고 동일한 닫힌
   kind/target shape의 별도 factory-issued `ControllerAction`을 state+ledger에서만 발급한다.
 - context action target은 fused/source 결과에서 고정한 `retrieval_seed_candidate_ids` 중
-  `max_context_targets_per_obligation` 이내로 제한한다. quota는 execution config의 양의 정수이며 plan의
-  per-obligation final/rerank budget보다 클 수 없다. bridge로 추가된 evidence는 verifier input에는 들어가지만
-  다시 expand/bridge target이 될 수 없어 graph 순환과 action 폭증을 막는다.
+  `max_context_targets_per_obligation` 이내로 제한한다. config knob는 양의 정수이며 값 자체는 owner plan의
+  final/rerank budget보다 클 수 있다. 실제 target quota를
+  `min(config context max, owner final budget, owner rerank_k, candidate count)`로 유도하므로 effective quota만
+  final/rerank budget을 초과할 수 없다. bridge로 추가된 evidence는 verifier input에는 들어가지만 다시
+  expand/bridge target이 될 수 없어 graph 순환과 action 폭증을 막는다.
 - fact/compare에서 dense·lexical·fusion이 모두 종결됐는데 후보가 없는 provisional obligation과,
   follow-up 승인 경로가 종결됐으나 후보가 없는 provisional obligation에는 controller 전용
   `verify_slot` exhaustion check를 허용한다. 이 검사는 verifier/provider를 호출하지 않고 exact ledger에서
@@ -794,10 +796,17 @@ parent/child 혼합, 골든 값 의존을 검출한다. 정확한 새 파일/메
   value·gold/qrels/evaluator 입력을 받지 않는다. c2 최초 구현에서 bridge/context 역할은 예약하되 비어 있고,
   c3의 owner-issued context/rerank effect만 이 공급 집합을 넓힐 수 있다. 후보가 비면 verifier를 호출하지 않고
   c3 bounded exhaustion 경로로 넘긴다.
-- factory-only `SemanticVerificationObligation`의 공개 payload는 source kind, obligation key, optional source-derived field,
-  source binding/receipt와 optional c1 state SHA, query SHA, store/config/runtime SHA, ordered candidate/bridge/context/
-  supplied ID와 stable anchor, obligation SHA만 담는다. raw query, evidence text/object, verifier object는 private
-  authority에만 둔다. supplied order는 candidate→bridge→context first-seen이며 승격 가능한 ID는 candidate+bridge뿐이다.
+- factory-only `SemanticVerificationObligation`의 공개 payload는 closed `derivation_kind=base|reranked`, source kind,
+  obligation key, optional source-derived field, source binding/receipt와 optional c1 state SHA, query SHA,
+  store/config/runtime SHA, ordered candidate/bridge/context/supplied ID와 stable anchor, obligation SHA를 담는다.
+  c2 factory는 `base`, c3.2 factory는 `reranked`만 발급한다. raw query, evidence text/object, verifier object는 private
+  authority에만 둔다. base validator는 candidate nonempty, bridge/context empty와 supplied=candidate를 요구한다.
+  base c2 obligation은 candidate first-seen order를 그대로 supplied order로 쓴다. c3.2
+  derived obligation의 `supplied_evidence_ids`는 rerank output에서 `final_evidence_budget`만큼 취한 authoritative
+  global order와 정확히 같고, candidate/bridge tuple은 supplied를 원래 role membership으로 필터한 subsequence다.
+  두 role은 서로 겹치지 않고 set union이 supplied와 같아야 하며 candidate+bridge concatenation으로 global
+  order를 재구성하지 않는다. bridge-only output도 허용하므로 두 role tuple은 각각 empty일 수 있지만 supplied와
+  union은 nonempty다. v1 derived `context_evidence_ids`는 empty이고 승격 가능한 ID는 supplied뿐이다.
   compare field는 key 문자열을 재해석하지 않고 exact bound projection ordinal에서 유도한다.
 - verifier adapter는 factory-only private request 한 개만 받는 exact declared class method `verify(self, request)`다.
   request는 source kind, obligation key, optional target doc/field, raw query와 contiguous index가 붙은 ordered
@@ -834,12 +843,64 @@ parent/child 혼합, 골든 값 의존을 검출한다. 정확한 새 파일/메
   `SemanticVerificationObligation` 객체가 아니라 exact owner의 root source authority에 묶는다. root가 살아 있는
   동안 동등 semantic obligation을 재발급하거나 중간 객체를 GC해도 같은 receipt 객체를 재사용하며 새 mint를
   허용하지 않는다.
-- `RerankReceipt`는 candidate+bridge의 owner-derived nonempty ordered input을 ID 없는 contiguous private request로
-  exact pinned `rerank(self, request)`에 최대 한 번 전달한다. raw output은 index의 nonempty unique 부분순열만
-  허용하고 executor만 owner-issued ID/anchor로 복원한다. unavailable은 zero-call, provider/contract/post-call
-  drift는 sanitized fixed outcome/consumed attempt이며 raw 본문·경로·키를 저장하지 않는다. rerank receipt와
-  parent/bridge receipt를 받은 derived semantic obligation만 parent private context와 reranked candidate/bridge를
-  verifier에 한 번 공급할 수 있다. parent context는 support index나 citation/verified 후보로 승격할 수 없다.
+- supported E1 source의 sealed owner `RetrievalBudget`에서 양의 `rerank_k`와 `final_evidence_budget`을 유도하고
+  caller override를 받지 않는다. fact/compare/follow-up 모두 exact root `Bound*`의 planning plan budget을 owner
+  validator로 재검증한 뒤 읽으며 `RetrievalObligation`, execution config 또는 caller 수치로 대체하지 않는다.
+  owner plan/config SHA와 두 budget은 rerank/derived receipt에 봉인하고 post-call에도 재검증한다.
+  `final_evidence_budget <= rerank_k`를 provider 호출 전에 검증한다. context seed
+  수는 `min(config.max_context_targets_per_obligation, final_evidence_budget, rerank_k, candidate_count)`이고 c3.1
+  parent/bridge factory도 이 owner-derived helper를 사용한다.
+- `RerankReceipt`는 candidate 전부와 bridge receipt의 actual linked evidence를 role-preserving first-seen dedupe한
+  nonempty 전체 입력을 ID 없는 contiguous private request로 exact pinned `rerank(self, request)`에 최대 한 번
+  전달한다. `rerank_k`는 output 상한이고 `final_evidence_budget`은 rerank 뒤 derived verifier input prefix에만
+  적용한다. request는 raw query와 contiguous `0..N-1`의 `(index, role, doc_id, content_kind, content)`만 가지며
+  evidence ID/anchor/receipt SHA/gold/qrels를 포함하지 않고 copy/pickle/serialize할 수 없다.
+- raw result는 정확히 `schema_version`, `ordered_indexes`만 가진 dict이고 schema version은 `1.0`, indexes는
+  exact list[int]이다. bool/음수/범위 밖/중복/empty 또는 `min(rerank_k,N)` 초과를 거부한다. listed order가
+  candidate/bridge를 가로지르는 authoritative order이며 executor만 owner-issued ID/anchor/role로 복원한다.
+  unavailable은 provider 0회의 `skipped_unavailable` receipt와 input index의
+  `0..min(rerank_k,N)-1` deterministic identity effective order를 남긴다. receipt hash payload는 input count,
+  effective output count, owner `rerank_k`와 `final_evidence_budget`을 봉인한다. derived supplied는 정확히
+  `ordered_output_ids[:min(final_evidence_budget, len(ordered_output_ids))]`이며 provider output이 final budget보다
+  짧아도 원입력으로 부족분을 채우지 않는다.
+  provider 예외, malformed result와 post-call dependency drift는 raw 본문·예외·경로·키를 저장하지 않는 fixed
+  sanitized consumed failure로 닫고 derived semantic 발급을 허용하지 않는다. ABI/identity preflight 거부는
+  미소비이며 재시도 가능하고, 호출 뒤에는 source/store/config/runtime/prerequisite/component를 parsing/mint보다
+  먼저 다시 검증한다.
+- available reranker는 instance override가 없는 exact declared plain `FunctionType`의 `rerank(self, request)`만
+  허용한다. defaults/kwdefaults가 없고 argcount=2, positional-only/keyword-only=0, varargs/varkw flags=0이어야 한다.
+  bind 때 pin한 component/class/`__getattribute__`/method/code/hash/state를 호출 전후 모두 재검증한다. private
+  request DTO는 `repr=False` factory-only이며 copy/deepcopy/reduce/reduce_ex를 거부한다. provider exception은
+  raw query/evidence/error를 숨긴 fixed `reranker_provider_error` 경계로 정규화한다.
+- rerank/derived factory는 같은 base semantic issuance에서 c3.1 factory가 반환한 exact completed cached parent와
+  bridge tuple을 canonical order·길이·각 item identity까지 그대로 요구한다. applied와 empty attempt를 모두
+  포함하며 subset/reorder/duplicate/rebuilt-equal tuple 또는 cross-obligation/root/generation 혼합은 provider 0회로
+  거부한다. prerequisite와 receipt는 두 complete ordered batch의 item SHA/count aggregate를 봉인한다. bridge
+  evidence pool은 exact bridge tuple에서 applied linked evidence만 canonical receipt/item order로 flatten한 뒤
+  candidate와 first-seen dedupe한다. 같은 linked evidence가 여러 bridge receipt에 있으면 canonical bridge
+  tuple/item의 첫 occurrence가 role/origin seed를 소유하고 이후 occurrence는 제거한다. derived private authority가
+  이 origin map을 봉인해 auxiliary parent origin을 caller가 바꾸지 못하게 한다. parent batch는 비승격이지만
+  derived lineage completeness 때문에 필수다.
+- rerank claim/history는 base semantic authority issuance key, root target key와 prerequisite receipt SHA에 묶고
+  exact owner root source weak lifetime 동안 성공/실패를 유지한다. receipt·semantic obligation GC나 동등 obligation
+  재발급은 retry/remint를 열지 않으며 concurrent winner는 하나다. root source+obligation key별 route slot은
+  `unclaimed|base_pending|rerank_pending|base_consumed|rerank_consumed`으로 닫고 모든 ABI/dependency preflight 뒤
+  첫 branch가 CAS claim한다. base verifier와 rerank branch는 상호 배타적이다. unavailable identity도 rerank branch
+  성공으로 소비하고 derived verifier만 허용한다. reranker call 뒤 success/provider error/malformed/post-call drift는
+  rerank branch를 영구 소비하며 base fallback을 금지한다. applied/skipped receipt에서 만든 derived obligation은
+  별도 one-shot verifier execution key를 가지며 그 실패 뒤에도 base verify로 회귀하지 않는다.
+- derived semantic obligation은 derivation kind, base semantic obligation SHA, ordered parent/bridge receipt SHA와
+  rerank receipt SHA를 public payload에 봉인한다. `supplied_evidence_ids`와 anchor/private roles는 rerank output의
+  final prefix와 같은 ordinal에 정렬한다. parent는 evidence 배열, candidate/bridge/context/supplied ID와 anchor,
+  rerank input/output, support index, verified/contradicted/value support/citation에서 모두 제외한다. verifier private
+  request의 별도 unindexed `auxiliary_parent_context` tuple에만 final supplied seed 또는 bridge origin seed와 연결된
+  exact parent를 제공하며 정수 support index를 부여하지 않는다. final supplied의 authoritative order를 순회해
+  candidate는 same-seed parent, bridge는 exact bridge receipt의 origin seed에 대응하는 parent만 선택하고 parent ID
+  first-seen으로 dedupe한다. final에 없는 seed의 parent는 제외하며 caller subset/order를 받지 않는다. verifier raw
+  `support_indexes`의 해석 domain은 indexed supplied evidence tuple뿐이고 auxiliary parent에는 적용되지 않는다.
+- c3.1 context factory와 c3.2 rerank factory의 source는 `derivation_kind=base`인 exact base semantic obligation만
+  허용한다. derived obligation을 parent/bridge/rerank input으로 재사용하면 provider/store call 0회로 거부하며,
+  derived obligation은 semantic verifier execution만 가능하다.
 - `ActionEffectReceipt`의 닫힌 DTO/validator는 c3가 정의하되 execution/step/decision/action/before-state를 결합하는
   public mint는 EH2.6.d2의 exact `ControllerDecisionReceipt` permit 전에는 열지 않는다. EH2.5
   `ActionDecisionTrace`를 임시 실행 권한으로 재사용하지 않는다. d2 이후 mint된 effect는 sanitized outcome,

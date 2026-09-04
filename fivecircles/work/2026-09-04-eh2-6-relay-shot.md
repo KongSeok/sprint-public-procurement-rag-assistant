@@ -380,24 +380,25 @@
 - 남은 리스크: c2 receipt는 state-free이며 c3 effect/absence와 c4 reducer가 아직 없다. 실제 품질 우승은
   동일 golden E2E 전까지 주장하지 않는다.
 
-## Cycle 6 — EH2.6.c3 action effect / bounded absence receipts
+## Cycle 6 — EH2.6.c3.1 parent/bridge source receipts
 
 ### 0. Scope Intake
 
-- 요청 범위: c2 push 뒤 최고 점수 READY TODO인 c3를 계약→TDD→구현→검증→푸시→다음 relay로 수행한다.
+- 요청 범위: c2 push 뒤 최고 점수 READY TODO인 c3를 재귀 분할하고 첫 leaf c3.1을
+  계약→TDD→구현→검증→푸시→다음 relay로 수행한다.
 - 브랜치: `feat/total-integration`; 새 브랜치 생성/병합 없음.
 - 사용자 제약: user-owned dirty·VLM·resources 보존, 실제 API/model/Langfuse/golden 실행 0.
-- 완료 기준: expansion/bridge/rerank/verify source별 state-free effect와 모든 승인 경로가 닫힌 경우만
-  zero-provider bounded absence를 factory-issued receipt로 봉인한다.
+- 완료 기준: immutable candidate seed prefix에서 parent=context-only와 table/figure actual bridge
+  `applied|empty`를 caller ID 없이 봉인하고 root-lifetime at-most-once를 검증한다.
 - 위험/확인 필요: source owner matrix, evidence 승격 규칙, absence의 충분조건과 replay/lifetime을 코드 전 고정한다.
 - 상태: COMPLETED.
 
 ### 1. Start Report / Target Check
 
 - 사용할 스킬: `mermaid-flow-report`.
-- 기준 타겟 플로우: §16.10 `typed source receipt → ActionEffectReceipt/AbsenceConfirmationReceipt → reducer`.
-- 현재 플로우: c2 exact semantic receipt까지 MATCHED, effect/absence부터 GAP.
-- 점수표/선정 기준: c3=4+3+2+2-1=10, c4=3+3+2+2-1=9, EVAL.4=2+2+1+1-1=5.
+- 기준 타겟 플로우: §16.10 `typed source receipt → rerank/derived semantic → absence/effect → reducer`.
+- 현재 플로우: c2 exact semantic receipt까지 MATCHED, parent/bridge source부터 GAP.
+- 점수표/선정 기준: c3.1=10, c3.2=10, c3.3=8, c4=7(BLOCKED_BY_d2), EVAL.4=5.
 - 상태: COMPLETED.
 
 ### 2. Relay Unit Selection
@@ -405,7 +406,7 @@
 - 사용할 스킬: `relay-shot`.
 - 확인한 TODO source: refreshed flow report, TODO §EH2.6.c, 계약 §16.10, checkpoint/module contract.
 - 점수 상위 후보: c3 10, c4 9, EVAL.4 5.
-- 선택한 다음 단위작업: `EH2.6.c3`.
+- 선택한 다음 단위작업: `EH2.6.c3.1`.
 - 플로우폼 반영: 이 Cycle 6 form과 c3.1~c3.3 재귀 TODO.
 - 상태: `CONTINUE_WITH_NEXT_FORM` / COMPLETED.
 
@@ -425,8 +426,10 @@
 - 사용할 스킬: `one-go`, 재귀 leaf는 `batch-sequential-runner`.
 - 재귀 TODO: c3.0 계약교정 → c3.1 context receipt → c3.2 rerank/derived semantic → c3.3 absence →
   c3.4 closed effect DTO → c3.5 authority/회귀 gate.
-- 수정 대상: `orchestration/action_effects.py`, `execution_contracts.py`, public exports, focused tests.
-- 상태: IN_PROGRESS (`c3.1`).
+- 수정 대상: `execution_contracts.py`, orchestration public exports, focused tests.
+- 구현 결과: factory-only `ParentContextReceipt`/`BridgeContextReceipt`, bounded seed, parent nonpromotion,
+  actual table/figure linkage와 `empty` attempt, exact dependency pin, local at-most-once를 구현했다.
+- 상태: COMPLETED (`c3.1`).
 
 ### 5. Validation + Report
 
@@ -437,41 +440,134 @@
 - 현상태 Mermaid 플로우맵: c3 완료 뒤 effect/absence node를 current flow에 추가한다.
 - 도달 경로 체크: exact typed source → state-free effect 또는 fully-bounded zero-provider absence.
 - 타겟 노드 연결 점수: 10.
+- 상태: COMPLETED.
+- 결과: TDD RED→GREEN; focused 8/8, semantic/retrieval/action/state 관련 114/114,
+  full 1,220/1,220, safety 850 PASS. Playwright images2/tables8/errors0/mobile overflow0 PASS.
+  외부 API/model/Langfuse/VLM/golden 호출 0.
+
+### 6. Repair Loop
+
+- 실패 원인: 중간 semantic obligation GC 뒤 root source가 살아 있어도 발급 history가 정리되어
+  동등 authority를 재발급할 수 있는 독립 감사 P1.
+- 수리 배치: 실행 key/history/cache를 exact root source issuance lifetime에 결합하고 semantic GC 회귀를 추가했다.
+- 재테스트: focused 8/8, related 114/114, full 1,220/1,220 PASS.
+- 상태: COMPLETED.
+
+### 7. Push / Publication
+
+- git status 확인: user-owned dirty와 c3 변경을 분리한다.
+- 커밋 범위: c3.1 code/test/contract/report/log hunk만. resources·gold·VLM·기타 사용자 변경 제외.
+- 커밋/푸시: `7b7af7d` (`feat(harness): add bounded context source receipts`)를
+  `origin/feat/total-integration`에 push했다.
+- 상태: COMPLETED.
+
+### 8. Closeout Report
+
+- 사용할 스킬: `mermaid-flow-report`.
+- 시작 타겟 대비 최종 현재 플로우: parent/bridge source receipt까지 MATCHED.
+- 남은 GAP/PARTIAL 및 다음 점수표: c3.2 rerank/derived semantic 10 SELECTED, c3.3 absence 8,
+  c4 effect/reducer 7 BLOCKED_BY_d2, EVAL.4 5.
+- 상태: COMPLETED.
+
+### 9. Relay Shot
+
+- 사용할 스킬: `relay-shot`.
+- 확인한 TODO source/다음 후보: TODO §EH2.6.c3과 계약 §16.10. 다음 최고 READY는 c3.2다.
+- 새 원샷딜 시작 여부: 아래 Cycle 7 새 form을 쓰고 c3.2 계약 교정부터 즉시 시작한다.
+- 멈춘 이유, 있으면: 없음.
+- 상태: `CONTINUE_WITH_NEXT_FORM` / COMPLETED.
+
+### 10. Final Ledger
+
+- Doc: COMPLETED.
+- Implementation / Validation / Repair / Report: COMPLETED.
+- Push / Relay: COMPLETED.
+- Flow diagram verification: PARTIAL — parent/bridge source receipt까지 MATCHED, c3.2 rerank부터 GAP.
+- 남은 리스크: derived semantic의 auxiliary parent context와 c2 at-most-once issuance key를 분리해야 한다.
+
+## Cycle 7 — EH2.6.c3.2 ID-less rerank / derived semantic
+
+### 0. Scope Intake
+
+- 요청 범위: c3.1 push 뒤 최고 점수 READY TODO c3.2를 새 원샷딜로 계약→TDD→구현→검증→푸시하고
+  다음 TODO로 relay한다.
+- 브랜치: `feat/total-integration`; 새 브랜치 생성/병합 없음.
+- 사용자 제약: user-owned dirty·VLM·resources 보존, 실제 API/model/Langfuse/golden 실행 0.
+- 완료 기준: exact owner-derived candidate+bridge만 ID-less reranker에 최대 한 번 공급하고, output index를
+  receipt로 복원한 뒤 parent를 unindexed private context로만 쓰는 derived semantic obligation을 봉인한다.
+- 위험/확인 필요: rerank output order와 role partition, `rerank_k` budget, base/derived verifier 실행권 분리,
+  root-lifetime at-most-once를 코드 전 고정한다.
+- 상태: COMPLETED.
+
+### 1. Start Report / Target Check
+
+- 사용할 스킬: `mermaid-flow-report`.
+- 기준 타겟 플로우: §16.10 `candidate+bridge → ID-less rerank → derived semantic verify`.
+- 현재 플로우: c3.1 parent/bridge source receipt까지 MATCHED, rerank/derived semantic부터 GAP.
+- 점수표/선정 기준: c3.2=4+3+2+2-1=10, c3.3=3+3+2+1-1=8,
+  c4=3+2+2+1-1=7(BLOCKED_BY_d2), EVAL.4=5.
+- 상태: COMPLETED.
+
+### 2. Relay Unit Selection
+
+- 사용할 스킬: `relay-shot`.
+- 확인한 TODO source: refreshed flow report, TODO §EH2.6.c3, 계약 §16.10, checkpoint/active context.
+- 선택한 다음 단위작업: `EH2.6.c3.2`.
+- 플로우폼 반영: 이 Cycle 7 form.
+- 상태: `CONTINUE_WITH_NEXT_FORM` / COMPLETED.
+
+### 3. Doc / Contract
+
+- 사용할 스킬: `doc-contract-writer`.
+- 교정 대상: rerank result order와 candidate/bridge role partition을 분리하고 `rerank_k`를 exact output
+  상한으로 고정한다. parent는 verifier request의 private unindexed context이며 support index 대상이 아니다.
+- 실행권: base semantic 실행과 rerank 파생 실행은 exact owner history에서 원자적으로 경쟁시켜 double verifier를
+  금지하고, derived obligation은 별도 verifier key를 가진다.
+- 계약 결과: owner plan budget/effective quota, complete same-live context batch, cross-role/bridge-only global order,
+  strict ID-less ABI, root-lifetime route CAS, deterministic auxiliary parent와 derived recursion 차단까지 봉인했다.
+  독립 REDTEAM 재검토 P0/P1 없음(APPROVE).
+- 상태: COMPLETED.
+
+### 4. Implementation
+
+- 사용할 스킬: `one-go`, 재귀 leaf는 `batch-sequential-runner`.
+- 재귀 TODO: c3.2.a contract/RED → c3.2.b rerank receipt → c3.2.c derived semantic → c3.2.d adversarial gate.
+- 수정 대상: `execution_contracts.py`, orchestration exports, focused tests.
+- 상태: IN_PROGRESS (`c3.2.b`, RED acceptance 작성 중).
+
+### 5. Validation + Report
+
+- 사용할 스킬: `test-runner`, `mermaid-flow-report`, `logall`.
+- 자동 테스트: c3.2 focused → c2/c3.1/retrieval/follow-up 관련 → full unittest → safety.
+- Playwright/browser smoke: 갱신한 flow HTML desktop/mobile.
 - 상태: PENDING.
 - 결과: PENDING.
 
 ### 6. Repair Loop
 
-- 실패 원인: 아직 없음.
-- 수리 배치: focused failure/reviewer P0/P1만 최소 수정.
-- 재테스트: PENDING.
+- 실패 원인/수리/재테스트: PENDING.
 - 상태: PENDING.
 
 ### 7. Push / Publication
 
-- git status 확인: user-owned dirty와 c3 변경을 분리한다.
-- 커밋 범위: c3 code/test/contract/report/log hunk만.
+- git status 확인과 selective stage: PENDING.
 - 커밋/푸시: PENDING.
 - 상태: PENDING.
 
 ### 8. Closeout Report
 
-- 사용할 스킬: `mermaid-flow-report`.
-- 시작 타겟 대비 최종 현재 플로우: PENDING.
-- 남은 GAP/PARTIAL 및 다음 점수표: PENDING.
+- 시작 타겟 대비 최종 현재 플로우·남은 GAP·점수표: PENDING.
 - 상태: PENDING.
 
 ### 9. Relay Shot
 
-- 사용할 스킬: `relay-shot`.
-- 확인한 TODO source/다음 후보: c3 종료·push 뒤 refreshed score로 재선정한다.
+- 확인할 TODO source/다음 후보: c3.2 종료·push 뒤 TODO §EH2.6.c3을 재채점한다.
 - 새 원샷딜 시작 여부: 안전한 READY가 있으면 새 form을 쓰고 즉시 시작한다.
-- 멈춘 이유, 있으면: 없음.
 - 상태: PENDING.
 
 ### 10. Final Ledger
 
-- Doc: COMPLETED.
-- Implementation: IN_PROGRESS (`c3.1`).
-- Validation / Repair / Push / Report / Relay: PENDING.
-- 남은 리스크: derived semantic의 auxiliary parent context와 c2 at-most-once issuance key를 분리해야 한다.
+- Scope / Target / Relay select: COMPLETED.
+- Doc / Contract: COMPLETED.
+- Implementation / Validation / Repair / Push / Report / Relay: PENDING.
+- 남은 리스크: production reranker는 승인 전 unavailable이고, 이 Cycle은 synthetic/offline 계약 검증만 수행한다.
