@@ -5,8 +5,8 @@
   선택 commit·검증한다. 완료 뒤 깨끗한 sibling worktree의 `feat/local-qwen-mini131-eval`에 병합한다.
   새 브랜치는 만들지 않으며 기존 dirty 사용자 변경을 보존한다.
 - 요청: 실제 Evidence-Harness 구현. 작은 leaf 하나씩 검증하며 **릴레이 계속**, ZIP 생성 반복 금지.
-- 현재: Phase 0 `c2c621c`, Phase 1 `ff9fa2e` origin push 완료. EH2.1~2.5와 EH2.6.a~c2 PASS;
-  다음 leaf는 `EH2.6.c3` effect/absence receipt.
+- 현재: Phase 0 `c2c621c`, Phase 1 `ff9fa2e`, c2 `05fc4cc` origin push 완료. EH2.1~2.5와
+  EH2.6.a~c2 PASS; `EH2.6.c3` effect/absence receipt 계약·TDD IN_PROGRESS.
 - 완료: runtime DTO/empty scope/typed predicate/scorer/replay. focused 47, 전체 852 PASS, skip 0. 앱 연결은 아직.
 - 실물: 저장 답변/source-case hash 129/129, facts117/no-facts12, API/생성 호출0, 최종 replay-03 별도 private 보관.
 - 실물 경로: private/evidence-harness/v1-rc0-20260903-01. parents9331/compat children9496/structured62382; KURE/MPS 9496 + Kiwi tokens2065474. source unchanged/generation0.

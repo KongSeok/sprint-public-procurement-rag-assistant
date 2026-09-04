@@ -177,6 +177,12 @@ runtime은 local profile 기본·LLM provider 교체형으로 유지하며 새 �
         concurrency/replay/비누출 focused gate와 관련·전체·safety 회귀를 통과한다.
     - [ ] **EH2.6.c3** expansion/bridge/rerank/verify `ActionEffectReceipt`와 빈 후보 zero-provider exhaustion을
       포함한 bounded absence receipt를 구현한다.
+      - [ ] **EH2.6.c3.1** exact source receipt에서만 factory-issued `ActionEffectReceipt`를 만들고
+        expansion=context-only, bridge=actual linked evidence, rerank=subset/permutation, verify=semantic projection을 봉인한다.
+      - [ ] **EH2.6.c3.2** 모든 승인 경로가 bounded하게 닫힌 경우에만 three-reason
+        `AbsenceConfirmationReceipt`를 zero-provider로 발급하고 timeout/error/unavailable/unresolved 단독 발급을 금지한다.
+      - [ ] **EH2.6.c3.3** source/store/config/runtime clone·drift·mixed authority, replay/serialization,
+        projection 비승격·비누출 focused gate와 관련·전체·safety 회귀를 통과한다.
     - [ ] **EH2.6.c4** monotonic one-obligation reducer와 hash-chained transition/no-progress를 구현한다.
     - [ ] **EH2.6.c5** verified/contradicted/confirmed-missing·raw bool/ID 공격 focused gate를 통과한다.
   - [ ] **EH2.6.d** bounded E1 controller와 replay를 구현한다.

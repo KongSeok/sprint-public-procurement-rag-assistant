@@ -35,7 +35,8 @@
 | 후보 | 점수 | 상태 | 판정 |
 | --- | ---: | --- | --- |
 | EH2.6.c2 | 11 | DONE | MATCHED — source-derived exact semantic receipt 완료 |
-| EH2.6.c3 | 9 | NEXT | PARTIAL — effect/absence receipt 선행 계약 필요 |
+| EH2.6.c3 | 10 | SELECTED | PARTIAL — effect/absence receipt 계약·TDD 착수 |
+| EH2.6.c4 | 9 | WAIT | GAP — c3 effect/absence receipt 선행 필요 |
 | EH2.EVAL.4 | 5 | WAIT | GAP — 사람 승인·private qrels 선행 필요 |
 
 ## 이전 → 현재 → 목표
