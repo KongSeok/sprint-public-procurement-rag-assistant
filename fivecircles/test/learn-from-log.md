@@ -390,3 +390,16 @@ Preventive rule:
 
 Reference:
 - `errorlogs/backend/2026-09-05-full-regression-sandbox-boundary.md`
+
+### Closed value matrices must gate semantic actions, not only receipt variants (2026-09-05)
+
+Cause:
+- A follow-up restriction was attached to lane/fusion receipt kinds, so controller-decision control rows bypassed it.
+- Serialization returned fields before revalidating a drifted frozen object.
+
+Preventive rule:
+- Exhaust closed matrices across action, source receipt, outcome, call status, and source kind independently.
+- Revalidate frozen receipt structure and canonical hash at every public serialization boundary.
+
+Reference:
+- `errorlogs/backend/2026-09-05-c3-action-effect-structural-boundary.md`

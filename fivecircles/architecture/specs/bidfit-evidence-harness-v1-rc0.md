@@ -906,6 +906,40 @@ parent/child 혼합, 골든 값 의존을 검출한다. 정확한 새 파일/메
   `ActionDecisionTrace`를 임시 실행 권한으로 재사용하지 않는다. d2 이후 mint된 effect는 sanitized outcome,
   typed source receipt SHA, evidence projection, parent/bridge context와 optional absence SHA를 봉인한다. outcome은
   `applied|empty|unsupported|unavailable|deadline_discarded|provider_error|contract_error|terminal`로 닫는다.
+- c3.4의 `ActionEffectReceipt`는 `action_effects.py`가 소유하는 **schema-only value DTO**다. exact field는
+  `stage`, `execution_sha256`, `step_index`, `controller_decision_sha256`, `action_kind`, `action_sha256`,
+  `obligation_key`, `target_evidence_id`, `before_state_sha256`, `source_kind`, `source_receipt_kind`,
+  `source_receipt_sha256`, `outcome`, `ordered_evidence_ids`,
+  `parent_context_receipt_sha256s`, `bridge_context_receipt_sha256s`, `absence_confirmation_sha256`,
+  `call_performed`, `effect_sha256`다. 공개 validator는 exact type/closed enum/target shape/tuple/hash와
+  action×source×outcome×call matrix만 검사하며
+  runtime authority, 실행 성공, state transition, terminal/citation 권한을 부여하지 않는다.
+- c3.4 공개면은 DTO와 순수 validator 두 개뿐이다. `create|issue|mint|execute|from_dict` public API는 없고,
+  module-private token을 요구하는 `_create`는 schema fixture와 후속 c4 내부 factory의 구현 지점일 뿐이다.
+  d2 전에는 유효한 `HarnessExecution + ControllerDecisionReceipt`를 입력받는 production issuer가 존재하지 않는다.
+  `_create`는 authority를 등록하지 않으며 Python 보안 경계로 간주하지 않는다. source receipt가 이미 봉인한
+  stable anchor/store/config/runtime을 effect에 중복 저장하지 않고, c3.5/d2/c4의 live validator가 exact source를
+  역참조해 execution과 대조한다. exact decision permit과 one-step issuance도 그 authority gate가 별도로 검증한다.
+
+  | action | typed source | effect outcome / `call_performed` |
+  | --- | --- | --- |
+  | `retrieve_dense|retrieve_lexical` | `lane_search` | `applied|empty|provider_error / true`, `contract_error / false|true` |
+  | `fuse` | `fusion` | `applied|empty / true` |
+  | `expand_parent` | `parent_context` | `applied / true` |
+  | `bridge_table|bridge_figure` | `bridge_context` | `applied|empty / true` |
+  | `rerank` | `rerank` | `applied|provider_error|contract_error / true`, `unavailable / false` |
+  | `verify_slot` | `semantic_verification` | `applied|unsupported / true`, `unavailable / false` |
+  | `verify_slot` | `absence_confirmation` | `empty / false` |
+  | `stop|abstain` | `controller_decision` | `terminal / false`; source SHA = decision SHA |
+
+  child receipt가 없는 control 종료는 `controller_decision` source만 쓴다. retrieve/bridge unavailable은
+  `false`, 모든 nonterminal action의 deadline discard는 provider action이면 `false|true`, 순수 local action이면
+  `false`다. verify의 provider error는 `true`, contract error는 `false|true`; local/rerank integrity error도
+  controller source의 contract error로만 기록한다. fact/compare만 lane/fusion을 사용할 수 있고 follow-up은
+  context/rerank/verify/terminal만 허용한다. semantic `unsupported`는 별도 absence SHA를 반드시 동반하며,
+  primary absence source는 `empty`이고 absence SHA가 source SHA와 같아야 한다. `controller_decision`과
+  primary `absence_confirmation` source는 parent/bridge context tuple이 모두 비어 있어야 하며, post-call
+  rerank/verify 실패의 context provenance는 후속 live source-authority 계층이 검증한다.
 - `AbsenceConfirmationReceipt`는 모든 허용 retrieval/verification 경로가 bounded하게 종결된 한 obligation에
   한해 `bounded_no_candidate|bounded_no_verified_support|followup_approved_paths_exhausted`를 기록한다.
   이는 해당 query/scope/budget에서 support를 확보하지 못했다는 뜻이며 corpus에 사실이 없다는 주장이 아니다.

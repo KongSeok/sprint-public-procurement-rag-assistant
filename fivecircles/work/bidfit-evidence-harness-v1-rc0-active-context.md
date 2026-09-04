@@ -5,8 +5,9 @@
   선택 commit·검증한다. 완료 뒤 깨끗한 sibling worktree의 `feat/local-qwen-mini131-eval`에 병합한다.
   새 브랜치는 만들지 않으며 기존 dirty 사용자 변경을 보존한다.
 - 요청: 실제 Evidence-Harness 구현. 작은 leaf 하나씩 검증하며 **릴레이 계속**, ZIP 생성 반복 금지.
-- 현재: Phase 0 `c2c621c`, Phase 1 `ff9fa2e`, c2 `05fc4cc`, c3.1 `7b7af7d`, c3.2 `2c3b077` origin push 완료.
-  EH2.1~2.5와 EH2.6.a~c3.3 PASS; 다음 leaf `EH2.6.c3.4` closed ActionEffectReceipt DTO/validator다.
+- 현재: Phase 0 `c2c621c`, Phase 1 `ff9fa2e`, c2 `05fc4cc`, c3.1 `7b7af7d`, c3.2 `2c3b077`,
+  c3.3 `7dd5ad4` origin push 완료. EH2.1~2.5와 EH2.6.a~c3.4 PASS; 다음 leaf는
+  `EH2.6.c3.5` live-authority/replay/nonpromotion adversarial gate다.
 - 완료: runtime DTO/empty scope/typed predicate/scorer/replay. focused 47, 전체 852 PASS, skip 0. 앱 연결은 아직.
 - 실물: 저장 답변/source-case hash 129/129, facts117/no-facts12, API/생성 호출0, 최종 replay-03 별도 private 보관.
 - 실물 경로: private/evidence-harness/v1-rc0-20260903-01. parents9331/compat children9496/structured62382; KURE/MPS 9496 + Kiwi tokens2065474. source unchanged/generation0.
@@ -16,7 +17,7 @@
 - 계약: `../architecture/specs/bidfit-evidence-harness-v1-rc0.md` §16.10의 c2/c3 effect·absence 구간과
   `../architecture/todolist.md` EH2.6.c만 우선 읽기.
 - TODO: `../architecture/todolist.md` EH-RC0. 상세/원문은 애매할 때만 checkpoint/resume 문서에서 찾기.
-- 테스트: EH2.6.c3.3 focused67/related192/full1267/safety858와 flow Playwright PASS. three-reason bounded
-  absence, cache/authority 재검증, follow-up root-lifetime exact-once와 production/synthetic kind gate를 닫았다.
-  다음은 effect DTO/validator만 정의하고 public mint는 d2 permit 전까지 fail-closed한다.
+- 테스트: EH2.6.c3.4 focused11/related114/full1278/safety861와 flow Playwright PASS. 19-field closed effect
+  value, source-kind까지의 전수 matrix, serialization drift를 닫았다. public mint/authority는 d2 permit 전까지
+  fail-closed이며 다음은 이 비권한 경계의 clone/drift/replay/nonpromotion adversarial gate다.
 - 종료 조건: 명시적 중단/실제 blocker/승인 범위 완료. 한두 단위 끝났다는 이유로 중단하지 않음.

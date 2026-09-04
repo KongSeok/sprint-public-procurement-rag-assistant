@@ -263,6 +263,18 @@ closed `ActionEffectReceipt` DTO/validator is defined in c3, but minting executi
 bindings stays fail-closed until the EH2.6.d2 `ControllerDecisionReceipt` permit exists. The EH2.5 preview trace is
 never substituted for that permit. Consequently c4 reducer/effect mint is dependency-blocked by d1/d2, not by an
 untrusted temporary decision field.
+The c3.4 type lives in `action_effects.py` as a schema-only value object. Its exact closed payload binds execution,
+step, controller decision, action/target, before-state, source kind and typed source-receipt hash, sanitized outcome,
+ordered evidence IDs, parent/bridge receipt hashes, optional absence hash, call status, and the canonical effect hash.
+Stable anchors and store/config/runtime hashes remain single-sourced in the exact typed source receipt and are not
+duplicated in the effect. The package exports only `ActionEffectReceipt` and the pure
+`validate_action_effect_receipt` shape/hash validator. That validator is explicitly not runtime authority and cannot
+authorize a reducer, transition, terminal answer, or citation. There is no public create/issue/mint/execute/from-dict
+surface before d2; the module-private token constructor exists only for schema fixtures and the future c4 internal
+issuer after an exact d2 permit. `_create` registers no authority and is not a Python security boundary; c4 must use a
+separate exact decision-permit authority and dereference the live source receipt before reduction.
+Controller-decision and primary absence sources carry empty parent/bridge context tuples. Post-call rerank or verify
+failure provenance belongs to the later live source-authority check rather than this structural DTO.
 An E1 compare seed must be all-unsearched; already hybrid-searched EH2.4 coverage cannot be
 relabeled as independent lane execution. Once all approved retrieval paths close with no
 candidates, controller-only `verify_slot` performs a zero-provider exhaustion check that may

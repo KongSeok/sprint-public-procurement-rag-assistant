@@ -533,41 +533,254 @@
 - 사용할 스킬: `one-go`, 재귀 leaf는 `batch-sequential-runner`.
 - 재귀 TODO: c3.2.a contract/RED → c3.2.b rerank receipt → c3.2.c derived semantic → c3.2.d adversarial gate.
 - 수정 대상: `execution_contracts.py`, orchestration exports, focused tests.
-- 상태: IN_PROGRESS (`c3.2.b`, RED acceptance 작성 중).
+- 구현 결과: factory-only `RerankReceipt`, strict ID-less request/result, exact complete context batch,
+  owner-derived rerank/final budget, global candidate/bridge order와 derived semantic obligation을 구현했다.
+  parent는 verifier의 private unindexed auxiliary context로만 전달하고 base/derived route를 one-shot으로 닫았다.
+- 상태: COMPLETED.
 
 ### 5. Validation + Report
 
 - 사용할 스킬: `test-runner`, `mermaid-flow-report`, `logall`.
 - 자동 테스트: c3.2 focused → c2/c3.1/retrieval/follow-up 관련 → full unittest → safety.
 - Playwright/browser smoke: 갱신한 flow HTML desktop/mobile.
-- 상태: PENDING.
-- 결과: PENDING.
+- 상태: COMPLETED.
+- 결과: focused9/9, semantic/retrieval/action/state 관련128/128, full1229/1229, safety854 PASS.
+  Playwright images2/tables8/errors0/mobile overflow0 PASS. 외부 API/model/Langfuse/VLM/golden 호출 0.
 
 ### 6. Repair Loop
 
-- 실패 원인/수리/재테스트: PENDING.
-- 상태: PENDING.
+- 실패 원인: provider가 상태를 변경하고 예외를 던지면 예외 branch가 post-call dependency gate를 우회해
+  `provider_error`로 오분류되고 발급 receipt가 즉시 validator에서 거부되는 독립 리뷰 P1.
+- 수리 배치: 정상/예외 반환 모두 동일 post-call gate를 거치게 하고, 무변조 예외는 provider error,
+  drift+예외는 sanitized consumed contract error로 닫았다. 복원 뒤 재실행도 one-call로 차단했다.
+- 재테스트: focused9/9, related128/128, full1229/1229 PASS; 독립 재리뷰 APPROVE.
+- 상태: COMPLETED.
 
 ### 7. Push / Publication
 
-- git status 확인과 selective stage: PENDING.
-- 커밋/푸시: PENDING.
-- 상태: PENDING.
+- git status 확인: 대규모 user-owned dirty에서 c3.2 code/test/report/log 17파일·hunk만 선별했다.
+- 커밋/푸시: `2c3b077` (`feat(harness): add rerank-derived semantic receipts`)을
+  `origin/feat/total-integration`에 push했다.
+- 상태: COMPLETED.
 
 ### 8. Closeout Report
 
-- 시작 타겟 대비 최종 현재 플로우·남은 GAP·점수표: PENDING.
-- 상태: PENDING.
+- 사용할 스킬: `mermaid-flow-report`.
+- 시작 타겟 대비 최종 현재 플로우: ID-less rerank → derived semantic verify까지 MATCHED.
+- 남은 GAP/PARTIAL 및 점수표: c3.3 absence 8 SELECTED, c4 effect/reducer 7 BLOCKED_BY_d2,
+  EVAL.4 5 WAIT.
+- 상태: COMPLETED.
 
 ### 9. Relay Shot
 
-- 확인할 TODO source/다음 후보: c3.2 종료·push 뒤 TODO §EH2.6.c3을 재채점한다.
-- 새 원샷딜 시작 여부: 안전한 READY가 있으면 새 form을 쓰고 즉시 시작한다.
-- 상태: PENDING.
+- 사용할 스킬: `relay-shot`.
+- 확인한 TODO source: refreshed flow report, TODO §EH2.6.c3, 계약 §16.10, checkpoint/active context.
+- 다음 후보: c3.3=8 READY, c4=7 BLOCKED_BY_d2, EVAL.4=5 WAIT.
+- 선택한 다음 작업: `EH2.6.c3.3.a` absence reason/prerequisite matrix + DTO/API contract/TDD RED.
+- 새 원샷딜 시작 여부: 아래 Cycle 8 form을 작성하고 즉시 시작한다.
+- 멈춘 이유, 있으면: 없음.
+- 상태: `CONTINUE_WITH_NEXT_FORM` / COMPLETED.
+
+### 10. Final Ledger
+
+- Doc / Implementation / Validation / Repair / Push / Report / Relay: COMPLETED.
+- Flow diagram verification: PARTIAL — rerank/derived semantic까지 MATCHED, bounded absence부터 GAP.
+- 남은 리스크: production reranker는 계속 unavailable이고, 이 결과는 synthetic/offline 계약 검증이지
+  동일 golden 검색 성능 향상 측정이 아니다.
+
+## Cycle 8 — EH2.6.c3.3 bounded absence source receipt
+
+### 0. Scope Intake
+
+- 요청 범위: c3.2 push 뒤 최고 점수 READY TODO c3.3을 재귀 분할하고 첫 leaf c3.3.a를
+  계약→TDD RED→리뷰한 뒤 구현 leaf로 이어간다.
+- 브랜치: `feat/total-integration`; 새 브랜치 생성/병합 없음.
+- 사용자 제약: user-owned dirty·VLM·resources 보존, 실제 API/model/Langfuse/golden 실행 0.
+- 완료 기준: 정확히 세 absence reason의 owner-derived prerequisite matrix와 closed DTO/API를 고정하고,
+  오류·timeout·unavailable·unresolved·부분 lineage가 zero-call/no-mint임을 TDD로 재현한다.
+- 위험/확인 필요: empty top-k를 corpus absence로 오인하지 않고 fact/compare/follow-up별 모든 승인 경로의
+  bounded 정상 종료만 증명한다. state/effect/citation 승격은 계속 금지한다.
+- 상태: COMPLETED.
+
+### 1. Start Report / Target Check
+
+- 사용할 스킬: `mermaid-flow-report`.
+- 기준 타겟 플로우: §16.10 `all approved paths bounded → three-reason zero-provider absence receipt`.
+- 현재 플로우: ID-less rerank/derived semantic까지 MATCHED, absence source receipt부터 GAP.
+- 점수표/선정 기준: c3.3=3+3+2+1-1=8, c4=7(BLOCKED_BY_d2), EVAL.4=5.
+- 상태: COMPLETED.
+
+### 2. Relay Unit Selection
+
+- 사용할 스킬: `relay-shot`.
+- 확인한 TODO source: current/target flow, TODO §EH2.6.c3, 계약 §16.10, checkpoint/active context.
+- 점수 상위 후보: c3.3 8 READY, c4 7 BLOCKED, EVAL.4 5 WAIT.
+- 선택한 다음 단위작업: `EH2.6.c3.3.a` reason/prerequisite matrix + DTO/API contract/TDD RED.
+- 플로우폼 반영: 이 Cycle 8 form.
+- 상태: `CONTINUE_WITH_NEXT_FORM` / COMPLETED.
+
+### 3. Doc / Contract
+
+- 사용할 스킬: `doc-contract-writer`.
+- 문서 생성/수정: §16.10, orchestration module contract, recursive TODO, focused acceptance.
+- 계약 확인: 세 reason, owner source matrix, complete bounded path, forbidden causes, zero-provider,
+  factory/lifetime/replay/nonpromotion/public surface.
+- 결과: derived-only semantic unsupported, obligation별 follow-up empty, authorized fallback 분기,
+  reason별 null/count matrix와 live-prerequisite replay/root cleanup을 고정했고 독립 재리뷰 `APPROVE`를 받았다.
+- 상태: COMPLETED.
+
+### 4. Implementation
+
+- 사용할 스킬: `one-go`; 재귀 leaf는 `batch-sequential-runner`.
+- 재귀 TODO: c3.3.a contract/RED → c3.3.b fact/compare no-candidate → c3.3.c no-verified-support →
+  c3.3.d follow-up exhaustion/negative zero-call gate.
+- 수정 대상: `execution_contracts.py`, orchestration exports, `tests/test_absence_confirmation.py`.
+- 구현 결과: factory-only `AbsenceConfirmationReceipt`, reason별 exact prerequisite matrix,
+  fact/compare/follow-up zero-provider issuer와 root-lifetime authority/cache를 구현했다. follow-up의
+  primary→progress→finalize는 한 root에서 exact-once FSM으로 직렬화하고 post-call failure를 terminal로 봉인했다.
+- 상태: COMPLETED.
+
+### 5. Validation + Report
+
+- 사용할 스킬: `test-runner`, `mermaid-flow-report`, `logall`.
+- 자동 테스트: c3.3 focused → c3.1/c3.2/semantic/retrieval/follow-up 관련 → full unittest → safety.
+- Playwright/browser smoke: 갱신한 flow HTML desktop/mobile.
+- 현상태 Mermaid 플로우맵: absence receipt 완료 뒤 effect/controller 이전 GAP을 표시한다.
+- 결과: focused 67/67, 관련 semantic/retrieval/action/state 192/192, full unittest 1,267/1,267,
+  repository safety 858파일 PASS. Playwright images2/tables8/page errors0/mobile overflow0 PASS.
+  실제 API/model/Langfuse/VLM/golden 호출은 0회다.
+- 상태: COMPLETED.
+
+### 6. Repair Loop
+
+- 실패 원인/수리: cache-hit 전체 검증 누락, visible authority의 private shadow 부재,
+  same-root follow-up 단계 replay, production source와 synthetic runtime 혼합을 독립 리뷰 P1로 발견했다.
+  cache 재검증·closure-private authority·root FSM·execution-kind gate로 각각 수리했다.
+- 재테스트: focused 67/67, related 192/192, full 1,267/1,267 PASS; 최종 독립 리뷰 APPROVE(P0/P1 없음).
+- 상태: COMPLETED.
+
+### 7. Push / Publication
+
+- git status 확인: user-owned dirty와 이번 C3.3 변경을 분리하고 mixed 운영 문서는 해당 hunk만 선택했다.
+- 커밋/푸시: `7dd5ad4` (`feat(harness): add bounded absence receipts`)를
+  `origin/feat/total-integration`에 push했다. resources/private/gold/VLM과 무관한 변경은 제외했다.
+- 상태: COMPLETED.
+
+### 8. Closeout Report
+
+- 시작 타겟 대비 최종 현재 플로우: bounded three-reason absence와 follow-up exact-once까지 MATCHED.
+- 남은 GAP/PARTIAL 및 점수표: c3.4 closed effect DTO 9 SELECTED, c3.5 authority/adversarial gate 8 WAIT,
+  d1 controller state 8 WAIT, c4 reducer 7 BLOCKED_BY_d2, EVAL.4 5 WAIT.
+- 상태: COMPLETED.
+
+### 9. Relay Shot
+
+- 확인한 TODO source: refreshed current/target flow, TODO §EH2.6.c3, 계약 §16.10,
+  checkpoint/active context.
+- 선택한 다음 작업: `EH2.6.c3.4` closed `ActionEffectReceipt` DTO/validator.
+- 새 원샷딜 시작 여부: 아래 Cycle 9 form을 쓰고 public mint를 열지 않는 contract/RED부터 즉시 시작한다.
+- 멈춘 이유, 있으면: 없음.
+- 상태: `CONTINUE_WITH_NEXT_FORM` / COMPLETED.
+
+### 10. Final Ledger
+
+- Scope / Target / Relay select / Doc / Contract / Implementation / Validation / Repair / Push / Report / Relay:
+  COMPLETED.
+- Flow diagram verification: PARTIAL — bounded absence까지 MATCHED, effect/controller/reducer는 GAP.
+- 남은 리스크: absence는 bounded query/scope/budget 증명일 뿐 corpus-level 부재나 state/effect 권한이 아니다.
+  실제 품질 우승은 동일 golden E2E 전까지 주장하지 않는다.
+
+## Cycle 9 — EH2.6.c3.4 closed ActionEffectReceipt DTO/validator
+
+### 0. Scope Intake
+
+- 요청 범위: C3.3 push·logall 뒤 최고 점수 READY TODO C3.4를 새 원샷딜로 시작한다.
+- 브랜치: `feat/total-integration`; 새 브랜치 생성/병합 없음.
+- 사용자 제약: user-owned dirty·VLM·resources 보존, 실제 API/model/Langfuse/golden 실행 0.
+- 완료 기준: effect 결과의 closed DTO와 순수 validator만 추가하고, exact d2
+  `ControllerDecisionReceipt` permit 전에는 package/module 어느 경로에서도 production mint/issuer를 제공하지 않는다.
+- 위험/확인 필요: raw constructor·clone·serialization·subclass·module alias로 authority를 위조하거나
+  effect DTO를 state/terminal/citation 권한으로 승격하는 경로를 모두 fail-closed해야 한다.
+- 상태: COMPLETED.
+
+### 1. Start Report / Target Check
+
+- 사용할 스킬: `mermaid-flow-report`.
+- 기준 타겟 플로우: §16.10 `verified source/absence + exact controller permit → action effect → reducer`.
+- 현재 플로우: bounded absence까지 MATCHED, closed effect type부터 GAP이며 public effect mint는 d2 이전 BLOCKED다.
+- 점수표/선정 기준: c3.4=9 READY, c3.5=8 WAIT, d1=8 WAIT, c4=7 BLOCKED_BY_d2, EVAL.4=5 WAIT.
+- 상태: COMPLETED.
+
+### 2. Relay Unit Selection
+
+- 사용할 스킬: `relay-shot`.
+- 확인한 TODO source: refreshed flow report, TODO §EH2.6.c3, 계약 §16.10, checkpoint/active context.
+- 선택한 다음 단위작업: `EH2.6.c3.4` closed DTO/validator + fail-closed public mint surface.
+- 플로우폼 반영: 이 Cycle 9 form.
+- 상태: `CONTINUE_WITH_NEXT_FORM` / COMPLETED.
+
+### 3. Doc / Contract
+
+- 사용할 스킬: `doc-contract-writer`.
+- 계약 결과: schema-only value DTO와 runtime authority를 분리하고 exact payload/action-target/source/outcome/call
+  matrix를 닫았다. package root에는 DTO+순수 validator만 공개하며 public create/issue/mint/execute/from-dict와
+  EH2.5 preview permit 재사용은 금지한다. 리뷰에서 anchor/store/config/runtime 중복과 순환 의존 P1을 발견해
+  exact source receipt 단일 원천을 역참조하는 19필드 선형 schema로 교정했다. private `_create`는 authority를
+  등록하지 않는다. clone/live authority 공격은 c3.5, 실제 mint는 d2/c4로 유지한다.
+- 재귀 TODO: c3.4.a schema/API/RED → c3.4.b closed DTO+validator/no issuer →
+  c3.4.c serialization/malformed/nonpromotion/zero-provider focused gate.
+- TDD RED: `tests.test_action_effect_receipt_contract`가 package root의 `ActionEffectReceipt` 부재로 의도대로
+  ImportError 실패했다. 구현 전 공개면 부재를 먼저 고정했다.
+- 상태: COMPLETED.
+
+### 4. Implementation
+
+- 사용할 스킬: `one-go`; 재귀 leaf는 `batch-sequential-runner`.
+- 구현 결과: `action_effects.py`에 19-field frozen/slots value와 canonical hash, closed
+  action×source receipt×outcome×call×source-kind matrix, target/evidence/context/absence projection validator를
+  구현했다. package root는 DTO+validator만 공개하며 create/issue/mint/execute/from-dict/authority는 없다.
+- 상태: COMPLETED.
+
+### 5. Validation + Report
+
+- 사용할 스킬: `test-runner`, `mermaid-flow-report`, `logall`.
+- 자동 테스트: focused 11/11, 관련 114/114, 권한 경계 전체 1,278/1,278, safety 861파일 PASS.
+- 리포트: current/target Mermaid PNG를 재생성·직접 검사했고 HTML Playwright에서 images2, tables8,
+  page errors0, mobile overflow0 PASS다. API/model/Langfuse 호출은 0회다.
+- 결과: PASS.
+- 상태: COMPLETED.
+
+### 6. Repair Loop
+
+- 실패 원인: independent audit에서 controller source를 통한 follow-up retrieval/fuse 우회와 변조 receipt의
+  fail-open serialization P1을 발견했다. semantic/absence SHA, primary absence context, exact stage type P2도 확인했다.
+- 수리: action-kind source gate, to_dict 전체 재검증, distinct semantic/absence SHA와 empty context를 적용하고
+  source-kind 전수 Cartesian 및 외부 호출 폭탄 테스트를 추가했다.
+- 재테스트/리뷰: focused11, related114, full1278, safety861 PASS; 독립 최종 APPROVE(P0/P1 없음).
+- 상태: COMPLETED.
+
+### 7. Push / Publication
+
+- git status 확인: user-owned 대규모 dirty에서 C3.4 code/test/contract/report/log hunk만 선별한다.
+- 커밋/푸시: 검증 뒤 아래 단계에서 수행한다.
+- 상태: IN_PROGRESS.
+
+### 8. Closeout Report
+
+- 시작 타겟 대비 최종 현재 플로우: closed structural effect value와 no-public-mint 경계 MATCHED.
+- 남은 GAP/PARTIAL 및 점수표: c3.5 authority/adversarial gate 8 SELECTED, d1 execution aggregate 8 WAIT,
+  c4 reducer 7 BLOCKED_BY_d2, EVAL.4 5 WAIT.
+- 상태: COMPLETED.
+
+### 9. Relay Shot
+
+- C3.4 종료·push 뒤 TODO를 다시 채점하고 안전한 READY가 있으면 다음 새 form을 즉시 시작한다.
+- 다음 후보: `EH2.6.c3.5` source/store/config/runtime clone·drift·mixed authority 및 nonpromotion gate.
+- 상태: PUSH_AFTER_RELAY_PENDING.
 
 ### 10. Final Ledger
 
 - Scope / Target / Relay select: COMPLETED.
 - Doc / Contract: COMPLETED.
-- Implementation / Validation / Repair / Push / Report / Relay: PENDING.
-- 남은 리스크: production reranker는 승인 전 unavailable이고, 이 Cycle은 synthetic/offline 계약 검증만 수행한다.
+- Implementation / Validation / Repair / Report: COMPLETED.
+- Push / Relay: IN_PROGRESS.

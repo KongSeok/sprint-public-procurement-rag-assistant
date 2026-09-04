@@ -65,6 +65,116 @@ _FIELD_VALUE_TYPES = MappingProxyType({
 _VALUE_TOKEN = object()
 _PROJECTION_TOKEN = object()
 _RERANK_PROJECTION_TOKEN = object()
+_ACTION_EFFECT_RECEIPT_TOKEN = object()
+
+_ACTION_EFFECT_ACTION_KINDS = frozenset(
+    {
+        "retrieve_dense",
+        "retrieve_lexical",
+        "fuse",
+        "expand_parent",
+        "rerank",
+        "bridge_table",
+        "bridge_figure",
+        "verify_slot",
+        "stop",
+        "abstain",
+    }
+)
+_ACTION_EFFECT_SOURCE_KINDS = frozenset({"fact", "compare", "follow_up"})
+_ACTION_EFFECT_SOURCE_RECEIPT_KINDS = frozenset(
+    {
+        "lane_search",
+        "fusion",
+        "parent_context",
+        "bridge_context",
+        "rerank",
+        "semantic_verification",
+        "absence_confirmation",
+        "controller_decision",
+    }
+)
+_ACTION_EFFECT_OUTCOMES = frozenset(
+    {
+        "applied",
+        "empty",
+        "unsupported",
+        "unavailable",
+        "deadline_discarded",
+        "provider_error",
+        "contract_error",
+        "terminal",
+    }
+)
+_ACTION_EFFECT_OBLIGATION_ACTIONS = frozenset(
+    {
+        "retrieve_dense",
+        "retrieve_lexical",
+        "fuse",
+        "rerank",
+        "verify_slot",
+    }
+)
+_ACTION_EFFECT_EVIDENCE_ACTIONS = frozenset(
+    {"expand_parent", "bridge_table", "bridge_figure"}
+)
+_ACTION_EFFECT_TERMINAL_ACTIONS = frozenset({"stop", "abstain"})
+_ACTION_EFFECT_PROVIDER_ACTIONS = frozenset(
+    {"retrieve_dense", "retrieve_lexical", "rerank", "verify_slot"}
+)
+_ACTION_EFFECT_CORE_ROWS = frozenset(
+    {
+        ("retrieve_dense", "lane_search", "applied", True),
+        ("retrieve_dense", "lane_search", "empty", True),
+        ("retrieve_dense", "lane_search", "provider_error", True),
+        ("retrieve_dense", "lane_search", "contract_error", False),
+        ("retrieve_dense", "lane_search", "contract_error", True),
+        ("retrieve_lexical", "lane_search", "applied", True),
+        ("retrieve_lexical", "lane_search", "empty", True),
+        ("retrieve_lexical", "lane_search", "provider_error", True),
+        ("retrieve_lexical", "lane_search", "contract_error", False),
+        ("retrieve_lexical", "lane_search", "contract_error", True),
+        ("fuse", "fusion", "applied", True),
+        ("fuse", "fusion", "empty", True),
+        ("expand_parent", "parent_context", "applied", True),
+        ("bridge_table", "bridge_context", "applied", True),
+        ("bridge_table", "bridge_context", "empty", True),
+        ("bridge_figure", "bridge_context", "applied", True),
+        ("bridge_figure", "bridge_context", "empty", True),
+        ("rerank", "rerank", "applied", True),
+        ("rerank", "rerank", "unavailable", False),
+        ("rerank", "rerank", "provider_error", True),
+        ("rerank", "rerank", "contract_error", True),
+        ("verify_slot", "semantic_verification", "applied", True),
+        ("verify_slot", "semantic_verification", "unsupported", True),
+        ("verify_slot", "semantic_verification", "unavailable", False),
+        ("verify_slot", "absence_confirmation", "empty", False),
+        ("stop", "controller_decision", "terminal", False),
+        ("abstain", "controller_decision", "terminal", False),
+    }
+)
+_ACTION_EFFECT_PAYLOAD_FIELDS = frozenset(
+    {
+        "stage",
+        "execution_sha256",
+        "step_index",
+        "controller_decision_sha256",
+        "action_kind",
+        "action_sha256",
+        "obligation_key",
+        "target_evidence_id",
+        "before_state_sha256",
+        "source_kind",
+        "source_receipt_kind",
+        "source_receipt_sha256",
+        "outcome",
+        "ordered_evidence_ids",
+        "parent_context_receipt_sha256s",
+        "bridge_context_receipt_sha256s",
+        "absence_confirmation_sha256",
+        "call_performed",
+    }
+)
 
 
 def _canonical_json(value: Any) -> str:
@@ -248,6 +358,324 @@ def _canonical_value(value_type: str, value: object) -> str:
 
 def _field_value_type(field: str) -> str:
     return _FIELD_VALUE_TYPES.get(field, "text")
+
+
+def _effect_require_hash(value: object, code: str) -> str:
+    if (
+        type(value) is not str
+        or len(value) != 64
+        or re.fullmatch(r"[0-9a-f]{64}", value) is None
+    ):
+        raise ValueError(code)
+    return value
+
+
+def _effect_string_tuple(
+    value: object,
+    code: str,
+    *,
+    hashes: bool = False,
+) -> tuple[str, ...]:
+    if type(value) is not tuple:
+        raise TypeError(code)
+    result = tuple(value)
+    if any(type(item) is not str or not item for item in result):
+        raise ValueError(code)
+    if len(result) != len(set(result)):
+        raise ValueError(f"duplicate_{code}")
+    if hashes:
+        for item in result:
+            _effect_require_hash(item, code)
+    return result
+
+
+def _valid_action_effect_row(
+    *,
+    action_kind: str,
+    source_receipt_kind: str,
+    outcome: str,
+    call_performed: bool,
+) -> bool:
+    row = (action_kind, source_receipt_kind, outcome, call_performed)
+    if row in _ACTION_EFFECT_CORE_ROWS:
+        return True
+    if source_receipt_kind != "controller_decision":
+        return False
+    if action_kind in {"retrieve_dense", "retrieve_lexical", "bridge_table", "bridge_figure"}:
+        if outcome == "unavailable" and call_performed is False:
+            return True
+    if action_kind not in _ACTION_EFFECT_TERMINAL_ACTIONS:
+        if outcome == "deadline_discarded":
+            if action_kind in _ACTION_EFFECT_PROVIDER_ACTIONS:
+                return type(call_performed) is bool
+            return call_performed is False
+        if (
+            outcome == "contract_error"
+            and action_kind
+            in {
+                "fuse",
+                "expand_parent",
+                "rerank",
+                "bridge_table",
+                "bridge_figure",
+                "verify_slot",
+            }
+        ):
+            return type(call_performed) is bool
+    return (
+        action_kind == "verify_slot"
+        and outcome == "provider_error"
+        and call_performed is True
+    )
+
+
+def _validate_action_effect_receipt_payload(payload: dict[str, Any]) -> None:
+    if type(payload["stage"]) is not str or payload["stage"] != "action_effect":
+        raise ValueError("invalid_action_effect_stage")
+    for field in (
+        "execution_sha256",
+        "controller_decision_sha256",
+        "action_sha256",
+        "before_state_sha256",
+        "source_receipt_sha256",
+    ):
+        _effect_require_hash(payload[field], f"invalid_action_effect_{field}")
+    step_index = payload["step_index"]
+    if type(step_index) is not int or step_index < 1:
+        raise ValueError("invalid_action_effect_step_index")
+
+    action_kind = payload["action_kind"]
+    if type(action_kind) is not str or action_kind not in _ACTION_EFFECT_ACTION_KINDS:
+        raise ValueError("invalid_action_effect_action_kind")
+    source_kind = payload["source_kind"]
+    if type(source_kind) is not str or source_kind not in _ACTION_EFFECT_SOURCE_KINDS:
+        raise ValueError("invalid_action_effect_source_kind")
+    source_receipt_kind = payload["source_receipt_kind"]
+    if (
+        type(source_receipt_kind) is not str
+        or source_receipt_kind not in _ACTION_EFFECT_SOURCE_RECEIPT_KINDS
+    ):
+        raise ValueError("invalid_action_effect_source_receipt_kind")
+    outcome = payload["outcome"]
+    if type(outcome) is not str or outcome not in _ACTION_EFFECT_OUTCOMES:
+        raise ValueError("invalid_action_effect_outcome")
+    call_performed = payload["call_performed"]
+    if type(call_performed) is not bool:
+        raise TypeError("invalid_action_effect_call_performed")
+
+    obligation_key = payload["obligation_key"]
+    target_evidence_id = payload["target_evidence_id"]
+    if action_kind in _ACTION_EFFECT_TERMINAL_ACTIONS:
+        if obligation_key is not None or target_evidence_id is not None:
+            raise ValueError("invalid_action_effect_target")
+    elif action_kind in _ACTION_EFFECT_OBLIGATION_ACTIONS:
+        if (
+            type(obligation_key) is not str
+            or not obligation_key
+            or target_evidence_id is not None
+        ):
+            raise ValueError("invalid_action_effect_target")
+    elif action_kind in _ACTION_EFFECT_EVIDENCE_ACTIONS:
+        if (
+            type(obligation_key) is not str
+            or not obligation_key
+            or type(target_evidence_id) is not str
+            or not target_evidence_id
+        ):
+            raise ValueError("invalid_action_effect_target")
+    else:  # pragma: no cover - closed enum above makes this defensive only
+        raise ValueError("invalid_action_effect_target")
+
+    if source_kind == "follow_up" and action_kind in {
+        "retrieve_dense",
+        "retrieve_lexical",
+        "fuse",
+    }:
+        raise ValueError("invalid_action_effect_source_kind_for_receipt")
+    if not _valid_action_effect_row(
+        action_kind=action_kind,
+        source_receipt_kind=source_receipt_kind,
+        outcome=outcome,
+        call_performed=call_performed,
+    ):
+        raise ValueError("invalid_action_effect_matrix_row")
+
+    ordered_evidence_ids = _effect_string_tuple(
+        payload["ordered_evidence_ids"],
+        "invalid_action_effect_ordered_evidence_ids",
+    )
+    parent_hashes = _effect_string_tuple(
+        payload["parent_context_receipt_sha256s"],
+        "invalid_action_effect_parent_context_receipt_sha256s",
+        hashes=True,
+    )
+    bridge_hashes = _effect_string_tuple(
+        payload["bridge_context_receipt_sha256s"],
+        "invalid_action_effect_bridge_context_receipt_sha256s",
+        hashes=True,
+    )
+
+    if outcome == "applied":
+        if action_kind == "expand_parent":
+            if ordered_evidence_ids:
+                raise ValueError("parent_action_effect_must_not_promote_evidence")
+        elif not ordered_evidence_ids:
+            raise ValueError("applied_action_effect_requires_evidence")
+    elif action_kind == "rerank" and outcome == "unavailable":
+        if not ordered_evidence_ids:
+            raise ValueError("unavailable_rerank_requires_identity_projection")
+    elif ordered_evidence_ids:
+        raise ValueError("nonapplied_action_effect_must_not_promote_evidence")
+
+    context_actions = {"expand_parent", "bridge_table", "bridge_figure", "rerank", "verify_slot"}
+    if action_kind not in context_actions and (parent_hashes or bridge_hashes):
+        raise ValueError("action_effect_context_not_allowed")
+    if source_receipt_kind == "controller_decision" and (parent_hashes or bridge_hashes):
+        raise ValueError("controller_action_effect_context_not_allowed")
+    source_sha256 = payload["source_receipt_sha256"]
+    if source_receipt_kind == "parent_context":
+        if parent_hashes != (source_sha256,) or bridge_hashes:
+            raise ValueError("invalid_parent_action_effect_context")
+    elif action_kind == "expand_parent" and parent_hashes:
+        raise ValueError("invalid_parent_action_effect_context")
+    if source_receipt_kind == "bridge_context":
+        if bridge_hashes != (source_sha256,) or parent_hashes:
+            raise ValueError("invalid_bridge_action_effect_context")
+    elif action_kind in {"bridge_table", "bridge_figure"} and bridge_hashes:
+        raise ValueError("invalid_bridge_action_effect_context")
+
+    absence_sha256 = payload["absence_confirmation_sha256"]
+    if absence_sha256 is not None:
+        _effect_require_hash(
+            absence_sha256,
+            "invalid_action_effect_absence_confirmation_sha256",
+        )
+    if action_kind != "verify_slot" and absence_sha256 is not None:
+        raise ValueError("action_effect_absence_not_allowed")
+    if source_receipt_kind == "absence_confirmation":
+        if absence_sha256 != source_sha256 or parent_hashes or bridge_hashes:
+            raise ValueError("action_effect_absence_source_mismatch")
+    elif source_receipt_kind == "semantic_verification" and outcome == "unsupported":
+        if absence_sha256 is None or absence_sha256 == source_sha256:
+            raise ValueError("unsupported_action_effect_requires_absence")
+    elif absence_sha256 is not None:
+        raise ValueError("action_effect_absence_not_allowed")
+
+    if (
+        source_receipt_kind == "controller_decision"
+        and source_sha256 != payload["controller_decision_sha256"]
+    ):
+        raise ValueError("action_effect_controller_source_mismatch")
+
+
+@dataclass(frozen=True, slots=True, weakref_slot=True, init=False)
+class ActionEffectReceipt:
+    """Closed structural action-effect value; never execution authority."""
+
+    stage: str
+    execution_sha256: str
+    step_index: int
+    controller_decision_sha256: str
+    action_kind: str
+    action_sha256: str
+    obligation_key: str | None
+    target_evidence_id: str | None
+    before_state_sha256: str
+    source_kind: str
+    source_receipt_kind: str
+    source_receipt_sha256: str
+    outcome: str
+    ordered_evidence_ids: tuple[str, ...]
+    parent_context_receipt_sha256s: tuple[str, ...]
+    bridge_context_receipt_sha256s: tuple[str, ...]
+    absence_confirmation_sha256: str | None
+    call_performed: bool
+    effect_sha256: str
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        raise TypeError("action_effect_receipt_factory_required")
+
+    def __copy__(self) -> object:
+        raise TypeError("action_effect_receipt_not_serializable")
+
+    def __deepcopy__(self, memo: object) -> object:
+        raise TypeError("action_effect_receipt_not_serializable")
+
+    def __reduce__(self) -> object:
+        raise TypeError("action_effect_receipt_not_serializable")
+
+    def __reduce_ex__(self, protocol: int) -> object:
+        raise TypeError("action_effect_receipt_not_serializable")
+
+    @classmethod
+    def _create(
+        cls,
+        *,
+        payload: dict[str, Any],
+        _token: object,
+    ) -> ActionEffectReceipt:
+        if cls is not ActionEffectReceipt or _token is not _ACTION_EFFECT_RECEIPT_TOKEN:
+            raise ValueError("action_effect_receipt_factory_required")
+        closed = _closed_dict(
+            payload,
+            _ACTION_EFFECT_PAYLOAD_FIELDS,
+            "action_effect_receipt_fields",
+        )
+        _validate_action_effect_receipt_payload(closed)
+        result = object.__new__(cls)
+        for field in _ACTION_EFFECT_PAYLOAD_FIELDS:
+            object.__setattr__(result, field, closed[field])
+        serialized = result._payload_dict()
+        object.__setattr__(result, "effect_sha256", _canonical_sha256(serialized))
+        validate_action_effect_receipt(receipt=result)
+        return result
+
+    def _payload_dict(self) -> dict[str, Any]:
+        return {
+            "schema_version": _SCHEMA_VERSION,
+            "stage": self.stage,
+            "execution_sha256": self.execution_sha256,
+            "step_index": self.step_index,
+            "controller_decision_sha256": self.controller_decision_sha256,
+            "action_kind": self.action_kind,
+            "action_sha256": self.action_sha256,
+            "obligation_key": self.obligation_key,
+            "target_evidence_id": self.target_evidence_id,
+            "before_state_sha256": self.before_state_sha256,
+            "source_kind": self.source_kind,
+            "source_receipt_kind": self.source_receipt_kind,
+            "source_receipt_sha256": self.source_receipt_sha256,
+            "outcome": self.outcome,
+            "ordered_evidence_ids": list(self.ordered_evidence_ids),
+            "parent_context_receipt_sha256s": list(
+                self.parent_context_receipt_sha256s
+            ),
+            "bridge_context_receipt_sha256s": list(
+                self.bridge_context_receipt_sha256s
+            ),
+            "absence_confirmation_sha256": self.absence_confirmation_sha256,
+            "call_performed": self.call_performed,
+        }
+
+    def to_dict(self) -> dict[str, Any]:
+        validate_action_effect_receipt(receipt=self)
+        return {**self._payload_dict(), "effect_sha256": self.effect_sha256}
+
+
+def validate_action_effect_receipt(*, receipt: ActionEffectReceipt) -> None:
+    """Validate structure only; this grants no execution authority."""
+
+    if type(receipt) is not ActionEffectReceipt:
+        raise TypeError("invalid_action_effect_receipt")
+    payload = {
+        field: getattr(receipt, field)
+        for field in _ACTION_EFFECT_PAYLOAD_FIELDS
+    }
+    _validate_action_effect_receipt_payload(payload)
+    _effect_require_hash(receipt.effect_sha256, "invalid_action_effect_sha256")
+    expected = _canonical_sha256(receipt._payload_dict())
+    if receipt.effect_sha256 != expected:
+        raise ValueError("action_effect_sha256_mismatch")
 
 
 @dataclass(frozen=True, slots=True, init=False)
@@ -595,4 +1023,8 @@ def _normalize_reranker_result(
     )
 
 
-__all__ = ("SemanticValueSupport",)
+__all__ = (
+    "ActionEffectReceipt",
+    "SemanticValueSupport",
+    "validate_action_effect_receipt",
+)

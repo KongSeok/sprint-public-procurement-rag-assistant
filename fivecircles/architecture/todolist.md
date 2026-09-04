@@ -205,8 +205,15 @@ runtime은 local profile 기본·LLM provider 교체형으로 유지하며 새 �
           unresolved/metadata predicate/partial·mixed lineage·단순 top-k empty의 no-mint와 회귀를 통과했다.
           cache-hit 재검증, closure-private authority, root-lifetime follow-up exact-once와 production/synthetic
           runtime kind 일치를 수리했으며 focused67·관련192·전체1267·safety858·독립 APPROVE·Playwright PASS다.
-      - [ ] **EH2.6.c3.4** closed `ActionEffectReceipt` DTO/validator를 추가하되 public mint는 exact d2
+      - [x] **EH2.6.c3.4** closed `ActionEffectReceipt` DTO/validator를 추가하되 public mint는 exact d2
         `ControllerDecisionReceipt` permit 전까지 fail-closed한다.
+        - [x] **EH2.6.c3.4.a** exact field/action-target/source-receipt/outcome/call matrix와 순수 validator의
+          비권한 경계를 계약하고 public mint 부재를 TDD RED로 고정한다.
+        - [x] **EH2.6.c3.4.b** `action_effects.py`에 module-token-only DTO와 closed structural validator를
+          구현하고 package root에는 두 symbol만 공개한다.
+        - [x] **EH2.6.c3.4.c** constructor/from-dict/public issuer 차단, serialization·malformed matrix,
+          state/terminal/citation 비승격과 provider-zero focused gate를 통과했다. closed matrix는 source kind까지
+          전수 교차검증했고 focused11·관련114·전체1278·safety861·독립 APPROVE를 확보했다.
       - [ ] **EH2.6.c3.5** source/store/config/runtime clone·drift·mixed authority, replay/serialization,
         projection 비승격·비누출 focused gate와 관련·전체·safety 회귀를 통과한다.
     - [ ] **EH2.6.c4** `[BLOCKED_BY_EH2.6.d2]` exact controller decision-bound `ActionEffectReceipt` mint,

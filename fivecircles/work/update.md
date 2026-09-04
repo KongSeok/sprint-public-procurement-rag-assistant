@@ -765,3 +765,27 @@ This file summarizes recent updates so other agents can continue without re‑di
 
 ### Next
 - EH2.6.c3.4 closed ActionEffectReceipt DTO/validator를 새 원샷딜 폼으로 시작한다.
+## Addendum (2026-09-05) - EH2.6.c3.3 publication and relay
+### Git
+- 7dd5ad4를 origin/feat/total-integration에 선택 push했다; resources/private/gold/VLM 및 무관 dirty는 제외했다.
+
+### Relay
+- CONTINUE_WITH_NEXT_FORM으로 EH2.6.c3.4 closed ActionEffectReceipt DTO/validator form을 열고 contract/TDD 착수했다.
+
+### Boundary
+- public effect mint는 exact d2 ControllerDecisionReceipt permit 전까지 fail-closed하며 API/model/Langfuse 호출은 0이다.
+
+## Addendum (2026-09-05) - EH2.6.c3.4 closed action effect value
+
+### Backend
+
+- 19-field `ActionEffectReceipt`와 pure validator를 추가하고 public mint/issuer/authority는 닫았다.
+- source kind·context·absence·serialization drift의 독립 리뷰 P1/P2를 수리했다.
+
+### Tests
+
+- focused11·related114·full1278·safety861·Playwright PASS; 독립 APPROVE, 외부 호출 0.
+
+### Next
+
+- EH2.6.c3.5 live-authority/replay/nonpromotion adversarial gate로 즉시 릴레이한다.

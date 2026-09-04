@@ -84,7 +84,11 @@ from .actions import (
     decide_harness_action,
     replay_action_decision,
 )
-from .action_effects import SemanticValueSupport
+from .action_effects import (
+    ActionEffectReceipt,
+    SemanticValueSupport,
+    validate_action_effect_receipt,
+)
 from .execution_contracts import (
     AbsenceConfirmationReceipt,
     BridgeContextReceipt,
@@ -130,6 +134,7 @@ from .execution_contracts import (
 
 __all__ = (
     "AbsenceConfirmationReceipt",
+    "ActionEffectReceipt",
     "BudgetRule",
     "PlanConstraint",
     "PlanEntity",
@@ -236,4 +241,5 @@ __all__ = (
     "validate_semantic_verification_obligation",
     "validate_semantic_verification_receipt",
     "validate_absence_confirmation_receipt",
+    "validate_action_effect_receipt",
 )
