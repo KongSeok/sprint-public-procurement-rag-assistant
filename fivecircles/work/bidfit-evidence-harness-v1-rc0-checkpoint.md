@@ -1,6 +1,6 @@
 # EH-RC0 재개 체크포인트
 
-갱신: 2026-09-04 · 총통합 브랜치 명명 및 EH2.2 완료. 토큰 절약을 위해 `bidfit-evidence-harness-v1-rc0-active-context.md`부터 읽기.
+갱신: 2026-09-04 · EH2.5 완료, 다음 READY는 EH2.6 계약 분할. 토큰 절약을 위해 이 문서의 한눈에 보는 상태와 계약 §16.9부터 읽기.
 
 ## 중단/애매함 발생 시
 
@@ -21,9 +21,9 @@
   후속 전체 범위의 선택 commit·검증이 끝난 뒤 `feat/local-qwen-mini131-eval`에 병합한다.
   새 브랜치는 만들지 않는다.
 - 완료: EH-A.1~3 감사·기준선·계약/flow 초안. 805 tests PASS, 실패/skip 0 (변경 전).
-- 현재 IN_PROGRESS: **Phase 2**. EH2.1~2 PASS; 다음 READY는 EH2.3 actual-citation follow-up.
+- 현재 IN_PROGRESS: **Phase 2**. EH2.1~2.5 PASS; 다음 READY는 EH2.6 bounded controller 계약 분할.
 - blocker: 없음. 실제 생성/API 호출은 계속 0이며 Phase 2는 provider-free 합성 테스트로 진행한다.
-- 코드 상태: P0/P1은 origin push 완료. QueryPlan/registry/planner까지 구현됐고 전체 922 PASS; 원샷 전체는 미완료.
+- 코드 상태: EH2.5.d까지 origin push 완료. state/action 최종 P1 수리와 logall 체크포인트는 선택 commit 대기; 전체 1,020 PASS. 원샷 전체는 미완료.
 
 ## 완료된 첫 leaf 참고: EH0.1.a (현재 작업 아님)
 
@@ -67,6 +67,9 @@
 | EH1.G | COMPLETED | focused35/full887/skip0; safety780/browser PASS; review P1 3건 수리 후 exact closure PASS |
 | EH2.1 | COMPLETED | QueryPlan/budget/registry; focused27/full898/skip0. registry-bound load+slotted predicate 수리, 독립 재리뷰 PASS |
 | EH2.2 | COMPLETED | deterministic planner; focused51/full922/skip0. catalog/alias/JSON/Korean routing adversarial repair 후 독립 감사 PASS |
+| EH2.3 | COMPLETED | actual-citation follow-up; focused61/full943. exact citation scope, verified progress, bounded fallback, 독립 P1 수리 PASS |
+| EH2.4 | COMPLETED | compare doc×field coverage; focused107/full987. provisional missing, typed receipt, complete matrix, 독립 P1 수리 PASS |
+| EH2.5 | COMPLETED | sealed Belief/Progress/HarnessState + typed action/decision; focused55/full1020. store/nested identity P1 수리 후 독립 재검토 PASS |
 
 ## 안전/컨텍스트 규칙
 

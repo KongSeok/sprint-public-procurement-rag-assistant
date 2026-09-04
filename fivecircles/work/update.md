@@ -610,3 +610,9 @@ This file summarizes recent updates so other agents can continue without re‑di
 ### Next
 - EH2.1 QueryPlan/budget/version registry부터 E1 state loop를 retrieval 위에 연결한다.
 - refs: bidfit-evidence-harness-v1-rc0-implementation-report.md, ../architecture/specs/bidfit-evidence-harness-v1-rc0-flow-validation.md.
+## Addendum (2026-09-04) - EH2.5 sealed state and typed action
+### Backend
+- Compare/follow-up state projection, typed actions, deterministic decision chain을 구현했다. (refs: ../architecture/specs/bidfit-evidence-harness-v1-rc0.md)
+
+### Tests
+- focused55/full1020·독립 재검토 PASS. API·Langfuse 호출 0. (refs: ../test/errorlogs/backend/2026-09-04-eh25-bound-compare-nested-authority.md)

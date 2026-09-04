@@ -179,3 +179,14 @@ Preventive rule:
 - child dense와 page control을 ID/granularity로 분리한다. empty scope는 encoder/tokenizer/lane 호출 전에 종료한다.
 - 실제 lane smoke의 후보 수는 품질 점수가 아니다. 같은 gold/config로 retrieval 평가 전에는 성능 향상을 주장하지 않는다.
 - ref: errorlogs/backend/2026-09-03-eh-rc0-evidence.md.
+### EH2.5 aggregate authority boundary (2026-09-04)
+Cause:
+- frozen top-level identity와 저장 hash만으로 live nested payload와 equal-payload 객체 교체를 막지 못했다.
+
+Preventive rule:
+- aggregate DTO는 중첩 identity를 먼저 검사하고 live store canonical payload를 별도 재해시한다.
+- 직렬화/hash 전 bomb test와 equal-looking replacement 회귀를 함께 유지한다.
+
+Reference:
+- `errorlogs/backend/2026-09-04-eh25-store-payload-authority.md`
+- `errorlogs/backend/2026-09-04-eh25-bound-compare-nested-authority.md`

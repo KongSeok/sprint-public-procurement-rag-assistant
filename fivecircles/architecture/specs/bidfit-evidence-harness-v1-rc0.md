@@ -467,7 +467,7 @@ parent/child 혼합, 골든 값 의존을 검출한다. 정확한 새 파일/메
 - 결과는 `PlanningResult(plan, trace)`다. trace에는 request fingerprint, registry/catalog SHA, matched rule,
   scope state/origin/doc IDs, predicate status를 기록하고 질문/정답 본문은 복제하지 않는다.
 - EH2.2는 follow-up cited ID 상속/승인된 fallback 실행(EH2.3), compare slot 생성(EH2.4), state/action
-  transition(EH2.5), retrieval controller(EH2.6)를 구현했다고 주장하지 않는다.
+  projection·decision(EH2.5), state transition·retrieval controller(EH2.6)를 구현했다고 주장하지 않는다.
 
 ### 16.7 Actual-citation follow-up — EH2.3
 

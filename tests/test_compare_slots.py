@@ -1046,7 +1046,7 @@ class CompareSlotTests(unittest.TestCase):
             _result(self.store, (self.evidence[("doc-a", "budget")],))
         )
         with self.assertRaisesRegex(
-            ValueError, "bound_compare_runtime_authority_drift"
+            ValueError, "bound_compare_nested_identity_drift"
         ):
             execute_compare_slot_search(
                 bound=mutated_bound,
@@ -1055,6 +1055,62 @@ class CompareSlotTests(unittest.TestCase):
                 retriever=retriever,
             )
         self.assertEqual(retriever.calls, [])
+
+    def test_bound_compare_rejects_equal_payload_nested_identity_replacement(self):
+        mutations = (
+            (
+                "planning",
+                lambda bound: object.__setattr__(
+                    bound,
+                    "planning",
+                    PlanningResult(bound.planning.plan, bound.planning.trace),
+                ),
+                "bound_compare_nested_identity_drift",
+            ),
+            (
+                "effective_plan",
+                lambda bound: object.__setattr__(bound, "plan", deepcopy(bound.plan)),
+                "bound_compare_nested_identity_drift",
+            ),
+            (
+                "binding_trace",
+                lambda bound: object.__setattr__(
+                    bound, "trace", deepcopy(bound.trace)
+                ),
+                "bound_compare_nested_identity_drift",
+            ),
+            (
+                "planning_plan",
+                lambda bound: object.__setattr__(
+                    bound.planning, "plan", deepcopy(bound.planning.plan)
+                ),
+                "bound_compare_planning_identity_drift",
+            ),
+            (
+                "planning_trace",
+                lambda bound: object.__setattr__(
+                    bound.planning, "trace", deepcopy(bound.planning.trace)
+                ),
+                "bound_compare_planning_identity_drift",
+            ),
+        )
+        for name, mutate, error in mutations:
+            with self.subTest(name=name):
+                bound = self.prepare(self.request)
+                before = deepcopy(bound.to_dict())
+                mutate(bound)
+                self.assertEqual(bound.to_dict(), before)
+                retriever = _FakeRetriever(
+                    _result(self.store, (self.evidence[("doc-a", "budget")],))
+                )
+                with self.assertRaisesRegex(ValueError, error):
+                    execute_compare_slot_search(
+                        bound=bound,
+                        store=self.store,
+                        slot_key="doc-a.budget",
+                        retriever=retriever,
+                    )
+                self.assertEqual(retriever.calls, [])
 
     def test_closed_authority_dto_round_trips_and_rejects_shape_drift(self):
         _values, results, verified = self.full_inputs()

@@ -87,12 +87,12 @@ runtime은 local profile 기본·LLM provider 교체형으로 유지하며 새 �
   search/field-relevance receipt, provisional missing과 문서 coverage를 봉인했고 typed receipt 없는
   verified/contradicted·조기 정상 종료를 차단했다. production retriever와 factory-issued binding/coverage
   identity를 재검증한다. focused107·전체987 PASS, 독립 리뷰 P1 수리 후 최종 PASS.
-- [ ] **EH2.5** Belief/Progress/typed Action을 구현한다. 완료: 상태 직렬화·허용 action 산출·decision-chain 회귀. 실제 state transition/action-effect receipt는 EH2.6에서 구현한다.
+- [x] **EH2.5** Belief/Progress/typed Action을 구현했다. 상태 직렬화·허용 action 산출·decision-chain 회귀를 봉인했다. 실제 state transition/action-effect receipt는 EH2.6에서 구현한다.
   - [x] **EH2.5.a** 현재 EH2.3/EH2.4와 prototype을 read-only 감사하고 pure state/action 계약을 고정한다.
   - [x] **EH2.5.b** follow-up bound/attempt/progress/outcome을 factory identity·전체 hash·exact bound/store chain으로 봉인했다. focused34·전체1000 PASS, side-effect-first P1 수정 후 독립 리뷰 PASS.
   - [x] **EH2.5.c** compare/follow-up `Belief`·`Progress`·`HarnessState` projection/replay를 구현했다. factory/exact identity, live store canonical payload, source 재구성 replay를 봉인했고 focused9·전체1009 PASS(독립 P1 수정 후 재검토 PASS).
   - [x] **EH2.5.d** closed typed action·deterministic allowed order·decision hash chain을 구현했다. mixed contradiction 전역 abstain gate, sealed-store parent/bridge eligibility, strict replay를 포함해 focused10·state 통합19·전체1019 PASS, 독립 리뷰 PASS.
-  - [ ] **EH2.5.e** adversarial focused/full 회귀와 독립 리뷰를 통과한 뒤 부모를 완료 처리한다.
+  - [x] **EH2.5.e** adversarial focused55·전체1020 회귀와 독립 리뷰를 통과했다. live store 및 `BoundCompare` nested identity P1을 수리·재검토하고 부모를 완료 처리했다.
 - [ ] **EH2.6** E0/E1 bounded controller를 연결한다. 완료: round/action/deadline/no-progress 종료, 필수 slot 확인 후 stop/partial abstain.
 - [ ] **EH2.G** Phase 2 gate: 동일 합성 corpus의 단일/비교/후속 질의 end-to-end+gold-lineage 재검증+전체 회귀.
 

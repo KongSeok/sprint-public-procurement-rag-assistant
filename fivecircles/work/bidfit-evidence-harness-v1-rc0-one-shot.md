@@ -186,3 +186,12 @@
 | 8 Closeout | actual app wiring과 synthetic test를 분리 보고 |
 | 9 Relay | `CONTINUE_WITH_NEXT_FORM`; EH2.3 선택 |
 | 10 Ledger | 총통합 브랜치 `feat/total-integration`. EH2.1~2, focused51/full922 및 독립 adversarial review PASS |
+
+### Relay 3 checkpoint — EH2.3~EH2.5
+
+- EH2.3 actual-citation follow-up, EH2.4 compare slot coverage, EH2.5 sealed state/action decision을 순차 구현했다.
+- EH2.5는 실행 loop가 아니다. reducer/transition/action-effect/round·deadline·no-progress는 EH2.6에 남겼다.
+- 최종 검증: EH2.5 관련 focused 55/55, 전체 1,020/1,020, 독립 P1 수리 후 재검토 PASS.
+- 실제 API·generator·Langfuse trace는 0회다. 성능 향상이나 실제 end-to-end 완료를 주장하지 않는다.
+- publication: EH2.5.d까지 `85b6000`으로 origin push. EH2.5.e 수리·로그는 다음 선택 체크포인트에서 푸시한다.
+- 다음 READY: EH2.6을 계약/audit→effect receipt→reducer→bounded controller→gate로 재귀 분할한다.

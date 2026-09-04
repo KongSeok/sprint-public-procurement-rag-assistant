@@ -22,7 +22,18 @@ _HEX64 = re.compile(r"^[0-9a-f]{64}$")
 _FIELD = re.compile(r"^[A-Za-z][A-Za-z0-9_]*$")
 _COMPARE_REGISTRY_TOKEN = object()
 _BOUND_COMPARE_TOKEN = object()
-_BOUND_COMPARE_AUTHORITIES: dict[int, tuple[ReferenceType[BoundCompare], str]] = {}
+_BOUND_COMPARE_AUTHORITIES: dict[
+    int,
+    tuple[
+        ReferenceType[BoundCompare],
+        str,
+        PlanningResult,
+        QueryPlan,
+        CompareBindingTrace,
+        QueryPlan,
+        PlanningTrace,
+    ],
+] = {}
 _COMPARE_REASONS = frozenset(
     {
         "ready",
@@ -157,6 +168,11 @@ def _register_bound_compare_authority(bound: BoundCompare) -> None:
         _canonical_sha256(
             _bound_compare_payload(bound.planning, bound.plan, bound.trace)
         ),
+        bound.planning,
+        bound.plan,
+        bound.trace,
+        bound.planning.plan,
+        bound.planning.trace,
     )
 
 
@@ -168,9 +184,34 @@ def _require_bound_compare_authority(bound: BoundCompare) -> None:
     current = _BOUND_COMPARE_AUTHORITIES.get(id(bound))
     if current is None or current[0]() is not bound:
         raise ValueError("bound_compare_runtime_authority_required")
-    expected = _canonical_sha256(
-        _bound_compare_payload(bound.planning, bound.plan, bound.trace)
-    )
+    if (
+        current[2] is not bound.planning
+        or current[3] is not bound.plan
+        or current[4] is not bound.trace
+    ):
+        raise ValueError("bound_compare_nested_identity_drift")
+    if (
+        type(bound.planning) is not PlanningResult
+        or type(bound.plan) is not QueryPlan
+        or type(bound.trace) is not CompareBindingTrace
+    ):
+        raise ValueError("bound_compare_nested_type_drift")
+    if (
+        current[5] is not bound.planning.plan
+        or current[6] is not bound.planning.trace
+    ):
+        raise ValueError("bound_compare_planning_identity_drift")
+    if (
+        type(bound.planning.plan) is not QueryPlan
+        or type(bound.planning.trace) is not PlanningTrace
+    ):
+        raise ValueError("bound_compare_planning_type_drift")
+    try:
+        expected = _canonical_sha256(
+            _bound_compare_payload(bound.planning, bound.plan, bound.trace)
+        )
+    except (AttributeError, TypeError, ValueError) as exc:
+        raise ValueError("bound_compare_runtime_authority_drift") from exc
     if current[1] != expected:
         raise ValueError("bound_compare_runtime_authority_drift")
 
