@@ -6,7 +6,7 @@
 
 ## 2. Background / Current Problem
 
-시작 시점(`feature/visual-retrieval`, `7ad229f`)에는 다음이 확인됐다.
+시작 시점(`feat/vlm-visual-retrieval`, `7ad229f`)에는 다음이 확인됐다.
 
 ### A. 유지할 구현
 
@@ -486,3 +486,57 @@ parent/child 혼합, 골든 값 의존을 검출한다. 정확한 새 파일/메
 - 결과는 primary와 optional fallback `SearchResult`를 별도로 보존한다. trace에는 request/plan/store/policy
   hash, scope, candidate 수, 충분성, 승인·실행 여부와 bounded reason code만 기록하며 질문·정답 본문을
   복제하지 않는다. 검색 결과의 bundle, child granularity, evidence/doc/scope binding을 다시 검증한다.
+
+### 16.8 Compare doc×field slots — EH2.4
+
+- compare는 base `PlanningResult`를 바로 실행하지 않는다. `RuntimeRequest`와 동일
+  `DeterministicPlanner`로 계획을 재생성해 fingerprint·scope·catalog provenance를 다시 대조한 뒤,
+  별도의 versioned compare-field registry SHA와 전체 canonical planning result/trace SHA,
+  planner execution kind, catalog source kind/source SHA, base/effective plan SHA를 `BoundCompare`에
+  봉인한다. 검색·coverage entrypoint는 factory가 발급한 변경되지 않은 동일 객체 identity까지
+  요구하므로 같은 모양의 저수준 재구성이나 발급 뒤 중첩 planning 교체는 실행 권한이 아니다.
+  evaluator expected/qrels/required document는 인자나 field registry에 들어올 수 없다.
+- 비교 대상은 사용자가 명시한 문서 scope 2건 이상 또는 질의에서 각각 단일 문서로
+  해소된 business entity 2개 이상일 때만 승인한다. unfiltered·empty·1건·다중 문서 agency
+  alias는 임의로 첫 N건을 고르지 않고 bounded unresolved reason으로 닫는다. 명시 scope 밖의
+  business target을 질의가 추가로 지목한 경우에도 일부 대상만 남기지 않고 unresolved로 닫는다.
+- 비교 축은 NFC/boundary-aware한 일반 domain signal registry로만 선택한다. 명시된 축이
+  없으면 예산·기간·유지보수를 임의로 삽입하지 않고 `compare_fields_unresolved`로 남긴다.
+  해소된 사업명/alias 구간은 축 선택 전에 제거해 사업명 안의 `유지보수` 같은 단어를 축으로
+  오인하지 않는다. v2 선택기는 `만` 조사를 인식하고 `비교하지 말고`·`제외`·`빼고` 뒤의 축을
+  positive axis로 선택하지 않는다. 인식된 축과 미지원 축/미해소 target이 함께 있으면 조용히
+  일부만 남기지 않고 `compare_fields_unsupported`/`compare_targets_unresolved`로 닫는다.
+  metadata predicate는 EH3.1의 실제 filtered-scope receipt가 없으면 지원 문법도
+  실행 완료로 간주하지 않고 fail-closed한다.
+  유효한 대상·축이면 `resolved_doc_ids × selected_fields`의 전체 Cartesian product를 doc-major
+  순서로 `required_slots`에 생성하며 부분 matrix를 허용하지 않는다.
+- compare slot은 unsearched/candidate/verified/missing/contradicted 상태와 candidate/verified evidence,
+  bounded missing reason, contradiction state를 따로 보존한다. candidate는 사용자 비교·부정 문장을
+  재사용하지 않은 registry-owned positive field 한국어 검색어,
+  단일 document scope, 전체 slot matrix에 균등 분할한 query-level plan budget, slot ordinal,
+  action/profile과 store/binding/plan hash를 묶은 `CompareSearchReceipt`에서만 오고, provider raw trace는
+  닫힌 projection과 source trace hash로 교체한다. production 검색은 query 전달 전에 loader가 발급한
+  KURE/Kiwi child attestation과 `from_loaded_artifacts` factory가 발급한 hybrid runtime binding,
+  store/row/artifact identity를 모두 재검증한 RRF retriever만 허용한다. raw constructor와 class 이름,
+  hash 모양만으로는 승인하지 않는다. 실제 query inference는 노출된 mutable adapter가 아니라 pinned
+  dependency identity를 확인한 private runtime을 사용한다. artifact hash는 일관성을 증명하며 외부
+  작성자를 인증하지 않으므로 private artifact directory는 배포 신뢰 경계로 유지한다. 동일 slot의
+  재시도·누적 소비 ledger는 EH2.6 책임이며 EH2.4 receipt만으로 전체 실행 횟수를 주장하지 않는다.
+  EH2.4의 `CompareVerificationReceipt`는 field rule 신호가 있는
+  candidate를 `field_relevance_only`로만 기록하며 verified evidence를 만들지 않는다. 실제 claim/value와
+  support를 봉인하는 typed semantic receipt가 추가되기 전에는 해당 슬롯도 candidate 상태이고 정상 stop은
+  불가능하다. 빈 top-k·후보 수·예산 소진만으로 missing을 확정하지 않는다.
+- EH2.4의 missing은 `no_candidate_yet`/`candidates_unverified`를 보존하는 비종료 관찰이다.
+  bounded action을 모두 수행했음을 봉인한 absence receipt는 EH2.6에서만 만들며,
+  그전에는 missing reason이 있어도 coverage·정상 stop에 산입하지 않는다.
+- coverage는 slot과 document 두 축으로 계산한다. 모든 required slot이 verified 또는
+  verifier가 확정한 missing이고, 모든 required document의 필드가 완결됐을 때만 정상 stop을
+  허용한다. confirmed contradiction은 accounted로는 보이되 정상 stop을 막고 abstain/conflict 경로를
+  요구한다. EH2.4는 임의 evidence 두 건만으로 contradiction을 확정하지 않으며 typed value receipt가
+  추가될 때까지 그 승격을 차단한다. required slot 0건을 vacuous completion으로 판정하지 않는다.
+  `CompareCoverage`는 factory가 발급한 동일 객체 identity와 전체 tree hash를 함께 요구하고, 각 slot과
+  document를 재검증한 뒤 count·ratio·covered/accounted document·answerability·stop flag를 원자료에서
+  다시 계산한다. 상단 집계값이나 중첩 slot을 바꾸고 공개 hash만 다시 계산한 객체는 권한이 아니다.
+- persisted receipt는 provider를 다시 호출하기 전에 slot/request/binding/plan/store/query/budget/scope/
+  action/profile/result projection 및 내부·외부 hash를 pure-validation한다. 재생 결과 비교는 Python의
+  느슨한 scalar equality가 아니라 canonical JSON으로 수행해 `4`/`4.0`, `false`/`0`도 구분한다.

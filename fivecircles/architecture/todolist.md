@@ -28,7 +28,7 @@
 
 ### EH-A — 시작 기준선 (완료)
 
-- [x] **EH-A.1** 현재 checkout/dirty 소유권/다른 branch와 경계를 감사한다. 근거: `feature/visual-retrieval`, `7ad229f`, 시작 tracked 수정 39개 보존.
+- [x] **EH-A.1** 현재 checkout/dirty 소유권/다른 branch와 경계를 감사한다. 근거: `feat/vlm-visual-retrieval`, `7ad229f`, 시작 tracked 수정 39개 보존.
 - [x] **EH-A.2** 수정 전 회귀를 확보한다. 근거: `PYTHONPATH=src .venv/bin/python -m unittest discover -q -s tests -t .` → 805 tests, 실패/skip 0.
 - [x] **EH-A.3** target/current flow와 구현 계약을 만든다. PNG 생성 완료; 브라우저 검증은 EH-D.3에서 별도 수행한다.
 
@@ -83,7 +83,10 @@ runtime은 local profile 기본·LLM provider 교체형으로 유지하며 새 �
   순수 citation scope에서 global fallback 1회를 허용하며 primary/fallback을 분리했다. 후보 수 기반 충분성,
   raw bool, evaluator/provider trace 본문 유입을 차단했다. binding/retrieval 모듈을 분리했고 focused61·전체943
   PASS, 독립 리뷰 P1 3종(scope 위조·trace body·verifier ID)을 수리한 뒤 최종 PASS.
-- [ ] **EH2.4** compare의 doc×field slot을 구현한다. 완료: candidate/verified/missing/contradicted 및 문서 coverage, 누락 slot을 감춘 조기 종료 없음.
+- [x] **EH2.4** compare의 doc×field slot을 구현했다. 전체 doc-major slot matrix, singleton-scoped
+  search/field-relevance receipt, provisional missing과 문서 coverage를 봉인했고 typed receipt 없는
+  verified/contradicted·조기 정상 종료를 차단했다. production retriever와 factory-issued binding/coverage
+  identity를 재검증한다. focused107·전체987 PASS, 독립 리뷰 P1 수리 후 최종 PASS.
 - [ ] **EH2.5** Belief/Progress/typed Action을 구현한다. 완료: 상태 직렬화·허용 transition·action trace 회귀.
 - [ ] **EH2.6** E0/E1 bounded controller를 연결한다. 완료: round/action/deadline/no-progress 종료, 필수 slot 확인 후 stop/partial abstain.
 - [ ] **EH2.G** Phase 2 gate: 동일 합성 corpus의 단일/비교/후속 질의 end-to-end+gold-lineage 재검증+전체 회귀.

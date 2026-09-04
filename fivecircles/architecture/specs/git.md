@@ -39,3 +39,11 @@ When Git is initialized, the safety script scans tracked files. Before initializ
 - Do not commit a failing test state as a completed batch.
 - Do not push unless the user asks or the active integration workflow explicitly requires it.
 - Generated reports require a separate redaction review before tracking.
+
+## Branch Naming
+
+- Feature and integration work uses the single `feat/<name>` prefix.
+- Do not create new `feature/*` or `integration/*` branches.
+- The visual snapshot is `feat/vlm-visual-retrieval`, the active assembly branch is
+  `feat/total-integration`, and the approved downstream merge target is
+  `feat/local-qwen-mini131-eval`.

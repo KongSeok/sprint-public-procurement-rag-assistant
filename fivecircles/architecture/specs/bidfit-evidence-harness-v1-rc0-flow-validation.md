@@ -51,7 +51,7 @@
 
 ## Validation
 
-- 시작 audit: `feature/visual-retrieval`, HEAD `7ad229f`, dirty 변경 보존
+- 시작 audit: `feat/vlm-visual-retrieval`, HEAD `7ad229f`, dirty 변경 보존
 - target/current PNG 및 HTML은 구현 전 렌더하고, 구현·테스트 후 current와 표를 다시 갱신한다.
 - 시작 판정: `GAP`; 최우선 relay unit은 P0 integrity다.
 

@@ -36,6 +36,24 @@ from .followup_retrieval import (
     finalize_followup_retrieval,
     retrieve_followup_primary,
 )
+from .compare_slots import (
+    BoundCompare,
+    CompareBindingTrace,
+    CompareFieldRegistry,
+    CompareFieldRule,
+    default_compare_field_registry,
+    prepare_compare_slots,
+)
+from .compare_coverage import (
+    CompareCoverage,
+    CompareDocumentCoverage,
+    CompareSearchReceipt,
+    CompareSlotState,
+    CompareVerificationReceipt,
+    build_compare_coverage,
+    execute_compare_slot_search,
+    verify_compare_slot_search,
+)
 
 __all__ = (
     "BudgetRule",
@@ -66,4 +84,18 @@ __all__ = (
     "bind_followup",
     "finalize_followup_retrieval",
     "retrieve_followup_primary",
+    "BoundCompare",
+    "CompareBindingTrace",
+    "CompareCoverage",
+    "CompareDocumentCoverage",
+    "CompareFieldRegistry",
+    "CompareFieldRule",
+    "CompareSearchReceipt",
+    "CompareSlotState",
+    "CompareVerificationReceipt",
+    "build_compare_coverage",
+    "default_compare_field_registry",
+    "execute_compare_slot_search",
+    "prepare_compare_slots",
+    "verify_compare_slot_search",
 )
