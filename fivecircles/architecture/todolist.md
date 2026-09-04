@@ -166,8 +166,15 @@ runtime은 local profile 기본·LLM provider 교체형으로 유지하며 새 �
     - [x] **EH2.6.c1** EH2.3 verified 주장을 candidate로 낮추고 follow-up 실제 slot에 doc-matching outcome
       candidate를 투영하며 추가 검색 0회를 고정했다. metadata predicate는 EH3.1 receipt 전까지 fail-closed,
       public extra/gold 입력과 foreign outcome/store clone을 차단했다. focused7·관련60 PASS, 독립 리뷰 3건 APPROVE.
-    - [ ] **EH2.6.c2** exact runtime verifier 호출로만 발급되는 supplied-evidence-bound semantic
-      support/value/contradiction receipt를 구현한다.
+    - [x] **EH2.6.c2** exact runtime verifier 호출로만 발급되는 supplied-evidence-bound semantic
+      support/value/contradiction receipt를 구현했다. source-derived target, ID-less request, typed canonical
+      result, unavailable zero-call과 local at-most-once를 봉인했고 focused26·관련118·전체1212·safety846 PASS.
+      - [x] **EH2.6.c2.1** fact/compare/follow-up owner가 query와 supplied evidence를 유도하는 factory-only
+        `SemanticVerificationObligation`, 닫힌 verifier request/result, typed canonical value 계약을 봉인한다.
+      - [x] **EH2.6.c2.2** exact pinned verifier를 local at-most-once로 호출하고 unavailable zero-call 또는
+        supplied-evidence-bound `SemanticVerificationReceipt`만 발급한다.
+      - [x] **EH2.6.c2.3** clone/drift/mixed dependency, malformed output, contradiction independence,
+        concurrency/replay/비누출 focused gate와 관련·전체·safety 회귀를 통과한다.
     - [ ] **EH2.6.c3** expansion/bridge/rerank/verify `ActionEffectReceipt`와 빈 후보 zero-provider exhaustion을
       포함한 bounded absence receipt를 구현한다.
     - [ ] **EH2.6.c4** monotonic one-obligation reducer와 hash-chained transition/no-progress를 구현한다.

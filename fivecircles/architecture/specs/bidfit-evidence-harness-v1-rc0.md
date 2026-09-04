@@ -787,6 +787,42 @@ parent/child 혼합, 골든 값 의존을 검출한다. 정확한 새 파일/메
   subset이어야 한다. compare는 field, value type, canonical value와 value별 support가 추가로 필요하며,
   서로 다른 canonical value가 각각 typed support를 가질 때만 contradiction을 만든다. EH2.4의
   `field_relevance_only`, raw boolean 또는 caller ID map은 terminal semantic 권한이 아니다.
+- c2의 semantic target은 caller가 query·field·evidence ID를 조립하는 값 객체가 아니다. fact/compare는 exact
+  `RetrievalObligation`과 same-round dense/lexical/`FusionReceipt`에서, follow-up은 exact `BoundFollowup`과 finalized
+  outcome을 c1 projection으로 다시 검증한 뒤 실제 obligation key에서 factory가 유도한다. public factory는
+  source receipt, store, config, runtime을 모두 exact identity로 받되 query·candidate/bridge/context ID·disposition·
+  value·gold/qrels/evaluator 입력을 받지 않는다. c2 최초 구현에서 bridge/context 역할은 예약하되 비어 있고,
+  c3의 owner-issued context/rerank effect만 이 공급 집합을 넓힐 수 있다. 후보가 비면 verifier를 호출하지 않고
+  c3 bounded exhaustion 경로로 넘긴다.
+- factory-only `SemanticVerificationObligation`의 공개 payload는 source kind, obligation key, optional source-derived field,
+  source binding/receipt와 optional c1 state SHA, query SHA, store/config/runtime SHA, ordered candidate/bridge/context/
+  supplied ID와 stable anchor, obligation SHA만 담는다. raw query, evidence text/object, verifier object는 private
+  authority에만 둔다. supplied order는 candidate→bridge→context first-seen이며 승격 가능한 ID는 candidate+bridge뿐이다.
+  compare field는 key 문자열을 재해석하지 않고 exact bound projection ordinal에서 유도한다.
+- verifier adapter는 factory-only private request 한 개만 받는 exact declared class method `verify(self, request)`다.
+  request는 source kind, obligation key, optional target doc/field, raw query와 contiguous index가 붙은 ordered
+  `(role, Evidence)`를 보유하지만 serialize나 public 반환을 제공하지 않는다. raw result는 정확히
+  `schema_version`, `disposition`, `support_indexes`, `values` 키를 가진 dict이고 value도 정확히 `value_type`,
+  `canonical_value`, `support_indexes`만 가진다. disposition은 `supported|unsupported|contradicted`만 허용한다.
+  adapter request는 ID 없는 content projection만 받고 결과에도 ID를 되돌려줄 수 없으며 executor만 index를
+  owner-issued ID로 바꾼다. bare bool/ID map,
+  extra key, scalar·비유한 수·중복·범위 밖 index와 provider 본문은 거부한다. unavailable은 adapter 출력이 아니라
+  exact runtime capability에서만 zero-call로 유도한다.
+- typed value는 `text|krw_amount|kst_datetime|duration|boolean|number`로 닫고 canonical string만 저장한다. text는
+  NFC+trim+whitespace collapse, 금액은 정규 10진 정수 문자열, datetime은 ISO-8601 `+09:00`, duration은 ISO-8601,
+  boolean은 `true|false`, number는 finite canonical decimal이다. 기본 field type은 budget=`krw_amount`,
+  duration=`duration`, deadline=`kst_datetime`, joint_contract/subcontract=`boolean`, 나머지=`text`로 하나만 허용한다.
+  `$answer_support`처럼 field 없는 supported/contradicted는 values가 비고 support index만 가진다. field 있는 supported는
+  정확히 한 typed value와 nonempty support를 요구하고 verified ID는 그 support union과 같아야 한다. field 있는
+  contradicted는 같은 field-approved type의 서로 다른 canonical value 둘 이상이 pairwise-disjoint nonempty support를
+  가지며 contradicted ID가 그 union과 정확히 같을 때만 성립한다. unsupported는 ID/value가 모두 비어야 한다.
+- exact verifier protocol과 모든 source/store/config/runtime dependency를 claim·호출 전에 검증하며 ABI/identity
+  거부와 production unavailable은 provider 0회다. 이 preflight 거부는 실행 attempt로 소비하지 않는다. available
+  verifier는 exact class method를 한 번만 직접 호출하고, 반환 직후 runtime, source, store, prerequisite receipt를
+  parsing/mint보다 먼저 재검증한다. provider 예외, 호출 뒤 contract/malformed 결과와 post-call drift는
+  sanitized fixed error로 끝나고 local claim을 소비해 같은 live semantic obligation을 다시 호출할 수 없다. issuance와
+  실행 완료 history는 receipt GC와 독립적이고 동시 호출 winner는 하나뿐이다. c2 receipt는 상태를 직접 바꾸지 않으며
+  전체 action budget·deadline·terminal order는 d 단계, effect/absence 투영은 c3 책임이다.
 - `ActionEffectReceipt`는 execution/step/decision/action/before-state, sanitized outcome, typed source receipt,
   evidence projection, parent/bridge context, optional absence SHA를 봉인한다. outcome은 `applied`, `empty`,
   `unsupported`, `unavailable`, `deadline_discarded`, `provider_error`, `contract_error`, `terminal`로 닫는다. provider 예외
@@ -853,6 +889,7 @@ parent/child 혼합, 골든 값 의존을 검출한다. 정확한 새 파일/메
   `RetrievalObligation` projection을, `harness_state.py`가 fact initial state와 E1 follow-up safe projection을
   소유한다.
   `retrieval/fusion.py`는 exact runtime-bound independent lane execution/fusion public boundary를 제공한다.
-  `execution_contracts.py`는 config/runtime/obligation/ledger/action/receipt aggregate를,
-  `action_effects.py`는 typed verifier/reranker/context effect를, `state_reducer.py`는 state-changing factory와
+  `execution_contracts.py`는 config/runtime/obligation/ledger/action/receipt aggregate와 exact semantic verifier 호출을,
+  `action_effects.py`는 typed semantic schema·순수 정규화 및 verifier/reranker/context effect를,
+  `state_reducer.py`는 state-changing factory와
   reducer를, `controller.py`는 start/decide/step/run/replay orchestration만 소유한다.

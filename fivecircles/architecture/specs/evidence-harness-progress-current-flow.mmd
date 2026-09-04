@@ -16,7 +16,7 @@ flowchart LR
     R3["HB · DH 팀 실험"]
   end
 
-  subgraph BUILD["현재 feat/total-integration · EH2.6.c1"]
+  subgraph BUILD["현재 feat/total-integration · EH2.6.c2"]
     C1["EvidenceStore<br/>page parent + child"]
     C2["KURE child + Kiwi BM25<br/>독립 retrieval lane"]
     C3["QueryPlan · Belief/Progress<br/>config/runtime authority"]
@@ -26,7 +26,8 @@ flowchart LR
     C7["zero-dispatch integrity gates<br/>API · model · Langfuse = 0"]
     C8["b5 focused gate PASS<br/>lexical-only rescue · fact empty<br/>pre-call zero-dispatch · error diagnostic"]
     C9["E1 follow-up safe projection<br/>verified→candidate · doc-matched slots<br/>metadata fail-closed · retrieval 0"]
-    C1 --> C2 --> C3 --> C4 --> C5 --> C6 --> C7 --> C8 --> C9
+    C10["semantic verification receipt<br/>source-derived target · exact one-call<br/>typed support · zero-call unavailable"]
+    C1 --> C2 --> C3 --> C4 --> C5 --> C6 --> C7 --> C8 --> C9 --> C10
   end
 
   GAP["미완성<br/>effect/reducer → bounded E1<br/>specialist lanes → generation → E2E"]
@@ -38,7 +39,7 @@ flowchart LR
   R1 --> C1
   R2 --> C1
   R3 --> C1
-  C9 --> GAP --> SELECT
+  C10 --> GAP --> SELECT
   CONTROL --> SELECT
   SELECT -. "winner 미선정" .-> LOCAL
 
@@ -48,7 +49,7 @@ flowchart LR
   classDef red fill:#fde9e6,stroke:#d98e84,color:#1f2933,stroke-width:1.5px
   classDef gray fill:#eef1ed,stroke:#aab5ad,color:#1f2933,stroke-width:1.5px
   class B1,B2,B3 green
-  class C1,C2,C3,C4,C5,C6,C7,C8,C9 blue
+  class C1,C2,C3,C4,C5,C6,C7,C8,C9,C10 blue
   class GOLD gray
   class R1,R2,R3,API amber
   class GAP red

@@ -25,21 +25,30 @@ from typing import Any, Mapping
 from weakref import ReferenceType, ref
 
 import midprojectrag.evidence as _EVIDENCE_RUNTIME_MODULE
-from midprojectrag.evidence import EvidenceStore, validate_evidence_store_snapshot
+from midprojectrag.evidence import Evidence, EvidenceStore, validate_evidence_store_snapshot
 from midprojectrag.retrieval import dense as _DENSE_RUNTIME_MODULE
 from midprojectrag.retrieval import fusion as _FUSION_RUNTIME_MODULE
 from midprojectrag.retrieval import kiwi_bm25 as _LEXICAL_RUNTIME_MODULE
 from midprojectrag.retrieval.contracts import Candidate, SearchResult
 from midprojectrag.runtime_integrity import ResolvedScope
 
+from . import action_effects as _ACTION_EFFECTS_MODULE
 from . import compare_slots as _COMPARE_OWNER_MODULE
 from . import fact_binding as _FACT_OWNER_MODULE
+from .action_effects import SemanticValueSupport
+from .contracts import RuleRegistry
+from .followup_binding import BoundFollowup
+from .followup_retrieval import FollowupEvidencePolicy, FollowupRetrievalOutcome
+from .harness_state import HarnessState, build_e1_followup_harness_state, validate_harness_state
 
 
 SCHEMA_VERSION = "1.0"
 HARNESS_EXECUTION_POLICY_ID = "bounded-evidence-controller-v1"
 _CONFIG_TOKEN = object()
 _RUNTIME_TOKEN = object()
+_SEMANTIC_OBLIGATION_TOKEN = object()
+_SEMANTIC_REQUEST_TOKEN = object()
+_SEMANTIC_RECEIPT_TOKEN = object()
 _ISSUED_VALIDATE_EVIDENCE_STORE_SNAPSHOT = validate_evidence_store_snapshot
 _ISSUED_HYBRID_SEARCH_LANE = type.__getattribute__(
     object.__getattribute__(_FUSION_RUNTIME_MODULE, "HybridChildRetriever"),
@@ -169,6 +178,16 @@ _RETRIEVAL_OWNER_SPECS = MappingProxyType(
     }
 )
 _ISSUED_RETRIEVAL_OWNER_SPECS = _RETRIEVAL_OWNER_SPECS
+_ACTION_EFFECTS_NORMALIZER = object.__getattribute__(
+    _ACTION_EFFECTS_MODULE, "_normalize_semantic_verifier_result"
+)
+_ACTION_EFFECTS_PROJECTION_CLASS = object.__getattribute__(
+    _ACTION_EFFECTS_MODULE, "_SemanticVerificationProjection"
+)
+_ACTION_EFFECTS_MODULE_PIN = _owner_module_pins(_ACTION_EFFECTS_MODULE)
+_ISSUED_ACTION_EFFECTS_NORMALIZER = _ACTION_EFFECTS_NORMALIZER
+_ISSUED_ACTION_EFFECTS_PROJECTION_CLASS = _ACTION_EFFECTS_PROJECTION_CLASS
+_ISSUED_ACTION_EFFECTS_MODULE_PIN = _ACTION_EFFECTS_MODULE_PIN
 del _owner_callable_pin
 del _owner_class_pin
 del _owner_module_pins
@@ -1222,17 +1241,17 @@ class HarnessRuntimeBinding:
                 ),
             }
         )
+        issued_authority = _HarnessRuntimeAuthority(
+            weak=weak,
+            issued_payload_sha256=issued_payload_sha256,
+            **{
+                name: object.__getattribute__(authority, name)
+                for name in _RUNTIME_AUTHORITY_DRAFT_FIELDS
+            },
+        )
+        dict.__setitem__(_ISSUED_RUNTIME_AUTHORITIES, identity, issued_authority)
         dict.__setitem__(
-            _ISSUED_RUNTIME_AUTHORITIES,
-            identity,
-            _HarnessRuntimeAuthority(
-                weak=weak,
-                issued_payload_sha256=issued_payload_sha256,
-                **{
-                    name: object.__getattribute__(authority, name)
-                    for name in _RUNTIME_AUTHORITY_DRAFT_FIELDS
-                },
-            ),
+            _ISSUED_RUNTIME_AUTHORITY_SHADOW, identity, issued_authority
         )
         try:
             validate_harness_runtime_binding(
@@ -1242,6 +1261,7 @@ class HarnessRuntimeBinding:
             )
         except Exception:
             dict.pop(_ISSUED_RUNTIME_AUTHORITIES, identity, None)
+            dict.pop(_ISSUED_RUNTIME_AUTHORITY_SHADOW, identity, None)
             raise
         return result
 
@@ -1467,6 +1487,8 @@ _ISSUED_RUNTIME_AUTHORITY_DRAFT_FIELDS = _RUNTIME_AUTHORITY_DRAFT_FIELDS
 
 _RUNTIME_AUTHORITIES: dict[int, _HarnessRuntimeAuthority] = {}
 _ISSUED_RUNTIME_AUTHORITIES = _RUNTIME_AUTHORITIES
+_RUNTIME_AUTHORITY_SHADOW: dict[int, _HarnessRuntimeAuthority] = {}
+_ISSUED_RUNTIME_AUTHORITY_SHADOW = _RUNTIME_AUTHORITY_SHADOW
 
 
 def _drop_runtime_authority(
@@ -1474,8 +1496,10 @@ def _drop_runtime_authority(
     dead: ReferenceType[HarnessRuntimeBinding],
 ) -> None:
     current = dict.get(_ISSUED_RUNTIME_AUTHORITIES, identity)
-    if current is not None and current.weak is dead:
+    shadow = dict.get(_ISSUED_RUNTIME_AUTHORITY_SHADOW, identity)
+    if current is shadow and current is not None and current.weak is dead:
         dict.pop(_ISSUED_RUNTIME_AUTHORITIES, identity, None)
+        dict.pop(_ISSUED_RUNTIME_AUTHORITY_SHADOW, identity, None)
 
 
 def _clock_descriptor(
@@ -1902,7 +1926,8 @@ def _require_harness_runtime_authority(
     if type(binding) is not HarnessRuntimeBinding:
         raise TypeError("harness_runtime_binding_required")
     authority = dict.get(_ISSUED_RUNTIME_AUTHORITIES, id(binding))
-    if type(authority) is not _HarnessRuntimeAuthority:
+    shadow = dict.get(_ISSUED_RUNTIME_AUTHORITY_SHADOW, id(binding))
+    if type(authority) is not _HarnessRuntimeAuthority or authority is not shadow:
         raise ValueError("harness_runtime_authority_required")
     weak = object.__getattribute__(authority, "weak")
     if type(weak) is not ReferenceType or weak() is not binding:
@@ -8002,6 +8027,1826 @@ def validate_e0_control_receipt(
             raise ValueError("e0_control_child_receipt_mismatch")
 
 
+# EH2.6.c2 semantic verification -------------------------------------------------
+
+_SEMANTIC_SOURCE_KINDS = frozenset({"fact", "compare", "follow_up"})
+_SEMANTIC_TARGET_KINDS = frozenset({"answer_support", "field_value"})
+_SEMANTIC_ROLES = frozenset({"candidate", "bridge", "context"})
+_SEMANTIC_DISPOSITIONS = frozenset(
+    {"supported", "unsupported", "contradicted", "unavailable"}
+)
+
+
+@dataclass(frozen=True, slots=True, weakref_slot=True, init=False)
+class SemanticVerificationObligation:
+    """Trace-free verifier target issued only from an exact source owner."""
+
+    source_kind: str
+    target_kind: str
+    obligation_key: str
+    target_doc_id: str | None
+    field: str | None
+    execution_kind: str
+    owner_binding_sha256: str
+    retrieval_obligation_sha256: str | None
+    candidate_receipt_sha256: str
+    source_state_sha256: str | None
+    query_sha256: str
+    evidence_store_sha256: str
+    execution_config_sha256: str
+    runtime_binding_sha256: str
+    candidate_evidence_ids: tuple[str, ...]
+    bridge_evidence_ids: tuple[str, ...]
+    context_evidence_ids: tuple[str, ...]
+    supplied_evidence_ids: tuple[str, ...]
+    ordered_stable_anchors: tuple[StableEvidenceAnchor, ...]
+    obligation_sha256: str
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        raise TypeError("semantic_verification_obligation_factory_required")
+
+    @classmethod
+    def _create(
+        cls,
+        *,
+        payload: Mapping[str, Any],
+        _token: object,
+    ) -> SemanticVerificationObligation:
+        if _token is not _SEMANTIC_OBLIGATION_TOKEN:
+            raise ValueError("semantic_verification_obligation_factory_required")
+        result = object.__new__(cls)
+        for name in cls.__slots__:
+            if name != "__weakref__":
+                object.__setattr__(result, name, payload[name])
+        _validate_semantic_verification_obligation_payload(result)
+        return result
+
+    def to_dict(self) -> dict[str, Any]:
+        _validate_semantic_verification_obligation_payload(self)
+        return _semantic_verification_obligation_payload(self, include_hash=True)
+
+
+def _semantic_verification_obligation_payload(
+    obligation: SemanticVerificationObligation,
+    *,
+    include_hash: bool,
+) -> dict[str, Any]:
+    payload = {
+        "schema_version": SCHEMA_VERSION,
+        "source_kind": object.__getattribute__(obligation, "source_kind"),
+        "target_kind": object.__getattribute__(obligation, "target_kind"),
+        "obligation_key": object.__getattribute__(obligation, "obligation_key"),
+        "target_doc_id": object.__getattribute__(obligation, "target_doc_id"),
+        "field": object.__getattribute__(obligation, "field"),
+        "execution_kind": object.__getattribute__(obligation, "execution_kind"),
+        "owner_binding_sha256": object.__getattribute__(
+            obligation, "owner_binding_sha256"
+        ),
+        "retrieval_obligation_sha256": object.__getattribute__(
+            obligation, "retrieval_obligation_sha256"
+        ),
+        "candidate_receipt_sha256": object.__getattribute__(
+            obligation, "candidate_receipt_sha256"
+        ),
+        "source_state_sha256": object.__getattribute__(
+            obligation, "source_state_sha256"
+        ),
+        "query_sha256": object.__getattribute__(obligation, "query_sha256"),
+        "evidence_store_sha256": object.__getattribute__(
+            obligation, "evidence_store_sha256"
+        ),
+        "execution_config_sha256": object.__getattribute__(
+            obligation, "execution_config_sha256"
+        ),
+        "runtime_binding_sha256": object.__getattribute__(
+            obligation, "runtime_binding_sha256"
+        ),
+        "candidate_evidence_ids": list(
+            object.__getattribute__(obligation, "candidate_evidence_ids")
+        ),
+        "bridge_evidence_ids": list(
+            object.__getattribute__(obligation, "bridge_evidence_ids")
+        ),
+        "context_evidence_ids": list(
+            object.__getattribute__(obligation, "context_evidence_ids")
+        ),
+        "supplied_evidence_ids": list(
+            object.__getattribute__(obligation, "supplied_evidence_ids")
+        ),
+        "ordered_stable_anchors": [
+            anchor.to_dict()
+            for anchor in object.__getattribute__(
+                obligation, "ordered_stable_anchors"
+            )
+        ],
+    }
+    if include_hash:
+        payload["obligation_sha256"] = object.__getattribute__(
+            obligation, "obligation_sha256"
+        )
+    return payload
+
+
+def _validate_semantic_verification_obligation_payload(
+    obligation: SemanticVerificationObligation,
+) -> None:
+    if type(obligation) is not SemanticVerificationObligation:
+        raise TypeError("semantic_verification_obligation_required")
+    source_kind = object.__getattribute__(obligation, "source_kind")
+    target_kind = object.__getattribute__(obligation, "target_kind")
+    obligation_key = object.__getattribute__(obligation, "obligation_key")
+    target_doc_id = object.__getattribute__(obligation, "target_doc_id")
+    field = object.__getattribute__(obligation, "field")
+    if (
+        type(source_kind) is not str
+        or source_kind not in _SEMANTIC_SOURCE_KINDS
+        or type(target_kind) is not str
+        or target_kind not in _SEMANTIC_TARGET_KINDS
+        or type(obligation_key) is not str
+        or not obligation_key
+    ):
+        raise ValueError("invalid_semantic_verification_target")
+    if target_kind == "answer_support":
+        if obligation_key != "$answer_support" or target_doc_id is not None or field is not None:
+            raise ValueError("invalid_semantic_verification_target")
+    elif (
+        type(target_doc_id) is not str
+        or not target_doc_id
+        or type(field) is not str
+        or not field
+    ):
+        raise ValueError("invalid_semantic_verification_target")
+    if source_kind == "fact" and target_kind != "answer_support":
+        raise ValueError("invalid_semantic_verification_target")
+    if source_kind == "compare" and target_kind != "field_value":
+        raise ValueError("invalid_semantic_verification_target")
+    execution_kind = object.__getattribute__(obligation, "execution_kind")
+    if execution_kind not in {"production", "synthetic"}:
+        raise ValueError("invalid_semantic_verification_execution_kind")
+    for name in (
+        "owner_binding_sha256",
+        "candidate_receipt_sha256",
+        "query_sha256",
+        "evidence_store_sha256",
+        "execution_config_sha256",
+        "runtime_binding_sha256",
+        "obligation_sha256",
+    ):
+        _require_hash(
+            object.__getattribute__(obligation, name),
+            f"invalid_semantic_{name}",
+        )
+    retrieval_sha = object.__getattribute__(
+        obligation, "retrieval_obligation_sha256"
+    )
+    state_sha = object.__getattribute__(obligation, "source_state_sha256")
+    if source_kind in {"fact", "compare"}:
+        _require_hash(retrieval_sha, "invalid_semantic_retrieval_obligation_sha256")
+        if state_sha is not None:
+            raise ValueError("semantic_source_state_mismatch")
+    else:
+        if retrieval_sha is not None:
+            raise ValueError("semantic_retrieval_obligation_mismatch")
+        _require_hash(state_sha, "invalid_semantic_source_state_sha256")
+    candidates = _exact_string_tuple_value(
+        object.__getattribute__(obligation, "candidate_evidence_ids"),
+        "semantic_candidate_evidence_ids",
+        allow_empty=False,
+    )
+    bridges = _exact_string_tuple_value(
+        object.__getattribute__(obligation, "bridge_evidence_ids"),
+        "semantic_bridge_evidence_ids",
+        allow_empty=True,
+    )
+    contexts = _exact_string_tuple_value(
+        object.__getattribute__(obligation, "context_evidence_ids"),
+        "semantic_context_evidence_ids",
+        allow_empty=True,
+    )
+    supplied = _exact_string_tuple_value(
+        object.__getattribute__(obligation, "supplied_evidence_ids"),
+        "semantic_supplied_evidence_ids",
+        allow_empty=False,
+    )
+    if bridges or contexts or supplied != candidates + bridges + contexts:
+        raise ValueError("semantic_evidence_role_partition_mismatch")
+    anchors = object.__getattribute__(obligation, "ordered_stable_anchors")
+    if (
+        type(anchors) is not tuple
+        or len(anchors) != len(supplied)
+        or any(type(anchor) is not StableEvidenceAnchor for anchor in anchors)
+    ):
+        raise ValueError("semantic_stable_anchor_mismatch")
+    expected_sha = _canonical_sha256(
+        _semantic_verification_obligation_payload(obligation, include_hash=False)
+    )
+    if object.__getattribute__(obligation, "obligation_sha256") != expected_sha:
+        raise ValueError("semantic_verification_obligation_hash_mismatch")
+
+
+def _exact_string_tuple_value(
+    value: object,
+    code: str,
+    *,
+    allow_empty: bool,
+) -> tuple[str, ...]:
+    if type(value) is not tuple:
+        raise TypeError(code)
+    if (not allow_empty and not value) or any(
+        type(item) is not str or not item for item in value
+    ):
+        raise ValueError(code)
+    if len(value) != len(set(value)):
+        raise ValueError(f"duplicate_{code}")
+    return value
+
+
+@dataclass(frozen=True, slots=True, repr=False, init=False)
+class _SemanticVerifierEvidence:
+    index: int
+    role: str
+    doc_id: str
+    content_kind: str
+    content: str
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        raise TypeError("semantic_verifier_request_factory_required")
+
+    def __reduce__(self) -> object:
+        raise TypeError("semantic_verifier_request_not_serializable")
+
+    def __reduce_ex__(self, protocol: int) -> object:
+        raise TypeError("semantic_verifier_request_not_serializable")
+
+    @classmethod
+    def _create(
+        cls,
+        *,
+        index: int,
+        role: str,
+        doc_id: str,
+        content_kind: str,
+        content: str,
+        _token: object,
+    ) -> _SemanticVerifierEvidence:
+        if _token is not _SEMANTIC_REQUEST_TOKEN:
+            raise ValueError("semantic_verifier_request_factory_required")
+        result = object.__new__(cls)
+        for name, value in (
+            ("index", index),
+            ("role", role),
+            ("doc_id", doc_id),
+            ("content_kind", content_kind),
+            ("content", content),
+        ):
+            object.__setattr__(result, name, value)
+        return result
+
+
+@dataclass(frozen=True, slots=True, repr=False, init=False)
+class _SemanticVerifierRequest:
+    source_kind: str
+    target_kind: str
+    obligation_key: str
+    target_doc_id: str | None
+    field: str | None
+    query: str
+    evidence: tuple[_SemanticVerifierEvidence, ...]
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        raise TypeError("semantic_verifier_request_factory_required")
+
+    def __reduce__(self) -> object:
+        raise TypeError("semantic_verifier_request_not_serializable")
+
+    def __reduce_ex__(self, protocol: int) -> object:
+        raise TypeError("semantic_verifier_request_not_serializable")
+
+    @classmethod
+    def _create(
+        cls,
+        *,
+        source_kind: str,
+        target_kind: str,
+        obligation_key: str,
+        target_doc_id: str | None,
+        field: str | None,
+        query: str,
+        evidence: tuple[_SemanticVerifierEvidence, ...],
+        _token: object,
+    ) -> _SemanticVerifierRequest:
+        if _token is not _SEMANTIC_REQUEST_TOKEN:
+            raise ValueError("semantic_verifier_request_factory_required")
+        result = object.__new__(cls)
+        for name, value in (
+            ("source_kind", source_kind),
+            ("target_kind", target_kind),
+            ("obligation_key", obligation_key),
+            ("target_doc_id", target_doc_id),
+            ("field", field),
+            ("query", query),
+            ("evidence", evidence),
+        ):
+            object.__setattr__(result, name, value)
+        return result
+
+
+@dataclass(frozen=True, slots=True)
+class _SemanticVerificationObligationAuthority:
+    weak: ReferenceType[SemanticVerificationObligation]
+    issued_payload_sha256: str
+    issuance_key: tuple[object, ...]
+    source: object
+    candidate_receipt: object
+    source_state: HarnessState | None
+    retrieval_obligation: RetrievalObligation | None
+    fusion_receipt: FusionReceipt | None
+    dense_receipt: LaneSearchReceipt | None
+    lexical_receipt: LaneSearchReceipt | None
+    registry: RuleRegistry | None
+    policy: FollowupEvidencePolicy | None
+    raw_query: str
+    evidence: tuple[Evidence, ...]
+    roles: tuple[str, ...]
+    store: EvidenceStore
+    config: HarnessExecutionConfig
+    runtime: HarnessRuntimeBinding
+    verifier_authority: _ComponentAuthority
+
+
+_SEMANTIC_OBLIGATION_AUTHORITIES: dict[
+    int, _SemanticVerificationObligationAuthority
+] = {}
+_ISSUED_SEMANTIC_OBLIGATION_AUTHORITIES = _SEMANTIC_OBLIGATION_AUTHORITIES
+
+
+def _build_semantic_obligation_accessors(
+    visible: dict[int, _SemanticVerificationObligationAuthority],
+) -> tuple[
+    FunctionType,
+    FunctionType,
+    FunctionType,
+    FunctionType,
+    FunctionType,
+    FunctionType,
+    FunctionType,
+]:
+    shadow: dict[int, tuple[object, ...]] = {}
+    cache: dict[tuple[object, ...], ReferenceType[SemanticVerificationObligation]] = {}
+    history: dict[tuple[object, ...], str] = {}
+    history_shadow: dict[tuple[object, ...], str] = {}
+    source_refs: dict[int, ReferenceType[object]] = {}
+    source_execution_keys: dict[int, set[tuple[object, ...]]] = {}
+    authority_lock = Lock()
+
+    def drop_source(identity: int, dead: ReferenceType[object]) -> None:
+        with authority_lock:
+            if dict.get(source_refs, identity) is not dead:
+                return
+            keys = dict.pop(source_execution_keys, identity, set())
+            for execution_key in tuple(keys):
+                dict.pop(history, execution_key, None)
+                dict.pop(history_shadow, execution_key, None)
+            dict.pop(source_refs, identity, None)
+
+    def snapshot(authority: _SemanticVerificationObligationAuthority) -> tuple[object, ...]:
+        return tuple(
+            object.__getattribute__(authority, name)
+            for name in _SemanticVerificationObligationAuthority.__slots__
+        )
+
+    def validated_unlocked(
+        obligation: SemanticVerificationObligation,
+    ) -> _SemanticVerificationObligationAuthority | None:
+        identity = id(obligation)
+        current = dict.get(visible, identity)
+        sealed = dict.get(shadow, identity)
+        if current is None and sealed is None:
+            return None
+        if (
+            type(current) is not _SemanticVerificationObligationAuthority
+            or type(sealed) is not tuple
+            or object.__getattribute__(current, "weak")() is not obligation
+            or len(sealed) != len(_SemanticVerificationObligationAuthority.__slots__)
+            or any(
+                object.__getattribute__(current, name) is not sealed_value
+                for name, sealed_value in zip(
+                    _SemanticVerificationObligationAuthority.__slots__, sealed
+                )
+            )
+        ):
+            raise ValueError("semantic_verification_obligation_authority_drift")
+        return current
+
+    def register(
+        obligation: SemanticVerificationObligation,
+        authority: _SemanticVerificationObligationAuthority,
+    ) -> None:
+        with authority_lock:
+            if validated_unlocked(obligation) is not None:
+                raise ValueError("semantic_verification_obligation_authority_drift")
+            identity = id(obligation)
+            dict.__setitem__(visible, identity, authority)
+            dict.__setitem__(shadow, identity, snapshot(authority))
+            dict.__setitem__(cache, authority.issuance_key, authority.weak)
+            source = object.__getattribute__(authority, "source")
+            source_identity = id(source)
+            source_weak = dict.get(source_refs, source_identity)
+            if source_weak is None or source_weak() is not source:
+                if source_weak is not None:
+                    raise ValueError("semantic_verification_source_history_drift")
+                source_weak = ref(
+                    source,
+                    lambda dead, source_identity=source_identity: drop_source(
+                        source_identity, dead
+                    ),
+                )
+                dict.__setitem__(source_refs, source_identity, source_weak)
+                dict.__setitem__(source_execution_keys, source_identity, set())
+            execution_key = (
+                authority.issuance_key,
+                object.__getattribute__(obligation, "obligation_sha256"),
+            )
+            dict.__getitem__(source_execution_keys, source_identity).add(
+                execution_key
+            )
+
+    def read(
+        obligation: SemanticVerificationObligation,
+    ) -> _SemanticVerificationObligationAuthority:
+        with authority_lock:
+            current = validated_unlocked(obligation)
+            if current is None:
+                raise ValueError("semantic_verification_obligation_authority_required")
+            return current
+
+    def cached(
+        issuance_key: tuple[object, ...],
+    ) -> SemanticVerificationObligation | None:
+        with authority_lock:
+            weak = dict.get(cache, issuance_key)
+            if weak is None:
+                return None
+            current = weak()
+            if current is None:
+                dict.pop(cache, issuance_key, None)
+                return None
+            validated_unlocked(current)
+            return current
+
+    def drop(
+        identity: int,
+        dead: ReferenceType[SemanticVerificationObligation],
+    ) -> None:
+        with authority_lock:
+            sealed = dict.get(shadow, identity)
+            if type(sealed) is tuple and sealed and tuple.__getitem__(sealed, 0) is dead:
+                current = dict.get(visible, identity)
+                if type(current) is _SemanticVerificationObligationAuthority:
+                    key = object.__getattribute__(current, "issuance_key")
+                    if dict.get(cache, key) is dead:
+                        dict.pop(cache, key, None)
+                dict.pop(visible, identity, None)
+                dict.pop(shadow, identity, None)
+
+    def transition(
+        execution_key: tuple[object, ...],
+        expected: str | None,
+        updated: str,
+    ) -> None:
+        with authority_lock:
+            current = dict.get(history, execution_key)
+            mirror = dict.get(history_shadow, execution_key)
+            if current is not mirror:
+                raise ValueError("semantic_verification_history_drift")
+            if current != expected:
+                raise ValueError("semantic_verification_already_consumed")
+            dict.__setitem__(history, execution_key, updated)
+            dict.__setitem__(history_shadow, execution_key, updated)
+
+    def status(execution_key: tuple[object, ...]) -> str | None:
+        with authority_lock:
+            current = dict.get(history, execution_key)
+            mirror = dict.get(history_shadow, execution_key)
+            if current is not mirror:
+                raise ValueError("semantic_verification_history_drift")
+            return current
+
+    return register, read, cached, drop, transition, status, drop_source
+
+
+(
+    _register_semantic_obligation_authority,
+    _read_semantic_obligation_authority,
+    _cached_semantic_obligation,
+    _drop_semantic_obligation_authority,
+    _transition_semantic_execution,
+    _semantic_execution_status,
+    _drop_semantic_source_history,
+) = _build_semantic_obligation_accessors(
+    _ISSUED_SEMANTIC_OBLIGATION_AUTHORITIES
+)
+
+
+def _semantic_execution_key(
+    authority: _SemanticVerificationObligationAuthority,
+    obligation: SemanticVerificationObligation,
+) -> tuple[object, ...]:
+    return (
+        object.__getattribute__(authority, "issuance_key"),
+        object.__getattribute__(obligation, "obligation_sha256"),
+    )
+
+
+def _semantic_public_entry(
+    dependency_checker: object,
+    dependency_checker_code: object,
+) -> None:
+    module_namespace = globals()
+    checker_defaults = (
+        None
+        if type(dependency_checker) is not FunctionType
+        else object.__getattribute__(dependency_checker, "__defaults__")
+    )
+    if (
+        dependency_checker
+        is not dict.get(module_namespace, "_ISSUED_RUNTIME_GATE_DEPENDENCY_CHECKER")
+        or type(dependency_checker) is not FunctionType
+        or object.__getattribute__(dependency_checker, "__code__")
+        is not dependency_checker_code
+        or dependency_checker_code
+        is not dict.get(
+            module_namespace, "_PINNED_RUNTIME_GATE_DEPENDENCY_CHECKER_CODE"
+        )
+        or checker_defaults
+        is not dict.get(module_namespace, "_ISSUED_RUNTIME_GATE_DEPENDENCY_DEFAULTS")
+        or type(checker_defaults) is not tuple
+        or len(checker_defaults) != 6
+        or tuple.__getitem__(checker_defaults, 0) is not module_namespace
+        or object.__getattribute__(dependency_checker, "__kwdefaults__") is not None
+    ):
+        raise ValueError("harness_runtime_validation_dependency_drift")
+    dependency_checker()
+
+
+def _semantic_common_preflight(
+    *,
+    store: EvidenceStore,
+    config: HarnessExecutionConfig,
+    runtime: HarnessRuntimeBinding,
+) -> _HarnessRuntimeAuthority:
+    validate_harness_execution_config(config)
+    if object.__getattribute__(config, "mode") != "e1_bounded":
+        raise ValueError("semantic_verification_requires_e1_bounded")
+    validate_harness_runtime_binding(binding=runtime, store=store)
+    runtime_authority = _require_harness_runtime_authority(runtime)
+    return runtime_authority
+
+
+def _derive_followup_semantic_target(
+    *,
+    bound: BoundFollowup,
+    outcome: FollowupRetrievalOutcome,
+    obligation_key: str,
+    store: EvidenceStore,
+    registry: RuleRegistry,
+    policy: FollowupEvidencePolicy,
+) -> tuple[HarnessState, str, str | None, str | None, tuple[str, ...]]:
+    state = build_e1_followup_harness_state(
+        bound=bound,
+        outcome=outcome,
+        store=store,
+        registry=registry,
+        policy=policy,
+    )
+    validate_harness_state(state=state, store=store)
+    if type(obligation_key) is not str or not obligation_key:
+        raise ValueError("invalid_semantic_verification_target")
+    entry = next(
+        (
+            item
+            for item in object.__getattribute__(
+                object.__getattribute__(state, "belief"), "evidence_map"
+            )
+            if object.__getattribute__(item, "obligation_key") == obligation_key
+        ),
+        None,
+    )
+    if entry is None:
+        raise ValueError("unknown_semantic_verification_obligation_key")
+    candidates = object.__getattribute__(entry, "candidate_evidence_ids")
+    if not candidates:
+        raise ValueError("semantic_verification_candidates_required")
+    if obligation_key == "$answer_support":
+        return state, "answer_support", None, None, candidates
+    slot = next(
+        (
+            item
+            for item in object.__getattribute__(
+                object.__getattribute__(bound, "plan"), "required_slots"
+            )
+            if object.__getattribute__(item, "key") == obligation_key
+        ),
+        None,
+    )
+    if slot is None:
+        raise ValueError("unknown_semantic_verification_obligation_key")
+    return (
+        state,
+        "field_value",
+        object.__getattribute__(slot, "doc_id"),
+        object.__getattribute__(slot, "field"),
+        candidates,
+    )
+
+
+def _create_semantic_verification_obligation(
+    *,
+    source_kind: str,
+    target_kind: str,
+    obligation_key: str,
+    target_doc_id: str | None,
+    field: str | None,
+    owner_binding_sha256: str,
+    retrieval_obligation_sha256: str | None,
+    candidate_receipt_sha256: str,
+    source_state: HarnessState | None,
+    raw_query: str,
+    candidate_evidence_ids: tuple[str, ...],
+    ordered_stable_anchors: tuple[StableEvidenceAnchor, ...],
+    issuance_key: tuple[object, ...],
+    source: object,
+    candidate_receipt: object,
+    retrieval_obligation: RetrievalObligation | None,
+    fusion_receipt: FusionReceipt | None,
+    dense_receipt: LaneSearchReceipt | None,
+    lexical_receipt: LaneSearchReceipt | None,
+    registry: RuleRegistry | None,
+    policy: FollowupEvidencePolicy | None,
+    store: EvidenceStore,
+    config: HarnessExecutionConfig,
+    runtime: HarnessRuntimeBinding,
+    verifier_authority: _ComponentAuthority,
+) -> SemanticVerificationObligation:
+    cached = _cached_semantic_obligation(issuance_key)
+    if cached is not None:
+        _validate_semantic_verification_obligation_exact(
+            obligation=cached, store=store, config=config, runtime=runtime
+        )
+        return cached
+    evidence = tuple(store.get(evidence_id) for evidence_id in candidate_evidence_ids)
+    if field is not None and any(
+        object.__getattribute__(item, "doc_id") != target_doc_id
+        for item in evidence
+    ):
+        raise ValueError("semantic_verification_target_doc_mismatch")
+    supplied = candidate_evidence_ids
+    payload = {
+        "source_kind": source_kind,
+        "target_kind": target_kind,
+        "obligation_key": obligation_key,
+        "target_doc_id": target_doc_id,
+        "field": field,
+        "execution_kind": object.__getattribute__(runtime, "execution_kind"),
+        "owner_binding_sha256": owner_binding_sha256,
+        "retrieval_obligation_sha256": retrieval_obligation_sha256,
+        "candidate_receipt_sha256": candidate_receipt_sha256,
+        "source_state_sha256": (
+            None
+            if source_state is None
+            else object.__getattribute__(source_state, "state_sha256")
+        ),
+        "query_sha256": _query_sha256(raw_query),
+        "evidence_store_sha256": object.__getattribute__(store, "bundle_sha256"),
+        "execution_config_sha256": object.__getattribute__(config, "config_sha256"),
+        "runtime_binding_sha256": object.__getattribute__(runtime, "binding_sha256"),
+        "candidate_evidence_ids": candidate_evidence_ids,
+        "bridge_evidence_ids": (),
+        "context_evidence_ids": (),
+        "supplied_evidence_ids": supplied,
+        "ordered_stable_anchors": ordered_stable_anchors,
+    }
+    temporary = object.__new__(SemanticVerificationObligation)
+    for name, value in payload.items():
+        object.__setattr__(temporary, name, value)
+    object.__setattr__(temporary, "obligation_sha256", "0" * 64)
+    payload["obligation_sha256"] = _canonical_sha256(
+        _semantic_verification_obligation_payload(temporary, include_hash=False)
+    )
+    result = SemanticVerificationObligation._create(
+        payload=payload, _token=_SEMANTIC_OBLIGATION_TOKEN
+    )
+    identity = id(result)
+    weak = ref(
+        result,
+        lambda dead, identity=identity: _drop_semantic_obligation_authority(
+            identity, dead
+        ),
+    )
+    authority = _SemanticVerificationObligationAuthority(
+        weak=weak,
+        issued_payload_sha256=_canonical_sha256(result.to_dict()),
+        issuance_key=issuance_key,
+        source=source,
+        candidate_receipt=candidate_receipt,
+        source_state=source_state,
+        retrieval_obligation=retrieval_obligation,
+        fusion_receipt=fusion_receipt,
+        dense_receipt=dense_receipt,
+        lexical_receipt=lexical_receipt,
+        registry=registry,
+        policy=policy,
+        raw_query=raw_query,
+        evidence=evidence,
+        roles=tuple("candidate" for _ in evidence),
+        store=store,
+        config=config,
+        runtime=runtime,
+        verifier_authority=verifier_authority,
+    )
+    _register_semantic_obligation_authority(result, authority)
+    return result
+
+
+def _issue_retrieval_semantic_verification_obligation(
+    *,
+    expected_source_kind: str,
+    obligation: RetrievalObligation,
+    fusion_receipt: FusionReceipt,
+    store: EvidenceStore,
+    config: HarnessExecutionConfig,
+    runtime: HarnessRuntimeBinding,
+) -> SemanticVerificationObligation:
+    runtime_authority = _semantic_common_preflight(
+        store=store, config=config, runtime=runtime
+    )
+    if (
+        type(obligation) is not RetrievalObligation
+        or object.__getattribute__(obligation, "source_kind")
+        != expected_source_kind
+    ):
+        raise ValueError("semantic_verification_source_kind_mismatch")
+    fusion_authority = _read_fusion_receipt_authority(fusion_receipt)
+    validate_fusion_receipt(
+        receipt=fusion_receipt,
+        obligation=obligation,
+        dense_receipt=object.__getattribute__(fusion_authority, "dense_receipt"),
+        lexical_receipt=object.__getattribute__(fusion_authority, "lexical_receipt"),
+        store=store,
+        config=config,
+        runtime=runtime,
+    )
+    candidates = object.__getattribute__(fusion_receipt, "ordered_evidence_ids")
+    if (
+        object.__getattribute__(fusion_receipt, "outcome") != "applied"
+        or not candidates
+    ):
+        raise ValueError("semantic_verification_candidates_required")
+    retrieval_authority = _require_retrieval_obligation_authority(obligation)
+    _require_retrieval_owner(
+        source_kind=expected_source_kind,
+        source=object.__getattribute__(retrieval_authority, "source"),
+        source_projector=object.__getattribute__(
+            retrieval_authority, "source_projector"
+        ),
+        source_validator=object.__getattribute__(
+            retrieval_authority, "source_validator"
+        ),
+    )
+    projected = object.__getattribute__(retrieval_authority, "source_projector")(
+        bound=object.__getattribute__(retrieval_authority, "source"),
+        store=store,
+    )
+    normalized = _normalized_owner_projections(
+        source_kind=expected_source_kind, projected=projected
+    )
+    ordinal = object.__getattribute__(retrieval_authority, "projection_ordinal")
+    if ordinal < 1 or ordinal > len(normalized):
+        raise ValueError("semantic_verification_projection_mismatch")
+    normalized_target = normalized[ordinal - 1]
+    raw_target = projected if expected_source_kind == "fact" else projected[ordinal - 1]
+    raw_query = object.__getattribute__(retrieval_authority, "raw_query")
+    if (
+        normalized_target["query"] != raw_query
+        or normalized_target["obligation_key"]
+        != object.__getattribute__(obligation, "obligation_key")
+    ):
+        raise ValueError("semantic_verification_projection_mismatch")
+    if expected_source_kind == "fact":
+        target_kind, target_doc_id, field = "answer_support", None, None
+    else:
+        target_kind = "field_value"
+        target_doc_id = object.__getattribute__(raw_target, "doc_id")
+        field = object.__getattribute__(raw_target, "field")
+    anchors = object.__getattribute__(fusion_receipt, "ordered_stable_anchors")
+    issuance_key = (
+        "semantic-v1",
+        expected_source_kind,
+        id(object.__getattribute__(retrieval_authority, "source")),
+        ordinal,
+        id(fusion_receipt),
+        id(store),
+        id(config),
+        id(runtime),
+    )
+    return _create_semantic_verification_obligation(
+        source_kind=expected_source_kind,
+        target_kind=target_kind,
+        obligation_key=object.__getattribute__(obligation, "obligation_key"),
+        target_doc_id=target_doc_id,
+        field=field,
+        owner_binding_sha256=object.__getattribute__(
+            obligation, "execution_binding_sha256"
+        ),
+        retrieval_obligation_sha256=object.__getattribute__(
+            obligation, "obligation_sha256"
+        ),
+        candidate_receipt_sha256=object.__getattribute__(
+            fusion_receipt, "receipt_sha256"
+        ),
+        source_state=None,
+        raw_query=raw_query,
+        candidate_evidence_ids=candidates,
+        ordered_stable_anchors=anchors,
+        issuance_key=issuance_key,
+        source=object.__getattribute__(retrieval_authority, "source"),
+        candidate_receipt=fusion_receipt,
+        retrieval_obligation=obligation,
+        fusion_receipt=fusion_receipt,
+        dense_receipt=object.__getattribute__(fusion_authority, "dense_receipt"),
+        lexical_receipt=object.__getattribute__(fusion_authority, "lexical_receipt"),
+        registry=None,
+        policy=None,
+        store=store,
+        config=config,
+        runtime=runtime,
+        verifier_authority=object.__getattribute__(runtime_authority, "verifier"),
+    )
+
+
+def issue_fact_semantic_verification_obligation(
+    *,
+    obligation: RetrievalObligation,
+    fusion_receipt: FusionReceipt,
+    store: EvidenceStore,
+    config: HarnessExecutionConfig,
+    runtime: HarnessRuntimeBinding,
+    _dependency_checker=None,
+    _dependency_checker_code=None,
+) -> SemanticVerificationObligation:
+    _semantic_public_entry(_dependency_checker, _dependency_checker_code)
+    return _issue_retrieval_semantic_verification_obligation(
+        expected_source_kind="fact",
+        obligation=obligation,
+        fusion_receipt=fusion_receipt,
+        store=store,
+        config=config,
+        runtime=runtime,
+    )
+
+
+def issue_compare_semantic_verification_obligation(
+    *,
+    obligation: RetrievalObligation,
+    fusion_receipt: FusionReceipt,
+    store: EvidenceStore,
+    config: HarnessExecutionConfig,
+    runtime: HarnessRuntimeBinding,
+    _dependency_checker=None,
+    _dependency_checker_code=None,
+) -> SemanticVerificationObligation:
+    _semantic_public_entry(_dependency_checker, _dependency_checker_code)
+    return _issue_retrieval_semantic_verification_obligation(
+        expected_source_kind="compare",
+        obligation=obligation,
+        fusion_receipt=fusion_receipt,
+        store=store,
+        config=config,
+        runtime=runtime,
+    )
+
+
+def issue_followup_semantic_verification_obligation(
+    *,
+    bound: BoundFollowup,
+    outcome: FollowupRetrievalOutcome,
+    obligation_key: str,
+    store: EvidenceStore,
+    registry: RuleRegistry,
+    policy: FollowupEvidencePolicy,
+    config: HarnessExecutionConfig,
+    runtime: HarnessRuntimeBinding,
+    _dependency_checker=None,
+    _dependency_checker_code=None,
+) -> SemanticVerificationObligation:
+    _semantic_public_entry(_dependency_checker, _dependency_checker_code)
+    runtime_authority = _semantic_common_preflight(
+        store=store, config=config, runtime=runtime
+    )
+    state, target_kind, target_doc_id, field, candidates = (
+        _derive_followup_semantic_target(
+            bound=bound,
+            outcome=outcome,
+            obligation_key=obligation_key,
+            store=store,
+            registry=registry,
+            policy=policy,
+        )
+    )
+    raw_query = object.__getattribute__(
+        object.__getattribute__(bound, "plan"), "normalized_query"
+    )
+    outcome_sha256 = _canonical_sha256(outcome.to_dict())
+    issuance_key = (
+        "semantic-v1",
+        "follow_up",
+        id(bound),
+        id(outcome),
+        obligation_key,
+        id(store),
+        id(config),
+        id(runtime),
+    )
+    return _create_semantic_verification_obligation(
+        source_kind="follow_up",
+        target_kind=target_kind,
+        obligation_key=obligation_key,
+        target_doc_id=target_doc_id,
+        field=field,
+        owner_binding_sha256=object.__getattribute__(bound, "binding_sha256"),
+        retrieval_obligation_sha256=None,
+        candidate_receipt_sha256=outcome_sha256,
+        source_state=state,
+        raw_query=raw_query,
+        candidate_evidence_ids=candidates,
+        ordered_stable_anchors=tuple(
+            _stable_anchor(store.get(evidence_id)) for evidence_id in candidates
+        ),
+        issuance_key=issuance_key,
+        source=bound,
+        candidate_receipt=outcome,
+        retrieval_obligation=None,
+        fusion_receipt=None,
+        dense_receipt=None,
+        lexical_receipt=None,
+        registry=registry,
+        policy=policy,
+        store=store,
+        config=config,
+        runtime=runtime,
+        verifier_authority=object.__getattribute__(runtime_authority, "verifier"),
+    )
+
+
+def _validate_semantic_verification_obligation_exact(
+    *,
+    obligation: SemanticVerificationObligation,
+    store: EvidenceStore,
+    config: HarnessExecutionConfig,
+    runtime: HarnessRuntimeBinding,
+) -> _SemanticVerificationObligationAuthority:
+    runtime_authority = _semantic_common_preflight(
+        store=store, config=config, runtime=runtime
+    )
+    _validate_semantic_verification_obligation_payload(obligation)
+    authority = _read_semantic_obligation_authority(obligation)
+    if (
+        object.__getattribute__(authority, "store") is not store
+        or object.__getattribute__(authority, "config") is not config
+        or object.__getattribute__(authority, "runtime") is not runtime
+        or object.__getattribute__(authority, "verifier_authority")
+        is not object.__getattribute__(runtime_authority, "verifier")
+    ):
+        raise ValueError("semantic_verification_obligation_dependency_identity_mismatch")
+    if object.__getattribute__(authority, "issued_payload_sha256") != _canonical_sha256(
+        obligation.to_dict()
+    ):
+        raise ValueError("semantic_verification_obligation_authority_drift")
+    evidence = object.__getattribute__(authority, "evidence")
+    supplied = object.__getattribute__(obligation, "supplied_evidence_ids")
+    roles = object.__getattribute__(authority, "roles")
+    if (
+        type(evidence) is not tuple
+        or len(evidence) != len(supplied)
+        or type(roles) is not tuple
+        or roles != tuple("candidate" for _ in evidence)
+    ):
+        raise ValueError("semantic_verification_evidence_authority_drift")
+    for index, item in enumerate(evidence):
+        if (
+            type(item) is not Evidence
+            or store.get(supplied[index]) is not item
+            or _stable_anchor(item).to_dict()
+            != object.__getattribute__(
+                obligation, "ordered_stable_anchors"
+            )[index].to_dict()
+        ):
+            raise ValueError("semantic_verification_evidence_authority_drift")
+    raw_query = object.__getattribute__(authority, "raw_query")
+    if object.__getattribute__(obligation, "query_sha256") != _query_sha256(raw_query):
+        raise ValueError("semantic_verification_query_authority_drift")
+    source_kind = object.__getattribute__(obligation, "source_kind")
+    if source_kind in {"fact", "compare"}:
+        retrieval = object.__getattribute__(authority, "retrieval_obligation")
+        fusion = object.__getattribute__(authority, "fusion_receipt")
+        dense = object.__getattribute__(authority, "dense_receipt")
+        lexical = object.__getattribute__(authority, "lexical_receipt")
+        if (
+            type(retrieval) is not RetrievalObligation
+            or type(fusion) is not FusionReceipt
+            or type(dense) is not LaneSearchReceipt
+            or type(lexical) is not LaneSearchReceipt
+        ):
+            raise ValueError("semantic_verification_source_authority_drift")
+        validate_fusion_receipt(
+            receipt=fusion,
+            obligation=retrieval,
+            dense_receipt=dense,
+            lexical_receipt=lexical,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+        retrieval_authority = _require_retrieval_obligation_authority(retrieval)
+        if object.__getattribute__(retrieval_authority, "source") is not object.__getattribute__(authority, "source"):
+            raise ValueError("semantic_verification_source_authority_drift")
+        if (
+            object.__getattribute__(fusion, "ordered_evidence_ids")
+            != object.__getattribute__(obligation, "candidate_evidence_ids")
+            or object.__getattribute__(fusion, "receipt_sha256")
+            != object.__getattribute__(obligation, "candidate_receipt_sha256")
+        ):
+            raise ValueError("semantic_verification_candidate_receipt_drift")
+        projected = object.__getattribute__(retrieval_authority, "source_projector")(
+            bound=object.__getattribute__(retrieval_authority, "source"), store=store
+        )
+        normalized = _normalized_owner_projections(
+            source_kind=source_kind, projected=projected
+        )
+        ordinal = object.__getattribute__(retrieval_authority, "projection_ordinal")
+        raw_target = projected if source_kind == "fact" else projected[ordinal - 1]
+        if normalized[ordinal - 1]["query"] != raw_query:
+            raise ValueError("semantic_verification_projection_mismatch")
+        if source_kind == "compare" and (
+            object.__getattribute__(raw_target, "doc_id")
+            != object.__getattribute__(obligation, "target_doc_id")
+            or object.__getattribute__(raw_target, "field")
+            != object.__getattribute__(obligation, "field")
+        ):
+            raise ValueError("semantic_verification_projection_mismatch")
+    else:
+        bound = object.__getattribute__(authority, "source")
+        outcome = object.__getattribute__(authority, "candidate_receipt")
+        registry = object.__getattribute__(authority, "registry")
+        policy = object.__getattribute__(authority, "policy")
+        rebuilt, target_kind, target_doc_id, field, candidates = (
+            _derive_followup_semantic_target(
+                bound=bound,
+                outcome=outcome,
+                obligation_key=object.__getattribute__(obligation, "obligation_key"),
+                store=store,
+                registry=registry,
+                policy=policy,
+            )
+        )
+        source_state = object.__getattribute__(authority, "source_state")
+        if (
+            type(source_state) is not HarnessState
+            or rebuilt.to_dict() != source_state.to_dict()
+            or object.__getattribute__(source_state, "state_sha256")
+            != object.__getattribute__(obligation, "source_state_sha256")
+            or target_kind != object.__getattribute__(obligation, "target_kind")
+            or target_doc_id != object.__getattribute__(obligation, "target_doc_id")
+            or field != object.__getattribute__(obligation, "field")
+            or candidates != object.__getattribute__(obligation, "candidate_evidence_ids")
+            or _canonical_sha256(outcome.to_dict())
+            != object.__getattribute__(obligation, "candidate_receipt_sha256")
+            or object.__getattribute__(bound, "binding_sha256")
+            != object.__getattribute__(obligation, "owner_binding_sha256")
+        ):
+            raise ValueError("semantic_verification_followup_source_drift")
+        validate_harness_state(state=source_state, store=store)
+    return authority
+
+
+def validate_semantic_verification_obligation(
+    *,
+    obligation: SemanticVerificationObligation,
+    store: EvidenceStore,
+    config: HarnessExecutionConfig,
+    runtime: HarnessRuntimeBinding,
+    _dependency_checker=None,
+    _dependency_checker_code=None,
+) -> None:
+    _semantic_public_entry(_dependency_checker, _dependency_checker_code)
+    _validate_semantic_verification_obligation_exact(
+        obligation=obligation, store=store, config=config, runtime=runtime
+    )
+
+
+def _validate_snapshot_callable(
+    function: object,
+    pin: tuple[object, ...],
+    code: str,
+) -> None:
+    if type(function) is not FunctionType or type(pin) is not tuple or len(pin) != 8:
+        raise ValueError(code)
+    (
+        issued,
+        name,
+        issued_code,
+        defaults,
+        kwdefaults,
+        kwdefault_items,
+        function_globals,
+        closure,
+    ) = pin
+    current_kwdefaults = object.__getattribute__(function, "__kwdefaults__")
+    if (
+        function is not issued
+        or object.__getattribute__(function, "__name__") != name
+        or object.__getattribute__(function, "__code__") is not issued_code
+        or object.__getattribute__(function, "__defaults__") is not defaults
+        or current_kwdefaults is not kwdefaults
+        or (
+            None
+            if current_kwdefaults is None
+            else tuple(sorted(dict.items(current_kwdefaults)))
+        )
+        != kwdefault_items
+        or object.__getattribute__(function, "__globals__") is not function_globals
+        or object.__getattribute__(function, "__closure__") is not closure
+    ):
+        raise ValueError(code)
+
+
+def _validate_snapshot_class(
+    owner: object,
+    pin: tuple[object, ...],
+    code: str,
+) -> None:
+    if type(owner) is not type or type(pin) is not tuple or len(pin) != 2:
+        raise ValueError(code)
+    names, members = pin
+    namespace = type.__getattribute__(owner, "__dict__")
+    if tuple(sorted(namespace)) != names:
+        raise ValueError(code)
+    for name, issued, issued_type, callable_pins in members:
+        current = namespace.get(name)
+        if current is not issued or type(current) is not issued_type:
+            raise ValueError(code)
+        current_callables: list[tuple[str, FunctionType]] = []
+        if type(current) is FunctionType:
+            current_callables.append(("function", current))
+        elif type(current) in {classmethod, staticmethod}:
+            current_callables.append(
+                ("wrapped", object.__getattribute__(current, "__func__"))
+            )
+        elif type(current) is property:
+            for role in ("fget", "fset", "fdel"):
+                function = object.__getattribute__(current, role)
+                if function is not None:
+                    current_callables.append((role, function))
+        if len(current_callables) != len(callable_pins):
+            raise ValueError(code)
+        for (role, function), (pinned_role, callable_pin) in zip(
+            current_callables, callable_pins
+        ):
+            if role != pinned_role:
+                raise ValueError(code)
+            _validate_snapshot_callable(function, callable_pin, code)
+
+
+def _validate_action_effects_dependency() -> None:
+    module = _ACTION_EFFECTS_MODULE
+    snapshot = _ISSUED_ACTION_EFFECTS_MODULE_PIN
+    if type(snapshot) is not tuple or len(snapshot) != 2:
+        raise ValueError("semantic_normalizer_dependency_drift")
+    names, members = snapshot
+    namespace = object.__getattribute__(module, "__dict__")
+    if tuple(sorted(name for name in namespace if not name.startswith("__"))) != names:
+        raise ValueError("semantic_normalizer_dependency_drift")
+    for name, issued, issued_type, callable_pin, class_pin in members:
+        current = dict.get(namespace, name)
+        if current is not issued or type(current) is not issued_type:
+            raise ValueError("semantic_normalizer_dependency_drift")
+        if callable_pin is not None:
+            _validate_snapshot_callable(
+                current, callable_pin, "semantic_normalizer_dependency_drift"
+            )
+        if class_pin is not None:
+            _validate_snapshot_class(
+                current, class_pin, "semantic_normalizer_dependency_drift"
+            )
+    if (
+        dict.get(namespace, "_normalize_semantic_verifier_result")
+        is not _ISSUED_ACTION_EFFECTS_NORMALIZER
+        or dict.get(namespace, "_SemanticVerificationProjection")
+        is not _ISSUED_ACTION_EFFECTS_PROJECTION_CLASS
+        or dict.get(namespace, "SemanticValueSupport") is not SemanticValueSupport
+    ):
+        raise ValueError("semantic_normalizer_dependency_drift")
+
+
+@dataclass(frozen=True, slots=True, weakref_slot=True, init=False)
+class SemanticVerificationReceipt:
+    stage: str
+    source_kind: str
+    target_kind: str
+    obligation_key: str
+    target_doc_id: str | None
+    field: str | None
+    semantic_obligation_sha256: str
+    owner_binding_sha256: str
+    candidate_receipt_sha256: str
+    query_sha256: str
+    evidence_store_sha256: str
+    execution_config_sha256: str
+    runtime_binding_sha256: str
+    verifier_id: str
+    verifier_implementation_sha256: str
+    verifier_config_sha256: str
+    supplied_evidence_ids: tuple[str, ...]
+    ordered_stable_anchors: tuple[StableEvidenceAnchor, ...]
+    disposition: str
+    verified_evidence_ids: tuple[str, ...]
+    contradicted_evidence_ids: tuple[str, ...]
+    values: tuple[SemanticValueSupport, ...]
+    call_performed: bool
+    result_sha256: str
+    receipt_sha256: str
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        raise TypeError("semantic_verification_receipt_factory_required")
+
+    @classmethod
+    def _create(
+        cls,
+        *,
+        payload: Mapping[str, Any],
+        _token: object,
+    ) -> SemanticVerificationReceipt:
+        if _token is not _SEMANTIC_RECEIPT_TOKEN:
+            raise ValueError("semantic_verification_receipt_factory_required")
+        result = object.__new__(cls)
+        for name in cls.__slots__:
+            if name != "__weakref__":
+                object.__setattr__(result, name, payload[name])
+        _validate_semantic_verification_receipt_payload(result)
+        return result
+
+    def to_dict(self) -> dict[str, Any]:
+        _validate_semantic_verification_receipt_payload(self)
+        return _semantic_verification_receipt_payload(self, include_hash=True)
+
+
+def _semantic_verification_receipt_payload(
+    receipt: SemanticVerificationReceipt,
+    *,
+    include_hash: bool,
+) -> dict[str, Any]:
+    payload = {
+        "schema_version": SCHEMA_VERSION,
+        "stage": object.__getattribute__(receipt, "stage"),
+        "source_kind": object.__getattribute__(receipt, "source_kind"),
+        "target_kind": object.__getattribute__(receipt, "target_kind"),
+        "obligation_key": object.__getattribute__(receipt, "obligation_key"),
+        "target_doc_id": object.__getattribute__(receipt, "target_doc_id"),
+        "field": object.__getattribute__(receipt, "field"),
+        "semantic_obligation_sha256": object.__getattribute__(
+            receipt, "semantic_obligation_sha256"
+        ),
+        "owner_binding_sha256": object.__getattribute__(
+            receipt, "owner_binding_sha256"
+        ),
+        "candidate_receipt_sha256": object.__getattribute__(
+            receipt, "candidate_receipt_sha256"
+        ),
+        "query_sha256": object.__getattribute__(receipt, "query_sha256"),
+        "evidence_store_sha256": object.__getattribute__(
+            receipt, "evidence_store_sha256"
+        ),
+        "execution_config_sha256": object.__getattribute__(
+            receipt, "execution_config_sha256"
+        ),
+        "runtime_binding_sha256": object.__getattribute__(
+            receipt, "runtime_binding_sha256"
+        ),
+        "verifier_id": object.__getattribute__(receipt, "verifier_id"),
+        "verifier_implementation_sha256": object.__getattribute__(
+            receipt, "verifier_implementation_sha256"
+        ),
+        "verifier_config_sha256": object.__getattribute__(
+            receipt, "verifier_config_sha256"
+        ),
+        "supplied_evidence_ids": list(
+            object.__getattribute__(receipt, "supplied_evidence_ids")
+        ),
+        "ordered_stable_anchors": [
+            anchor.to_dict()
+            for anchor in object.__getattribute__(
+                receipt, "ordered_stable_anchors"
+            )
+        ],
+        "disposition": object.__getattribute__(receipt, "disposition"),
+        "verified_evidence_ids": list(
+            object.__getattribute__(receipt, "verified_evidence_ids")
+        ),
+        "contradicted_evidence_ids": list(
+            object.__getattribute__(receipt, "contradicted_evidence_ids")
+        ),
+        "values": [
+            value.to_dict()
+            for value in object.__getattribute__(receipt, "values")
+        ],
+        "call_performed": object.__getattribute__(receipt, "call_performed"),
+        "result_sha256": object.__getattribute__(receipt, "result_sha256"),
+    }
+    if include_hash:
+        payload["receipt_sha256"] = object.__getattribute__(
+            receipt, "receipt_sha256"
+        )
+    return payload
+
+
+def _validate_semantic_verification_receipt_payload(
+    receipt: SemanticVerificationReceipt,
+) -> None:
+    if type(receipt) is not SemanticVerificationReceipt:
+        raise TypeError("semantic_verification_receipt_required")
+    if object.__getattribute__(receipt, "stage") != "semantic_verification":
+        raise ValueError("invalid_semantic_verification_stage")
+    disposition = object.__getattribute__(receipt, "disposition")
+    if disposition not in _SEMANTIC_DISPOSITIONS:
+        raise ValueError("invalid_semantic_disposition")
+    for name in (
+        "semantic_obligation_sha256",
+        "owner_binding_sha256",
+        "candidate_receipt_sha256",
+        "query_sha256",
+        "evidence_store_sha256",
+        "execution_config_sha256",
+        "runtime_binding_sha256",
+        "verifier_implementation_sha256",
+        "verifier_config_sha256",
+        "result_sha256",
+        "receipt_sha256",
+    ):
+        _require_hash(object.__getattribute__(receipt, name), f"invalid_{name}")
+    supplied = _exact_string_tuple_value(
+        object.__getattribute__(receipt, "supplied_evidence_ids"),
+        "semantic_receipt_supplied_ids",
+        allow_empty=False,
+    )
+    verified = _exact_string_tuple_value(
+        object.__getattribute__(receipt, "verified_evidence_ids"),
+        "semantic_receipt_verified_ids",
+        allow_empty=True,
+    )
+    contradicted = _exact_string_tuple_value(
+        object.__getattribute__(receipt, "contradicted_evidence_ids"),
+        "semantic_receipt_contradicted_ids",
+        allow_empty=True,
+    )
+    if not set(verified).issubset(supplied) or not set(contradicted).issubset(supplied):
+        raise ValueError("semantic_receipt_evidence_not_supplied")
+    values = object.__getattribute__(receipt, "values")
+    if type(values) is not tuple or any(
+        type(value) is not SemanticValueSupport for value in values
+    ):
+        raise TypeError("semantic_receipt_values_required")
+    call_performed = object.__getattribute__(receipt, "call_performed")
+    if type(call_performed) is not bool:
+        raise TypeError("semantic_receipt_call_performed_bool_required")
+    verifier_id = object.__getattribute__(receipt, "verifier_id")
+    if disposition == "unavailable":
+        if call_performed or verifier_id != "none" or verified or contradicted or values:
+            raise ValueError("semantic_unavailable_receipt_mismatch")
+    elif not call_performed or verifier_id == "none":
+        raise ValueError("semantic_called_receipt_mismatch")
+    if disposition == "supported" and (not verified or contradicted):
+        raise ValueError("semantic_supported_receipt_mismatch")
+    if disposition == "contradicted" and (not contradicted or verified):
+        raise ValueError("semantic_contradicted_receipt_mismatch")
+    if disposition == "unsupported" and (verified or contradicted or values):
+        raise ValueError("semantic_unsupported_receipt_mismatch")
+    anchors = object.__getattribute__(receipt, "ordered_stable_anchors")
+    if type(anchors) is not tuple or len(anchors) != len(supplied) or any(
+        type(anchor) is not StableEvidenceAnchor for anchor in anchors
+    ):
+        raise ValueError("semantic_receipt_anchor_mismatch")
+    expected = _canonical_sha256(
+        _semantic_verification_receipt_payload(receipt, include_hash=False)
+    )
+    if object.__getattribute__(receipt, "receipt_sha256") != expected:
+        raise ValueError("semantic_verification_receipt_hash_mismatch")
+
+
+@dataclass(frozen=True, slots=True)
+class _SemanticVerificationReceiptAuthority:
+    weak: ReferenceType[SemanticVerificationReceipt]
+    obligation: SemanticVerificationObligation
+    store: EvidenceStore
+    config: HarnessExecutionConfig
+    runtime: HarnessRuntimeBinding
+    projection: object | None
+    execution_key: tuple[object, ...]
+    issued_payload_sha256: str
+
+
+_SEMANTIC_RECEIPT_AUTHORITIES: dict[int, _SemanticVerificationReceiptAuthority] = {}
+_ISSUED_SEMANTIC_RECEIPT_AUTHORITIES = _SEMANTIC_RECEIPT_AUTHORITIES
+
+
+def _build_semantic_receipt_accessors(
+    visible: dict[int, _SemanticVerificationReceiptAuthority],
+) -> tuple[FunctionType, FunctionType, FunctionType]:
+    shadow: dict[int, tuple[object, ...]] = {}
+    authority_lock = Lock()
+
+    def snapshot(authority: _SemanticVerificationReceiptAuthority) -> tuple[object, ...]:
+        return tuple(
+            object.__getattribute__(authority, name)
+            for name in _SemanticVerificationReceiptAuthority.__slots__
+        )
+
+    def register(
+        receipt: SemanticVerificationReceipt,
+        authority: _SemanticVerificationReceiptAuthority,
+    ) -> None:
+        with authority_lock:
+            identity = id(receipt)
+            if dict.get(visible, identity) is not None or dict.get(shadow, identity) is not None:
+                raise ValueError("semantic_verification_receipt_authority_drift")
+            dict.__setitem__(visible, identity, authority)
+            dict.__setitem__(shadow, identity, snapshot(authority))
+
+    def read(receipt: SemanticVerificationReceipt) -> _SemanticVerificationReceiptAuthority:
+        with authority_lock:
+            identity = id(receipt)
+            current = dict.get(visible, identity)
+            sealed = dict.get(shadow, identity)
+            if (
+                type(current) is not _SemanticVerificationReceiptAuthority
+                or type(sealed) is not tuple
+                or object.__getattribute__(current, "weak")() is not receipt
+                or len(sealed) != len(_SemanticVerificationReceiptAuthority.__slots__)
+                or any(
+                    object.__getattribute__(current, name) is not value
+                    for name, value in zip(
+                        _SemanticVerificationReceiptAuthority.__slots__, sealed
+                    )
+                )
+            ):
+                raise ValueError("semantic_verification_receipt_authority_required")
+            return current
+
+    def drop(identity: int, dead: ReferenceType[SemanticVerificationReceipt]) -> None:
+        with authority_lock:
+            sealed = dict.get(shadow, identity)
+            if type(sealed) is tuple and sealed and tuple.__getitem__(sealed, 0) is dead:
+                dict.pop(visible, identity, None)
+                dict.pop(shadow, identity, None)
+
+    return register, read, drop
+
+
+(
+    _register_semantic_receipt_authority,
+    _read_semantic_receipt_authority,
+    _drop_semantic_receipt_authority,
+) = _build_semantic_receipt_accessors(_ISSUED_SEMANTIC_RECEIPT_AUTHORITIES)
+
+
+def _validate_semantic_verifier_protocol(
+    verifier: _ComponentAuthority,
+) -> None:
+    _validate_component_authority(verifier)
+    component = object.__getattribute__(verifier, "component")
+    if component is None:
+        return
+    method = object.__getattribute__(verifier, "method")
+    code = object.__getattribute__(verifier, "method_code")
+    if (
+        type(method) is not FunctionType
+        or type(code) is not CodeType
+        or object.__getattribute__(method, "__defaults__") is not None
+        or object.__getattribute__(method, "__kwdefaults__") is not None
+        or object.__getattribute__(code, "co_argcount") != 2
+        or object.__getattribute__(code, "co_posonlyargcount") != 0
+        or object.__getattribute__(code, "co_kwonlyargcount") != 0
+        or object.__getattribute__(code, "co_flags") & 0x0C
+    ):
+        raise ValueError("semantic_verifier_protocol_mismatch")
+
+
+def _semantic_verifier_request(
+    *,
+    obligation: SemanticVerificationObligation,
+    authority: _SemanticVerificationObligationAuthority,
+) -> _SemanticVerifierRequest:
+    evidence = tuple(
+        _SemanticVerifierEvidence._create(
+            index=index,
+            role=object.__getattribute__(authority, "roles")[index],
+            doc_id=object.__getattribute__(item, "doc_id"),
+            content_kind=object.__getattribute__(item, "kind"),
+            content=object.__getattribute__(item, "text"),
+            _token=_SEMANTIC_REQUEST_TOKEN,
+        )
+        for index, item in enumerate(object.__getattribute__(authority, "evidence"))
+    )
+    if any(
+        item.index != index
+        or item.role not in _SEMANTIC_ROLES
+        or type(item.doc_id) is not str
+        or not item.doc_id
+        or type(item.content_kind) is not str
+        or type(item.content) is not str
+        for index, item in enumerate(evidence)
+    ):
+        raise ValueError("semantic_verifier_request_mismatch")
+    return _SemanticVerifierRequest._create(
+        source_kind=object.__getattribute__(obligation, "source_kind"),
+        target_kind=object.__getattribute__(obligation, "target_kind"),
+        obligation_key=object.__getattribute__(obligation, "obligation_key"),
+        target_doc_id=object.__getattribute__(obligation, "target_doc_id"),
+        field=object.__getattribute__(obligation, "field"),
+        query=object.__getattribute__(authority, "raw_query"),
+        evidence=evidence,
+        _token=_SEMANTIC_REQUEST_TOKEN,
+    )
+
+
+def _mint_semantic_verification_receipt(
+    *,
+    obligation: SemanticVerificationObligation,
+    authority: _SemanticVerificationObligationAuthority,
+    projection: object | None,
+    disposition: str,
+    call_performed: bool,
+    result_sha256: str,
+    execution_key: tuple[object, ...],
+) -> SemanticVerificationReceipt:
+    runtime = object.__getattribute__(authority, "runtime")
+    if projection is None:
+        verified: tuple[str, ...] = ()
+        contradicted: tuple[str, ...] = ()
+        values: tuple[SemanticValueSupport, ...] = ()
+    else:
+        if type(projection) is not _ISSUED_ACTION_EFFECTS_PROJECTION_CLASS:
+            raise ValueError("semantic_verifier_projection_mismatch")
+        verified = object.__getattribute__(projection, "verified_evidence_ids")
+        contradicted = object.__getattribute__(
+            projection, "contradicted_evidence_ids"
+        )
+        values = object.__getattribute__(projection, "values")
+    payload = {
+        "stage": "semantic_verification",
+        "source_kind": object.__getattribute__(obligation, "source_kind"),
+        "target_kind": object.__getattribute__(obligation, "target_kind"),
+        "obligation_key": object.__getattribute__(obligation, "obligation_key"),
+        "target_doc_id": object.__getattribute__(obligation, "target_doc_id"),
+        "field": object.__getattribute__(obligation, "field"),
+        "semantic_obligation_sha256": object.__getattribute__(
+            obligation, "obligation_sha256"
+        ),
+        "owner_binding_sha256": object.__getattribute__(
+            obligation, "owner_binding_sha256"
+        ),
+        "candidate_receipt_sha256": object.__getattribute__(
+            obligation, "candidate_receipt_sha256"
+        ),
+        "query_sha256": object.__getattribute__(obligation, "query_sha256"),
+        "evidence_store_sha256": object.__getattribute__(
+            obligation, "evidence_store_sha256"
+        ),
+        "execution_config_sha256": object.__getattribute__(
+            obligation, "execution_config_sha256"
+        ),
+        "runtime_binding_sha256": object.__getattribute__(
+            obligation, "runtime_binding_sha256"
+        ),
+        "verifier_id": object.__getattribute__(runtime, "verifier_id"),
+        "verifier_implementation_sha256": object.__getattribute__(
+            runtime, "verifier_implementation_sha256"
+        ),
+        "verifier_config_sha256": object.__getattribute__(
+            runtime, "verifier_config_sha256"
+        ),
+        "supplied_evidence_ids": object.__getattribute__(
+            obligation, "supplied_evidence_ids"
+        ),
+        "ordered_stable_anchors": object.__getattribute__(
+            obligation, "ordered_stable_anchors"
+        ),
+        "disposition": disposition,
+        "verified_evidence_ids": verified,
+        "contradicted_evidence_ids": contradicted,
+        "values": values,
+        "call_performed": call_performed,
+        "result_sha256": result_sha256,
+    }
+    temporary = object.__new__(SemanticVerificationReceipt)
+    for name, value in payload.items():
+        object.__setattr__(temporary, name, value)
+    object.__setattr__(temporary, "receipt_sha256", "0" * 64)
+    payload["receipt_sha256"] = _canonical_sha256(
+        _semantic_verification_receipt_payload(temporary, include_hash=False)
+    )
+    receipt = SemanticVerificationReceipt._create(
+        payload=payload, _token=_SEMANTIC_RECEIPT_TOKEN
+    )
+    identity = id(receipt)
+    weak = ref(
+        receipt,
+        lambda dead, identity=identity: _drop_semantic_receipt_authority(
+            identity, dead
+        ),
+    )
+    _register_semantic_receipt_authority(
+        receipt,
+        _SemanticVerificationReceiptAuthority(
+            weak=weak,
+            obligation=obligation,
+            store=object.__getattribute__(authority, "store"),
+            config=object.__getattribute__(authority, "config"),
+            runtime=runtime,
+            projection=projection,
+            execution_key=execution_key,
+            issued_payload_sha256=_canonical_sha256(receipt.to_dict()),
+        ),
+    )
+    return receipt
+
+
+def execute_semantic_verification(
+    *,
+    obligation: SemanticVerificationObligation,
+    store: EvidenceStore,
+    config: HarnessExecutionConfig,
+    runtime: HarnessRuntimeBinding,
+    _dependency_checker=None,
+    _dependency_checker_code=None,
+) -> SemanticVerificationReceipt:
+    """Execute one exact semantic verifier attempt.
+
+    This entry remains module-visible but is intentionally not re-exported from
+    ``midprojectrag.orchestration`` until the EH2.6.d deadline/action permit owns
+    production ordering.
+    """
+
+    _semantic_public_entry(_dependency_checker, _dependency_checker_code)
+    _validate_action_effects_dependency()
+    authority = _validate_semantic_verification_obligation_exact(
+        obligation=obligation, store=store, config=config, runtime=runtime
+    )
+    verifier = object.__getattribute__(authority, "verifier_authority")
+    _validate_semantic_verifier_protocol(verifier)
+    execution_key = _semantic_execution_key(authority, obligation)
+    _transition_semantic_execution(execution_key, None, "pending")
+    if object.__getattribute__(verifier, "component") is None:
+        result_sha256 = _canonical_sha256(
+            {
+                "schema_version": SCHEMA_VERSION,
+                "disposition": "unavailable",
+                "semantic_obligation_sha256": object.__getattribute__(
+                    obligation, "obligation_sha256"
+                ),
+            }
+        )
+        try:
+            receipt = _mint_semantic_verification_receipt(
+                obligation=obligation,
+                authority=authority,
+                projection=None,
+                disposition="unavailable",
+                call_performed=False,
+                result_sha256=result_sha256,
+                execution_key=execution_key,
+            )
+        except Exception:
+            _transition_semantic_execution(execution_key, "pending", "failed")
+            raise ValueError("semantic_verifier_contract_error") from None
+        _transition_semantic_execution(execution_key, "pending", "completed")
+        return receipt
+    request = _semantic_verifier_request(
+        obligation=obligation, authority=authority
+    )
+    try:
+        raw_result = object.__getattribute__(verifier, "method")(
+            object.__getattribute__(verifier, "component"), request
+        )
+    except Exception:
+        _transition_semantic_execution(execution_key, "pending", "failed")
+        raise ValueError("semantic_verifier_provider_error") from None
+    try:
+        _semantic_public_entry(_dependency_checker, _dependency_checker_code)
+        _validate_action_effects_dependency()
+        authority_after = _validate_semantic_verification_obligation_exact(
+            obligation=obligation, store=store, config=config, runtime=runtime
+        )
+        if authority_after is not authority:
+            raise ValueError("semantic_verification_obligation_authority_drift")
+        projection = _ISSUED_ACTION_EFFECTS_NORMALIZER(
+            raw_result,
+            field=object.__getattribute__(obligation, "field"),
+            ordered_supplied_ids=object.__getattribute__(
+                obligation, "supplied_evidence_ids"
+            ),
+            promotable_ids=(
+                object.__getattribute__(obligation, "candidate_evidence_ids")
+                + object.__getattribute__(obligation, "bridge_evidence_ids")
+            ),
+        )
+    except Exception:
+        _transition_semantic_execution(execution_key, "pending", "failed")
+        raise ValueError("semantic_verifier_contract_error") from None
+    disposition = object.__getattribute__(projection, "disposition")
+    result_sha256 = object.__getattribute__(projection, "result_sha256")
+    try:
+        receipt = _mint_semantic_verification_receipt(
+            obligation=obligation,
+            authority=authority,
+            projection=projection,
+            disposition=disposition,
+            call_performed=True,
+            result_sha256=result_sha256,
+            execution_key=execution_key,
+        )
+    except Exception:
+        _transition_semantic_execution(execution_key, "pending", "failed")
+        raise ValueError("semantic_verifier_contract_error") from None
+    _transition_semantic_execution(execution_key, "pending", "completed")
+    return receipt
+
+
+def validate_semantic_verification_receipt(
+    *,
+    receipt: SemanticVerificationReceipt,
+    obligation: SemanticVerificationObligation,
+    store: EvidenceStore,
+    config: HarnessExecutionConfig,
+    runtime: HarnessRuntimeBinding,
+    _dependency_checker=None,
+    _dependency_checker_code=None,
+) -> None:
+    _semantic_public_entry(_dependency_checker, _dependency_checker_code)
+    _validate_action_effects_dependency()
+    obligation_authority = _validate_semantic_verification_obligation_exact(
+        obligation=obligation, store=store, config=config, runtime=runtime
+    )
+    _validate_semantic_verification_receipt_payload(receipt)
+    authority = _read_semantic_receipt_authority(receipt)
+    execution_key = _semantic_execution_key(obligation_authority, obligation)
+    if (
+        object.__getattribute__(authority, "obligation") is not obligation
+        or object.__getattribute__(authority, "store") is not store
+        or object.__getattribute__(authority, "config") is not config
+        or object.__getattribute__(authority, "runtime") is not runtime
+        or object.__getattribute__(authority, "execution_key") != execution_key
+        or _semantic_execution_status(execution_key) != "completed"
+    ):
+        raise ValueError("semantic_verification_receipt_dependency_identity_mismatch")
+    if object.__getattribute__(authority, "issued_payload_sha256") != _canonical_sha256(
+        receipt.to_dict()
+    ):
+        raise ValueError("semantic_verification_receipt_authority_drift")
+    for receipt_name, obligation_name in (
+        ("semantic_obligation_sha256", "obligation_sha256"),
+        ("owner_binding_sha256", "owner_binding_sha256"),
+        ("candidate_receipt_sha256", "candidate_receipt_sha256"),
+        ("query_sha256", "query_sha256"),
+        ("evidence_store_sha256", "evidence_store_sha256"),
+        ("execution_config_sha256", "execution_config_sha256"),
+        ("runtime_binding_sha256", "runtime_binding_sha256"),
+        ("supplied_evidence_ids", "supplied_evidence_ids"),
+        ("ordered_stable_anchors", "ordered_stable_anchors"),
+    ):
+        if object.__getattribute__(receipt, receipt_name) != object.__getattribute__(
+            obligation, obligation_name
+        ):
+            raise ValueError("semantic_verification_receipt_obligation_mismatch")
+    projection = object.__getattribute__(authority, "projection")
+    if projection is None:
+        if object.__getattribute__(receipt, "disposition") != "unavailable":
+            raise ValueError("semantic_verification_receipt_projection_mismatch")
+    elif (
+        type(projection) is not _ISSUED_ACTION_EFFECTS_PROJECTION_CLASS
+        or object.__getattribute__(receipt, "disposition")
+        != object.__getattribute__(projection, "disposition")
+        or object.__getattribute__(receipt, "verified_evidence_ids")
+        is not object.__getattribute__(projection, "verified_evidence_ids")
+        or object.__getattribute__(receipt, "contradicted_evidence_ids")
+        is not object.__getattribute__(projection, "contradicted_evidence_ids")
+        or object.__getattribute__(receipt, "values")
+        is not object.__getattribute__(projection, "values")
+        or object.__getattribute__(receipt, "result_sha256")
+        != object.__getattribute__(projection, "result_sha256")
+    ):
+        raise ValueError("semantic_verification_receipt_projection_mismatch")
+
+
 (
     _claim_e0_execution,
     _close_e0_execution,
@@ -8085,6 +9930,24 @@ execute_e0_control.__kwdefaults__.update(_RUNTIME_GATE_PUBLIC_KWDEFAULTS)
 validate_e0_control_receipt.__kwdefaults__.update(
     _RUNTIME_GATE_PUBLIC_KWDEFAULTS
 )
+issue_fact_semantic_verification_obligation.__kwdefaults__.update(
+    _RUNTIME_GATE_PUBLIC_KWDEFAULTS
+)
+issue_compare_semantic_verification_obligation.__kwdefaults__.update(
+    _RUNTIME_GATE_PUBLIC_KWDEFAULTS
+)
+issue_followup_semantic_verification_obligation.__kwdefaults__.update(
+    _RUNTIME_GATE_PUBLIC_KWDEFAULTS
+)
+validate_semantic_verification_obligation.__kwdefaults__.update(
+    _RUNTIME_GATE_PUBLIC_KWDEFAULTS
+)
+execute_semantic_verification.__kwdefaults__.update(
+    _RUNTIME_GATE_PUBLIC_KWDEFAULTS
+)
+validate_semantic_verification_receipt.__kwdefaults__.update(
+    _RUNTIME_GATE_PUBLIC_KWDEFAULTS
+)
 _runtime_for_test_function = type.__getattribute__(
     HarnessRuntimeBinding, "__dict__"
 )["for_test"].__func__
@@ -8106,6 +9969,11 @@ _RUNTIME_GATE_FUNCTION_PINS = tuple(
         (
             "_ISSUED_VALIDATE_EVIDENCE_STORE_SNAPSHOT",
             _ISSUED_VALIDATE_EVIDENCE_STORE_SNAPSHOT,
+        ),
+        ("_require_hash", _require_hash),
+        (
+            "validate_harness_execution_config",
+            validate_harness_execution_config,
         ),
         ("_canonical_sha256", _canonical_sha256),
         ("_stable_code_value", _stable_code_value),
@@ -8361,12 +10229,128 @@ _RUNTIME_GATE_FUNCTION_PINS = tuple(
         ("_mint_e0_control_receipt", _mint_e0_control_receipt),
         ("execute_e0_control", execute_e0_control),
         ("validate_e0_control_receipt", validate_e0_control_receipt),
+        ("build_e1_followup_harness_state", build_e1_followup_harness_state),
+        ("validate_harness_state", validate_harness_state),
+        ("_ACTION_EFFECTS_NORMALIZER", _ACTION_EFFECTS_NORMALIZER),
+        (
+            "_ISSUED_ACTION_EFFECTS_NORMALIZER",
+            _ISSUED_ACTION_EFFECTS_NORMALIZER,
+        ),
+        ("_exact_string_tuple_value", _exact_string_tuple_value),
+        (
+            "_semantic_verification_obligation_payload",
+            _semantic_verification_obligation_payload,
+        ),
+        (
+            "_validate_semantic_verification_obligation_payload",
+            _validate_semantic_verification_obligation_payload,
+        ),
+        (
+            "_build_semantic_obligation_accessors",
+            _build_semantic_obligation_accessors,
+        ),
+        (
+            "_register_semantic_obligation_authority",
+            _register_semantic_obligation_authority,
+        ),
+        (
+            "_read_semantic_obligation_authority",
+            _read_semantic_obligation_authority,
+        ),
+        ("_cached_semantic_obligation", _cached_semantic_obligation),
+        (
+            "_drop_semantic_obligation_authority",
+            _drop_semantic_obligation_authority,
+        ),
+        (
+            "_transition_semantic_execution",
+            _transition_semantic_execution,
+        ),
+        ("_semantic_execution_status", _semantic_execution_status),
+        ("_drop_semantic_source_history", _drop_semantic_source_history),
+        ("_semantic_execution_key", _semantic_execution_key),
+        ("_semantic_public_entry", _semantic_public_entry),
+        ("_semantic_common_preflight", _semantic_common_preflight),
+        (
+            "_derive_followup_semantic_target",
+            _derive_followup_semantic_target,
+        ),
+        (
+            "_create_semantic_verification_obligation",
+            _create_semantic_verification_obligation,
+        ),
+        (
+            "_issue_retrieval_semantic_verification_obligation",
+            _issue_retrieval_semantic_verification_obligation,
+        ),
+        (
+            "issue_fact_semantic_verification_obligation",
+            issue_fact_semantic_verification_obligation,
+        ),
+        (
+            "issue_compare_semantic_verification_obligation",
+            issue_compare_semantic_verification_obligation,
+        ),
+        (
+            "issue_followup_semantic_verification_obligation",
+            issue_followup_semantic_verification_obligation,
+        ),
+        (
+            "_validate_semantic_verification_obligation_exact",
+            _validate_semantic_verification_obligation_exact,
+        ),
+        (
+            "validate_semantic_verification_obligation",
+            validate_semantic_verification_obligation,
+        ),
+        ("_validate_snapshot_callable", _validate_snapshot_callable),
+        ("_validate_snapshot_class", _validate_snapshot_class),
+        ("_validate_action_effects_dependency", _validate_action_effects_dependency),
+        (
+            "_semantic_verification_receipt_payload",
+            _semantic_verification_receipt_payload,
+        ),
+        (
+            "_validate_semantic_verification_receipt_payload",
+            _validate_semantic_verification_receipt_payload,
+        ),
+        (
+            "_build_semantic_receipt_accessors",
+            _build_semantic_receipt_accessors,
+        ),
+        (
+            "_register_semantic_receipt_authority",
+            _register_semantic_receipt_authority,
+        ),
+        ("_read_semantic_receipt_authority", _read_semantic_receipt_authority),
+        ("_drop_semantic_receipt_authority", _drop_semantic_receipt_authority),
+        ("_validate_semantic_verifier_protocol", _validate_semantic_verifier_protocol),
+        ("_semantic_verifier_request", _semantic_verifier_request),
+        ("_mint_semantic_verification_receipt", _mint_semantic_verification_receipt),
+        ("execute_semantic_verification", execute_semantic_verification),
+        (
+            "validate_semantic_verification_receipt",
+            validate_semantic_verification_receipt,
+        ),
     )
 )
 _ISSUED_RUNTIME_GATE_FUNCTION_PINS = _RUNTIME_GATE_FUNCTION_PINS
 _RUNTIME_GATE_OBJECT_PINS = (
+    ("SCHEMA_VERSION", SCHEMA_VERSION, str),
+    ("FunctionType", FunctionType, type),
+    ("CodeType", CodeType, type),
     ("_RUNTIME_AUTHORITIES", _ISSUED_RUNTIME_AUTHORITIES, dict),
     ("_ISSUED_RUNTIME_AUTHORITIES", _ISSUED_RUNTIME_AUTHORITIES, dict),
+    (
+        "_RUNTIME_AUTHORITY_SHADOW",
+        _ISSUED_RUNTIME_AUTHORITY_SHADOW,
+        dict,
+    ),
+    (
+        "_ISSUED_RUNTIME_AUTHORITY_SHADOW",
+        _ISSUED_RUNTIME_AUTHORITY_SHADOW,
+        dict,
+    ),
     (
         "_PRODUCTION_RUNTIME_FUNCTION_PINS",
         _ISSUED_PRODUCTION_RUNTIME_FUNCTION_PINS,
@@ -8380,6 +10364,13 @@ _RUNTIME_GATE_OBJECT_PINS = (
     ("EvidenceStore", EvidenceStore, type),
     ("HarnessRuntimeBinding", HarnessRuntimeBinding, type),
     ("StableEvidenceAnchor", StableEvidenceAnchor, type),
+    ("Evidence", Evidence, type),
+    ("RuleRegistry", RuleRegistry, type),
+    ("BoundFollowup", BoundFollowup, type),
+    ("FollowupEvidencePolicy", FollowupEvidencePolicy, type),
+    ("FollowupRetrievalOutcome", FollowupRetrievalOutcome, type),
+    ("HarnessState", HarnessState, type),
+    ("SemanticValueSupport", SemanticValueSupport, type),
     ("RetrievalObligation", RetrievalObligation, type),
     ("_RetrievalLedgerAuthority", _RetrievalLedgerAuthority, type),
     ("_RetrievalExecutionLedger", _RetrievalExecutionLedger, type),
@@ -8401,6 +10392,24 @@ _RUNTIME_GATE_OBJECT_PINS = (
     ("_E0ExecutionClaim", _E0ExecutionClaim, type),
     ("_E0ClosurePermit", _E0ClosurePermit, type),
     ("_E0ControlReceiptAuthority", _E0ControlReceiptAuthority, type),
+    (
+        "SemanticVerificationObligation",
+        SemanticVerificationObligation,
+        type,
+    ),
+    ("_SemanticVerifierEvidence", _SemanticVerifierEvidence, type),
+    ("_SemanticVerifierRequest", _SemanticVerifierRequest, type),
+    (
+        "_SemanticVerificationObligationAuthority",
+        _SemanticVerificationObligationAuthority,
+        type,
+    ),
+    ("SemanticVerificationReceipt", SemanticVerificationReceipt, type),
+    (
+        "_SemanticVerificationReceiptAuthority",
+        _SemanticVerificationReceiptAuthority,
+        type,
+    ),
     ("Candidate", Candidate, type),
     ("SearchResult", SearchResult, type),
     ("ResolvedScope", ResolvedScope, type),
@@ -8477,6 +10486,26 @@ _RUNTIME_GATE_OBJECT_PINS = (
         dict,
     ),
     (
+        "_SEMANTIC_OBLIGATION_AUTHORITIES",
+        _ISSUED_SEMANTIC_OBLIGATION_AUTHORITIES,
+        dict,
+    ),
+    (
+        "_ISSUED_SEMANTIC_OBLIGATION_AUTHORITIES",
+        _ISSUED_SEMANTIC_OBLIGATION_AUTHORITIES,
+        dict,
+    ),
+    (
+        "_SEMANTIC_RECEIPT_AUTHORITIES",
+        _ISSUED_SEMANTIC_RECEIPT_AUTHORITIES,
+        dict,
+    ),
+    (
+        "_ISSUED_SEMANTIC_RECEIPT_AUTHORITIES",
+        _ISSUED_SEMANTIC_RECEIPT_AUTHORITIES,
+        dict,
+    ),
+    (
         "_ISSUED_HYBRID_SEARCH_LANE",
         _ISSUED_HYBRID_SEARCH_LANE,
         FunctionType,
@@ -8505,6 +10534,9 @@ _RUNTIME_GATE_OBJECT_PINS = (
     ("_FUSION_RECEIPT_TOKEN", _FUSION_RECEIPT_TOKEN, object),
     ("_E0_CONTROL_RECEIPT_TOKEN", _E0_CONTROL_RECEIPT_TOKEN, object),
     ("_RETRIEVAL_LEDGER_TOKEN", _RETRIEVAL_LEDGER_TOKEN, object),
+    ("_SEMANTIC_OBLIGATION_TOKEN", _SEMANTIC_OBLIGATION_TOKEN, object),
+    ("_SEMANTIC_REQUEST_TOKEN", _SEMANTIC_REQUEST_TOKEN, object),
+    ("_SEMANTIC_RECEIPT_TOKEN", _SEMANTIC_RECEIPT_TOKEN, object),
     ("_LOCK_TYPE", _LOCK_TYPE, type),
     (
         "_RETRIEVAL_OWNER_SPECS",
@@ -8533,6 +10565,10 @@ _RUNTIME_GATE_OBJECT_PINS = (
     ("_FUSION_OUTCOMES", _FUSION_OUTCOMES, frozenset),
     ("_E0_STATUSES", _E0_STATUSES, frozenset),
     ("_E0_ERROR_CODES", _E0_ERROR_CODES, frozenset),
+    ("_SEMANTIC_SOURCE_KINDS", _SEMANTIC_SOURCE_KINDS, frozenset),
+    ("_SEMANTIC_TARGET_KINDS", _SEMANTIC_TARGET_KINDS, frozenset),
+    ("_SEMANTIC_ROLES", _SEMANTIC_ROLES, frozenset),
+    ("_SEMANTIC_DISPOSITIONS", _SEMANTIC_DISPOSITIONS, frozenset),
     ("_ComponentAuthority", _ComponentAuthority, type),
     (
         "_HarnessRuntimeAuthorityDraft",
@@ -8584,6 +10620,37 @@ _RUNTIME_GATE_OBJECT_PINS = (
         type(_LEXICAL_RUNTIME_MODULE),
     ),
     ("_EVIDENCE_RUNTIME_MODULE", _EVIDENCE_RUNTIME_MODULE, type(_EVIDENCE_RUNTIME_MODULE)),
+    ("_ACTION_EFFECTS_MODULE", _ACTION_EFFECTS_MODULE, type(_ACTION_EFFECTS_MODULE)),
+    (
+        "_ACTION_EFFECTS_NORMALIZER",
+        _ISSUED_ACTION_EFFECTS_NORMALIZER,
+        FunctionType,
+    ),
+    (
+        "_ISSUED_ACTION_EFFECTS_NORMALIZER",
+        _ISSUED_ACTION_EFFECTS_NORMALIZER,
+        FunctionType,
+    ),
+    (
+        "_ACTION_EFFECTS_PROJECTION_CLASS",
+        _ISSUED_ACTION_EFFECTS_PROJECTION_CLASS,
+        type,
+    ),
+    (
+        "_ISSUED_ACTION_EFFECTS_PROJECTION_CLASS",
+        _ISSUED_ACTION_EFFECTS_PROJECTION_CLASS,
+        type,
+    ),
+    (
+        "_ACTION_EFFECTS_MODULE_PIN",
+        _ISSUED_ACTION_EFFECTS_MODULE_PIN,
+        tuple,
+    ),
+    (
+        "_ISSUED_ACTION_EFFECTS_MODULE_PIN",
+        _ISSUED_ACTION_EFFECTS_MODULE_PIN,
+        tuple,
+    ),
     ("_PRODUCTION_CLOCK", _PRODUCTION_CLOCK, BuiltinFunctionType),
     ("json", json, type(json)),
     ("math", math, type(math)),
@@ -8663,6 +10730,37 @@ _RUNTIME_GATE_MODULE_ATTRIBUTE_PINS = (
         _COMPARE_OWNER_MODULE,
         "validate_bound_compare",
         object.__getattribute__(_COMPARE_OWNER_MODULE, "validate_bound_compare"),
+    ),
+    (
+        _ACTION_EFFECTS_MODULE,
+        "_normalize_semantic_verifier_result",
+        _ISSUED_ACTION_EFFECTS_NORMALIZER,
+    ),
+    (
+        _ACTION_EFFECTS_MODULE,
+        "_SemanticVerificationProjection",
+        _ISSUED_ACTION_EFFECTS_PROJECTION_CLASS,
+    ),
+    (
+        _ACTION_EFFECTS_MODULE,
+        "SemanticValueSupport",
+        SemanticValueSupport,
+    ),
+    (
+        object.__getattribute__(_ACTION_EFFECTS_MODULE, "unicodedata"),
+        "normalize",
+        object.__getattribute__(
+            object.__getattribute__(_ACTION_EFFECTS_MODULE, "unicodedata"),
+            "normalize",
+        ),
+    ),
+    (
+        object.__getattribute__(_ACTION_EFFECTS_MODULE, "unicodedata"),
+        "category",
+        object.__getattribute__(
+            object.__getattribute__(_ACTION_EFFECTS_MODULE, "unicodedata"),
+            "category",
+        ),
     ),
 )
 _ISSUED_RUNTIME_GATE_MODULE_ATTRIBUTE_PINS = (
@@ -8782,6 +10880,30 @@ _RUNTIME_GATE_CLASS_PINS = (
     _runtime_gate_class_pin(_E0ExecutionClaim, ("__init__",)),
     _runtime_gate_class_pin(_E0ClosurePermit, ("__init__",)),
     _runtime_gate_class_pin(_E0ControlReceiptAuthority, ("__init__",)),
+    _runtime_gate_class_pin(
+        SemanticVerificationObligation,
+        ("__init__", "_create", "to_dict"),
+    ),
+    _runtime_gate_class_pin(
+        _SemanticVerifierEvidence,
+        ("__init__", "__reduce__", "__reduce_ex__", "_create"),
+    ),
+    _runtime_gate_class_pin(
+        _SemanticVerifierRequest,
+        ("__init__", "__reduce__", "__reduce_ex__", "_create"),
+    ),
+    _runtime_gate_class_pin(
+        _SemanticVerificationObligationAuthority,
+        ("__init__",),
+    ),
+    _runtime_gate_class_pin(
+        SemanticVerificationReceipt,
+        ("__init__", "_create", "to_dict"),
+    ),
+    _runtime_gate_class_pin(
+        _SemanticVerificationReceiptAuthority,
+        ("__init__",),
+    ),
 )
 _ISSUED_RUNTIME_GATE_CLASS_PINS = _RUNTIME_GATE_CLASS_PINS
 _RUNTIME_GATE_DEPENDENCY_DEFAULTS = (
@@ -8809,6 +10931,9 @@ __all__ = (
     "HarnessRuntimeBinding",
     "LaneSearchReceipt",
     "RetrievalObligation",
+    "SemanticValueSupport",
+    "SemanticVerificationObligation",
+    "SemanticVerificationReceipt",
     "StableEvidenceAnchor",
     "bind_production_harness_runtime",
     "create_harness_execution_config",
@@ -8816,11 +10941,16 @@ __all__ = (
     "execute_retrieval_fusion",
     "execute_retrieval_lane",
     "issue_compare_retrieval_obligations",
+    "issue_compare_semantic_verification_obligation",
     "issue_fact_retrieval_obligations",
+    "issue_fact_semantic_verification_obligation",
+    "issue_followup_semantic_verification_obligation",
     "validate_harness_execution_config",
     "validate_harness_runtime_binding",
     "validate_e0_control_receipt",
     "validate_fusion_receipt",
     "validate_lane_search_receipt",
     "validate_retrieval_obligation",
+    "validate_semantic_verification_obligation",
+    "validate_semantic_verification_receipt",
 )

@@ -312,33 +312,42 @@
 - 문서 생성/수정: §16.10, module-contract, recursive TODO/checkpoint.
 - 계약 확인: source-derived target, closed verifier request/result, typed canonical values, supplied/context 역할,
   production unavailable zero-call, executor-only receipt, c3 state mutation 비범위.
-- 상태: IN_PROGRESS.
+- 계약 결과: fact/compare/follow-up 별 closed factory, private one-argument verifier request, six typed canonical
+  value, exact support/contradiction coherence, local at-most-once·post-call revalidation을 §16.10과 module contract에 고정했다.
+- 상태: COMPLETED.
 
 ### 4. Implementation
 
 - 사용할 스킬: `one-go`, 필요시 `batch-sequential-runner`.
 - 재귀 TODO: c2.1 target/schema → c2.2 execution/receipt → c2.3 focused authority gate.
-- 수정 대상: `orchestration/action_effects.py`, public exports, focused tests.
-- 상태: PENDING.
+- 수정 대상: `orchestration/action_effects.py`, `execution_contracts.py`, additive public DTO/factory/validator export,
+  focused tests. d의 deadline permit 전 production executor는 unavailable zero-call만 가능하다.
+- 구현 결과: source-derived factory-only obligation, exact one-call/zero-call verifier execution, closed typed
+  normalizer, state-free receipt와 source-lifetime local at-most-once history를 구현했다.
+- 상태: COMPLETED.
 
 ### 5. Validation + Report
 
 - 사용할 스킬: `test-runner`, `mermaid-flow-report`.
-- 자동 테스트: c2 focused → execution/c1/state 관련 → full unittest → safety.
+- 자동 테스트: c2 focused 26/26, execution/retrieval/fusion/c1 관련 118/118, full 1,212/1,212,
+  safety 846파일 PASS.
 - 빌드/lint: write-free imports, target diff-check.
 - Playwright/browser smoke: flow HTML; URL 정책 차단 시 기존 비우회 규칙으로 environment-blocked 기록.
-- 현상태 Mermaid 플로우맵: semantic receipt 완료 뒤 current node 추가.
+- 현상태 Mermaid 플로우맵: semantic receipt current node 추가, PNG 재렌더, HTML images2/tables8/errors0/
+  mobile overflow0 PASS.
 - 도달 경로 체크: exact source/runtime → one verifier call/zero-call unavailable → typed receipt.
 - provider-policy-flow-validation.md 갱신: MidProjectRAG 비대상이므로 SKIPPED_WITH_REASON.
 - 타겟 노드 연결 점수: 11.
-- 상태: PENDING.
+- 상태: COMPLETED.
 
 ### 6. Repair Loop
 
-- 실패 원인: 아직 없음.
-- 수리 배치: focused failure/reviewer P0/P1만 최소 수정.
-- 재테스트: PENDING.
-- 상태: PENDING.
+- 실패 원인: system Python dependency 누락, report Playwright runtime 탐색 실패, transitive global pin·receipt
+  close ordering·source history 수명·private request constructor/pickle 경계와 acceptance coverage 누락.
+- 수리 배치: repo `.venv` 고정, bundled Playwright+installed Chrome, reachable pin/receipt-before-completion,
+  source weak cleanup, token factory+serialization guard, post-call/request/GC/mismatch/empty/disposition tests.
+- 재테스트: focused 정·역순 26/26, related118, full1212, safety와 독립 최종 APPROVE 2건.
+- 상태: COMPLETED.
 
 ### 7. Push / Publication
 
@@ -350,20 +359,22 @@
 ### 8. Closeout Report
 
 - 사용할 스킬: `mermaid-flow-report`.
-- 시작 타겟 대비 최종 현재 플로우: PENDING.
-- 남은 GAP/PARTIAL 및 다음 점수표: PENDING.
-- 상태: PENDING.
+- 시작 타겟 대비 최종 현재 플로우: c1 candidate → exact semantic receipt까지 MATCHED.
+- 남은 GAP/PARTIAL: c3 effect/absence, c4 reducer, c5 semantic transition gate, d controller, EH2.G E2E.
+- 다음 점수표: c3=4+3+2+2-1=10, c4=3+3+2+2-1=9, EVAL.4=2+2+1+1-1=5.
+- 상태: COMPLETED.
 
 ### 9. Relay Shot
 
 - 사용할 스킬: `relay-shot`.
-- 확인한 TODO source/다음 후보: c2 종료 후 재검사.
+- 확인한 TODO source/다음 후보: TODO §EH2.6.c와 계약 §16.10, 다음 최고 READY `EH2.6.c3`.
 - 새 원샷딜 시작 여부: 안전한 READY가 있으면 즉시 시작.
 - 멈춘 이유, 있으면: 없음.
-- 상태: PENDING.
+- 상태: `CONTINUE_WITH_NEXT_FORM` / push 뒤 즉시 Cycle 6 시작.
 
 ### 10. Final Ledger
 
-- Doc: IN_PROGRESS.
-- Implementation/Validation/Repair/Push/Report/Relay: PENDING.
-- 남은 리스크: c2 계약의 세 선행 결정을 코드 전에 봉인해야 한다.
+- Doc / Implementation / Validation / Repair / Report: COMPLETED.
+- Push / Relay: PENDING.
+- 남은 리스크: c2 receipt는 state-free이며 c3 effect/absence와 c4 reducer가 아직 없다. 실제 품질 우승은
+  동일 golden E2E 전까지 주장하지 않는다.

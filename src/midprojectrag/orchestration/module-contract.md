@@ -212,6 +212,41 @@ fails closed without an aggregate receipt. Per-obligation results retain only ch
 then retrieved, and `execution_complete` is true only for retrieved/empty-only runs. The payload is a
 state-free retrieval control checkpoint: it neither claims semantic readiness nor accepts or stores
 gold, qrels, expected answers, raw queries, source text, or provider traces.
+
+EH2.6.c2 splits semantic verification ownership without exposing a verifier bridge. `execution_contracts.py`
+owns factory-only semantic obligations, the exact runtime call, local at-most-once history, and authoritative
+receipts. `action_effects.py` owns the closed typed-value schema and pure raw-result normalization; it does not
+import execution private authority or receive a source owner, runtime, verifier, raw query, or gold/evaluator
+input. The execution boundary pins the exact normalizer implementation and never returns the raw adapter result.
+
+Fact and compare semantic obligations are derived only from one exact `RetrievalObligation` plus its same-round
+dense, lexical, and nonempty fusion receipts. Follow-up obligations are derived only from an exact
+`BoundFollowup` and finalized outcome after rebuilding and validating the c1 safe projection, selecting
+`$answer_support` or an actual required slot. Public factories do not accept query, field, evidence IDs,
+disposition, values, verifier output, or gold. The immutable public obligation stores hashes, the owner-derived
+optional compare field, ordered supplied roles/IDs/anchors, and no evidence text. Candidate then bridge then
+context is the only supply order; c2 initially issues candidate-only obligations, and context cannot be promoted.
+
+The verifier protocol is one exact declared `verify(self, request)` method with no defaults, varargs, keyword-only
+arguments, or instance override. Its factory-only private request carries the raw owner query and an ID-less content
+projection of exact owner-ordered, contiguously indexed Evidence objects and cannot serialize. The exact raw dict keys are `schema_version`,
+`disposition`, `support_indexes`, and `values`; each value has only `value_type`, `canonical_value`, and
+`support_indexes`. The adapter never receives or returns evidence IDs; only the executor maps indexes back to
+owner-issued IDs. Adapters return only `supported|unsupported|contradicted`; runtime unavailable alone creates an
+`unavailable` zero-call receipt. Values use closed `text|krw_amount|kst_datetime|duration|boolean|number` canonical
+strings, and one field-approved type: budget=krw_amount, duration=duration, deadline=kst_datetime,
+joint_contract/subcontract=boolean, all other fields=text. Fieldless support/conflict has no values and uses only
+nonempty disposition indexes. Field-bearing support has exactly one value whose nonempty support union equals
+verified IDs; contradiction requires at least two distinct values of the approved type with pairwise-disjoint
+nonempty supports whose union equals contradicted IDs. Unsupported and unavailable carry no IDs or values. Only
+candidate/bridge supplied evidence is promotable.
+
+Every available execution is claimed once per exact live semantic obligation. ABI or identity preflight rejection
+dispatches zero calls and is not consumed as an execution attempt. After one direct class-method call, exact source/prerequisite/store/config/runtime dependencies are
+revalidated before normalization or mint. Provider, malformed-result, and post-call drift failures are sanitized,
+consume the local claim, and cannot be retried; concurrency has one winner and completion history outlives receipt
+GC while the source authority remains live. c2 receipts are state-free: c3 owns effect/absence projection and d
+owns global action budgets, deadline permits, transition order, and terminal semantics.
 An E1 compare seed must be all-unsearched; already hybrid-searched EH2.4 coverage cannot be
 relabeled as independent lane execution. Once all approved retrieval paths close with no
 candidates, controller-only `verify_slot` performs a zero-provider exhaustion check that may

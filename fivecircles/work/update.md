@@ -696,3 +696,28 @@ This file summarizes recent updates so other agents can continue without re‑di
 ### Next
 
 - EH2.6.c2 semantic verifier receipt를 계약-first로 구현·검증·푸시하고 다음 TODO로 재진입한다.
+
+## Addendum (2026-09-05) - EH2.6.c2 semantic verification receipt
+
+### Backend
+
+- fact/compare/follow-up exact owner에서만 target·query·supplied evidence를 유도하는 factory-only semantic
+  obligation을 구현했다.
+- exact `verify(self, request)`를 local at-most-once로 호출하고, ID-less request와 닫힌 typed result를
+  supplied evidence의 support/value/contradiction receipt로 봉인했다.
+- verifier 부재는 zero-call unavailable, provider/contract/post-call drift는 fixed error+consumed attempt로
+  처리하며 c2 receipt는 state-free로 유지했다.
+
+### Tests
+
+- normalizer+semantic focused 26/26, 검색/fusion/follow-up 관련 118/118, 전체 1,212/1,212,
+  repository safety 846파일 PASS.
+- 독립 감사에서 발견한 `SCHEMA_VERSION`/validator/unicode 전역 재바인딩과 receipt 완료 전환 원자성을
+  수리하고 전용 zero-call 회귀를 추가했다.
+- Mermaid current PNG와 HTML을 갱신했고 Playwright desktop/mobile에서 images2, tables8, page errors0,
+  mobile overflow0 PASS. API·OpenAI·실제 model·Langfuse 호출은 0이며 synthetic verifier만 실행했다.
+
+### Next
+
+- `EH2.6.c3`: expansion/bridge/rerank/verify `ActionEffectReceipt`와 bounded zero-provider absence receipt를
+  계약-first로 구현한다.

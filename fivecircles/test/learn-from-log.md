@@ -298,3 +298,48 @@ Preventive rule:
 
 Reference:
 - `errorlogs/backend/2026-09-05-c1-deleted-pin-helper-test.md`
+
+### Harness tests must use the repository runtime (2026-09-05)
+
+Cause:
+- A focused c2 preflight used Homebrew system Python, which lacked the repository's numpy dependency and collected zero tests.
+
+Preventive rule:
+- Run harness tests with `PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python -m unittest ...`.
+- Distinguish import-time environment failure from a product-code test failure in reports.
+
+Reference:
+- `errorlogs/backend/2026-09-05-c2-system-python-dependency.md`
+
+### Semantic gates must pin transitive globals and close receipts before completion (2026-09-05)
+
+Cause:
+- c2의 semantic dependency gate가 새 call graph에서 사용하는 schema constant, config/hash validator와
+  Unicode module attribute를 처음에는 전부 봉인하지 않았다.
+- execution history를 completed로 바꾼 뒤 receipt를 mint하면 mint 실패 시 완료 기록만 남을 수 있었다.
+
+Preventive rule:
+- provider boundary가 추가될 때는 새 함수뿐 아니라 reachable constant, validator, imported module attribute를
+  global rebinding 관점에서 다시 감사한다.
+- receipt를 먼저 성공적으로 mint/register한 뒤 completion으로 전환하고, mint 실패는 consumed failed로 닫는다.
+- at-most-once history는 receipt GC보다 오래 살아야 하지만 owner source보다 영구히 오래 살면 안 된다. source
+  weak lifetime에 묶어 cleanup하고 object ID 재사용을 차단한다.
+- private request DTO는 일반 constructor뿐 아니라 pickle/copy reduction protocol도 닫고 token factory-only로
+  발급한다.
+- sealed synthetic component의 관찰·재진입 fixture는 instance/global state를 바꾸지 말고 외부 임시 파일과
+  importlib reentry module 패턴을 사용한다.
+
+Reference:
+- `errorlogs/backend/2026-09-05-c2-semantic-integrity-review.md`
+
+### Report browser checks must use the bundled module path and an installed browser (2026-09-05)
+
+Cause:
+- global Node에는 Playwright package가 없었고 bundled Playwright의 기본 Chromium revision도 설치되지 않았다.
+
+Preventive rule:
+- workspace dependency tool이 돌려준 Node/package 경로를 사용하고, 이미 설치된 Chrome을 명시적으로
+  선택한 뒤 동일 검증을 재실행한다. 새 브라우저 다운로드로 우회하지 않는다.
+
+Reference:
+- `errorlogs/frontend/2026-09-05-report-playwright-runtime-discovery.md`
