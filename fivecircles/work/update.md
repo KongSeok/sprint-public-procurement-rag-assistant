@@ -944,3 +944,13 @@ This file summarizes recent updates so other agents can continue without re‑di
 - refs: test/errorlogs/backend/2026-09-06-stage-inputs-validation.md, work/2026-09-05-search-first-relay.md.
 ### Next
 - EXP-SELECT.2.a 최소 recorder schema→EH4.7b.1 실제 단계 기록으로 릴레이. 위치 의미 승인 .4.c는 별도 잔여.
+
+## Addendum (2026-09-06) - 검색 단계 recorder 완료
+### Backend
+- local3종 draft와 raw lane/fusion/context 관측기를 구현했다. content-free hash chain, 실패/미실행/빈 결과 구분.
+- raw50/full union 뒤 반환10/context5를 적용한다. 기본 앱·VLM·gold·index 무변경, 이번 모델/API0.
+### Tests
+- recorder12·관련88 PASS/독립 APPROVE. child kind/query SHA/timer 수정 및 테스트 모듈명 재탐색 후 통과.
+- refs: test/errorlogs/backend/2026-09-06-stage-recorder-validation.md. HTML browser BLOCKED는 별도 유지.
+### Next
+- 로그·선택 push 후 Cycle D EH4.7b.2 실제 로컬 KURE smoke 착수. 정식 성능 비교 승인과 구분한다.

@@ -420,3 +420,9 @@ Reference:
 
 - source-block ready는 의미 승인이 아니다. 자동 검색 후보·CSV 보조 참조를 확정 qrels로 승격하지 않는다.
 - private 감사는 원문 출력 대신 키/집계/hash만 조회한다. refs: `errorlogs/backend/2026-09-06-stage-inputs-validation.md`.
+
+### 검색 관측 단위와 실행 비용 구분 (2026-09-06)
+
+- retrieval granularity(child)와 Evidence.kind(text)를 같은 enum으로 보지 않는다. 실제 builder fixture로 정상 경로를 검사한다.
+- 관측기 validation은 호출 timer 밖에 둔다. 실패/미측정을 0으로 덮지 않고 기존 UTF-8 query hash 규칙을 재사용한다.
+- 테스트 파일명을 추정하지 않고 rg 목록으로 확인한다. refs: `errorlogs/backend/2026-09-06-stage-recorder-validation.md`.

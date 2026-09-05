@@ -1,7 +1,9 @@
 # EH-RC0 재개 체크포인트
 
 갱신: 2026-09-06 · Cycle B EH2.EVAL.4.a/b 완료: 실제 private131, ready30/missing67/not-applicable34.
-다음은 EXP-SELECT.2.a 최소 recorder schema → EH4.7b.1. .4.c 위치 의미 승인은 별도 잔여다.
+Cycle C: EXP-SELECT.2.a.1 draft와 EH4.7b.1 recorder 구현, focused12·관련88 PASS/독립 APPROVE.
+현재 다음은 EH4.7b.2 pinned local KURE smoke다. 실제 query embedding은 아직 미실행이다.
+.4.c 위치 의미 승인과 .2.a.2 정식 freeze는 별도 잔여다.
 c4.0.e는 기술 READY / 우선순위 대기이며 parent c4.0/d2 PARTIAL 유지. `01426df`는 앞선 납품 push다.
 현재 폼: `2026-09-05-search-first-relay.md`. 아래 완료 원장의 '다음'은 당시 이력이며 현재 큐가 우선한다.
 

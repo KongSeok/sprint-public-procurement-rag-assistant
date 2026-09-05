@@ -70,8 +70,8 @@
     source/code/config/scorer hash·사전 통과 기준을 고정한다. API/생성 judge는 미사용으로 표시한다.
     recorder 최소 설정 schema는 EH4.7b.1 전에 정의하고, 구성별 `pre_context_stage`도 지정한다.
     dense-only의 직전 단계는 lane_dense, hybrid는 fusion이다. b.2 smoke와 정식 동결/품질 판정을 구분한다.
-    - [ ] **EXP-SELECT.2.a.1** recorder용 local3종 최소 설정 schema/합성 검증을 먼저 구현한다.
-      query/scope/history·후보/context 예산·pre_context_stage·source/config hash를 명시하며 draft는 정식 freeze가 아니다.
+    - [x] **EXP-SELECT.2.a.1** recorder용 local3종 closed draft 설정/검증 구현. focused8·관련58·독립 APPROVE.
+      query/scope/history·예산·pre_context_stage·hash 구분, formal 승격/gold필드 거절. 실파일binding/정식 freeze는 다음 gate.
     - [ ] **EXP-SELECT.2.a.2** 승인 qrels/paired 분모·실물 artifact·지표 threshold를 정식 freeze receipt로 봉인한다.
   - [ ] **EXP-SELECT.2.b** E2E/후속 구성은 .2.a를 참조하고 generator/prompt/judge·추가 축만 확장 동결한다.
 - [ ] **EXP-SELECT.3** parser→chunker→embedder→fusion→reranker→Harness 순으로 한 축씩 component ablation을
@@ -371,8 +371,8 @@ runtime은 local profile 기본·LLM provider 교체형으로 유지하며 새 �
   - 계약: `specs/stage-evaluation-v1.md`. EDA10 추가/40개 축소/새 골든셋은 범위 밖. qrel 보강 원천은 `EH2.EVAL.4` 유지.
   - [ ] **EH4.7b** 실제 검색 단계 recorder만 연결한다. Mini131 입력/qrels adapter는 EH2.EVAL.4.b,
     정식 paired 실측은 EXP-SELECT.3.a에서 한 번 수행한다. 없는 과거 단계를 역산하지 않는다.
-    - [ ] **EH4.7b.1** 실제 raw dense/lexical→fusion→선택 context의 같은 실행 chain을 ID/hash 중심으로
-      기록한다. page는 독립 provenance adapter로 유지하고 child receipt로 위장하지 않는다. 금지된 gold/본문 trace는 배제한다.
+    - [x] **EH4.7b.1** raw dense/lexical→전체 fusion→반환10/context5 기록기 구현. focused12·관련88 PASS/독립 APPROVE.
+      관측 receipt와 EH2 live authority 구분, page 독립 provenance·content-free/error/unavailable 유지. 실제 모델 smoke는 b.2.
     - [ ] **EH4.7b.2** pinned local artifact·KURE offline 가용성·공통 query/scope/config와 stage 누락 처리를
       smoke한다. 실제 query embedding은 모델 실행으로 기록하고 연결 성공을 품질 향상으로 부르지 않는다.
   - [ ] **EH4.7c** MRR/nDCG·slot·문장/구간 완전성 등 나머지 계층 지표. block recall만으로 내용 완전성을 주장하지 않음.

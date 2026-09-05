@@ -107,3 +107,54 @@ stdout은 status/count/hash만, 오류는 고정 코드만 출력한다. 모델/
 검증: 전체131/130거절·중복/다른 lane·SHA drift·원문 locator mismatch·부분 근거 제외·gold 본문 비누출·
 기존 질문/답변/검수 객체 불변·CLI private path/exclusive write/0600·기존 evaluator 연결.
 공식 paired subset/승인 freeze와 hard-negative 보강은 .4.c/EXP-SELECT.2.a의 별도 gate다.
+
+## 검색 recorder 최소 설정 — EXP-SELECT.2.a.1 (2026-09-06)
+
+`retrieval_experiment.make_draft(artifact_hashes)` / `validate_draft(payload)`는 provider-free closed 설정을
+생성·검증한다. `schema_version=retrieval-experiment-draft-v1`, `status=draft`,
+`measurement_kind=retrieval_only`, `formal_comparison_authorized=false` 고정이며 E2E/공식 freeze를 발급하지 않는다.
+질문·답변·문서 ID·gold·request·키/경로는 설정에 넣지 않는다.
+
+- artifact_hashes의 키는 `input_inventory,source_snapshot,evidence_store,page_index,child_dense,child_lexical` 여섯 SHA256.
+  이 leaf는 해시 형식만 검증한다. 실제 파일/실행 객체와의 결합은 EH4.7b.1/b.2, 정식 봉인은 .2.a.2다.
+- query_policy: `legacy_pipeline_retrieval_query_v1`, latest history4, KURE8192 tokens/empty prompt.
+  runner는 기존 `_retrieval_query`를 공통으로 사용하고 세 arm에 같은 query/scope를 전달해야 한다.
+  scope policy는 원래 user scope만/all·empty를 구별, gold 기반 보충 금지다.
+- 세 arm의 순서는 `page_kure,child_kure,child_bm25_rrf`. dense-only pre_context_stage는 lane_dense,
+  hybrid는 fusion. page ID는 child RRF에 넣지 않는다. RRF k=60이며 raw 두 lane 기록을 먼저 보존한다.
+- 첫 smoke 기본값: 각 dense50, hybrid lexical50, 반환10, 최종 선택5, 문서당 최대5, context12000자,
+  parent expansion2400자. 이는 검색 품질 우승 설정이 아니며 동일 selector를 쓰는 새 retrieval-only 대조다.
+  기존 앱의 생성/context 성능 재현 주장과 구분한다. positive integer/bool 거절·선택≤반환≤lane예산을 검증한다.
+- config_sha256은 위 closed payload의 canonical SHA. load·query 문자열 생성·dense·lexical·fusion·context
+  시간을 구분하며 cold load와 warm run을 섞지 않는다. 현재 dense 총시간에는 query embedding이 포함된다.
+  native encoder timer가 없으면 query embedding 세부시간은 unavailable로 남기며 임의 차감/0으로 추정하지 않는다.
+  반환 JSON은 입력과 분리한 사본이며 recorder 진입 때 hash/shape를 재검증한다. runtime trace 본문은 통째 저장하지 않는다.
+- 최소 schema를 통과해도 .4.c 승인 qrels·paired 분모/threshold 동결 없이 formal run/우승/기본 profile 전환 금지.
+
+DoD: schema/arm 구별·공통query/budget·불변 projection·hash drift·gold/임의키 거절·bool/0예산·draft 승격 거절
+합성 테스트. 실제 recorder 연결과 KURE 실행은 다음 leaf에 남긴다.
+
+## 실제 검색 관측 연결 — EH4.7b.1 (2026-09-06)
+
+- 목표/범위: `stage_recorder.record_request`는 원래 RuntimeRequest의 질문/history/scope로 기존
+  `_retrieval_query`를 만들고, 선택된 arm을 한 번 실행한다. qrels/정답/필수 문서 입력은 받지 않는다.
+  metadata filter/옵션 override 등 아직 반영하지 않는 request 기능은 명시적으로 거절한다.
+- page는 exact LegacyPageLane/ExactDenseIndex와 비주입 pinned KURE를 확인하고 mapping/hash를 재검증한다.
+  child는 `require_production_hybrid`의 loader binding을 호출 전후 검사한다. page mapping 검증을
+  child의 sealed production attestation과 같은 보증으로 표시하지 않는다. 실물 파일 해시 검증은 b.2 runner 책임이다.
+- dense-only는 dense 한 번, hybrid는 dense/lexical 각 한 번 후 `fuse_rrf` 한 번이다.
+  원시50 및 fusion 전체 union을 먼저 기록한 뒤 반환10 → 공통 `select_context`5를 적용한다.
+  전체 검색을 반복 호출하여 중간 단계를 복원하지 않는다. VLM/reranker는 실행하지 않은 단계로 남긴다.
+- 반환은 `{record, observations}`. record는 기존 stage-evaluation-v1 closed schema 그대로이며 한 arm씩 채점한다.
+  observations는 ID/hash/호출 상태/고정 오류코드/시간/호출 수 allowlist만 포함하는 별도 관측 receipt다.
+  run/case/arm은 execution key에, query/scope/config/store는 공통 binding에 묶인다. 각 stage receipt는
+  upstream receipt hash와 출력 ID hash를 포함하고 checkpoint.source_receipt_sha256으로 연결된다.
+  이는 offline 관측 기록이며 EH2 live-authority receipt나 공식 비교 승인서가 아니다.
+- 실행한 빈 결과는 ok/0이며 wrapper call=true다. 내부 short-circuit의 encoder_calls=0은 관측될 때만 기록한다.
+  실패 단계는 error/빈 ID/고정 코드, 미실행 downstream은 unavailable/null 시간이다. 오류 후 재시도·부분 fusion 금지.
+  provider 오류 메시지, query/body, nested trace, parent window는 직렬화하지 않는다. binding 변조는 전체 실행 거절이다.
+- 시간: query 생성 및 각 단계만 직접 측정한다. loader 시간은 runner의 별도 load receipt 대상이다.
+  dense는 query embedding 포함이며 encoder 세부시간은 null이다. 모르는 호출 수는 null, 미실행은 0이다.
+  이 leaf는 합성 실행으로 검증하며 실제 KURE query 호출은 b.2에서 별도 증명한다.
+- DoD: 3종 호출 수/공통 query/scope, raw→fusion→return→context 순서, scoped empty/error/unavailable,
+  owner/granularity/rank/hash drift, 합성 production 거절, content-free serialization, 기존 scorer 연결 회귀.
