@@ -367,6 +367,20 @@ remain fail-closed until their exact dispatch hooks exist. Effect-bound and tran
 their entry points stay dormant until C4.0.e and C4.1 seal exact effect and transition authorities; passing an
 arbitrary structural object cannot advance the history. The bookkeeping boundary performs no provider/clock call,
 effect mint, reducer work, ledger advance, or state transition.
+C4.0.d adds one private target-context accumulator over an exact live semantic obligation. It accepts only a closed
+`expand_parent|bridge_table|bridge_figure` action kind and a bounded context-candidate evidence ID sealed jointly by
+that obligation and `_context_seed_evidence_ids`. It selects
+exactly one matching live ParentContextReceipt or BridgeContextReceipt while retaining the complete validated parent
+and bridge batch tuples with their original object identities and canonical seed/role order, so the existing rerank
+prerequisite is not weakened. Callers cannot provide receipts, batches, context IDs, source hashes, or outcomes;
+missing, duplicate, wrong-role, cross-root, cloned, or reordered context fails closed. The accumulated value is
+private, immutable, non-serializable, and non-authorizing: it cannot claim a C4.0.c step, mint an effect, reduce or
+advance state, or call a provider/model/clock. Revision-zero d2.i is not broadened into candidate-target decisions;
+exact claim/effect binding remains C4.0.e/C4.1 responsibility. Live results use weak caches without executable weakref
+callbacks. Result GC preserves the same-key remint tombstone only while its exact semantic-obligation root remains
+live. Once that obligation is also dead, the next accumulator/read entry passively removes the dead authority,
+cache/shadow, tombstone, and root-key
+mirror so a long-lived process does not accumulate dead-root keys or collide with recycled identities.
 An E1 compare seed must be all-unsearched; already hybrid-searched EH2.4 coverage cannot be
 relabeled as independent lane execution. Once all approved retrieval paths close with no
 candidates, controller-only `verify_slot` performs a zero-provider exhaustion check that may

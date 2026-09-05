@@ -1103,6 +1103,21 @@ parent/child 혼합, 골든 값 의존을 검출한다. 정확한 새 파일/메
   claim-authorized prepare, typed source binding, explicit/automatic failure뿐이다. effect-bound와 transitioned edge는 상태
   집합에는 예약하지만, c4.0.e의 exact structural-effect authority와 c4.1의 transition authority가 닫히기 전에는 bare
   effect/transition object로 진행할 수 없고 history도 변하지 않는다.
+- c4.0.d는 private `_accumulate_controller_target_context(obligation, action_kind, target_evidence_id, store,
+  config, runtime)` 하나로 exact live semantic obligation의 complete context receipt batch를 검증한다.
+  `action_kind`는 `expand_parent|bridge_table|bridge_figure`의 closed set이며 target evidence ID는 semantic
+  obligation과 `_context_seed_evidence_ids`가 봉인한 bounded context candidate 중 하나여야 한다. accumulator는 target과 kind가 일치하는
+  `ParentContextReceipt|BridgeContextReceipt` exact-one을 선택하되, rerank prerequisite 검증에 사용한 complete
+  parent/bridge tuple의 same-object identity와 canonical seed/role order를 그대로 보존한다. caller가 receipt,
+  batch, context ID, source hash 또는 outcome을 주입할 수 없고 missing/duplicate/wrong-role/cross-root/clone/
+  order drift는 fail-closed다. 결과는 private immutable·non-serializable·non-authorizing value이며 c4.0.c claim,
+  effect mint, reducer, ledger/state transition 또는 provider/model/clock 호출 권한이 아니다. revision-0 d2.i에는
+  candidate-target decision 성공 경로가 없으므로 c4.0.d에서 이를 임의로 확장하지 않고, exact claim/effect
+  결합은 c4.0.e/c4.1에 둔다. live result는 weak cache하고 executable weakref callback은 두지 않는다. result
+  GC 뒤 exact semantic-obligation root가 살아 있는 동안에는 same-key tombstone으로 재발급을 금지한다.
+  그 obligation까지 GC되면 다음 accumulator/read 진입이 dead authority와 cache/shadow/tombstone/root-key
+  mirror를 함께 수거하므로 장기
+  프로세스에서 dead root key가 누적되거나 재사용 ID와 충돌하지 않는다.
 - reducer는 exact before state와 effect로 exact after state를 하나만 결정한다. lane 실행, parent context,
   terminal stop/abstain은 exact same state object를 after로 사용한다. 상태가 실제 바뀌는 effect만 새 state를
   발급하고 그 source receipt가 effect SHA를 가리키며, 한 nonterminal transition은 하나의 obligation만

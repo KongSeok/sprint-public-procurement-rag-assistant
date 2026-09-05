@@ -17821,6 +17821,608 @@ del _seal_controller_source_attempt_registry
 del _is_issued_controller_source_outcome_projection_identity
 
 
+# EH2.6.c4.0.d exact target-context accumulator ------------------------------
+
+
+class _ControllerTargetContext:
+    """Private, non-authorizing selection over complete context batches."""
+
+    __slots__ = (
+        "obligation",
+        "action_kind",
+        "target_evidence_id",
+        "selected_receipt",
+        "parent_receipts",
+        "bridge_receipts",
+        "__weakref__",
+    )
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        raise TypeError("controller_target_context_accumulator_required")
+
+    def __setattr__(self, name: str, value: object) -> None:
+        raise AttributeError("controller_target_context_immutable")
+
+    def __delattr__(self, name: str) -> None:
+        raise AttributeError("controller_target_context_immutable")
+
+    def __repr__(self) -> str:
+        return "_ControllerTargetContext(<redacted>)"
+
+    def __copy__(self) -> object:
+        raise TypeError("controller_target_context_copy_forbidden")
+
+    def __deepcopy__(self, memo: object) -> object:
+        raise TypeError("controller_target_context_copy_forbidden")
+
+    def __reduce__(self) -> object:
+        raise TypeError("controller_target_context_pickle_forbidden")
+
+    def __reduce_ex__(self, protocol: int) -> object:
+        raise TypeError("controller_target_context_pickle_forbidden")
+
+
+def _build_controller_target_context_accumulator(
+    *,
+    context_cls: type,
+    obligation_cls: type,
+    parent_receipt_cls: type,
+    bridge_receipt_cls: type,
+    store_cls: type,
+    config_cls: type,
+    runtime_cls: type,
+    semantic_validator: FunctionType,
+    seed_id_reader: FunctionType,
+    parent_issuer: FunctionType,
+    bridge_issuer: FunctionType,
+    complete_context_validator: FunctionType,
+    dependency_checker: FunctionType,
+) -> tuple[FunctionType, FunctionType, FunctionType]:
+    """Close issuance and validation state away from the module namespace."""
+
+    accumulation_lock = Lock()
+    authorities: dict[int, tuple[object, ...]] = {}
+    authority_shadow: dict[int, tuple[object, ...]] = {}
+    cache: dict[tuple[object, ...], ReferenceType[object]] = {}
+    cache_shadow: dict[tuple[object, ...], ReferenceType[object]] = {}
+    known_keys: set[tuple[object, ...]] = set()
+    known_keys_shadow: set[tuple[object, ...]] = set()
+    root_by_key: dict[tuple[object, ...], ReferenceType[object]] = {}
+    root_by_key_shadow: dict[tuple[object, ...], ReferenceType[object]] = {}
+    action_kinds = frozenset(
+        {"expand_parent", "bridge_table", "bridge_figure"}
+    )
+    value_names = tuple(
+        name
+        for name in type.__getattribute__(context_cls, "__slots__")
+        if name != "__weakref__"
+    )
+
+    def exact_values(context: object) -> tuple[object, ...]:
+        return tuple(
+            object.__getattribute__(context, name) for name in value_names
+        )
+
+    def matches_exact_values(
+        actual: tuple[object, ...], issued: tuple[object, ...]
+    ) -> bool:
+        return (
+            len(actual) == len(issued) == 6
+            and tuple.__getitem__(actual, 0) is tuple.__getitem__(issued, 0)
+            and type(tuple.__getitem__(actual, 1)) is str
+            and tuple.__getitem__(actual, 1) == tuple.__getitem__(issued, 1)
+            and type(tuple.__getitem__(actual, 2)) is str
+            and tuple.__getitem__(actual, 2) == tuple.__getitem__(issued, 2)
+            and tuple.__getitem__(actual, 3) is tuple.__getitem__(issued, 3)
+            and tuple.__getitem__(actual, 4) is tuple.__getitem__(issued, 4)
+            and tuple.__getitem__(actual, 5) is tuple.__getitem__(issued, 5)
+        )
+
+    def matching_receipts(
+        *,
+        action_kind: str,
+        target_evidence_id: str,
+        parent_receipts: tuple[object, ...],
+        bridge_receipts: tuple[object, ...],
+        parent_authorities: tuple[object, ...],
+        bridge_authorities: tuple[object, ...],
+    ) -> tuple[object, ...]:
+        if action_kind == "expand_parent":
+            return tuple(
+                receipt
+                for receipt, authority in zip(
+                    parent_receipts, parent_authorities
+                )
+                if object.__getattribute__(
+                    object.__getattribute__(authority, "seed"),
+                    "evidence_id",
+                )
+                == target_evidence_id
+            )
+        expected_bridge_kind = (
+            "table" if action_kind == "bridge_table" else "figure"
+        )
+        return tuple(
+            receipt
+            for receipt, authority in zip(
+                bridge_receipts, bridge_authorities
+            )
+            if object.__getattribute__(
+                object.__getattribute__(authority, "seed"), "evidence_id"
+            )
+            == target_evidence_id
+            and object.__getattribute__(authority, "bridge_kind")
+            == expected_bridge_kind
+        )
+
+    def validate_shape(context: object) -> None:
+        if type(context) is not context_cls:
+            raise TypeError("controller_target_context_required")
+        obligation = object.__getattribute__(context, "obligation")
+        action_kind = object.__getattribute__(context, "action_kind")
+        target_evidence_id = object.__getattribute__(
+            context, "target_evidence_id"
+        )
+        selected_receipt = object.__getattribute__(
+            context, "selected_receipt"
+        )
+        parent_receipts = object.__getattribute__(context, "parent_receipts")
+        bridge_receipts = object.__getattribute__(context, "bridge_receipts")
+        expected_receipt_type = (
+            parent_receipt_cls
+            if action_kind == "expand_parent"
+            else bridge_receipt_cls
+            if action_kind in action_kinds
+            else None
+        )
+        if (
+            type(obligation) is not obligation_cls
+            or expected_receipt_type is None
+            or type(target_evidence_id) is not str
+            or not target_evidence_id
+            or type(selected_receipt) is not expected_receipt_type
+            or type(parent_receipts) is not tuple
+            or any(type(item) is not parent_receipt_cls for item in parent_receipts)
+            or type(bridge_receipts) is not tuple
+            or any(type(item) is not bridge_receipt_cls for item in bridge_receipts)
+        ):
+            raise ValueError("invalid_controller_target_context")
+
+    def context_key(
+        *,
+        obligation: object,
+        semantic_authority: object,
+        action_kind: str,
+        target_evidence_id: str,
+        store: object,
+        config: object,
+        runtime: object,
+    ) -> tuple[object, ...]:
+        return (
+            "controller-target-context-v1",
+            id(obligation),
+            object.__getattribute__(semantic_authority, "issuance_key"),
+            object.__getattribute__(obligation, "obligation_sha256"),
+            action_kind,
+            target_evidence_id,
+            id(store),
+            id(config),
+            id(runtime),
+        )
+
+    def validate_authority_unlocked(
+        *,
+        context: object,
+        store: object,
+        config: object,
+        runtime: object,
+    ) -> tuple[object, ...]:
+        if type(context) is not context_cls:
+            raise TypeError("controller_target_context_required")
+        identity = id(context)
+        current = dict.get(authorities, identity)
+        sealed = dict.get(authority_shadow, identity)
+        try:
+            current_values = exact_values(context)
+            current_selected_receipt = object.__getattribute__(
+                context, "selected_receipt"
+            )
+        except (AttributeError, TypeError):
+            raise ValueError(
+                "controller_target_context_authority_required"
+            ) from None
+        if (
+            type(current) is not tuple
+            or len(current) != 8
+            or sealed is not current
+            or type(tuple.__getitem__(current, 0)) is not ReferenceType
+            or tuple.__getitem__(current, 0)() is not context
+            or type(tuple.__getitem__(current, 1)) is not tuple
+            or not matches_exact_values(
+                current_values, tuple.__getitem__(current, 1)
+            )
+            or tuple.__getitem__(current, 3) is not store
+            or tuple.__getitem__(current, 4) is not config
+            or tuple.__getitem__(current, 5) is not runtime
+            or tuple.__getitem__(current, 7) is not current_selected_receipt
+        ):
+            raise ValueError("controller_target_context_authority_required")
+        validate_shape(context)
+        obligation = object.__getattribute__(context, "obligation")
+        semantic_authority = semantic_validator(
+            obligation=obligation,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+        if semantic_authority is not tuple.__getitem__(current, 2):
+            raise ValueError("controller_target_context_dependency_drift")
+        action_kind = object.__getattribute__(context, "action_kind")
+        target_evidence_id = object.__getattribute__(
+            context, "target_evidence_id"
+        )
+        seed_ids = seed_id_reader(obligation, semantic_authority, config)
+        if target_evidence_id not in seed_ids:
+            raise ValueError("controller_target_context_target_not_candidate")
+        parent_receipts = object.__getattribute__(context, "parent_receipts")
+        bridge_receipts = object.__getattribute__(context, "bridge_receipts")
+        parent_authorities, bridge_authorities = complete_context_validator(
+            obligation=obligation,
+            semantic_authority=semantic_authority,
+            parent_receipts=parent_receipts,
+            bridge_receipts=bridge_receipts,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+        matches = matching_receipts(
+            action_kind=action_kind,
+            target_evidence_id=target_evidence_id,
+            parent_receipts=parent_receipts,
+            bridge_receipts=bridge_receipts,
+            parent_authorities=parent_authorities,
+            bridge_authorities=bridge_authorities,
+        )
+        if (
+            len(matches) != 1
+            or tuple.__getitem__(matches, 0)
+            is not object.__getattribute__(context, "selected_receipt")
+        ):
+            raise ValueError("controller_target_context_exact_one_required")
+        key = context_key(
+            obligation=obligation,
+            semantic_authority=semantic_authority,
+            action_kind=action_kind,
+            target_evidence_id=target_evidence_id,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+        cached_weak = dict.get(cache, key)
+        cached_shadow = dict.get(cache_shadow, key)
+        root_weak = dict.get(root_by_key, key)
+        root_weak_shadow = dict.get(root_by_key_shadow, key)
+        if (
+            key != tuple.__getitem__(current, 6)
+            or cached_weak is not tuple.__getitem__(current, 0)
+            or cached_shadow is not cached_weak
+            or type(root_weak) is not ReferenceType
+            or root_weak_shadow is not root_weak
+            or root_weak() is not obligation
+            or (key in known_keys) is not (key in known_keys_shadow)
+            or key not in known_keys
+        ):
+            raise ValueError("controller_target_context_dependency_drift")
+        return current
+
+    def prune_dead_state_unlocked() -> None:
+        identities = set(dict.keys(authorities)) | set(
+            dict.keys(authority_shadow)
+        )
+        for identity in identities:
+            current = dict.get(authorities, identity)
+            sealed = dict.get(authority_shadow, identity)
+            if (
+                type(current) is not tuple
+                or len(current) != 8
+                or sealed is not current
+                or type(tuple.__getitem__(current, 0)) is not ReferenceType
+            ):
+                raise ValueError("controller_target_context_history_drift")
+            if tuple.__getitem__(current, 0)() is None:
+                dict.pop(authorities, identity, None)
+                dict.pop(authority_shadow, identity, None)
+        current = None
+        sealed = None
+        keys = set(dict.keys(root_by_key)) | set(
+            dict.keys(root_by_key_shadow)
+        )
+        for key in keys:
+            root_weak = dict.get(root_by_key, key)
+            root_weak_shadow = dict.get(root_by_key_shadow, key)
+            if (
+                type(root_weak) is not ReferenceType
+                or root_weak_shadow is not root_weak
+            ):
+                raise ValueError("controller_target_context_history_drift")
+            if root_weak() is None:
+                cached_weak = dict.get(cache, key)
+                cached_weak_shadow = dict.get(cache_shadow, key)
+                if (
+                    cached_weak is not cached_weak_shadow
+                    or (key in known_keys) is not (key in known_keys_shadow)
+                ):
+                    raise ValueError(
+                        "controller_target_context_history_drift"
+                    )
+                dict.pop(cache, key, None)
+                dict.pop(cache_shadow, key, None)
+                known_keys.discard(key)
+                known_keys_shadow.discard(key)
+                dict.pop(root_by_key, key, None)
+                dict.pop(root_by_key_shadow, key, None)
+
+    helper_pins = tuple(
+        (
+            function,
+            object.__getattribute__(function, "__code__"),
+            object.__getattribute__(function, "__defaults__"),
+            object.__getattribute__(function, "__kwdefaults__"),
+            object.__getattribute__(function, "__globals__"),
+            object.__getattribute__(function, "__closure__"),
+            tuple(
+                cell.cell_contents
+                for cell in (
+                    object.__getattribute__(function, "__closure__") or ()
+                )
+            ),
+        )
+        for function in (
+            exact_values,
+            matches_exact_values,
+            matching_receipts,
+            validate_shape,
+            context_key,
+            validate_authority_unlocked,
+            prune_dead_state_unlocked,
+            semantic_validator,
+            seed_id_reader,
+            parent_issuer,
+            bridge_issuer,
+            complete_context_validator,
+        )
+    )
+
+    def validate_accumulator_dependencies() -> None:
+        dependency_checker()
+        for (
+            function,
+            code,
+            defaults,
+            kwdefaults,
+            globals_state,
+            closure,
+            closure_contents,
+        ) in helper_pins:
+            current_closure = object.__getattribute__(function, "__closure__")
+            if (
+                object.__getattribute__(function, "__code__") is not code
+                or object.__getattribute__(function, "__defaults__") is not defaults
+                or object.__getattribute__(function, "__kwdefaults__")
+                is not kwdefaults
+                or object.__getattribute__(function, "__globals__")
+                is not globals_state
+                or current_closure is not closure
+                or len(current_closure or ()) != len(closure_contents)
+                or any(
+                    cell.cell_contents is not issued
+                    for cell, issued in zip(
+                        current_closure or (), closure_contents
+                    )
+                )
+            ):
+                raise ValueError(
+                    "controller_target_context_dependency_drift"
+                )
+
+    def accumulate_controller_target_context(
+        *,
+        obligation: SemanticVerificationObligation,
+        action_kind: str,
+        target_evidence_id: str,
+        store: EvidenceStore,
+        config: HarnessExecutionConfig,
+        runtime: HarnessRuntimeBinding,
+    ) -> _ControllerTargetContext:
+        validate_accumulator_dependencies()
+        if (
+            type(store) is not store_cls
+            or type(config) is not config_cls
+            or type(runtime) is not runtime_cls
+        ):
+            raise TypeError("controller_target_context_dependencies_required")
+        semantic_authority = semantic_validator(
+            obligation=obligation,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+        if type(action_kind) is not str or action_kind not in action_kinds:
+            raise ValueError("invalid_controller_target_context_action_kind")
+        if type(target_evidence_id) is not str or not target_evidence_id:
+            raise ValueError("controller_target_context_target_not_candidate")
+        seed_ids = seed_id_reader(obligation, semantic_authority, config)
+        if target_evidence_id not in seed_ids:
+            raise ValueError("controller_target_context_target_not_candidate")
+        key = context_key(
+            obligation=obligation,
+            semantic_authority=semantic_authority,
+            action_kind=action_kind,
+            target_evidence_id=target_evidence_id,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+        with accumulation_lock:
+            prune_dead_state_unlocked()
+            cached_weak = dict.get(cache, key)
+            cached_shadow = dict.get(cache_shadow, key)
+            if cached_weak is not cached_shadow:
+                raise ValueError("controller_target_context_history_drift")
+            if cached_weak is not None:
+                cached = cached_weak()
+                if cached is None:
+                    raise ValueError(
+                        "controller_target_context_remint_forbidden"
+                    )
+                validate_authority_unlocked(
+                    context=cached,
+                    store=store,
+                    config=config,
+                    runtime=runtime,
+                )
+                return cached
+            if (key in known_keys) is not (key in known_keys_shadow):
+                raise ValueError("controller_target_context_history_drift")
+            if key in known_keys:
+                raise ValueError("controller_target_context_history_drift")
+            parent_receipts = parent_issuer(
+                obligation=obligation,
+                store=store,
+                config=config,
+                runtime=runtime,
+            )
+            bridge_receipts = bridge_issuer(
+                obligation=obligation,
+                store=store,
+                config=config,
+                runtime=runtime,
+            )
+            parent_authorities, bridge_authorities = complete_context_validator(
+                obligation=obligation,
+                semantic_authority=semantic_authority,
+                parent_receipts=parent_receipts,
+                bridge_receipts=bridge_receipts,
+                store=store,
+                config=config,
+                runtime=runtime,
+            )
+            matches = matching_receipts(
+                action_kind=action_kind,
+                target_evidence_id=target_evidence_id,
+                parent_receipts=parent_receipts,
+                bridge_receipts=bridge_receipts,
+                parent_authorities=parent_authorities,
+                bridge_authorities=bridge_authorities,
+            )
+            if len(matches) != 1:
+                raise ValueError("controller_target_context_exact_one_required")
+            context = object.__new__(context_cls)
+            values = (
+                obligation,
+                action_kind,
+                target_evidence_id,
+                tuple.__getitem__(matches, 0),
+                parent_receipts,
+                bridge_receipts,
+            )
+            for name, value in zip(value_names, values):
+                object.__setattr__(context, name, value)
+            validate_shape(context)
+            identity = id(context)
+            context_weak = ref(context)
+            record = (
+                context_weak,
+                exact_values(context),
+                semantic_authority,
+                store,
+                config,
+                runtime,
+                key,
+                tuple.__getitem__(matches, 0),
+            )
+            dict.__setitem__(authorities, identity, record)
+            dict.__setitem__(authority_shadow, identity, record)
+            dict.__setitem__(cache, key, context_weak)
+            dict.__setitem__(cache_shadow, key, context_weak)
+            known_keys.add(key)
+            known_keys_shadow.add(key)
+            root_weak = ref(obligation)
+            dict.__setitem__(root_by_key, key, root_weak)
+            dict.__setitem__(root_by_key_shadow, key, root_weak)
+            return context
+
+    def require_controller_target_context(
+        *,
+        context: _ControllerTargetContext,
+        store: EvidenceStore,
+        config: HarnessExecutionConfig,
+        runtime: HarnessRuntimeBinding,
+    ) -> _ControllerTargetContext:
+        validate_accumulator_dependencies()
+        if (
+            type(store) is not store_cls
+            or type(config) is not config_cls
+            or type(runtime) is not runtime_cls
+        ):
+            raise TypeError("controller_target_context_dependencies_required")
+        with accumulation_lock:
+            prune_dead_state_unlocked()
+            validate_authority_unlocked(
+                context=context,
+                store=store,
+                config=config,
+                runtime=runtime,
+            )
+            return context
+
+    accumulate_controller_target_context.__name__ = (
+        "_accumulate_controller_target_context"
+    )
+    accumulate_controller_target_context.__qualname__ = (
+        "_accumulate_controller_target_context"
+    )
+    require_controller_target_context.__name__ = (
+        "_require_controller_target_context"
+    )
+    require_controller_target_context.__qualname__ = (
+        "_require_controller_target_context"
+    )
+    validate_accumulator_dependencies.__name__ = (
+        "_validate_controller_target_context_dependencies"
+    )
+    validate_accumulator_dependencies.__qualname__ = (
+        "_validate_controller_target_context_dependencies"
+    )
+    return (
+        validate_accumulator_dependencies,
+        accumulate_controller_target_context,
+        require_controller_target_context,
+    )
+
+
+(
+    _validate_controller_target_context_dependencies,
+    _accumulate_controller_target_context,
+    _require_controller_target_context,
+) = _build_controller_target_context_accumulator(
+    context_cls=_ControllerTargetContext,
+    obligation_cls=SemanticVerificationObligation,
+    parent_receipt_cls=ParentContextReceipt,
+    bridge_receipt_cls=BridgeContextReceipt,
+    store_cls=EvidenceStore,
+    config_cls=HarnessExecutionConfig,
+    runtime_cls=HarnessRuntimeBinding,
+    semantic_validator=_validate_semantic_verification_obligation_exact,
+    seed_id_reader=_context_seed_evidence_ids,
+    parent_issuer=issue_parent_context_receipts,
+    bridge_issuer=issue_bridge_context_receipts,
+    complete_context_validator=_validate_complete_context_receipts,
+    dependency_checker=_ISSUED_RUNTIME_GATE_DEPENDENCY_CHECKER,
+)
+del _build_controller_target_context_accumulator
+
+
 (
     _claim_e0_execution,
     _close_e0_execution,
@@ -18538,6 +19140,18 @@ _RUNTIME_GATE_FUNCTION_PINS = tuple(
         ("_controller_step_status", _controller_step_status),
         ("_bind_controller_step_effect", _bind_controller_step_effect),
         ("_complete_controller_step", _complete_controller_step),
+        (
+            "_validate_controller_target_context_dependencies",
+            _validate_controller_target_context_dependencies,
+        ),
+        (
+            "_accumulate_controller_target_context",
+            _accumulate_controller_target_context,
+        ),
+        (
+            "_require_controller_target_context",
+            _require_controller_target_context,
+        ),
     )
 )
 _ISSUED_RUNTIME_GATE_FUNCTION_PINS = _RUNTIME_GATE_FUNCTION_PINS
@@ -18654,6 +19268,7 @@ _RUNTIME_GATE_OBJECT_PINS = (
         type,
     ),
     ("_ControllerStepClaim", _ControllerStepClaim, type),
+    ("_ControllerTargetContext", _ControllerTargetContext, type),
     ("SearchResult", SearchResult, type),
     ("ResolvedScope", ResolvedScope, type),
     ("Lock", Lock, type(Lock)),
@@ -19351,6 +19966,19 @@ _RUNTIME_GATE_CLASS_PINS = (
     ),
     _runtime_gate_class_pin(
         _ControllerStepClaim,
+        (
+            "__init__",
+            "__setattr__",
+            "__delattr__",
+            "__repr__",
+            "__copy__",
+            "__deepcopy__",
+            "__reduce__",
+            "__reduce_ex__",
+        ),
+    ),
+    _runtime_gate_class_pin(
+        _ControllerTargetContext,
         (
             "__init__",
             "__setattr__",
