@@ -1,7 +1,7 @@
 # Local RAG Baseline → Evidence-Harness Challenger 평가 진행 보고서
 
 
-기준: 2026-09-05 · 현재 작업대 `feat/total-integration` · EH2.6.d2.i 완료 시점
+기준: 2026-09-05 · 현재 작업대 `feat/total-integration` · EH2.6.c4.0.a 완료 시점
 최종 통합 대상: `feat/local-qwen-mini131-eval`
 
 > **고정된 목적:** 기존 local KURE page-v1 RAG baseline은 최종 구조가 아니라 비교를 위한 control이다. GPT retrieval 연구,
@@ -20,13 +20,13 @@
 | --- | --- | --- | --- |
 | 주 비교 통제군 B0 | KURE page-v1 + local Qwen 계열 | Mac-equivalent 측정 완료·provisional | local-first retrieval 비교의 authoritative control. 계속 보존한다. |
 | 별도 API arm | `text-embedding-3-small` + `gpt-5-nano` + Streamlit | 사용자-facing 호환 경로 | API-first는 과거 구현 순서이며 local control을 대체하지 않는다. |
-| 현재 개발 대상 | `feat/total-integration`의 Evidence-Harness challenger | EH2.6.d2.i까지 구현 | E0 검색부터 closed effect value·비권한 gate, initial execution aggregate와 revision-0 decision permit까지 완료. cross-state decision, production mint/reducer/생성 E2E는 미완성이다. |
+| 현재 개발 대상 | `feat/total-integration`의 Evidence-Harness challenger | EH2.6.c4.0.a까지 구현 | revision-0 decision permit과 exact state-creation source-owner 상속까지 완료. typed resolver/history/per-target bridge, cross-state decision, production mint/reducer/생성 E2E는 미완성이다. |
 | 최종 전달 대상 | `feat/local-qwen-mini131-eval` | 병합·선택 전 | 같은 Evidence Pack 뒤에서 local/API generator를 갈아 끼운다. |
 | 최종 선택 | baseline 대 assembled challenger | **미실행·미선정** | 동일 골든셋 A/B와 gate/Pareto 판정 뒤 결정한다. |
 
 따라서 **현재 비교할 때 쓰는 것은 local baseline**, **현재 만드는 것은 challenger**, **나중에 기본으로 쓸 것은
-아직 미정**이다. EH2.6.d2.i 작업은 실제 API를 실행한 것이 아니라 API·모델·Langfuse 호출 0회의
-synthetic/offline revision-0 controller permit 경계 검증 단계다.
+아직 미정**이다. EH2.6.c4.0.a 작업은 실제 API를 실행한 것이 아니라 API·모델·Langfuse 호출 0회의
+synthetic/offline exact-root source-owner 경계 검증 단계다.
 
 ### 현재 relay 판정
 
@@ -41,7 +41,9 @@ synthetic/offline revision-0 controller permit 경계 검증 단계다.
 | EH2.6.c3.5 | 8 | DONE | MATCHED — replay/representation/nonpromotion 및 7종 source validator clone·mixed gate |
 | EH2.6.d1 | 8 | DONE | MATCHED — initial-only execution ledger와 aggregate |
 | EH2.6.d2.i | 8 | DONE | MATCHED — revision-0 fact/compare allowed action과 selected-first permit |
-| EH2.6.c4.0 | 8 | SELECTED | GAP — source/outcome/per-target transition authority |
+| EH2.6.c4.0.a | 8 | DONE | MATCHED — exact state-creation source owner와 execution identity 상속 |
+| EH2.6.c4.0.b | 8 | SELECTED | GAP — typed source/outcome resolver |
+| EH2.6.c4.0 | 8 | PARTIAL | a 완료, b→c→d→e 미완성 |
 | EH2.6.d2.x | 8 | BLOCKED | GAP — c4.0+c4.1 뒤 cross-state decision matrix |
 | EH2.6.d2 | 8 | PARTIAL | initial slice 완료, cross-state slice와 full matrix 미완성 |
 | EH2.6.c4 | 7 | PARTIAL | c4.0→c4.1→d2.x→c4.2 순서로 진행 |
@@ -152,7 +154,8 @@ Mini131 결과와 unit/full regression은 출발점·안전성 증거지만 새 
 | DONE | effect 비권한 gate | repr/copy/pickle/from-dict/subclass 비누출·비승격, 7종 source validator exact clone/mixed graph 거절·provider replay 0 | EH2.6.d1 aggregate |
 | DONE | initial execution aggregate | exact initial root에서 zero-consumption ledger/aggregate 발급, stable identity/snapshot 분리, idempotence·concurrency·GC·clone/mixed gate | EH2.6.d2 decision |
 | DONE | initial decision permit | exact live revision-0 fact/compare all-unsearched 상태에서 canonical allowed action과 selected-first receipt 발급, EH2.5/effect 비승격·동시성·GC gate | EH2.6.c4.0 |
-| NOT DONE | 상태 전이·종료 | source/outcome/per-target authority, cross-state decision, live effect mint, reducer, bounded controller가 없음 | EH2.6.c4.0→c4.1→d2.x→c4.2→d3~d4 |
+| DONE | exact source-owner authority | state 생성 시 exact Bound/coverage/outcome/registry/policy를 private mirror에 봉인하고 execution이 exact initial-state identity로만 상속; equal-hash clone·사후 부착·legacy follow-up 승격 차단 | EH2.6.c4.0.b resolver |
+| NOT DONE | 상태 전이·종료 | typed source/outcome resolver, one-step history, per-target bridge, cross-state decision, live effect mint, reducer, bounded controller가 없음 | EH2.6.c4.0.b~e→c4.1→d2.x→c4.2→d3~d4 |
 | NOT DONE | 전문 lane E2E | analytics/list/table/figure가 controller 밖 | EH3.1~EH3.G |
 | NOT DONE | 생성·평가 조립 | reranker/generator/CLI/layer evaluator 미완성 | EH4.1~EH4.G |
 | NOT DONE | 공정 비교 동결 | 공통 freeze receipt와 threshold 미동결 | EXP-SELECT.2 |
@@ -161,7 +164,7 @@ Mini131 결과와 unit/full regression은 출발점·안전성 증거지만 새 
 
 ## 다음 실행 순서
 
-1. EH2.6.c4.0 source/outcome/per-target authority → c4.1 initial effect/transition → d2.x cross-state decision → c4.2 full reducer 순으로 완성한다.
+1. EH2.6.c4.0.b typed resolver → c one-step history → d per-target issuer → e structural bridge를 닫고, c4.1 initial effect/transition → d2.x cross-state decision → c4.2 full reducer 순으로 완성한다.
 2. EH3에서 catalog/analytics/list/table/figure specialist를 같은 evidence contract에 연결한다.
 3. EH4에서 identity/reranker, local/API generator adapter, CLI와 계층별 evaluator를 완성한다.
 4. baseline·local control·challenger의 corpus/gold/qrels/judge/budget/hash와 metric threshold를 동결한다.
@@ -171,15 +174,15 @@ Mini131 결과와 unit/full regression은 출발점·안전성 증거지만 새 
 
 ## 검증 상태
 
-- EH2.6.d2.i focused 8/8, d1+d2.i 결합 18/18, execution/controller 관련 회귀 278/278 PASS.
-- 전체 회귀는 권한 환경에서 1,306/1,306, repository safety는 873파일 PASS다. d2.i 과정의
+- EH2.6.c4.0.a focused+인접 회귀 43/43 PASS.
+- 전체 회귀는 권한 환경에서 1,315/1,315, repository safety는 874파일 PASS다. c4.0.a 과정의
   API/OpenAI/model-provider/Langfuse 호출은 0이고 synthetic/offline fixture만 사용했다.
 - 이 수치는 구현 무결성 결과이며 retrieval 성능 향상 수치가 아니다.
 - current/target Mermaid PNG 재생성·직접 시각 검사와 HTML 로컬 자산/상태 참조 확인 PASS.
 - 설치된 Chrome+bundled Playwright desktop/mobile QA: images2, tables8, page errors0, mobile overflow0 PASS.
-  증거: `../../test/playwright-screenshots/evidence-harness-progress-eh26-d2-i-2026-09-05.png`.
-- 독립 적대적 리뷰는 P0/P1 0건 `APPROVE`이며, parent EH2.6.d2는 의도대로 열린 상태다.
-- repository safety 873 files PASS.
+  증거: `../../test/playwright-screenshots/evidence-harness-progress-eh26-c4-0-a-2026-09-05.png`.
+- 독립 적대적 리뷰는 equal-hash clone, source-owner 재사용, accessor/validator drift를 재검증해 P0/P1 0건 `APPROVE`다. parent EH2.6.c4.0과 d2는 의도대로 열린 상태다.
+- repository safety 874 files PASS.
 
 판정: **실험 방향은 고정됐고 challenger 골격은 부분 구현됐지만, 동일 골든셋 성능 비교와 최종 아키텍처
 선택은 아직 시작 전이다.**

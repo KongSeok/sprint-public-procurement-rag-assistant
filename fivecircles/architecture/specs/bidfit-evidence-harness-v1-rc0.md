@@ -1058,6 +1058,20 @@ parent/child 혼합, 골든 값 의존을 검출한다. 정확한 새 파일/메
   per-target parent/bridge issuer와 정식 structural-effect bridge를 먼저 제공한다. 그 뒤 d2.x가 transition-aware
   eligibility를 완성한다. 미시도 unavailable capability는 제거하지 않고 한 번 선택해 zero-call unavailable effect를
   남긴 뒤 ledger에 기록된 같은 stable action만 제거한다.
+- c4.0은 다시 `a source-owner → b source/outcome resolver → c one-step claim/history → d per-target
+  issuer/accumulator → e structural bridge/adversarial gate` 순서로 구현한다. a는 public state/execution payload와
+  `issue_harness_execution` signature를 바꾸지 않고 state 생성 순간의 exact `BoundFact|BoundCompare|BoundFollowup`,
+  compare coverage 또는 follow-up outcome/progress/registry/policy를 closure-private mirrored authority에 보존한다.
+  execution은 exact initial state identity를 통해서만 이를 상속한다. compatibility follow-up state는 E1-safe source로
+  승격하지 않는다. hash가 같은 다른 root 탐색, 사후 source 부착, caller source/hash 입력은 금지한다.
+  c4.0.a 구현은 raw `HarnessState._create`에서 source-owner 인자를 제거하고 state 생성+owner 등록을 하나의
+  closure-held boundary로 묶는다. registrar/reader module alias는 초기화 후 삭제하며 owner→origin-state mirror는
+  state hash가 아니라 exact identity와 owner 수명 tombstone으로 재사용을 차단한다.
+- c4.0의 source/outcome history key는 action hash 하나가 아니라 stable execution identity, decision ordinal,
+  before snapshot과 exact selected action identity를 함께 사용한다. preflight 실패는 claim하지 않고, 실제 child 호출을
+  시작한 뒤 오류·drift는 failed tombstone으로 소비한다. valid source receipt를 decision 이후 사후 포장하는 방식과
+  unrestricted payload→effect mint는 금지한다. c4.0 자체는 provider/clock을 호출하거나 effect/reducer/ledger/state를
+  실행하지 않는다.
 - reducer는 exact before state와 effect로 exact after state를 하나만 결정한다. lane 실행, parent context,
   terminal stop/abstain은 exact same state object를 after로 사용한다. 상태가 실제 바뀌는 effect만 새 state를
   발급하고 그 source receipt가 effect SHA를 가리키며, 한 nonterminal transition은 하나의 obligation만

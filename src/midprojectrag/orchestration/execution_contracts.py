@@ -48,7 +48,13 @@ from .followup_retrieval import (
     FollowupRetrievalAttempt,
     FollowupRetrievalOutcome,
 )
-from .harness_state import HarnessState, build_e1_followup_harness_state, validate_harness_state
+from .harness_state import (
+    HarnessState,
+    _ControllerSourceOwnerAuthority,
+    _require_harness_state_source_owner,
+    build_e1_followup_harness_state,
+    validate_harness_state,
+)
 
 
 SCHEMA_VERSION = "1.0"
@@ -2956,6 +2962,7 @@ def _build_harness_execution_authority_accessors(
         store: EvidenceStore,
         config: HarnessExecutionConfig,
         runtime: HarnessRuntimeBinding,
+        source_owner: _ControllerSourceOwnerAuthority,
     ) -> HarnessExecution:
         with authority_lock:
             current = histories.get(execution_identity_sha256)
@@ -2970,9 +2977,10 @@ def _build_harness_execution_authority_accessors(
                     or current[1] is not store
                     or current[2] is not config
                     or current[3] is not runtime
+                    or current[4] is not source_owner
                 ):
                     raise ValueError("harness_execution_root_identity_mismatch")
-                issued = current[4]()
+                issued = current[5]()
                 if issued is None:
                     raise ValueError("harness_execution_already_issued")
                 return issued
@@ -3015,6 +3023,7 @@ def _build_harness_execution_authority_accessors(
                     ledger.unavailable_action_sha256s,
                     ledger.no_progress_streaks,
                 ),
+                source_owner,
             )
             authorities[execution_identity] = authority
             authority_shadow[execution_identity] = authority
@@ -3022,7 +3031,14 @@ def _build_harness_execution_authority_accessors(
                 state,
                 lambda dead, key=execution_identity_sha256: _drop_root(key, dead),
             )
-            history = (state_weak, store, config, runtime, execution_weak)
+            history = (
+                state_weak,
+                store,
+                config,
+                runtime,
+                source_owner,
+                execution_weak,
+            )
             histories[execution_identity_sha256] = history
             history_shadow[execution_identity_sha256] = history
             return execution
@@ -3043,7 +3059,11 @@ def _build_harness_execution_authority_accessors(
                 execution.execution_identity_sha256
             ):
                 raise ValueError("harness_execution_history_authority_drift")
-            if history[0]() is not current[2] or history[4]() is not execution:
+            if (
+                history[0]() is not current[2]
+                or history[4] is not current[10]
+                or history[5]() is not execution
+            ):
                 raise ValueError("harness_execution_history_authority_drift")
             return current
 
@@ -3072,6 +3092,7 @@ def _build_harness_execution_public_api(
     state_validator: Any,
     config_validator: Any,
     runtime_validator: Any,
+    source_owner_reader: Any,
     identity_payload: Any,
     canonical_sha256: Any,
     authority_issuer: Any,
@@ -3085,6 +3106,7 @@ def _build_harness_execution_public_api(
         ("_require_hash", _require_hash),
         ("_d1_nonnegative_int", _d1_nonnegative_int),
         ("_d1_hash_tuple", _d1_hash_tuple),
+        ("_require_harness_state_source_owner", source_owner_reader),
         ("ref", ref),
     )
     callable_pins = tuple(
@@ -3098,6 +3120,7 @@ def _build_harness_execution_public_api(
             state_validator,
             config_validator,
             runtime_validator,
+            source_owner_reader,
             identity_payload,
             canonical_sha256,
             authority_issuer,
@@ -3151,6 +3174,7 @@ def _build_harness_execution_public_api(
             ("validate_harness_state", state_validator),
             ("validate_harness_execution_config", config_validator),
             ("validate_harness_runtime_binding", runtime_validator),
+            ("_require_harness_state_source_owner", source_owner_reader),
             ("_d1_execution_identity_payload", identity_payload),
             ("_canonical_sha256", canonical_sha256),
             ("_issue_harness_execution_authority", authority_issuer),
@@ -3210,6 +3234,7 @@ def _build_harness_execution_public_api(
         if type(runtime) is not runtime_cls:
             raise TypeError("harness_runtime_binding_required")
         state_validator(state=state, store=store)
+        source_owner = source_owner_reader(state=state, store=store)
         if state.belief.source_kind == "compare" and any(
             entry.observation_stage != "unsearched"
             for entry in state.belief.evidence_map
@@ -3230,6 +3255,7 @@ def _build_harness_execution_public_api(
             store=store,
             config=config,
             runtime=runtime,
+            source_owner=source_owner,
         )
         validate_harness_execution(
             execution=execution,
@@ -3258,6 +3284,10 @@ def _build_harness_execution_public_api(
         if type(runtime) is not runtime_cls:
             raise TypeError("harness_runtime_binding_required")
         authority = authority_reader(execution)
+        source_owner = source_owner_reader(
+            state=execution.initial_state,
+            store=store,
+        )
         if (
             authority[2] is not execution.initial_state
             or authority[3] is not execution.state
@@ -3266,6 +3296,7 @@ def _build_harness_execution_public_api(
             or authority[6] is not config
             or authority[7] is not runtime
             or authority[8] is not None
+            or authority[10] is not source_owner
             or any(
                 issued is not actual
                 for issued, actual in zip(
@@ -3335,12 +3366,167 @@ def _build_harness_execution_public_api(
     state_validator=validate_harness_state,
     config_validator=validate_harness_execution_config,
     runtime_validator=validate_harness_runtime_binding,
+    source_owner_reader=_require_harness_state_source_owner,
     identity_payload=_d1_execution_identity_payload,
     canonical_sha256=_canonical_sha256,
     authority_issuer=_issue_harness_execution_authority,
     authority_reader=_require_harness_execution_authority,
 )
 del _build_harness_execution_public_api
+
+
+def _build_controller_source_owner_reader(
+    *,
+    execution_cls: type,
+    store_cls: type,
+    config_cls: type,
+    runtime_cls: type,
+    source_owner_cls: type,
+    execution_validator: Any,
+    execution_authority_reader: Any,
+    state_source_reader: Any,
+    canonical_sha256: Any,
+):
+    callable_pins = tuple(
+        (
+            function,
+            object.__getattribute__(function, "__code__"),
+            object.__getattribute__(function, "__defaults__"),
+            object.__getattribute__(function, "__kwdefaults__"),
+            object.__getattribute__(function, "__globals__"),
+            object.__getattribute__(function, "__closure__"),
+        )
+        for function in (
+            execution_validator,
+            execution_authority_reader,
+            state_source_reader,
+            canonical_sha256,
+        )
+    )
+    closure_content_pins = tuple(
+        tuple(
+            cell.cell_contents
+            for cell in (object.__getattribute__(function, "__closure__") or ())
+        )
+        for function, *_rest in callable_pins
+    )
+
+    def validate_dependencies() -> None:
+        module = globals()
+        for name, issued in (
+            ("HarnessExecution", execution_cls),
+            ("EvidenceStore", store_cls),
+            ("HarnessExecutionConfig", config_cls),
+            ("HarnessRuntimeBinding", runtime_cls),
+            ("_ControllerSourceOwnerAuthority", source_owner_cls),
+            ("validate_harness_execution", execution_validator),
+            (
+                "_require_harness_execution_authority",
+                execution_authority_reader,
+            ),
+            ("_require_harness_state_source_owner", state_source_reader),
+            ("_canonical_sha256", canonical_sha256),
+        ):
+            if module.get(name) is not issued:
+                raise ValueError("controller_source_owner_dependency_drift")
+        for (
+            function,
+            code,
+            defaults,
+            kwdefaults,
+            globals_state,
+            closure,
+        ), closure_contents in zip(callable_pins, closure_content_pins):
+            current_closure = object.__getattribute__(function, "__closure__")
+            if (
+                object.__getattribute__(function, "__code__") is not code
+                or object.__getattribute__(function, "__defaults__") is not defaults
+                or object.__getattribute__(function, "__kwdefaults__")
+                is not kwdefaults
+                or object.__getattribute__(function, "__globals__")
+                is not globals_state
+                or current_closure is not closure
+                or len(current_closure or ()) != len(closure_contents)
+                or any(
+                    cell.cell_contents is not issued
+                    for cell, issued in zip(
+                        current_closure or (),
+                        closure_contents,
+                    )
+                )
+            ):
+                raise ValueError("controller_source_owner_dependency_drift")
+
+    def require_controller_source_owner(
+        *,
+        execution: HarnessExecution,
+        store: EvidenceStore,
+        config: HarnessExecutionConfig,
+        runtime: HarnessRuntimeBinding,
+    ) -> _ControllerSourceOwnerAuthority:
+        """Recover the exact state-creation owner; this is not effect authority."""
+
+        validate_dependencies()
+        if type(execution) is not execution_cls:
+            raise TypeError("harness_execution_required")
+        if type(store) is not store_cls:
+            raise TypeError("evidence_store_required")
+        if type(config) is not config_cls:
+            raise TypeError("harness_execution_config_required")
+        if type(runtime) is not runtime_cls:
+            raise TypeError("harness_runtime_binding_required")
+        execution_validator(
+            execution=execution,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+        authority = execution_authority_reader(execution)
+        owner = state_source_reader(
+            state=execution.initial_state,
+            store=store,
+        )
+        if type(owner) is not source_owner_cls or authority[10] is not owner:
+            raise ValueError("controller_source_owner_execution_identity_mismatch")
+        if (
+            owner.source_kind != execution.source_kind
+            or owner.source.binding_sha256 != execution.source_binding_sha256
+            or (
+                owner.source.trace.trace_sha256
+                if owner.source_kind == "fact"
+                else (
+                    owner.source_receipt.coverage_sha256
+                    if owner.source_kind == "compare"
+                    else canonical_sha256(owner.source_receipt.to_dict())
+                )
+            )
+            != execution.source_receipt_sha256
+        ):
+            raise ValueError("controller_source_owner_execution_payload_mismatch")
+        if (
+            owner.source_kind == "follow_up"
+            and owner.projection_kind != "followup_e1"
+        ):
+            raise ValueError("controller_followup_source_not_e1_safe")
+        return owner
+
+    require_controller_source_owner.__name__ = "_require_controller_source_owner"
+    require_controller_source_owner.__qualname__ = "_require_controller_source_owner"
+    return require_controller_source_owner
+
+
+_require_controller_source_owner = _build_controller_source_owner_reader(
+    execution_cls=HarnessExecution,
+    store_cls=EvidenceStore,
+    config_cls=HarnessExecutionConfig,
+    runtime_cls=HarnessRuntimeBinding,
+    source_owner_cls=_ControllerSourceOwnerAuthority,
+    execution_validator=validate_harness_execution,
+    execution_authority_reader=_require_harness_execution_authority,
+    state_source_reader=_require_harness_state_source_owner,
+    canonical_sha256=_canonical_sha256,
+)
+del _build_controller_source_owner_reader
 
 
 # EH2.6.d2.i revision-zero controller decision permit.  This deliberately

@@ -325,6 +325,18 @@ formal structural-effect creation bridge. Only then may d2.x filter consumed sta
 fuse/context. An untried unavailable capability remains selectable once so c4 can record a zero-call unavailable
 effect; only its ledger-recorded stable action is removed later. D2.i does not mint effects, claim/consume a permit,
 advance a ledger, reduce state, call a provider/clock, or expose start/step/run.
+
+C4.0 is implemented as five ordered leaves: source-owner authority, typed source/outcome resolution, one-step
+claim/history, per-target context issuance with a canonical batch accumulator, and a closure-private structural
+effect bridge plus adversarial gate. The source-owner leaf captures the exact `BoundFact|BoundCompare|BoundFollowup`
+and compare coverage or follow-up outcome/progress/registry/policy at state creation. It changes no public state or
+execution payload/signature; an execution inherits the owner only through exact initial-state identity. An equal hash
+from another root, retroactive attachment, compatibility follow-up promotion, or caller-supplied source/hash is not
+authority. C4.0 itself makes zero provider/clock calls and cannot mint a live effect, advance the ledger, reduce
+state, or produce a transition.
+C4.0.a removes source inputs from the raw state factory and atomically seals state creation plus owner registration
+behind a closure-held boundary. Registrar/reader module aliases are deleted after initialization; an exact-identity
+owner-to-origin-state mirror and owner-lifetime tombstone reject reuse by any other root, including equal hashes.
 An E1 compare seed must be all-unsearched; already hybrid-searched EH2.4 coverage cannot be
 relabeled as independent lane execution. Once all approved retrieval paths close with no
 candidates, controller-only `verify_slot` performs a zero-provider exhaustion check that may

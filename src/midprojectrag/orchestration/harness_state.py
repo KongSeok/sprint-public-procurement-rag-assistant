@@ -8,6 +8,7 @@ from hashlib import sha256
 import json
 import math
 import re
+from threading import RLock
 from types import FunctionType
 from typing import Any
 from weakref import ReferenceType, ref
@@ -175,10 +176,66 @@ _ENTRY_TOKEN = object()
 _BELIEF_TOKEN = object()
 _PROGRESS_TOKEN = object()
 _STATE_TOKEN = object()
+_SOURCE_OWNER_TOKEN = object()
 _ENTRY_AUTHORITIES: dict[int, tuple[Any, ...]] = {}
 _BELIEF_AUTHORITIES: dict[int, tuple[Any, ...]] = {}
 _PROGRESS_AUTHORITIES: dict[int, tuple[Any, ...]] = {}
 _STATE_AUTHORITIES: dict[int, tuple[Any, ...]] = {}
+
+
+class _ControllerSourceOwnerAuthority:
+    """Private exact source graph retained for controller execution."""
+
+    __slots__ = (
+        "source_kind",
+        "source",
+        "source_receipt",
+        "source_progress",
+        "registry",
+        "policy",
+        "projection_kind",
+        "__weakref__",
+    )
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        raise TypeError("controller_source_owner_factory_required")
+
+    def __setattr__(self, name: str, value: object) -> None:
+        raise AttributeError("controller_source_owner_immutable")
+
+    def __delattr__(self, name: str) -> None:
+        raise AttributeError("controller_source_owner_immutable")
+
+    def __repr__(self) -> str:
+        return "_ControllerSourceOwnerAuthority(<redacted>)"
+
+    @classmethod
+    def _create(
+        cls,
+        *,
+        source_kind: str,
+        source: BoundFact | BoundCompare | BoundFollowup,
+        source_receipt: Any,
+        source_progress: PrimaryEvidenceProgress | None,
+        registry: RuleRegistry | None,
+        policy: FollowupEvidencePolicy | None,
+        projection_kind: str,
+        _token: object,
+    ) -> _ControllerSourceOwnerAuthority:
+        if cls is not _ControllerSourceOwnerAuthority or _token is not _SOURCE_OWNER_TOKEN:
+            raise ValueError("controller_source_owner_factory_required")
+        result = object.__new__(cls)
+        for name, value in (
+            ("source_kind", source_kind),
+            ("source", source),
+            ("source_receipt", source_receipt),
+            ("source_progress", source_progress),
+            ("registry", registry),
+            ("policy", policy),
+            ("projection_kind", projection_kind),
+        ):
+            object.__setattr__(result, name, value)
+        return result
 
 
 def _canonical_json(payload: Mapping[str, Any]) -> str:
@@ -280,6 +337,337 @@ def _validate_store_snapshot(store: EvidenceStore, expected_bundle_sha256: str) 
         if str(exc) == "evidence_store_bundle_mismatch":
             raise ValueError("harness_state_store_bundle_mismatch") from exc
         raise ValueError("harness_state_store_payload_drift") from exc
+
+
+def _validate_controller_source_owner_impl(
+    owner: _ControllerSourceOwnerAuthority,
+    *,
+    state: HarnessState,
+    store: EvidenceStore,
+) -> None:
+    if type(owner) is not _ControllerSourceOwnerAuthority:
+        raise TypeError("controller_source_owner_authority_required")
+    if type(store) is not EvidenceStore:
+        raise TypeError("evidence_store_required")
+    belief = state.belief
+    source = owner.source
+    if owner.source_kind == "fact":
+        if (
+            type(source) is not BoundFact
+            or owner.source_receipt is not source.trace
+            or owner.source_progress is not None
+            or owner.registry is not None
+            or owner.policy is not None
+            or owner.projection_kind != "fact_initial"
+        ):
+            raise ValueError("invalid_fact_controller_source_owner")
+        validate_bound_fact(bound=source, store=store)
+        source_receipt_sha256 = source.trace.trace_sha256
+        source_config_sha256 = source.trace.config_sha256
+    elif owner.source_kind == "compare":
+        if (
+            type(source) is not BoundCompare
+            or type(owner.source_receipt) is not CompareCoverage
+            or owner.source_progress is not None
+            or owner.registry is not None
+            or owner.policy is not None
+            or owner.projection_kind != "compare_coverage"
+        ):
+            raise ValueError("invalid_compare_controller_source_owner")
+        owner.source_receipt._validate(source, store)
+        source_receipt_sha256 = owner.source_receipt.coverage_sha256
+        source_config_sha256 = source.plan.config_sha256
+    elif owner.source_kind == "follow_up":
+        if (
+            type(source) is not BoundFollowup
+            or type(owner.source_receipt) is not FollowupRetrievalOutcome
+            or owner.source_progress is not owner.source_receipt.progress
+            or type(owner.registry) is not RuleRegistry
+            or type(owner.policy) is not FollowupEvidencePolicy
+            or owner.projection_kind not in {"followup_legacy", "followup_e1"}
+        ):
+            raise ValueError("invalid_followup_controller_source_owner")
+        validate_followup_retrieval_outcome(
+            bound=source,
+            outcome=owner.source_receipt,
+            store=store,
+            registry=owner.registry,
+            policy=owner.policy,
+        )
+        source_receipt_sha256 = _canonical_sha256(owner.source_receipt.to_dict())
+        source_config_sha256 = source.trace.config_sha256
+    else:
+        raise ValueError("invalid_controller_source_owner_kind")
+
+    plan = source.plan
+    if (
+        belief.source_kind != owner.source_kind
+        or belief.binding_sha256 != source.binding_sha256
+        or belief.source_receipt_sha256 != source_receipt_sha256
+        or belief.request_fingerprint != source.trace.request_fingerprint
+        or belief.effective_plan_sha256 != source.trace.effective_plan_sha256
+        or belief.config_sha256 != source_config_sha256
+        or belief.evidence_bundle_sha256 != store.bundle_sha256
+        or belief.query_type != plan.query_type
+        or belief.entities != plan.entities
+        or belief.constraints != plan.constraints
+        or belief.scope_state != plan.scope_state
+        or belief.scope_origin != plan.scope_origin
+        or belief.scope_doc_ids != plan.resolved_doc_ids
+    ):
+        raise ValueError("controller_source_owner_state_mismatch")
+
+
+def _close_controller_source_owner_validator(
+    implementation: FunctionType,
+    fact_validator: FunctionType,
+    followup_validator: FunctionType,
+    compare_validator: FunctionType,
+) -> FunctionType:
+    global_pins = (
+        ("_ControllerSourceOwnerAuthority", _ControllerSourceOwnerAuthority),
+        ("EvidenceStore", EvidenceStore),
+        ("BoundFact", BoundFact),
+        ("BoundCompare", BoundCompare),
+        ("BoundFollowup", BoundFollowup),
+        ("CompareCoverage", CompareCoverage),
+        ("FollowupRetrievalOutcome", FollowupRetrievalOutcome),
+        ("PrimaryEvidenceProgress", PrimaryEvidenceProgress),
+        ("RuleRegistry", RuleRegistry),
+        ("FollowupEvidencePolicy", FollowupEvidencePolicy),
+        ("validate_bound_fact", fact_validator),
+        ("validate_followup_retrieval_outcome", followup_validator),
+        ("_canonical_sha256", _canonical_sha256),
+    )
+    callable_pins = tuple(
+        (
+            function,
+            object.__getattribute__(function, "__code__"),
+            object.__getattribute__(function, "__defaults__"),
+            object.__getattribute__(function, "__kwdefaults__"),
+        )
+        for function in (
+            implementation,
+            fact_validator,
+            followup_validator,
+            compare_validator,
+            _canonical_sha256,
+        )
+    )
+    module = globals()
+
+    def validate_controller_source_owner(
+        owner: _ControllerSourceOwnerAuthority,
+        *,
+        state: HarnessState,
+        store: EvidenceStore,
+    ) -> None:
+        if module.get("_validate_controller_source_owner_impl") is not implementation:
+            raise ValueError("controller_source_owner_dependency_drift")
+        for name, issued in global_pins:
+            if module.get(name) is not issued:
+                raise ValueError("controller_source_owner_dependency_drift")
+        if type.__getattribute__(CompareCoverage, "__dict__").get(
+            "_validate"
+        ) is not compare_validator:
+            raise ValueError("controller_source_owner_dependency_drift")
+        for function, code, defaults, kwdefaults in callable_pins:
+            if (
+                object.__getattribute__(function, "__code__") is not code
+                or object.__getattribute__(function, "__defaults__") is not defaults
+                or object.__getattribute__(function, "__kwdefaults__")
+                is not kwdefaults
+            ):
+                raise ValueError("controller_source_owner_dependency_drift")
+        implementation(owner, state=state, store=store)
+
+    return validate_controller_source_owner
+
+
+_validate_controller_source_owner = _close_controller_source_owner_validator(
+    _validate_controller_source_owner_impl,
+    validate_bound_fact,
+    validate_followup_retrieval_outcome,
+    CompareCoverage._validate,
+)
+del _close_controller_source_owner_validator
+
+
+def _build_controller_source_owner_accessors(owner_validator: FunctionType):
+    authority_lock = RLock()
+    authorities: dict[int, tuple[Any, ...]] = {}
+    authority_shadow: dict[int, tuple[Any, ...]] = {}
+    owner_origins: dict[int, tuple[Any, ...]] = {}
+    owner_origin_shadow: dict[int, tuple[Any, ...]] = {}
+    module = globals()
+    validator_pin = (
+        object.__getattribute__(owner_validator, "__code__"),
+        object.__getattribute__(owner_validator, "__defaults__"),
+        object.__getattribute__(owner_validator, "__kwdefaults__"),
+        object.__getattribute__(owner_validator, "__globals__"),
+        object.__getattribute__(owner_validator, "__closure__"),
+        tuple(
+            cell.cell_contents
+            for cell in (object.__getattribute__(owner_validator, "__closure__") or ())
+        ),
+    )
+
+    def validate_dependencies() -> None:
+        if module.get("_validate_controller_source_owner") is not owner_validator:
+            raise ValueError("controller_source_owner_dependency_drift")
+        closure = object.__getattribute__(owner_validator, "__closure__")
+        if (
+            object.__getattribute__(owner_validator, "__code__") is not validator_pin[0]
+            or object.__getattribute__(owner_validator, "__defaults__")
+            is not validator_pin[1]
+            or object.__getattribute__(owner_validator, "__kwdefaults__")
+            is not validator_pin[2]
+            or object.__getattribute__(owner_validator, "__globals__")
+            is not validator_pin[3]
+            or closure is not validator_pin[4]
+            or len(closure or ()) != len(validator_pin[5])
+            or any(
+                cell.cell_contents is not issued
+                for cell, issued in zip(closure or (), validator_pin[5])
+            )
+        ):
+            raise ValueError("controller_source_owner_dependency_drift")
+
+    def drop(identity: int, dead: ReferenceType[Any]) -> None:
+        with authority_lock:
+            current = authorities.get(identity)
+            if current is not None and current[0] is dead:
+                authorities.pop(identity, None)
+                authority_shadow.pop(identity, None)
+
+    def drop_owner(identity: int, dead: ReferenceType[Any]) -> None:
+        with authority_lock:
+            current = owner_origins.get(identity)
+            if current is not None and current[0] is dead:
+                owner_origins.pop(identity, None)
+                owner_origin_shadow.pop(identity, None)
+
+    def require_owner_origin(
+        *,
+        owner: _ControllerSourceOwnerAuthority,
+        state: HarnessState,
+    ) -> tuple[Any, ...] | None:
+        origin = owner_origins.get(id(owner))
+        shadow = owner_origin_shadow.get(id(owner))
+        if (origin is None) != (shadow is None) or (
+            origin is not None and origin is not shadow
+        ):
+            raise ValueError("controller_source_owner_origin_authority_drift")
+        if origin is None:
+            return None
+        if origin[0]() is not owner:
+            raise ValueError("controller_source_owner_origin_authority_drift")
+        if origin[1]() is not state:
+            raise ValueError("controller_source_owner_root_identity_mismatch")
+        return origin
+
+    def register(
+        *,
+        state: HarnessState,
+        owner: _ControllerSourceOwnerAuthority,
+        store: EvidenceStore,
+    ) -> tuple[Any, ...]:
+        validate_dependencies()
+        owner_validator(owner, state=state, store=store)
+        identity = id(state)
+        with authority_lock:
+            origin = require_owner_origin(owner=owner, state=state)
+            current = authorities.get(identity)
+            shadow = authority_shadow.get(identity)
+            if (current is None) != (shadow is None) or (
+                current is not None and current is not shadow
+            ):
+                raise ValueError("controller_source_owner_authority_drift")
+            if current is not None:
+                if (
+                    current[0]() is not state
+                    or current[1] is not owner
+                    or current[2] is not store
+                ):
+                    raise ValueError("controller_source_owner_already_registered")
+                if origin is None or origin[2] != state.state_sha256:
+                    raise ValueError("controller_source_owner_origin_authority_drift")
+                return current
+            state_weak = ref(
+                state,
+                lambda dead, key=identity: drop(key, dead),
+            )
+            record = (
+                state_weak,
+                owner,
+                store,
+                owner.source_kind,
+                owner.source,
+                owner.source_receipt,
+                owner.source_progress,
+                owner.registry,
+                owner.policy,
+                owner.projection_kind,
+                state.state_sha256,
+            )
+            authorities[identity] = record
+            authority_shadow[identity] = record
+            if origin is not None:
+                raise ValueError("controller_source_owner_origin_authority_drift")
+            owner_weak = ref(
+                owner,
+                lambda dead, key=id(owner): drop_owner(key, dead),
+            )
+            origin_record = (owner_weak, state_weak, state.state_sha256)
+            owner_origins[id(owner)] = origin_record
+            owner_origin_shadow[id(owner)] = origin_record
+            return record
+
+    def require(
+        *,
+        state: HarnessState,
+        store: EvidenceStore,
+    ) -> tuple[Any, ...]:
+        identity = id(state)
+        with authority_lock:
+            current = authorities.get(identity)
+            shadow = authority_shadow.get(identity)
+            if (
+                current is None
+                or current is not shadow
+                or current[0]() is not state
+                or current[2] is not store
+            ):
+                raise ValueError("controller_source_owner_runtime_authority_required")
+            owner = current[1]
+            origin = require_owner_origin(owner=owner, state=state)
+            if (
+                owner.source_kind != current[3]
+                or owner.source is not current[4]
+                or owner.source_receipt is not current[5]
+                or owner.source_progress is not current[6]
+                or owner.registry is not current[7]
+                or owner.policy is not current[8]
+                or owner.projection_kind != current[9]
+                or state.state_sha256 != current[10]
+                or origin is None
+                or origin[2] != state.state_sha256
+            ):
+                raise ValueError("controller_source_owner_nested_identity_drift")
+        validate_dependencies()
+        owner_validator(owner, state=state, store=store)
+        return current
+
+    return register, require
+
+
+(
+    _register_controller_source_owner_authority,
+    _read_controller_source_owner_authority,
+) = _build_controller_source_owner_accessors(
+    _validate_controller_source_owner,
+)
+del _build_controller_source_owner_accessors
 
 
 @dataclass(frozen=True, slots=True, weakref_slot=True, init=False)
@@ -759,6 +1147,7 @@ class HarnessState:
             belief,
             progress,
             store,
+            None,
         )
         result._validate(store=store)
         return result
@@ -821,9 +1210,309 @@ class HarnessState:
             _validate_store_snapshot(store, self.belief.evidence_bundle_sha256)
         if current[1] != _canonical_sha256(self.to_dict()):
             raise ValueError("harness_state_runtime_authority_drift")
-
     def to_dict(self) -> dict[str, Any]:
         return {**self._payload(), "state_sha256": self.state_sha256}
+
+
+def _build_controller_owned_state_creator(
+    *,
+    state_cls: type,
+    store_cls: type,
+    owner_cls: type,
+    state_token: object,
+    owner_token: object,
+    state_authorities: dict[int, tuple[Any, ...]],
+    authority_reader: FunctionType,
+    owner_register: FunctionType,
+    owner_reader: FunctionType,
+):
+    """Create and source-seal one state through a closure-held registrar."""
+
+    state_create = type.__getattribute__(state_cls, "__dict__")["_create"].__func__
+    state_validate = type.__getattribute__(state_cls, "__dict__")["_validate"]
+    owner_create = type.__getattribute__(owner_cls, "__dict__")["_create"].__func__
+    module = globals()
+    global_pins = (
+        ("HarnessState", state_cls),
+        ("EvidenceStore", store_cls),
+        ("_ControllerSourceOwnerAuthority", owner_cls),
+        ("_STATE_TOKEN", state_token),
+        ("_SOURCE_OWNER_TOKEN", owner_token),
+        ("_STATE_AUTHORITIES", state_authorities),
+        ("_authority_record", authority_reader),
+    )
+    callable_pins = []
+    for function in (
+        state_create,
+        state_validate,
+        owner_create,
+        authority_reader,
+        owner_register,
+        owner_reader,
+    ):
+        closure = object.__getattribute__(function, "__closure__")
+        callable_pins.append(
+            (
+                function,
+                object.__getattribute__(function, "__code__"),
+                object.__getattribute__(function, "__defaults__"),
+                object.__getattribute__(function, "__kwdefaults__"),
+                object.__getattribute__(function, "__globals__"),
+                closure,
+                tuple(cell.cell_contents for cell in (closure or ())),
+            )
+        )
+    callable_pins = tuple(callable_pins)
+
+    def validate_dependencies() -> None:
+        for name, issued in global_pins:
+            if module.get(name) is not issued:
+                raise ValueError("controller_source_owner_dependency_drift")
+        state_namespace = type.__getattribute__(state_cls, "__dict__")
+        create_descriptor = state_namespace.get("_create")
+        owner_create_descriptor = type.__getattribute__(owner_cls, "__dict__").get(
+            "_create"
+        )
+        if (
+            type(create_descriptor) is not classmethod
+            or create_descriptor.__func__ is not state_create
+            or state_namespace.get("_validate") is not state_validate
+            or type(owner_create_descriptor) is not classmethod
+            or owner_create_descriptor.__func__ is not owner_create
+        ):
+            raise ValueError("controller_source_owner_dependency_drift")
+        for (
+            function,
+            code,
+            defaults,
+            kwdefaults,
+            function_globals,
+            closure,
+            closure_contents,
+        ) in callable_pins:
+            current_closure = object.__getattribute__(function, "__closure__")
+            if (
+                object.__getattribute__(function, "__code__") is not code
+                or object.__getattribute__(function, "__defaults__") is not defaults
+                or object.__getattribute__(function, "__kwdefaults__")
+                is not kwdefaults
+                or object.__getattribute__(function, "__globals__")
+                is not function_globals
+                or current_closure is not closure
+                or len(current_closure or ()) != len(closure_contents)
+                or any(
+                    cell.cell_contents is not issued
+                    for cell, issued in zip(
+                        current_closure or (),
+                        closure_contents,
+                    )
+                )
+            ):
+                raise ValueError("controller_source_owner_dependency_drift")
+
+    def create_controller_owned_state(
+        *,
+        belief: Belief,
+        progress: Progress,
+        store: EvidenceStore,
+        source_kind: str,
+        source: BoundFact | BoundCompare | BoundFollowup,
+        source_receipt: Any,
+        source_progress: PrimaryEvidenceProgress | None,
+        registry: RuleRegistry | None,
+        policy: FollowupEvidencePolicy | None,
+        projection_kind: str,
+    ) -> HarnessState:
+        validate_dependencies()
+        if type(store) is not store_cls:
+            raise TypeError("evidence_store_required")
+        state = state_create(
+            state_cls,
+            belief=belief,
+            progress=progress,
+            store=store,
+            _token=state_token,
+        )
+        owner = owner_create(
+            owner_cls,
+            source_kind=source_kind,
+            source=source,
+            source_receipt=source_receipt,
+            source_progress=source_progress,
+            registry=registry,
+            policy=policy,
+            projection_kind=projection_kind,
+            _token=owner_token,
+        )
+        source_record = owner_register(state=state, owner=owner, store=store)
+        current = authority_reader(
+            state_authorities,
+            state,
+            code="harness_state_runtime_authority_required",
+        )
+        if current[5] is not None:
+            raise ValueError("harness_state_source_owner_already_attached")
+        dict.__setitem__(
+            state_authorities,
+            id(state),
+            (*current[:5], source_record),
+        )
+        state_validate(state, store=store)
+        sealed = authority_reader(
+            state_authorities,
+            state,
+            code="harness_state_runtime_authority_required",
+        )
+        if sealed[5] is not owner_reader(state=state, store=store):
+            raise ValueError("harness_state_source_owner_identity_drift")
+        return state
+
+    return create_controller_owned_state
+
+
+_create_controller_owned_harness_state = _build_controller_owned_state_creator(
+    state_cls=HarnessState,
+    store_cls=EvidenceStore,
+    owner_cls=_ControllerSourceOwnerAuthority,
+    state_token=_STATE_TOKEN,
+    owner_token=_SOURCE_OWNER_TOKEN,
+    state_authorities=_STATE_AUTHORITIES,
+    authority_reader=_authority_record,
+    owner_register=_register_controller_source_owner_authority,
+    owner_reader=_read_controller_source_owner_authority,
+)
+del _build_controller_owned_state_creator
+
+
+def _build_harness_state_source_owner_reader(
+    *,
+    state_cls: type,
+    store_cls: type,
+    owner_cls: type,
+    state_authorities: dict[int, tuple[Any, ...]],
+    state_validator: FunctionType,
+    authority_reader: FunctionType,
+    owner_register: FunctionType,
+    owner_reader: FunctionType,
+):
+    """Close the exact-root reader over the source authority capabilities."""
+
+    module = globals()
+    global_pins = (
+        ("HarnessState", state_cls),
+        ("EvidenceStore", store_cls),
+        ("_ControllerSourceOwnerAuthority", owner_cls),
+        ("_STATE_AUTHORITIES", state_authorities),
+        ("_authority_record", authority_reader),
+    )
+
+    def callable_pin(function: FunctionType) -> tuple[Any, ...]:
+        closure = object.__getattribute__(function, "__closure__")
+        return (
+            function,
+            object.__getattribute__(function, "__code__"),
+            object.__getattribute__(function, "__defaults__"),
+            object.__getattribute__(function, "__kwdefaults__"),
+            object.__getattribute__(function, "__globals__"),
+            closure,
+            tuple(cell.cell_contents for cell in (closure or ())),
+        )
+
+    callable_pins = tuple(
+        callable_pin(function)
+        for function in (
+            state_validator,
+            authority_reader,
+            owner_register,
+            owner_reader,
+        )
+    )
+
+    def validate_dependencies() -> None:
+        for name, issued in global_pins:
+            if module.get(name) is not issued:
+                raise ValueError("controller_source_owner_dependency_drift")
+        if (
+            module.get("_register_controller_source_owner_authority")
+            not in {None, owner_register}
+            or module.get("_read_controller_source_owner_authority")
+            not in {None, owner_reader}
+        ):
+            raise ValueError("controller_source_owner_dependency_drift")
+        state_namespace = type.__getattribute__(state_cls, "__dict__")
+        if state_namespace.get("_validate") is not state_validator:
+            raise ValueError("controller_source_owner_dependency_drift")
+        for (
+            function,
+            code,
+            defaults,
+            kwdefaults,
+            function_globals,
+            closure,
+            closure_contents,
+        ) in callable_pins:
+            current_closure = object.__getattribute__(function, "__closure__")
+            if (
+                object.__getattribute__(function, "__code__") is not code
+                or object.__getattribute__(function, "__defaults__") is not defaults
+                or object.__getattribute__(function, "__kwdefaults__")
+                is not kwdefaults
+                or object.__getattribute__(function, "__globals__")
+                is not function_globals
+                or current_closure is not closure
+                or len(current_closure or ()) != len(closure_contents)
+                or any(
+                    cell.cell_contents is not issued
+                    for cell, issued in zip(
+                        current_closure or (),
+                        closure_contents,
+                    )
+                )
+            ):
+                raise ValueError("controller_source_owner_dependency_drift")
+
+    def require_harness_state_source_owner(
+        *,
+        state: HarnessState,
+        store: EvidenceStore,
+    ) -> _ControllerSourceOwnerAuthority:
+        """Return only the owner sealed onto this exact state root."""
+
+        validate_dependencies()
+        if type(state) is not state_cls:
+            raise TypeError("harness_state_required")
+        if type(store) is not store_cls:
+            raise TypeError("evidence_store_required")
+        state_validator(state, store=store)
+        current = authority_reader(
+            state_authorities,
+            state,
+            code="harness_state_runtime_authority_required",
+        )
+        source_record = owner_reader(state=state, store=store)
+        if current[5] is not source_record:
+            raise ValueError("harness_state_source_owner_identity_drift")
+        owner = source_record[1]
+        if type(owner) is not owner_cls:
+            raise TypeError("controller_source_owner_authority_required")
+        return owner
+
+    return require_harness_state_source_owner
+
+
+_require_harness_state_source_owner = _build_harness_state_source_owner_reader(
+    state_cls=HarnessState,
+    store_cls=EvidenceStore,
+    owner_cls=_ControllerSourceOwnerAuthority,
+    state_authorities=_STATE_AUTHORITIES,
+    state_validator=HarnessState._validate,
+    authority_reader=_authority_record,
+    owner_register=_register_controller_source_owner_authority,
+    owner_reader=_read_controller_source_owner_authority,
+)
+del _build_harness_state_source_owner_reader
+del _register_controller_source_owner_authority
+del _read_controller_source_owner_authority
 
 
 def _make_belief(
@@ -954,8 +1643,17 @@ def build_compare_harness_state(
         normal_stop_allowed=coverage.normal_stop_allowed,
         abstain_required=coverage.abstain_required,
     )
-    return HarnessState._create(
-        belief=belief, progress=progress, store=store, _token=_STATE_TOKEN
+    return _create_controller_owned_harness_state(
+        belief=belief,
+        progress=progress,
+        store=store,
+        source_kind="compare",
+        source=bound,
+        source_receipt=coverage,
+        source_progress=None,
+        registry=None,
+        policy=None,
+        projection_kind="compare_coverage",
     )
 
 
@@ -1001,11 +1699,17 @@ def build_fact_harness_state(
         normal_stop_allowed=False,
         abstain_required=False,
     )
-    return HarnessState._create(
+    return _create_controller_owned_harness_state(
         belief=belief,
         progress=progress,
         store=store,
-        _token=_STATE_TOKEN,
+        source_kind="fact",
+        source=bound,
+        source_receipt=bound.trace,
+        source_progress=None,
+        registry=None,
+        policy=None,
+        projection_kind="fact_initial",
     )
 
 
@@ -1100,11 +1804,17 @@ def build_followup_harness_state(
         normal_stop_allowed=progress.sufficient,
         abstain_required=False,
     )
-    return HarnessState._create(
+    return _create_controller_owned_harness_state(
         belief=belief,
         progress=projected_progress,
         store=store,
-        _token=_STATE_TOKEN,
+        source_kind="follow_up",
+        source=bound,
+        source_receipt=outcome,
+        source_progress=progress,
+        registry=registry,
+        policy=policy,
+        projection_kind="followup_legacy",
     )
 
 
@@ -1189,11 +1899,17 @@ def _build_e1_followup_harness_state_impl(
         normal_stop_allowed=False,
         abstain_required=False,
     )
-    return HarnessState._create(
+    return _create_controller_owned_harness_state(
         belief=belief,
         progress=projected_progress,
         store=store,
-        _token=_STATE_TOKEN,
+        source_kind="follow_up",
+        source=bound,
+        source_receipt=outcome,
+        source_progress=outcome.progress,
+        registry=registry,
+        policy=policy,
+        projection_kind="followup_e1",
     )
 
 
