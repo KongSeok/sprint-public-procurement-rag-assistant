@@ -1,5 +1,35 @@
 # MidProjectRAG Task List
 
+## 현재 실행 큐 — 검색 비교 우선 (2026-09-05 승인)
+
+목적: baseline을 immutable control로 두고 동일 Mini131의 검색 품질·효율을 측정해 개선 축을 선택한다.
+연구안 전체/Controller 전체 구현이 첫 retrieval-only 비교의 선행 조건은 아니다.
+아래는 **기존 ID의 실행 순서 참조**이며 중복 TODO가 아니다. Phase 상세 목록/완료 이력은 보존한다.
+현재 폼·검증·릴레이: `../work/2026-09-05-search-first-relay.md`.
+
+| 순서 | 기존 TODO / 단위 | 실행 조건·결과 |
+| --- | --- | --- |
+| 0 | 실행 큐·소유권·checkpoint/resume 정합화 | 현재 문서 재구성 cycle. 기존 체크박스는 보존 |
+| 1 | EH2.EVAL.4.a → 4.b / 4.c | Mini131 입력·위치 가용성 감사 → private adapter. 의미 승인/위치 보강은 4.c 별도 |
+| 2 | EH4.7b.1 → b.2 | 실제 raw lane/fusion/context recorder와 smoke; qrels/질문 제작 책임 없음 |
+| 3 | EH4.7c.1 + EXP-SELECT.2.a | retrieval MRR/nDCG + 세 구성의 비교 조건/metric threshold 봉인 |
+| 4 | EXP-SELECT.3.a | 동일 승인 qrels에서 page KURE / compat child KURE / child+Kiwi BM25·RRF paired run |
+| 5 | EXP-SELECT.3.b | 실패 경계·품질/효율 delta로 다음 개선 축 선택. 모든 연구 아이디어 자동 구현 금지 |
+| 6 | 선택된 개선 + EH2/EH3/EH4 후속 | Controller·전문 경로·생성/인용·E2E는 해당 기존 선행 gate를 유지 |
+
+- 순서 세부: EXP-SELECT.2.a의 최소 설정 schema 정의는 EH4.7b.1 전에 한다.
+  승인 qrels·사전 threshold를 포함한 정식 freeze는 b.2 smoke 후, EXP-SELECT.3.a 실행 전에 완료한다.
+- `EH2.6.c4.0.e`는 **기술 READY / 우선순위 대기**다. 외부 차단이나 완료로 바꾸지 않는다.
+  사람 검수 등 외부 의존성 때문에 비교만 대기할 때 안전한 기존 READY leaf로 릴레이할 수 있다.
+- 1~3의 코드/연결 smoke는 전체 EH2.G/EH3.G를 기다리지 않는 승인된 retrieval-only 예외다.
+  공식 비교는 EVAL.4.c의 해당 지표 qrel 승인·EXP-SELECT.2.a 동결 후에만 실행한다.
+- qrels/검수 lineage 단일 원천=EH2.EVAL.4, resolver/채점/기록=EH4.7, 비교 설정/선택=EXP-SELECT.
+  resolver 구현 완료를 EVAL-GOLDSET 전체 완료로 세지 않는다. sealed holdout=EH2.EVAL.5~6 유지.
+- 상태는 `코드 구현 / 실제 실행 / 품질 측정`으로 분리한다. Mini131 전체 inventory와 지표별
+  eligible/missing/not-applicable 수를 함께 표시한다. 질문·답변·보조69 검수·11건 수정은 재사용한다.
+- 현재 child는 `compat-newline-1600-v1`이다. 구조화 청킹 개선 완료로 부르지 않는다.
+  VLM·API·기본 profile·기존 source/index는 이번 순서 변경으로 수정하거나 재실행하지 않는다.
+
 ## EH-RC0 — Evidence-Harness 재귀 실행 TODO (2026-09-03)
 
 계약: `specs/bidfit-evidence-harness-v1-rc0.md`.
@@ -23,6 +53,8 @@
   반복 로드하지 않는다. 새 판단이 필요한 경우에만 원문 요구사항을 해당 절까지 조회한다.
 - 전체 회귀는 Phase gate/통합 경계/최종 납품 때 실행한다. 모든 leaf마다 전체 suite나
   전체 Mermaid/HTML을 재생성하지 않는다. 실패는 해당 leaf만 재귀 분할해 수리한다.
+- 공통 완료 기준을 공유하는 관련 leaf는 한 납품 cycle로 묶되 구현은 순차 처리한다.
+  leaf=집중 검증·짧은 checkpoint, cycle=영향 기반 회귀·리뷰·보고·로그올·선택 push·다음 새 폼이다.
 - 기존 artifact는 불변, 새 corpus/index/trace는 private 새 namespace에만 생성한다.
   외부 모델/실측 불가는 BLOCKED 또는 unavailable로 남기며 synthetic PASS로 대체하지 않는다.
 
@@ -33,8 +65,21 @@
   `requirements/current.md` §1.1, `specs/assembly-on-research-and-exp.md`의 실험 목적 계약.
 - [ ] **EXP-SELECT.2** baseline/API control, local control과 각 challenger의 corpus/gold/qrels/judge/scope/
   budget/config hash 및 사전 metric threshold를 하나의 freeze receipt로 고정한다.
+  - [ ] **EXP-SELECT.2.a** 선행 retrieval-only 동결: Mini131 입력·승인 qrels·source/store/index/KURE revision,
+    동일 query 전처리/history/user scope·@k/중복 gain·lane 후보 수/RRF k/context 문자 예산·cache/측정 구간·
+    source/code/config/scorer hash·사전 통과 기준을 고정한다. API/생성 judge는 미사용으로 표시한다.
+    recorder 최소 설정 schema는 EH4.7b.1 전에 정의하고, 구성별 `pre_context_stage`도 지정한다.
+    dense-only의 직전 단계는 lane_dense, hybrid는 fusion이다. b.2 smoke와 정식 동결/품질 판정을 구분한다.
+  - [ ] **EXP-SELECT.2.b** E2E/후속 구성은 .2.a를 참조하고 generator/prompt/judge·추가 축만 확장 동결한다.
 - [ ] **EXP-SELECT.3** parser→chunker→embedder→fusion→reranker→Harness 순으로 한 축씩 component ablation을
   실행하고 retrieval 품질·효율·guardrail을 분리 기록한다. 구현 회귀 PASS를 품질 향상으로 대체하지 않는다.
+  - [ ] **EXP-SELECT.3.a** 선행 3종 검색 비교: page KURE(control) / compat child KURE / 같은 child+Kiwi·RRF.
+    page→child는 granularity 축, child→hybrid는 fusion 축으로 분리한다. 전체131 ledger를 유지하되
+    visual10/analytics10/parser2는 전용 평가로 표시하고 공통 paired eligible subset과 제외 사유를 공개한다.
+    paired subset은 승인 qrel/지원범위로 실행 전에 봉인한다. arm 오류·stage 누락으로 사후 분모를
+    줄이지 않으며 구성별 unavailable을 전체131 ledger 및 고정 paired 분모와 함께 보고한다.
+  - [ ] **EXP-SELECT.3.b** 최초 실패를 위치 qrel/representation·retrieval·context·generation으로 구분한다.
+    해당 단계 미실행이면 원인을 확정하지 않는다. 결과에 따라 다음 개선 TODO의 실행 순서를 재선택한다.
 - [ ] **EXP-SELECT.4** 선택된 구성요소를 조립한 local-first challenger를 동일 frozen golden에서 baseline과
   E2E 비교한다. 실제 provider 실행 때만 Langfuse를 opt-in하고 trace/latency/token/cost를 계측한다.
 - [ ] **EXP-SELECT.5** gate/Pareto 판정과 사람 리뷰 뒤에만 `feat/local-qwen-mini131-eval`의 기본 profile을
@@ -98,12 +143,19 @@ runtime은 local profile 기본·LLM provider 교체형으로 유지하며 새 �
   evaluator-only join 계약을 `evaluation-contract.md` §9.1 및 EH2 계약에 고정한다.
 - [x] **EH2.EVAL.3 / DEV-INVENTORY** 기존 dev40 draft·52 source-block reference의 자동 검증 완료와
   named human 승인 0건을 확인한다. 이를 신규 40문항 작성으로 중복 계산하지 않는다.
-- [ ] **EH2.EVAL.4 / EVAL-GOLDSET** private EDA seed10을 strict evaluator schema로 변환하고
-  legacy activation/source scope를 정규화한 뒤 공식 gold 편입 여부를 named human review로 결정한다.
-  dev40도 named human 승인과 stable positive/hard-negative source anchor qrels 보강을 수행한다.
-  private source-block snapshot을 입력 권한으로 쓰는 evaluator-only `AnchorResolutionReceipt`와
-  청킹 변경 전후 동일 source-block join 회귀를 구현한다. 이 사람 작업은 EH2.6 구현과 병행하며
-  gold/expected 값은 runtime·receipt·routing에 넣지 않는다.
+- [ ] **EH2.EVAL.4 / EVAL-GOLDSET** 기존 Mini131 질문·답변과 보조69 홍우석 검수/11건 수정 기록을 재사용한다.
+  strict dev40의 정형 승인 필드와 전체 사람 검수 유무를 구분하고 부족한 stable source anchor 위치만 보강한다.
+  EDA10 strict 변환은 이미 존재하며 이번 ‘131+추가 지표’ 범위에 신규 문항으로 넣지 않는다.
+  evaluator-only `AnchorResolutionReceipt`/청킹 변경 join 구현은 `EH4.7a.1`에서 연결했다.
+  잔여: 전체131 sidecar 매핑·기존 검수 lineage 확인·positive/hard-negative 확정. gold는 runtime에 넣지 않는다.
+  - 중복 방지 코멘트(2026-09-05): 위 `AnchorResolutionReceipt`/청킹 변경 join 구현·회귀는 `EH4.7a.1`에서 한 번만 수행하고 여기서는 해당 결과를 참조한다. qrels 보강·검수 책임은 이 항목에 유지하며, resolver 완료를 이 항목 전체 완료나 별도 구현 성과로 중복 계산하지 않는다.
+  - [ ] **EH2.EVAL.4.a** 기존 pinned Mini131 8개 source/hash·suite·case ID·검수 lineage·원문 anchor 가용성을
+    읽기 전용 감사한다. 131 전체와 ready/missing/not-applicable 집계, 실제 승인 근거와 정형 필드 차이를 기록한다.
+  - [ ] **EH2.EVAL.4.b** .4.a 입력에서 evaluator-only closed sidecar/가용성 ledger를 생성하는 adapter를
+    구현·합성 검증한다. 질문/답변 불변, 원문 owner/locator 검증, 기존 anchor만 재사용하고 없는 위치는 missing.
+    safe request는 원래 user scope만 사용하며 정답 doc를 runtime scope로 넣지 않는다. private 신규 파일만 생성한다.
+  - [ ] **EH2.EVAL.4.c** 기존 사람 검수 근거를 연결하고 부족한 positive/hard-negative 위치를 원문으로 보강·
+    승인한다. 자동 ID/hash 검사를 의미 승인으로 승격하지 않는다. 전체 inventory와 지표별 승인 분모를 봉인한다.
 - [ ] **EH2.EVAL.5 / SEALED-HOLDOUT** 이미 실행된 RAG129를 사후 held-out으로 바꾸지 않는다.
   별도 20건의 count 계약·격리 담당을 먼저 확정한 뒤 작성·2인 교차검토·순서/hash 봉인을 수행한다.
 - [ ] **EH2.EVAL.6 / EVAL-RUN** dev/qrels 승인 전 tuning·우승 주장을 금지하고, sealed held-out은
@@ -227,7 +279,7 @@ runtime은 local profile 기본·LLM provider 교체형으로 유지하며 새 �
           통과했고 실제 API/model/Langfuse 호출은 0이다.
     - [ ] **EH2.6.c4** exact controller decision-bound `ActionEffectReceipt` mint, monotonic one-obligation reducer와
       hash-chained transition/no-progress를 구현한다.
-      - [ ] **EH2.6.c4.0** `[READY]` opaque source-owner authority, ordered exact
+      - [ ] **EH2.6.c4.0** `[PARTIAL / PRIORITY_WAIT]` opaque source-owner authority, ordered exact
         effect/outcome transition history, per-target parent/bridge issuer와 정식 structural-effect bridge를 추가한다.
         - [x] **EH2.6.c4.0.a** exact `BoundFact|BoundCompare|BoundFollowup`와 coverage/outcome/registry/policy를
           state 생성 시 private authority로 보존하고 `HarnessExecution`이 public payload 변경 없이 상속한다.
@@ -246,7 +298,7 @@ runtime은 local profile 기본·LLM provider 교체형으로 유지하며 새 �
           기존 rerank batch prerequisite의 canonical tuple identity/order를 보존하는 private accumulator를 구현했다.
           missing/duplicate/wrong-role/cross-root/clone·order drift와 live-root remint를 차단했고 focused13·인접175·
           전체1372·safety883·독립 APPROVE를 통과했다. 외부 API/model/Langfuse/provider/clock 호출은 0이다.
-        - [ ] **EH2.6.c4.0.e** `[READY]` closure-private structural-effect bridge와 clone/mixed/out-of-order/retroactive/
+        - [ ] **EH2.6.c4.0.e** `[TECH_READY / PRIORITY_WAIT]` closure-private structural-effect bridge와 clone/mixed/out-of-order/retroactive/
           duplicate/GC 공격 gate를 통과한다. public mint와 provider/clock/effect 실행은 0으로 유지한다.
       - [ ] **EH2.6.c4.1** initial decision permit의 selected action 하나만 exact source receipt/effect로 mint하고
         ledger claim·advance 및 transition authority를 구현한다.
@@ -297,6 +349,9 @@ runtime은 local profile 기본·LLM provider 교체형으로 유지하며 새 �
 
 ### Phase 4 — 생성·대조군·평가 (선행: EH3.G)
 
+선행 예외: 상단 실행 큐의 EH4.7a/b/c.1 검색 평가·연결은 EH1.G 위에서 먼저 수행한다.
+이 예외가 EH4.1~6·전문 경로·생성/E2E의 선행 gate를 생략한다는 뜻은 아니다.
+
 - [ ] **EH4.1** IdentityReranker와 immutable candidate replay를 구현한다. 완료: 후보 ID/순서 보존, 동일 pool A/B 가능.
 - [ ] **EH4.2** Qwen3-Reranker-0.6B optional adapter를 구현한다. 완료: score/model provenance/범위 검증, weight 없으면 unavailable. 실측은 별도.
 - [ ] **EH4.3** structured claims/citations를 검증한다. 완료: claim→실제 EvidenceStore/parent/source/locator resolve; 문자열은 compatibility projection.
@@ -304,6 +359,23 @@ runtime은 local profile 기본·LLM provider 교체형으로 유지하며 새 �
 - [ ] **EH4.5** 단일 versioned config로 R0~R4/E0~E1을 조립한다. 완료: budget/registry/artifact identity를 trace에 포함, E2는 연구/미활성 표시.
 - [ ] **EH4.6** production CLI에서 opt-in harness 실행 경로를 연다. 완료: request→retrieval→harness→generator→structured result, legacy 유지.
 - [ ] **EH4.7** retrieval/context/slot 계층 evaluator를 추가한다. 완료: Recall@1/3/5/10·MRR·nDCG·lane rescue·pre/post retention 별도 출력.
+  - [x] **EH4.7a.1** 선행 승인(2026-09-05): Mini131 질문/답변·기존 보조69 검수를 유지하고 private source-anchor resolver를 만든다. 검증: owner/locator/hash/청킹 변경 join.
+    - 상호 참조 코멘트(2026-09-05): `EH2.EVAL.4`의 resolver/receipt/join 회귀를 실행하는 단일 구현 leaf다. 그쪽에서 동일 기능을 다시 구현하지 않으며, 질문·정답·qrels 및 검수 책임은 `EH2.EVAL.4`를 참조한다. 상태 변경 시 동일 구현 결과를 연결하되 전체 항목을 일괄 완료 처리하지 않는다.
+  - [x] **EH4.7a.2** 필수 근거 Recall 전후·관련 근거 retention·lane rescue 순수 채점. 검증: 중복 rank/분모0/미측정/실제 빈 검색.
+  - [x] **EH4.7a.3** 단계 projection+오프라인 private CLI. 검증: 파일 E2E/chain 혼합 거절/원문·gold runtime 유입 없음.
+  - [ ] **EH4.7a.G** 집중·관련 회귀/독립 리뷰/흐름 보고/로그. 네 핵심 지표 선행 leaf이며 EH4.7 전체·실제131 실측 완료와 구분.
+    - 2026-09-05: 코드 집중·관련112 PASS, 실제98/20,118 source 검증, 리뷰 APPROVE, PNG/문서/로그 완료. 잔여는 HTML 브라우저 QA(file URL 정책 차단). 실제131 실측은 EH4.7b.
+  - 계약: `specs/stage-evaluation-v1.md`. EDA10 추가/40개 축소/새 골든셋은 범위 밖. qrel 보강 원천은 `EH2.EVAL.4` 유지.
+  - [ ] **EH4.7b** 실제 검색 단계 recorder만 연결한다. Mini131 입력/qrels adapter는 EH2.EVAL.4.b,
+    정식 paired 실측은 EXP-SELECT.3.a에서 한 번 수행한다. 없는 과거 단계를 역산하지 않는다.
+    - [ ] **EH4.7b.1** 실제 raw dense/lexical→fusion→선택 context의 같은 실행 chain을 ID/hash 중심으로
+      기록한다. page는 독립 provenance adapter로 유지하고 child receipt로 위장하지 않는다. 금지된 gold/본문 trace는 배제한다.
+    - [ ] **EH4.7b.2** pinned local artifact·KURE offline 가용성·공통 query/scope/config와 stage 누락 처리를
+      smoke한다. 실제 query embedding은 모델 실행으로 기록하고 연결 성공을 품질 향상으로 부르지 않는다.
+  - [ ] **EH4.7c** MRR/nDCG·slot·문장/구간 완전성 등 나머지 계층 지표. block recall만으로 내용 완전성을 주장하지 않음.
+    - [ ] **EH4.7c.1** retrieval-only MRR/nDCG를 원문 anchor와 distinct-document 단위로 분리한다.
+      @k/중복 gain/IDCG/qrel 결측·미실행 정의를 .7a 규칙과 정합화하고 합성 회귀한다. 공식값은 EXP-SELECT.3.a에서 측정한다.
+    - [ ] **EH4.7c.2** slot·문장/구간 완전성은 해당 EH2/EH3 실행 기록을 확보한 후 별도 연결한다.
 - [ ] **EH4.8** generation/list/analytics/visual 평가를 추가한다. 완료: 결정론/semantic adapter 분리, completeness/exact 검증, 혼합 평균 금지.
 - [ ] **EH4.9** frozen corpus/gold/config의 재현 가능한 실행 receipt를 남긴다. 완료: 실제/합성/미실행 구분, old/new scorer·latency·모델 가용성 별도.
 - [ ] **EH4.10** authoritative local page-v1 control과 단계별 challenger를 동일 frozen golden에서 paired run한다.

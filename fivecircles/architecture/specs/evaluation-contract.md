@@ -264,6 +264,10 @@ must match between A/B reports.
 
 ### 9.1 Retrieval stage checkpoint and offline qrels join
 
+2026-09-05 선행 구현 범위·closed sidecar/CLI·Mini131 분모 계약은
+[stage-evaluation-v1.md](stage-evaluation-v1.md)에 고정한다. 기존 질문/답변과 보조69 검수를 재사용하며
+추가 대상은 근거 위치 매핑과 지표다. source-block 구현 완료를 전용 visual/analytics/ETL 평가나 실측 완료로 합산하지 않는다.
+
 Retriever 전후 평가는 별도 질문 세트를 만들지 않는다. 같은 case/question/qrels에 대해 검색 과정의
 서로 다른 시점을 독립 checkpoint로 기록하고 evaluator가 private qrels와 사후 결합한다.
 

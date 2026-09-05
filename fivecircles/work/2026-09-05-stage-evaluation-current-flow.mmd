@@ -1,0 +1,14 @@
+flowchart TB
+  R["Lane / Fusion / Context 실제 객체"]:::gray --> C["projection adapter 완료"]:::green
+  S["원문 snapshot 검증 완료"]:::amber --> J["anchor join 완료"]:::green
+  C --> J
+  Q["private sidecar 입력 규격"]:::amber --> M["4개 핵심 지표 완료"]:::green
+  J --> M
+  M --> V["CLI / 분모 guard 완료"]:::green
+  G["GAP: 기존131 위치 매핑 + production recorder"]:::red -.-> Q
+  G -.-> R
+  classDef green fill:#e8f2ea,stroke:#bdd1c2,color:#1f2933,stroke-width:1.5px
+  classDef blue fill:#e8f0f7,stroke:#c2d3e0,color:#1f2933,stroke-width:1.5px
+  classDef amber fill:#fff4dc,stroke:#e7c88f,color:#1f2933,stroke-width:1.5px
+  classDef red fill:#fde9e6,stroke:#e8bab5,color:#1f2933,stroke-width:1.5px
+  classDef gray fill:#eef1ed,stroke:#d8e0da,color:#1f2933,stroke-width:1.5px

@@ -2,6 +2,9 @@
 
 작성 시점: 2026-09-03. 이 파일은 짧은 복구 안내이며 최신 상태는 checkpoint가 우선한다.
 
+실행 안내 갱신(2026-09-05): 검색 비교 선행으로 TODO를 재구성했다. 현재 권위는 TODO 상단 실행 큐와
+`2026-09-05-search-first-relay.md`의 최신 cycle이다. 아래 '저장 당시'와 ZIP은 역사 스냅샷이다.
+
 ## 다른 작업/세션에 붙여 넣을 재개 프롬프트
 
 ```text
@@ -15,10 +18,13 @@ ambient cwd의 /Users/pio/Documents/ChatGPT/MidProjectRAG 는 다른 사본이�
 HEAD는 7ad229f8c85fb48ebb1c53f4424db4a224b562a7 이었다.
 다르다고 checkout/reset하지 말고 변경 경위를 확인한다.
 
-fivecircles/architecture/todolist.md 의 EH-RC0에서 현재 READY leaf 하나만 선택한다.
+fivecircles/architecture/todolist.md 상단 실행 큐에서 현재 leaf 하나만 선택한다.
 한 번에 하나를 계약 확인→테스트→구현→focused 검증→체크포인트 순으로 처리한다.
 크면 .a/.b처럼 다시 나눈다. 완료한 감사와 전체 문서를 매번 다시 읽지 않는다.
-최초 재개 위치는 EH0.1.a (runtime/evaluation 경계 계약·테스트)이며 아직 앱 구현 전이다.
+현재 다음 위치는 EH2.EVAL.4.a 입력/위치 가용성 감사 → .4.b adapter다.
+그다음 실제 recorder → retrieval 지표/조건 동결 → 3종 검색 비교다.
+EH2.6.c4.0.e는 기술 READY/우선순위 대기로 보존했다. Controller 전체 완료를 첫 비교 선행조건으로 오해하지 않는다.
+기존131 질문/답변과 보조69 검수는 유지하며, 부족한 위치 qrels와 정형 승인 필드는 별도 표시한다.
 
 애매하면 ZIP의 사용자 원문 prompts/original-implementation-request.txt 및
 prompts/latest-user-directions.md, 해당 계약 절을 확인한다.

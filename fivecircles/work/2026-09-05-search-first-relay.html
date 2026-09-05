@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+<title>검색 비교 우선 재구성 — 2026-09-05</title>
+<style>body{font:16px/1.7 system-ui,sans-serif;color:#21313c;background:#f7f9fb;max-width:1120px;margin:36px auto;padding:0 22px}h1{font-size:30px}h2{margin-top:32px;font-size:23px}section{background:white;padding:20px;border:1px solid #d8e1e6;border-radius:12px;margin:18px 0}img{width:100%;height:auto}table{width:100%;border-collapse:collapse;font-size:15px}th,td{text-align:left;border-bottom:1px solid #dce3e8;padding:11px;vertical-align:top}th{background:#eef3f6}a{color:#175b85}.note{color:#675327;background:#fff4dc;padding:12px}code{word-break:break-word}</style></head>
+<body><h1>먼저 검색을 비교하고, 결과로 다음 개선을 고릅니다</h1>
+<p>2026-09-05 · feat/total-integration · local-first · 전체 목표 미완료</p>
+<p>기존 Mini131 질문·답변·검수 이력과 baseline은 보존합니다. Controller 전체 구현을 기다리지 않고 검색 비교 준비를 선행합니다.</p>
+<section><h2>실행 순서</h2><table><thead><tr><th>순서</th><th>작업</th><th>기존 TODO</th></tr></thead><tbody>
+<tr><td>0</td><td>큐·소유권·재개 문서 재구성</td><td>이번 문서 cycle</td></tr>
+<tr><td>1</td><td>기존131 입력·위치 가용성 → private adapter → 부족한 근거 승인</td><td>EH2.EVAL.4.a/b/c</td></tr>
+<tr><td>2</td><td>실제 raw lane/fusion/context 기록과 연결 smoke</td><td>EH4.7b.1/b.2</td></tr>
+<tr><td>3</td><td>retrieval MRR/nDCG·비교 조건 동결</td><td>EH4.7c.1 / EXP-SELECT.2.a</td></tr>
+<tr><td>4</td><td>page KURE / compat child KURE / child+Kiwi·RRF 비교</td><td>EXP-SELECT.3.a</td></tr>
+<tr><td>5</td><td>실패 원인으로 다음 개선 축 선택</td><td>EXP-SELECT.3.b → EH2/3/4 후속</td></tr></tbody></table>
+<p>최소 recorder 설정 schema는 2번 전에 정의하고 정식 qrels/threshold 동결은 비교 전에 완료합니다. Controller c4.0.e는 기술 READY·우선순위 대기입니다.</p></section>
+<section><h2>Target Flow</h2><img src="2026-09-05-search-first-relay-target-flow.png" alt="기존131에서 근거 준비와 recorder, 지표 동결, 비교, 개선 선택으로 이어지는 목표 흐름"><p><a href="2026-09-05-search-first-relay-target-flow.mmd">Mermaid 소스</a> · <a href="2026-09-05-search-first-relay-target-flow.png">PNG</a></p>
+<h2>Current Flow</h2><img src="2026-09-05-search-first-relay-current-flow.png" alt="큐와 채점기는 준비됐지만 sidecar, recorder와 실제 비교가 남은 현재 흐름"><p><a href="2026-09-05-search-first-relay-current-flow.mmd">Mermaid 소스</a> · <a href="2026-09-05-search-first-relay-current-flow.png">PNG</a></p>
+<p>색상: 초록=검증된 경로 · 주황=private/승인 · 빨강=미연결 · 회색=선택·대기. 외부 모델 경로는 이번 범위에 없습니다.</p></section>
+<section><h2>Target vs Current Gap</h2><table><thead><tr><th>대상</th><th>코드/문서</th><th>실제 실행·품질</th></tr></thead><tbody>
+<tr><td>큐·책임·재개 경로</td><td>MATCHED · 기존157개 ID 상태 보존</td><td>문서 재구성, 성능 점수 아님</td></tr>
+<tr><td>resolver·핵심 stage 지표</td><td>MATCHED · 집중/관련112 PASS</td><td>전체131 품질 미실측</td></tr>
+<tr><td>입력 sidecar·production recorder</td><td>GAP · 다음 작업</td><td>미연결</td></tr>
+<tr><td>3종 비교·개선 선택</td><td>GAP · 동결/승인 필요</td><td>미실행</td></tr>
+<tr><td>Controller·E2E</td><td>PARTIAL · 기존 구현 유지</td><td>별도 gate 유지</td></tr></tbody></table></section>
+<section><h2>Done / Not Done Priority</h2><p>점수는 작업 연결 우선순위이며 성능이 아닙니다. upstream 0–4 + connection 0–3 + safety 0–2 + validation 0–2 + risk 0…−3.</p>
+<table><thead><tr><th>남은 작업</th><th>점수</th><th>선택 이유</th></tr></thead><tbody>
+<tr><td>EH2.EVAL.4.a 입력·위치 가용성</td><td>11</td><td>기존131에서 실제 채점 가능 범위를 먼저 확인</td></tr>
+<tr><td>EH4.7b.1 recorder</td><td>9</td><td>실제 검색 결과를 채점기에 연결</td></tr>
+<tr><td>retrieval 지표·조건 동결</td><td>8</td><td>공정한 세 구성 비교</td></tr>
+<tr><td>Controller c4.0.e</td><td>4</td><td>첫 검색 비교에는 선행 불필요</td></tr></tbody></table></section>
+<section><h2>검증과 해석 범위</h2><p>전체131 ledger와 지표별 승인/누락/미적용 분모를 함께 유지합니다. paired subset은 실행 전에 봉인하며 구성 오류 때문에 사후 축소하지 않습니다. 보조69 사람 검수와 정형 승인 필드 상태는 구분합니다.</p>
+<p>기존 체크 상태157개 보존·ID 중복0, 112 관련 테스트 PASS. 기본 profile/VLM/원문·질문·답변 무변경.</p>
+<p class="note">Flow diagram verification: GAP/PARTIAL. HTML 브라우저 QA는 file URL 접근 정책으로 BLOCKED. PNG 생성·정적 검증을 브라우저 스크린샷 PASS로 대체하지 않습니다.</p>
+<p><a href="2026-09-05-search-first-relay.md">원샷딜 폼·로그·최신 릴레이 결과</a> · <a href="../architecture/todolist.md">TODO 단일 원천</a></p></section>
+</body></html>

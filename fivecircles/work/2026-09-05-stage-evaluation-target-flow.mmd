@@ -1,0 +1,13 @@
+flowchart TB
+  I["기존 Mini131 / 검수 유지"]:::amber --> Q["private 위치 qrels"]:::amber
+  R["실제 검색 단계 기록"]:::green --> C["closed checkpoint"]:::green
+  S["봉인된 원문 snapshot"]:::amber --> J["오프라인 anchor join"]:::green
+  C --> J
+  Q --> M["근거 Recall / 유지율 / rescue"]:::green
+  J --> M
+  M --> V["131 분모 / 가용성 보고"]:::green
+  classDef green fill:#e8f2ea,stroke:#bdd1c2,color:#1f2933,stroke-width:1.5px
+  classDef blue fill:#e8f0f7,stroke:#c2d3e0,color:#1f2933,stroke-width:1.5px
+  classDef amber fill:#fff4dc,stroke:#e7c88f,color:#1f2933,stroke-width:1.5px
+  classDef red fill:#fde9e6,stroke:#e8bab5,color:#1f2933,stroke-width:1.5px
+  classDef gray fill:#eef1ed,stroke:#d8e0da,color:#1f2933,stroke-width:1.5px

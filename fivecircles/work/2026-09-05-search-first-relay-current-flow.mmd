@@ -1,0 +1,12 @@
+flowchart LR
+  A["기존131 / 검수 이력 유지"] --> B["큐·소유권·재개 순서 정합화"]
+  B --> C["GAP: 위치 sidecar / recorder"]
+  C -.-> D["resolver·핵심 지표 코드 PASS"]
+  D -.-> E["GAP: 실제3종 비교·개선 선택"]
+  F["Controller c4.0.e 기술 READY"] -.-> G["우선순위 대기 / 코드 보존"]
+  classDef green fill:#e8f2ea,stroke:#bdd1c2,color:#1f2933,stroke-width:1.5px
+  classDef red fill:#fde9e6,stroke:#e8bab5,color:#1f2933,stroke-width:1.5px
+  classDef gray fill:#eef1ed,stroke:#d8e0da,color:#1f2933,stroke-width:1.5px
+  class A,B,D green
+  class C,E red
+  class F,G gray

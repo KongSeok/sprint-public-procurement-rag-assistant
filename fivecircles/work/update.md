@@ -909,3 +909,28 @@ This file summarizes recent updates so other agents can continue without re‑di
 
 ### Next
 - refreshed TODO의 EH2.6.c4.0.e structural-effect bridge를 READY leaf로 선택해 새 Cycle 17 form과 첫 RED를 시작한다.
+
+## Addendum (2026-09-05) - EH4.7a 단계별 근거 평가 선행
+### Backend
+- Mini131 원본 유지. source resolver·전후 Recall·관련 retention·lane rescue·private CLI 구현. 계약: stage-evaluation-v1.md.
+- 전체131 수량 guard·부분 결과 표시·전용 suite 분리. 원문/질문/API/기본 runtime·VLM 변경 없음.
+### Tests
+- 집중·관련112 PASS, 실제98문서/20,118블록 출처 검증 PASS, 독립 재리뷰 APPROVE. 모델/API 호출0.
+- PNG2종 검토 완료. HTML 브라우저 QA는 URL 정책으로 BLOCKED. refs: 2026-09-05-stage-evaluation.md.
+### Next
+- 기존131 위치 qrel 재사용→실제 단계 recorder→동일 문항 실측. EH4.7 전체 완료나 성능 향상으로 표기하지 않음.
+
+## Addendum (2026-09-05) - 검색 비교 우선 TODO 재구성
+### Architecture
+- 기존 ID157 상태를 보존하고 입력→recorder→지표/동결→3종 비교로 실행 큐·checkpoint/resume을 정합화했다.
+- Controller c4.0.e는 기술 READY/우선순위 대기. VLM·기본 profile·131문항/답변 무변경.
+### Tests
+- 112 관련 회귀·diff·ID 보존 PASS, 독립 재리뷰 APPROVE. schema 선행·pre-context·고정 paired 분모 보완.
+- PNG2 생성/직접 검토 완료. HTML browser는 정책 차단 유지. refs: 2026-09-05-search-first-relay.md.
+### Next
+- 다음 EVAL.4.a 입력·위치 감사→.4.b adapter를 새 Cycle B 폼으로 선택했다. 선택 push 후 착수한다.
+
+## Addendum (2026-09-06) - 검색 선행 납품 회귀 재검증
+### Tests
+- 전체1393: 최초1390 PASS/환경실패2/skip1. 권한을 맞춘 해당2건 재실행 PASS; 코드 변경 없음.
+- refs: test/errorlogs/backend/2026-09-06-search-first-test-permissions.md. HTML browser BLOCKED는 별도 유지.

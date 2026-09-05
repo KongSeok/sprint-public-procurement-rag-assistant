@@ -403,3 +403,15 @@ Preventive rule:
 
 Reference:
 - `errorlogs/backend/2026-09-05-c3-action-effect-structural-boundary.md`
+
+### 단계별 평가의 inventory와 가용성을 분리 (2026-09-05)
+
+- Mini131 전체 수량 guard와 부분 결과 표기를 분리하고 suite 명칭을 닫아 전용 평가의 평균 혼입을 막는다.
+- fixture ID와 테스트 모듈명을 먼저 확인한다. HTML 브라우저 차단은 PNG 생성 성공으로 덮지 않는다.
+- 참조: `errorlogs/backend/2026-09-05-stage-evaluation-validation.md`, `errorlogs/frontend/2026-09-05-stage-report-browser-policy.md`.
+
+### 전체 회귀의 환경 권한과 코드 실패 구분 (2026-09-06)
+
+- private 인덱스 읽기도 lock 파일 쓰기를 요구한다. 중첩 macOS sandbox 거절도 별도 환경 사유로 기록한다.
+- 실패한 테스트만 승인된 권한으로 재검증하며 최초 전체 실행을 소급해 전부 PASS로 바꾸지 않는다.
+- 참조: `errorlogs/backend/2026-09-06-search-first-test-permissions.md`.

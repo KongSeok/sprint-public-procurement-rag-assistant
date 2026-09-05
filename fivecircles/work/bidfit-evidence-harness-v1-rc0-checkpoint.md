@@ -1,6 +1,8 @@
 # EH-RC0 재개 체크포인트
 
-갱신: 2026-09-05 · EH2.6.c4.0.d 완료, parent c4.0/d2는 PARTIAL, 다음 READY는 EH2.6.c4.0.e. 토큰 절약을 위해 이 문서의 한눈에 보는 상태와 계약 §16.10부터 읽기.
+갱신: 2026-09-05 · 사용자 승인으로 검색 비교 선행 큐로 변경. 현재 문서 재구성 cycle,
+다음은 EH2.EVAL.4.a → .4.b. c4.0.e는 기술 READY / 우선순위 대기이며 parent c4.0/d2 PARTIAL 유지.
+현재 폼: `2026-09-05-search-first-relay.md`. 아래 완료 원장의 '다음'은 당시 이력이며 현재 큐가 우선한다.
 
 ## 중단/애매함 발생 시
 
@@ -23,11 +25,16 @@
 - 완료: EH-A.1~3 감사·기준선·계약/flow 초안. 805 tests PASS, 실패/skip 0 (변경 전).
 - 현재 IN_PROGRESS: **Phase 2**. EH2.1~2.5, EH2.6.a~d1, revision-0 `d2.i`, c4.0.a exact source-owner,
   c4.0.b typed source/outcome resolver, c4.0.c one-step claim/history, c4.0.d per-target context accumulator
-  PASS. parent c4.0/d2는 PARTIAL이다. 다음 leaf는 c4.0.c claim/source와 c4.0.d target context를 exact
-  structural effect 재료로만 결합하는 `EH2.6.c4.0.e`다.
+  PASS. parent c4.0/d2는 PARTIAL이다. `EH2.6.c4.0.e`의 기술 의존성은 충족됐지만 검색 비교를 위해
+  우선순위 대기로 전환했다. 현재 실행 순서는 TODO 상단 큐가 권위이며 §16.10 전체 재독은 재개할 때만 한다.
 - 기존 평가 Batch 2의 활성 책임은 `EH2.EVAL`로 통합했다. EVAL.1~3은 완료, 사람 승인·qrels 보강과
   sealed held-out 실행은 EVAL.4~6에 남아 있으며 EH2 runtime에는 gold 값을 주입하지 않는다.
-- blocker: 없음. 실제 생성/API 호출은 계속 0이며 Phase 2는 provider-free 합성 테스트로 진행한다.
+- 평가 연결: EH4.7a source resolver/단계 지표/CLI는 집중·관련112 PASS, 실제98문서/20,118블록 검증.
+  코드 구현 완료와 실제131 stage 기록·품질 측정 미실행을 구분한다. HTML browser QA는 정책 차단 잔여다.
+- 실행 순서: EVAL.4 입력/위치 → EH4.7b recorder → EH4.7c.1/EXP-SELECT.2.a → EXP-SELECT.3.a/b.
+  Controller 전체 완료는 이 retrieval-only 경로의 선행 조건이 아니다. VLM/API/기본 profile은 변경하지 않는다.
+- blocker: 문서/입력 감사에는 없음. 위치 qrel 의미 승인·동결 전 공식 비교/tuning/우승 주장은 보류한다.
+  실제 생성/API 호출은 이번 평가 선행 작업에서 0이다. query KURE 실행은 EH4.7b.2에서 별도 기록한다.
 - 직전 코드 상태: EH2.6.c2는 fact/compare/follow-up exact owner에서만 query·target·supplied evidence를
   유도하는 factory-only `SemanticVerificationObligation`을 추가했다. exact `verify(self, request)`를 local
   at-most-once로 호출하고 ID-less content projection을 닫힌 typed result로 정규화해 state-free

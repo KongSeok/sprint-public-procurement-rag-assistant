@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; base-uri 'none'">
+<title>단계별 근거 평가 — 2026-09-05</title>
+<style>
+body{margin:0;background:#f4f6f4;color:#20302a;font:16px/1.65 system-ui,'Apple SD Gothic Neo',sans-serif}main{max-width:1150px;margin:auto;padding:40px 24px}h1{font-size:32px;line-height:1.3}h2{font-size:23px;margin-top:32px}p{max-width:95ch}.summary{padding:20px 24px;background:#e8f2ea;border-left:5px solid #57836b}.grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}.card{background:white;border:1px solid #dae3dc;padding:20px;border-radius:8px}img{width:100%;height:auto;display:block}table{border-collapse:collapse;width:100%;background:white}th,td{border:1px solid #d9e1dc;text-align:left;padding:11px;vertical-align:top}th{background:#e9efeb}a{color:#225a77}.note{color:#745220;background:#fff4dc;padding:14px}.muted{color:#5e6e65;font-size:14px}.legend span{display:inline-block;margin:3px 10px 3px 0;padding:4px 10px;border-radius:4px}@media(max-width:720px){.grid{grid-template-columns:1fr}main{padding:24px 16px}table{font-size:14px}th,td{padding:8px}}
+</style></head><body><main>
+<p class="muted">feat/total-integration · 2026-09-05 · EH4.7a 선행 구현</p>
+<h1>시험지는 그대로.<br>검색 중 근거가 어디서 빠지는지 측정한다.</h1>
+<div class="summary"><strong>단계별 원문 블록 평가기 구현 완료</strong><br>전후 필수 근거 Recall · 관련 근거 유지율 · 양방향 lane rescue · 단계별 Recall@1/3/5/10<br>집중·관련 테스트 112건 PASS / 실제 98문서·20,118블록 출처 검증 PASS</div>
+<p class="note">위 수치는 구현 테스트·출처 무결성 검증 결과입니다. Mini131 전체를 새 지표로 실행한 검색 품질 점수가 아닙니다. 질문·답변, 기본 검색/생성, VLM, 임베딩은 바꾸지 않았습니다.</p>
+<h2>추가한 지표</h2><table><thead><tr><th>측정</th><th>무엇을 보는가</th><th>구분해야 할 것</th></tr></thead><tbody>
+<tr><td>검색 직후 Recall</td><td>필요한 원문 근거 중 pre-stage가 찾은 비율</td><td>기본 fusion, 재랭킹 이전</td></tr>
+<tr><td>최종 context Recall</td><td>필요한 근거 중 선택된 child에 연결된 비율</td><td>parent 원문 전체를 답변 근거로 간주하지 않음</td></tr>
+<tr><td>관련 근거 유지율</td><td>찾았던 정답 근거 중 context까지 남은 비율</td><td>단순 후보 개수 유지율이 아님</td></tr>
+<tr><td>lane rescue</td><td>한 검색기가 놓친 정답 근거를 다른 검색기가 찾아 fusion에 남긴 비율</td><td>단순 lexical-only 후보 수가 아님</td></tr>
+</tbody></table>
+<h2>Target Flow / Current Implementation Flow</h2>
+<p class="legend"><span style="background:#e8f2ea">초록: 구현·검증</span><span style="background:#fff4dc">주황: private 입력</span><span style="background:#eef1ed">회색: 제어/설정</span><span style="background:#fde9e6">빨강: 남은 연결</span></p>
+<div class="grid"><section class="card"><h3>목표 — 실제 131문항 측정</h3><a href="2026-09-05-stage-evaluation-target-flow.png"><img src="2026-09-05-stage-evaluation-target-flow.png" alt="기존 Mini131과 검색 단계 기록을 오프라인에서 결합하는 목표 흐름"></a><a href="2026-09-05-stage-evaluation-target-flow.mmd">Mermaid 소스</a></section>
+<section class="card"><h3>현재 — 평가기와 연결 adapter</h3><a href="2026-09-05-stage-evaluation-current-flow.png"><img src="2026-09-05-stage-evaluation-current-flow.png" alt="구현된 평가기와 남은 위치 매핑 및 실제 recorder 연결"></a><a href="2026-09-05-stage-evaluation-current-flow.mmd">Mermaid 소스</a></section></div>
+<h2>Target vs Current Gap / 다음 작업</h2><table><thead><tr><th>우선순위</th><th>남은 일</th><th>완료 기준</th><th>점수</th></tr></thead><tbody>
+<tr><td>1</td><td>기존131 위치 qrel·검수 lineage 재사용</td><td>질문/답변 유지, 누락 위치만 표시</td><td>10</td></tr>
+<tr><td>2</td><td>실제 runner 단계 기록 연결</td><td>같은 실행의 lane→fusion→context 저장</td><td>9</td></tr>
+<tr><td>3</td><td>같은 Mini131로 검색 비교</td><td>입력·설정 동결 paired run</td><td>8</td></tr>
+</tbody></table>
+<p class="muted">Scoring Criteria: upstream + connection + safety + validation(각 0–3) + risk(−2–0). 작업 순서 점수이며 RAG 성능 점수가 아닙니다. MRR/nDCG·slot·문장 완전성은 후속 EH4.7c입니다.</p>
+<h2>검증과 사용 범위</h2>
+<p class="note">보고서 QA: PNG 생성·직접 이미지 검토 완료. HTML 브라우저 확인은 로컬 file URL 접근 정책으로 차단되어 미확인입니다.</p>
+<p>CLI 기본은 Mini131의 40/56/13/10/10/2 수량을 강제합니다. 부분 검증은 명시적으로 partial로 실행하며 전체 결과라고 표시하지 않습니다. 기록 누락·오류·qrel 미비는 null+사유, 실제 빈 검색은 0점입니다. 그림·집계·파서 전용 평가는 텍스트 평균에 섞지 않습니다.</p>
+<p>블록 일부를 포함한 child도 block Recall을 올릴 수 있습니다. 필요한 문장이 실제로 모두 남았는지, 생성 답변이 맞는지는 별도 평가입니다. 이번 모델/API 호출은 0회입니다.</p>
+<p><a href="2026-09-05-stage-evaluation.md">실행 명령·검증 기록</a> · <a href="../architecture/specs/stage-evaluation-v1.md">상세 계약</a></p>
+</main></body></html>

@@ -1,0 +1,11 @@
+flowchart LR
+  A["기존 Mini131 / 검수 이력"] --> B["입력·위치 qrels / 승인 분모"]
+  B --> C["실제 검색 단계 recorder"]
+  C --> D["검색 지표·조건 동결"] --> E["3종 paired 검색 비교"]
+  E --> F["실패 경계·다음 개선 선택"] --> G["선택 개선 / Controller·E2E"]
+  classDef green fill:#e8f2ea,stroke:#bdd1c2,color:#1f2933,stroke-width:1.5px
+  classDef amber fill:#fff4dc,stroke:#e7c88f,color:#1f2933,stroke-width:1.5px
+  classDef gray fill:#eef1ed,stroke:#d8e0da,color:#1f2933,stroke-width:1.5px
+  class A,C,D,E,G green
+  class B amber
+  class F gray
