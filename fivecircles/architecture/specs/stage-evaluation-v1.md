@@ -208,3 +208,27 @@ DoD: schema/arm 구별·공통query/budget·불변 projection·hash drift·gold/
 - 검증: 정답2개 중1개만 검색하면 nDCG@10≈0.6131; 중복/그룹/빈 결과/0..1 bounds/입력 불변,
   block missing/doc ready, anchor A/doc gold A+B, inventory 변조·중복키·partial131 거절, 기존 Recall 회귀.
   구현 이후에도 의미 승인·사전 threshold/paired freeze 및 정식3종 비교는 EXP-SELECT.2.a.2/.3.a의 별도 gate다.
+
+## 정식 비교 사전 감사 — EXP-SELECT.2.a.2.i (2026-09-06)
+
+- `retrieval_readiness`는 기존 verifier가 확인한 suite/source8/config, source snapshot과 입력 receipt를 다시 결합한다.
+  전체131을 유지하며 원래 request template 유무·RuntimeRequest/scope/recorder 옵션 호환성,
+  source/doc qrel 상태와 **기술적 후보**를 기록한다. 후보 수는 공식 paired 분모/승인 수가 아니다.
+- private 입력 body를 rebuild_inputs로 재생성해 input_config/input SHA·case/qrels 전체를 대조한다.
+  request fingerprint는 normalized RuntimeRequest SHA다. tokenizer를 호출하지 않으므로 실제 query SHA는 null,
+  8192-token 예산 검사는 not_checked다. 모델/index 로딩·검색/생성·API 호출은 0이다.
+- scope는 원래 request만 사용한다. set13은 기존 catalog_all 경로이며 request_template=None인 상태를
+  runtime_request_missing으로 표시한다. gold.required_doc_ids로 explicit 범위를 만들거나 all 요청을 합성하지 않는다.
+  unsupported options/filters/prior citation, invalid scope는 reason으로 표시하고 기술적 후보에서 제외한다.
+  RuntimeRequest 자체가 유효하더라도 lane별 원래 question/history/scope projection과 다르면
+  source_request_mismatch다. 이 검사를 request_binding_policy=verified_source_question_history_scope_v1로 기록한다.
+- review status/기존 review hash/원본 case hash는 receipt로 유지한다. 기존 보조69 사람 확인·11건 수정은
+  알려진 별도 이력이며 draft=검수 없음으로 번역하지 않는다. 이 CLI에는 사람 승인 기능이 없으며
+  formal_comparison_authorized=false, formal_pair_count=null, approval_binding=not_evaluated를 고정한다.
+- 기존 supplemental finalizer는 page 포함4필드 evidence refs와 approved 부분집합을 출력한다.
+  현3필드 stage qrels/전체131와 자동 교체 불가다. 후속 승인 import는 page/owner/source 검증 뒤의 명시적
+  projection과 pending/rejected를 보존한 전체 ledger가 필요하다. 이 감사에서 refs를 변환·승격하지 않는다.
+- `--repo-root --config --data-root --bundle --manifest --blocks-dir --inputs-dir --output` CLI는
+  새 private0600 파일만 저장한다. 원문 question/history/gold/reviewer 이름/오류 원문은 출력하지 않는다.
+  source/입력 hash는 전후 확인하며 기존 artifact/source를 수정하지 않는다. 미해결 결정은 qrel 의미 승인,
+  set13 지원 범위, primary metric/k/threshold·오류/미측정 처리·paired freeze다.

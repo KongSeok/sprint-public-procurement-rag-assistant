@@ -4,11 +4,13 @@
 Cycle C: EXP-SELECT.2.a.1 draft와 EH4.7b.1 recorder 구현, focused12·관련88 PASS/독립 APPROVE.
 Cycle D EH4.7b.2 실제12회 PASS(원래sample2×3종×2회), query embedding12/API·생성0, 관련93 PASS.
 Cycle E EH4.7c.1 완료: source/doc RR·nDCG·131집계, 관련118/독립 APPROVE, 실제12기록 재채점6파일 PASS/모델0.
-현재 다음은 EXP-SELECT.2.a.2.i 전체131 request/qrels/승인 연결 사전 감사다. 전체131 정식 품질 비교는 미실행이다.
+Cycle F .2.a.2.i 완료: 최신 policy의 실제131 감사/관련127 PASS. technical doc84/source30, formal pair=null.
+현재 다음 .2.a.2.ii는 비교범위·metric/threshold·qrel 승인 연결의 사용자 결정이 필요하다. 전체131 정식 비교는 미실행이다.
+readiness002 SHA: 5169ea665e13455fe7bad729e37fac8d8b7cec3103c35ecb44407a1908da55f3. 초기001은 보존했다.
 replay receipt: private/evaluation/stage-ranking-smoke-v1-20260906-001, SHA ca967f7aa07d1508d758c6fe6236453eb9795fa319d6ca4c83d18d4fd81b2591.
 actual receipt: private/evaluation/retrieval-smoke-v1-20260906-002, SHA ef1612860541197e4183f4ccd41070864fe953b1a770c17a4322dc2c40e5113b.
 .4.c 위치 의미 승인과 .2.a.2 정식 freeze는 별도 잔여다.
-c4.0.e는 기술 READY / 우선순위 대기이며 parent c4.0/d2 PARTIAL 유지. `01426df`는 앞선 납품 push다.
+c4.0.e는 기술 READY / 우선순위 대기이며 parent c4.0/d2 PARTIAL 유지. Cycle E는 d4b6d1a push 완료다.
 현재 폼: `2026-09-05-search-first-relay.md`. 아래 완료 원장의 '다음'은 당시 이력이며 현재 큐가 우선한다.
 
 ## 중단/애매함 발생 시

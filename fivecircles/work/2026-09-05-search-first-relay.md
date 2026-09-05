@@ -77,7 +77,8 @@ flowchart LR
   B --> C["recorder / 실제 KURE 12회 PASS"]
   C --> D["resolver·Recall·RR/nDCG 구현 PASS"]
   D --> H["원래 doc gold97 / block gold30 · 의미 승인 별도"]
-  H -.-> E["GAP: 승인·조건 동결·정식3종 비교"]
+  H --> I["131 사전 감사 PASS / 실행 후보 doc84·block30"]
+  I -.-> E["GAP: 범위·승인·조건 동결 / 사용자 결정 필요"]
   F["Controller c4.0.e 기술 READY"] -.-> G["우선순위 대기 / 코드 보존"]
 ```
 
@@ -90,6 +91,7 @@ flowchart LR
 | source join·핵심 채점 코드 | MATCHED | 112 집중·관련 테스트 재실행 PASS; 품질 점수 아님 |
 | 기존 입력 → 위치 sidecar → 실측 recorder | PARTIAL | 입력·recorder/실제12회 PASS; .4.c 위치 의미 승인 잔여 |
 | 순위 지표·원래 doc qrels | MATCHED(코드) | RR/MRR·binary nDCG, original doc97/block30 분리, 관련118 PASS |
+| 전체131 → 실행 지원범위 감사 | MATCHED(감사) | 원래 request와 source 결합·모델0. 기술 후보doc84/source30, 관련127 PASS |
 | 동결 → 세 구성 비교 → 개선 선택 | GAP | EXP-SELECT.2.a.2 / EXP-SELECT.3.a/b 미실행 |
 | Controller → 전문 경로·생성/E2E | PARTIAL | 기존 구현 유지; 검색 선행 예외가 E2E gate를 닫지 않음 |
 
@@ -223,7 +225,7 @@ qrels.jsonl + inventory.json. inventory SHA `d8d2f52bc75419bc8c1da2f81b1bc81f613
 | 4 Implementation | .a 순수 지표 → .b doc inventory → .c CLI/집계 순차 구현 | COMPLETED |
 | 5 Validation + Report | 관련118 PASS·독립34 PASS/APPROVE, 실제12기록 재채점6파일. PNG 직접 검토·browser BLOCKED | PASS_WITH_RISKS |
 | 6 Repair Loop | 계산 오류 없음. 보고 경로 추측2건은 실제 목록으로 바로잡음 | REPAIRED |
-| 7 Push / Publication | 코드·계약·집계·로그 선택 stage. private 입력/점수 비공개 | READY |
+| 7 Push / Publication | 소유17파일 선택 d4b6d1a → origin/feat/total-integration push 성공. private 비공개 | COMPLETED |
 | 8 Closeout Report | 실제 재채점/의미 승인 분리. mermaid-flow-report·로그올, browser 우회 금지 | UPDATED |
 | 9 Relay Shot | EXP-SELECT.2.a.2.i 사전 감사8점 선택. 아래 새 폼 후 착수 | CONTINUE_WITH_NEXT_FORM |
 | 10 Final Ledger | code/replay PASS, 정식 비교 미실행·GAP/PARTIAL. 선택 push 뒤 Cycle F | CLOSED_WITH_RISKS |
@@ -254,11 +256,44 @@ qrels.jsonl + inventory.json. inventory SHA `d8d2f52bc75419bc8c1da2f81b1bc81f613
 | 0 Scope Intake | 기존131/검수 이력 불변. 모델0; formal 분모·사람 승인 자동 생성 금지 | READY |
 | 1 Start Report | 순위 채점 연결 MATCHED / 승인·실행 지원범위 GAP, 최신 target/current 사용 | COMPLETED |
 | 2 Relay Unit Selection | relay-shot 8점: doc-ready와 original request 가용성을 구분하는 선행 감사 | SELECTED |
-| 3 Doc / Contract | config/source/inventory·case 일치, scope/미지원 options·승인 미확정 사유를 content-free 기록 | READY |
-| 4 Implementation | one-go: private preflight CLI·합성 회귀·실제 model0 감사 | READY |
-| 5 Validation + Report | 131 유지/unknown 승인·token budget 미측정을0으로 처리하지 않음. 기존 파이프라인 무변경 | READY |
-| 6 Repair Loop | set13 catalog_all→dense all 자동변환 금지; finalizer4필드 refs/부분집합 자동 대체 금지 | READY |
-| 7 Push / Publication | 사전 감사 도구·문서·로그만 선택, raw131/private receipt 제외 | READY |
-| 8 Closeout Report | 후보·지원·승인·공식분모 구분 및 남은 사용자 결정 표시 | READY |
-| 9 Relay Shot | .2.a.2.ii/iii 안전 여부 확인. 승인/범위 선택 필요 시 구체적 조건 기록 | READY |
-| 10 Final Ledger | Cycle E 선택 push 후 착수, 현재 범위는 감사이지 정식 평가 실행이 아님 | READY |
+| 3 Doc / Contract | config/source/inventory·case 일치, 원래 scope만 사용·token 미검사·승인 미확정 content-free 계약 | COMPLETED |
+| 4 Implementation | private preflight CLI·9회귀·실제 모델0 감사002 완료 | COMPLETED |
+| 5 Validation + Report | 관련127/독립9 PASS·APPROVE. 실제131·원본/입력 불변·0600/Git ignored. browser 기존 BLOCKED | PASS_WITH_RISKS |
+| 6 Repair Loop | 유효한 다른 request가 섞이는 합성 gap 수정. source question/history/scope 직접 비교, 최신002 재검증 | REPAIRED |
+| 7 Push / Publication | 사전 감사 코드·문서·로그만 선택, raw131/private receipt 제외 | READY |
+| 8 Closeout Report | 후보·지원·승인·공식분모 및 현재PNG 갱신. logall/다음 결정 기록 | UPDATED |
+| 9 Relay Shot | .ii는 사용자 선택/승인 필요. set13 제외·범위 변경·공식 qrel 승인·threshold를 임의 확정하지 않음 | STOP_WITH_REASON |
+| 10 Final Ledger | Cycle E/F 실행 완료. 현재 비교 큐는 사용자 결정 대기, Controller는 별도 기술READY/우선순위 대기 유지 | CLOSED_WITH_RISKS |
+
+### Cycle F 감사 결과 — 전체131 유지
+
+| suite | 전체 | 원래 request 가용 | 본문 위치 기술 후보 | 문서 기술 후보 |
+| --- | --- | --- | --- | --- |
+| core40 | 40 | 40 | 30 | 30 |
+| answer56 | 56 | 56 | 0 | 54 |
+| set13 | 13 | 0 | 0 | 0 |
+| visual10 | 10 | 10 | 0 | 0 |
+| analytics10 | 10 | 0 | 0 | 0 |
+| parser2 | 2 | 별도 receipt | 0 | 0 |
+| 합계 | 131 | 106 | 30 | 84 |
+
+- **84는 공식 평가 분모가 아니다.** doc gold97 가운데 set13은 catalog_all 경로이며 이3종 recorder용 원래 request가 없다.
+  visual/analytics/parser22는 전용 평가, 기권12는 positive recall에 미적용이다. 질문을 삭제하거나 새 요청으로 바꾸지 않았다.
+- 129 source review.status=draft/2not_recorded는 원래 정형 값이다. 보조69 사람 확인·11수정 이력은 계속 유효한 별도 기록이다.
+  기존 semantic-review/mini131 blind decisions 표본57행의 **필드만** 확인했다. judge_input/scores/model 기반 답변 평가이며
+  supplemental의 case_sha/answer_verified/evidence_refs 사람 qrel 승인 포맷을 대신하지 않는다.
+- actual query SHA=null, token budget=not_checked, index runtime validation=not_performed. normalized request fingerprint와 혼동하지 않는다.
+- 초기001은 수정 전 pure helper의 source/request 결합 검사가 약한 버전이므로 보존만 한다. 최신002는
+  `verified_source_question_history_scope_v1`, 실제131 및 입력 전후 검증 PASS, 신규 모델/API/생성0.
+  private `resources/data_refined/private/evaluation/retrieval-readiness-v1-20260906-002.json`에 저장했으며
+  authoritative SHA는 `5169ea665e13455fe7bad729e37fac8d8b7cec3103c35ecb44407a1908da55f3`다.
+- focused9/관련127 PASS(1.429s), 독립 재리뷰9 PASS/APPROVE. private0600/Git ignored, 코드·로그 safety 재검사.
+
+### 다음 단계와 멈춤 사유
+
+`EXP-SELECT.2.a.2.ii`에서 (1) 기존 qrel 검수 근거의 명시적 승인 연결, (2) set13을 별도 경로로 둘지
+3종 비교용 request 계약을 추가할지, (3) primary metric/k/threshold·실패/미측정·paired 분모를 확정해야 한다.
+어느 경우에도 전체131 ledger는 남긴다. 후보를 공식분모로 승격하거나 과거 model judge를 human approval로
+바꾸는 일은 자동화하지 않았다. 이 선택은 결과 해석/지원 범위를 바꾸므로 이번 릴레이는 여기서 사용자 결정에 넘긴다.
+그다음은 .iii freeze → EXP-SELECT.3.a다. Controller 작업은 기술적으로 가능하지만 현재 검색 비교의 이 결정을
+대체하지 않으며, 우선순위를 다시 바꾸지 않고 보존한다. **Flow diagram verification: GAP/PARTIAL**.

@@ -22,8 +22,10 @@ fivecircles/architecture/todolist.md 상단 실행 큐에서 현재 leaf 하나�
 한 번에 하나를 계약 확인→테스트→구현→focused 검증→체크포인트 순으로 처리한다.
 크면 .a/.b처럼 다시 나눈다. 완료한 감사와 전체 문서를 매번 다시 읽지 않는다.
 EVAL.4.a/b·draft/recorder·로컬12회·순위 지표/CLI 및 모델0 재채점6파일은 완료했다(관련118 PASS).
-현재 다음은 EXP-SELECT.2.a.2.i 전체131 request/qrels/검수 연결 사전 감사 → 승인·조건 동결 → 3종 검색 비교다.
-doc-ready97은 공식분모가 아니다. set13 원래 request 부재와 source/doc qrel·승인 상태를 분리한다.
+EXP-SELECT.2.a.2.i 실제131 사전 감사도 완료했다(최신002/관련127 PASS). 다음 .ii는 사용자 결정이 필요하다.
+doc-ready97 중 기술적 요청 후보84, source 후보30. set13 원래 request 부재·의미 승인·공식분모는 별도다.
+기존69 검수 이력을 재사용하되 model blind judge 결과를 qrel 사람 승인으로 바꾸지 않는다.
+비교 범위·primary metric/k/threshold·승인 연결을 확정한 뒤 .iii freeze → 3종 검색 비교로 재개한다.
 EH2.6.c4.0.e는 기술 READY/우선순위 대기로 보존했다. Controller 전체 완료를 첫 비교 선행조건으로 오해하지 않는다.
 기존131 질문/답변과 보조69 검수는 유지하며, 부족한 위치 qrels와 정형 승인 필드는 별도 표시한다.
 

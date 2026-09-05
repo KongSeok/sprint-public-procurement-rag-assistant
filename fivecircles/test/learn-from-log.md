@@ -438,3 +438,9 @@ Reference:
 - doc qrels는 원래 inventory에서 검증하고 anchor owner로 추정하지 않는다. partial 위치 결측으로 원래 정답 수를 줄이지 않는다.
 - 보고/계약 경로는 rg 목록으로 확인한다. 미측정과 0, 구조적 가용성과 사람 승인도 분리한다.
 - refs: `errorlogs/backend/2026-09-06-stage-ranking-validation.md`.
+
+### 검증된 원문과 유효한 요청 사이도 대조 (2026-09-06)
+
+- source hash와 RuntimeRequest schema가 각각 맞아도 질문/이력/범위가 다른 요청일 수 있다. 원래 lane projection과 직접 비교한다.
+- 기술 후보84를 공식분모로 승격하지 않는다. 기존 검수 이력, 자동 답변 judge, qrel 사람 승인은 다른 기록이다.
+- refs: `errorlogs/backend/2026-09-06-readiness-source-binding.md`.

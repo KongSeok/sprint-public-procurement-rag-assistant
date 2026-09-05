@@ -972,3 +972,11 @@ This file summarizes recent updates so other agents can continue without re‑di
 ### Tests
 - 관련118·독립34 PASS. 기존12기록 재채점6파일 PASS/모델0·입력 불변. refs: `2026-09-05-search-first-relay.md`.
 - PNG 확인, HTML browser 기존 BLOCKED 유지. refs: `test/errorlogs/backend/2026-09-06-stage-ranking-validation.md`.
+
+## Addendum (2026-09-06) - 다음 TODO 전체131 사전 감사 완료
+### Backend
+- original request/source를 결합한 private readiness CLI 구현. 기술 후보 source30/doc84, 공식분모 null·모델0.
+- .2.a.2.i 완료 후 .ii 비교범위/기준·승인 연결 결정 대기. refs: `2026-09-05-search-first-relay.md`.
+### Tests
+- focused9/관련127·독립 APPROVE, 실제 최신002 감사 PASS/0600·Git ignored. 이전001 보존.
+- source/request 합성 gap 수정. refs: `test/errorlogs/backend/2026-09-06-readiness-source-binding.md`. browser 기존 BLOCKED.

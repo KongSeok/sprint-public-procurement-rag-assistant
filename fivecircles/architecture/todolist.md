@@ -12,7 +12,7 @@
 | 0 | 실행 큐·소유권·checkpoint/resume 정합화 | 완료·01426df push. 기존 체크박스 보존 |
 | 1 | EH2.EVAL.4.a → 4.b / 4.c | .a/.b 구현·private131 생성 완료; 위치 의미 승인/보강 .c는 잔여 |
 | 2 완료 | EH4.7b.1 → b.2 | recorder·실제 로컬12회 PASS; qrels/질문 제작 책임 없음 |
-| 3 진행 | EH4.7c.1 완료 → EXP-SELECT.2.a.2 | 순위 채점·실제12기록 재채점 PASS → 정식 비교 사전 감사/동결 |
+| 3 결정 필요 | EH4.7c.1 / .2.a.2.i 완료 → .ii | 재채점·전체131 사전 감사 완료. 비교 범위/승인·평가기준 확정 필요 |
 | 4 | EXP-SELECT.3.a | 동일 승인 qrels에서 page KURE / compat child KURE / child+Kiwi BM25·RRF paired run |
 | 5 | EXP-SELECT.3.b | 실패 경계·품질/효율 delta로 다음 개선 축 선택. 모든 연구 아이디어 자동 구현 금지 |
 | 6 | 선택된 개선 + EH2/EH3/EH4 후속 | Controller·전문 경로·생성/인용·E2E는 해당 기존 선행 gate를 유지 |
@@ -73,9 +73,10 @@
     - [x] **EXP-SELECT.2.a.1** recorder용 local3종 closed draft 설정/검증 구현. focused8·관련58·독립 APPROVE.
       query/scope/history·예산·pre_context_stage·hash 구분, formal 승격/gold필드 거절. 실파일binding/정식 freeze는 다음 gate.
     - [ ] **EXP-SELECT.2.a.2** 승인 qrels/paired 분모·실물 artifact·지표 threshold를 정식 freeze receipt로 봉인한다.
-      - [ ] **EXP-SELECT.2.a.2.i** 전체131의 original request·qrel·검수 근거·기술적 지원 여부를 모델0으로 사전 감사한다.
-        formal 승인/분모는 자동 확정하지 않는다. set13 request 부재와 finalizer의 page 포함 refs/부분 출력 차이를 표시한다.
-      - [ ] **EXP-SELECT.2.a.2.ii** metric/cutoff/threshold·오류 처리·paired 범위와 해당 qrels의 사람 승인을 확정한다.
+      - [x] **EXP-SELECT.2.a.2.i** 전체131 모델0 사전 감사 완료. 관련127 PASS/독립 APPROVE, source와 요청 질문/이력/범위 결합.
+        기술적 source30/doc84 후보, set13 request 없음. finalizer refs4필드/부분집합 차이 기록; 공식분모는 null 유지.
+      - [ ] **EXP-SELECT.2.a.2.ii** `[WAIT_USER_DECISION]` metric/cutoff/threshold·오류 처리·paired 범위와 해당 qrels의 사람 승인을 확정한다.
+        기존69 검수 이력은 보존/재사용하되 새로운 골드 승인으로 자동 승격하지 않는다. 전체131 ledger는 유지한다.
       - [ ] **EXP-SELECT.2.a.2.iii** 확정된 입력만 closed freeze로 검증·봉인한다. 기술 가용성이나 과거 검수 요약을 승인서로 대체하지 않는다.
   - [ ] **EXP-SELECT.2.b** E2E/후속 구성은 .2.a를 참조하고 generator/prompt/judge·추가 축만 확장 동결한다.
 - [ ] **EXP-SELECT.3** parser→chunker→embedder→fusion→reranker→Harness 순으로 한 축씩 component ablation을
