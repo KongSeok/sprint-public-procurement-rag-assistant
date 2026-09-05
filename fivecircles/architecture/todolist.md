@@ -237,10 +237,13 @@ runtime은 local profile 기본·LLM provider 교체형으로 유지하며 새 �
           역참조해 closed source kind·owner·outcome·call/evidence/context/absence projection으로 정규화했다.
           direct issuer·forced mutation·structural/equal-payload clone·cross-owner·dependency drift와 GC remint를
           차단했고 focused14·인접168·전체1329·safety877·Playwright를 통과했다. 외부 호출은 0이다.
-        - [ ] **EH2.6.c4.0.c** `(execution identity, decision ordinal, before snapshot, selected action)` 기반
-          pristine→claimed→sourced→effect-bound→transitioned/failed one-step history와 동시성/GC tombstone을 닫는다.
-        - [ ] **EH2.6.c4.0.d** validated selected target에서만 parent/table/figure를 exact-one 발급하고 기존
-          rerank batch prerequisite를 보존하는 canonical accumulator를 구현한다.
+        - [x] **EH2.6.c4.0.c** exact decision/source-owner preflight 뒤 closure-private one-step authority를
+          claim-authorized prepare→source로 결합하고 shared lane attempt epoch/claim cutoff로 사후 receipt 포장을
+          차단했다. duplicate/concurrent claim, direct resolver projection, clone/mixed/drift, claim·projection GC와
+          post-child failure는 live execution 수명 동안 failed tombstone으로 닫았고 focused30·인접249·전체1359·
+          safety881·독립 APPROVE를 통과했다. 외부 API/model/Langfuse/provider/clock 호출은 0이다.
+        - [ ] **EH2.6.c4.0.d** `[READY]` validated selected target에서만 parent/table/figure를 exact-one 발급하고
+          기존 rerank batch prerequisite의 canonical tuple identity/order를 보존하는 private accumulator를 구현한다.
         - [ ] **EH2.6.c4.0.e** closure-private structural-effect bridge와 clone/mixed/out-of-order/retroactive/
           duplicate/GC 공격 gate를 통과한다. public mint와 provider/clock/effect 실행은 0으로 유지한다.
       - [ ] **EH2.6.c4.1** initial decision permit의 selected action 하나만 exact source receipt/effect로 mint하고

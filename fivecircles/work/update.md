@@ -825,3 +825,69 @@ This file summarizes recent updates so other agents can continue without re‑di
 
 ### Maintenance
 - Next READY leaf is EH2.6.d2 allowed-action and decision-permit contract; external calls remain zero.
+## Addendum (2026-09-05) - EH2.6.d2.i publication and relay
+### Backend
+- Revision-0 fact/compare ControllerAction and selected-first ControllerDecisionReceipt authority sealed; parent d2 remains PARTIAL.
+
+### Tests
+- Focused 18/18, related 278/278, full 1306/1306, safety 873 files, browser QA and independent adversarial review APPROVE.
+
+### Git
+- Commit dac3338 pushed to origin/feat/total-integration; unrelated dirty and resources were excluded.
+
+### Relay
+- CONTINUE_WITH_NEXT_FORM selects EH2.6.c4.0 source-owner authority; API/model/Langfuse/golden/VLM calls remain zero.
+## Addendum (2026-09-05) - EH2.6.c4.0.a source-owner publication and relay
+### Backend
+- State 생성 시 exact Bound/coverage/outcome/registry/policy를 closure-private source-owner authority로 봉인하고 HarnessExecution이 exact initial-state identity로만 상속하도록 구현했다.
+
+### Integrity
+- Equal-hash payload clone, 사후 owner 부착, legacy follow-up 승격, owner 재사용과 validator/accessor drift를 fail-closed했다.
+
+### Tests
+- Focused+인접 43/43, 전체 1315/1315, safety 874 files, Playwright images2/tables8/page_errors0/mobile_overflow0, 독립 적대 리뷰 APPROVE(P0/P1 0).
+
+### Git
+- Commit c0455f8 pushed to origin/feat/total-integration; unrelated dirty and resources were excluded.
+
+### Relay
+- CONTINUE_WITH_NEXT_FORM selects EH2.6.c4.0.b typed source/outcome resolver; parent c4.0 and d2 remain PARTIAL, external API/model/Langfuse/golden/VLM/provider/clock calls remain zero.
+## Addendum (2026-09-05) - EH2.6.c4.0.b typed source/outcome resolver 완료
+### Scope
+- exact controller decision·source-owner·live receipt graph에서 closed source/outcome projection을 유도했다. effect mint·claim/history·reducer·ledger/state transition은 열지 않았다.
+
+### Implementation
+- lane/fusion/parent/bridge/rerank/semantic/absence/controller-decision receipt를 기존 authority·validator로 역참조하고 action kind·obligation·target·root identity를 대조했다. direct issuer, forced mutation, structural/equal-payload clone, dependency drift와 GC remint를 차단했다.
+
+### Validation
+- focused 14/14, controller 인접 29/29, source-validator 인접 168/168, 전체 1329/1329, safety 877파일, HTML desktop/mobile PASS. 독립 최종 리뷰 APPROVE, correctness finding 0.
+
+### External calls
+- API/OpenAI/model/Langfuse/golden/VLM/provider/clock 호출 0.
+
+### Git
+- ab5a223 feat(harness): resolve typed controller sources 를 origin/feat/total-integration에 push했다.
+
+### Next
+- TODO를 재조회해 EH2.6.c4.0.c one-step claim/history를 다음 READY leaf로 선택하고 새 원샷 form 및 첫 RED를 즉시 실행한다.
+## Addendum (2026-09-05) - EH2.6.c4.0.c one-step history 완료 및 c4.0.d 릴레이
+### Scope
+- feat/total-integration에서 exact controller one-step claim/history를 closure-private authority로 구현하고 c4.0.c를 완료했다.
+
+### Implementation
+- claim-authorized prepare→source, shared lane attempt epoch/claim cutoff, callback-free weak registry와 exact discard, live execution 수명의 failed tombstone을 추가했다.
+
+### Repair
+- 독립 리뷰에서 helper drift tombstone 우회, root drift 중 claim/projection GC, source registry drift 후 재시도를 재현해 mutable-root validation과 독립된 mirrored emergency failure path로 닫았다.
+
+### Validation
+- focused 30/30, adjacent 249/249, full 1359/1359, repository safety 881 files, git diff --check PASS, independent review APPROVE.
+
+### Publication
+- 선택 커밋 3fb2363 (feat(harness): seal controller step history)을 origin/feat/total-integration에 push했다. user-owned dirty와 resources는 제외했다.
+
+### External calls
+- OpenAI/API/model/Langfuse/golden/VLM/provider/clock 실제 호출은 0회다.
+
+### Next
+- refreshed TODO의 EH2.6.c4.0.d를 READY로 선택한다. exact semantic authority와 validated target에서 parent/table/figure exact-one을 고르고 rerank용 full batch tuple identity/order를 보존하는 private non-authorizing accumulator의 첫 RED를 즉시 실행한다.

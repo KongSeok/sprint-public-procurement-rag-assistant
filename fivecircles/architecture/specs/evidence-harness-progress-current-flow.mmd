@@ -16,7 +16,7 @@ flowchart LR
     R3["HB · DH 팀 실험"]
   end
 
-  subgraph BUILD["현재 feat/total-integration · EH2.6.c4.0.b"]
+  subgraph BUILD["현재 feat/total-integration · EH2.6.c4.0.c"]
     C1["EvidenceStore<br/>page parent + child"]
     C2["KURE child + Kiwi BM25<br/>독립 retrieval lane"]
     C3["QueryPlan · Belief/Progress<br/>config/runtime authority"]
@@ -36,10 +36,11 @@ flowchart LR
     C17["initial controller decision permit<br/>revision 0 fact/compare · all-unsearched<br/>selected-first · EH2.5/effect nonpromotion"]
     C18["exact source-owner authority<br/>state-creation sealed · exact root inheritance<br/>equal-hash/retroactive attach/legacy follow-up reject"]
     C19["typed source/outcome resolver<br/>exact decision·owner·receipt graph<br/>closed outcome/evidence/context projection · zero dispatch"]
-    C1 --> C2 --> C3 --> C4 --> C5 --> C6 --> C7 --> C8 --> C9 --> C10 --> C11 --> C12 --> C13 --> C14 --> C15 --> C16 --> C17 --> C18 --> C19
+    C20["one-step temporal authority<br/>claim-authorized prepare→source<br/>shared lane epoch/claim fence · failed tombstone"]
+    C1 --> C2 --> C3 --> C4 --> C5 --> C6 --> C7 --> C8 --> C9 --> C10 --> C11 --> C12 --> C13 --> C14 --> C15 --> C16 --> C17 --> C18 --> C19 --> C20
   end
 
-  GAP["미완성<br/>c4.0.c~e history/per-target/structural bridge<br/>c4.1 → d2.x cross-state → reducer → specialist → generation → E2E"]
+  GAP["미완성<br/>c4.0.d~e per-target/structural bridge<br/>c4.1 → d2.x cross-state → reducer → specialist → generation → E2E"]
   SELECT["동일 golden A/B<br/>아직 미실행"]
   LOCAL["채택 시 local-first 전달<br/>feat/local-qwen-mini131-eval"]
 
@@ -48,7 +49,7 @@ flowchart LR
   R1 --> C1
   R2 --> C1
   R3 --> C1
-  C19 --> GAP --> SELECT
+  C20 --> GAP --> SELECT
   CONTROL --> SELECT
   SELECT -. "winner 미선정" .-> LOCAL
 
@@ -58,7 +59,7 @@ flowchart LR
   classDef red fill:#fde9e6,stroke:#d98e84,color:#1f2933,stroke-width:1.5px
   classDef gray fill:#eef1ed,stroke:#aab5ad,color:#1f2933,stroke-width:1.5px
   class B1,B2,B3 green
-  class C1,C2,C3,C4,C5,C6,C7,C8,C9,C10,C11,C12,C13,C14,C15,C16,C17,C18,C19 blue
+  class C1,C2,C3,C4,C5,C6,C7,C8,C9,C10,C11,C12,C13,C14,C15,C16,C17,C18,C19,C20 blue
   class GOLD gray
   class R1,R2,R3,API amber
   class GAP red
