@@ -303,6 +303,28 @@ snapshot digest.
 Constructors, copy/deepcopy, pickle, and `from_dict` are unavailable. D1 exports no decision, effect issuer,
 reducer, transition, consume, advance, start/step/run, or terminal authority: d2 owns the state+ledger decision
 permit, c4 owns live effect mint and authenticated ledger/state transition, and d3-d5 own execution and replay.
+EH2.6.d2 introduces `ControllerAction` and `ControllerDecisionReceipt`; EH2.5 `HarnessAction|ActionDecisionTrace`
+stay state-only previews and are exact-type rejected as effect permits. The first d2.i slice accepts only an exact
+live revision-zero execution whose source is fact or compare and whose obligations are all unsearched. It derives
+obligation-major dense→lexical actions plus one untargeted abstain and selects the first. Follow-up, candidate, and
+nonzero snapshots fail closed until c4.0 supplies source/outcome authority. No caller action, query, scope,
+evidence ID, previous chain, counter, capability, gold, or qrels field is accepted.
+
+`ControllerAction` binds its closed kind/target and policy to the stable execution identity; its stable action hash
+does not include a snapshot/state hash so a later ledger can filter the same action. `ControllerDecisionReceipt`
+binds stable execution identity, current snapshot/state/ledger SHA and revision, owner-derived previous transition,
+ordinal=`step_index+1`, exact actions/hash, selected-first action, reason, and its own hash. Same-snapshot issuance is
+same-object idempotent and single-winner. Clone, nested action/tuple replacement, mixed/rebuilt dependencies,
+post-issue drift, or GC/remint while the execution root is live fail closed. Serialization contains no recursive
+state/ledger, effect, answer, or citation.
+
+D2 remains partial after d2.i. Ledger lane keys do not distinguish normal outcomes from provider/contract/deadline
+failures, and the aggregate cannot yet recover `Bound*`, follow-up outcome, or owner budget. C4.0 must add opaque
+source-owner authority, ordered exact outcome/transition history, one-action per-target context issuance, and a
+formal structural-effect creation bridge. Only then may d2.x filter consumed stable actions/lanes and authorize
+fuse/context. An untried unavailable capability remains selectable once so c4 can record a zero-call unavailable
+effect; only its ledger-recorded stable action is removed later. D2.i does not mint effects, claim/consume a permit,
+advance a ledger, reduce state, call a provider/clock, or expose start/step/run.
 An E1 compare seed must be all-unsearched; already hybrid-searched EH2.4 coverage cannot be
 relabeled as independent lane execution. Once all approved retrieval paths close with no
 candidates, controller-only `verify_slot` performs a zero-provider exhaustion check that may

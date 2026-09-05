@@ -1035,6 +1035,29 @@ parent/child 혼합, 골든 값 의존을 검출한다. 정확한 새 파일/메
   SHA와 closed consumption/counter만 내보낸다. constructor/copy/deepcopy/pickle/from-dict는 금지한다.
   d1은 `ControllerAction|ControllerDecisionReceipt`, decision permit, effect mint, reducer, transition, consume/advance,
   start/step/run/result/replay를 공개하지 않는다. 각각 d2, c4, d3-d5의 단일 책임으로 남긴다.
+- d2의 `ControllerDecisionReceipt`는 EH2.5 `HarnessAction|ActionDecisionTrace` preview를 재사용하거나 승격하지 않는다.
+  먼저 d2.i는 exact live revision-0 `HarnessExecution`, `fact|compare`, 모든 obligation `unsearched`만 허용한다.
+  controller-owned `ControllerAction`을 obligation-major `(retrieve_dense, retrieve_lexical)…,(abstain)` 순서로 만들고
+  첫 action만 선택한다. follow-up/candidate/nonzero snapshot은 c4.0 source/outcome authority 전에는 fail-closed한다.
+  caller는 action, query, scope, evidence ID, reason, previous decision/transition, capability, counter 또는 gold/qrels를
+  공급하지 않는다.
+- `ControllerAction`은 stage, policy hash, stable execution identity, closed kind/obligation/target과 action SHA만 가진다.
+  action SHA는 이후 ledger 소비 대조를 위해 stable execution identity에 묶고 snapshot/state SHA는 넣지 않는다.
+  `ControllerDecisionReceipt`는 stage/policy ID, stable execution identity, current snapshot/state/ledger SHA와 revision,
+  owner-derived previous transition SHA, decision ordinal, exact allowed action tuple/hash, selected action, closed reason,
+  decision SHA만 보존한다. ordinal은 `execution.step_index + 1`이며 cross-state chain은 caller previous decision이 아니라
+  exact `last_transition_sha256`로만 연결한다. serialization은 state/ledger/query/text/effect/answer/citation을 중첩하지 않는다.
+- 같은 live execution snapshot의 반복·동시 결정은 같은 decision object 한 개를 반환한다. snapshot당 하나의 permit만
+  존재하고 decision/action/tuple clone, rebuilt/mixed graph, 발급 뒤 drift, decision GC 뒤 live execution의 remint는
+  fail-closed한다. package root는 두 DTO, decision factory, live validator만 공개한다. c4의 private reader는 exact
+  permit identity만 확인하고 claim/consume은 c4가 소유한다. d2.i에는 effect mint, source receipt dereference, ledger
+  advance, reducer, transition, provider/clock 호출이 없다.
+- d2 전체는 d2.i로 완료 처리하지 않는다. `consumed_lane_keys`만으로 정상 lane과 provider/contract/deadline 실패를
+  구분할 수 없고 execution authority에 `Bound*`/follow-up outcome/owner budget이 없어 fuse/context 자격을 안전하게
+  계산할 수 없다. c4.0은 opaque source-owner authority, ordered exact effect/outcome transition history, action 하나당
+  per-target parent/bridge issuer와 정식 structural-effect bridge를 먼저 제공한다. 그 뒤 d2.x가 transition-aware
+  eligibility를 완성한다. 미시도 unavailable capability는 제거하지 않고 한 번 선택해 zero-call unavailable effect를
+  남긴 뒤 ledger에 기록된 같은 stable action만 제거한다.
 - reducer는 exact before state와 effect로 exact after state를 하나만 결정한다. lane 실행, parent context,
   terminal stop/abstain은 exact same state object를 after로 사용한다. 상태가 실제 바뀌는 effect만 새 state를
   발급하고 그 source receipt가 effect SHA를 가리키며, 한 nonterminal transition은 하나의 obligation만

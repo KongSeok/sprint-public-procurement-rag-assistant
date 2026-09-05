@@ -3343,6 +3343,829 @@ def _build_harness_execution_public_api(
 del _build_harness_execution_public_api
 
 
+# EH2.6.d2.i revision-zero controller decision permit.  This deliberately
+# defines a new controller action instead of promoting EH2.5 preview values.
+_CONTROLLER_ACTION_TOKEN = object()
+_CONTROLLER_DECISION_TOKEN = object()
+_CONTROLLER_ACTION_KINDS = (
+    "retrieve_dense",
+    "retrieve_lexical",
+    "fuse",
+    "expand_parent",
+    "rerank",
+    "bridge_table",
+    "bridge_figure",
+    "verify_slot",
+    "stop",
+    "abstain",
+)
+_CONTROLLER_ACTION_KIND_SET = frozenset(_CONTROLLER_ACTION_KINDS)
+_CONTROLLER_OBLIGATION_ONLY_KINDS = frozenset(
+    {"retrieve_dense", "retrieve_lexical", "fuse", "rerank", "verify_slot"}
+)
+_CONTROLLER_EVIDENCE_TARGET_KINDS = frozenset(
+    {"expand_parent", "bridge_table", "bridge_figure"}
+)
+_CONTROLLER_TERMINAL_KINDS = frozenset({"stop", "abstain"})
+_CONTROLLER_DECISION_POLICY_SHA256 = _canonical_sha256(
+    {
+        "schema_version": SCHEMA_VERSION,
+        "policy_id": HARNESS_EXECUTION_POLICY_ID,
+        "closed_action_kinds": list(_CONTROLLER_ACTION_KINDS),
+        "d2_slice": "revision_zero_fact_compare_unsearched",
+        "order": "obligation_major_dense_lexical_then_abstain",
+        "selection": "first_allowed",
+        "cross_state": "blocked_until_c4_source_outcome_authority",
+    }
+)
+
+
+class ControllerAction:
+    """Stable, non-authorizing action value owned by one execution root."""
+
+    __slots__ = (
+        "stage",
+        "policy_sha256",
+        "execution_identity_sha256",
+        "kind",
+        "obligation_key",
+        "target_evidence_id",
+        "action_sha256",
+        "__weakref__",
+    )
+
+    stage: str
+    policy_sha256: str
+    execution_identity_sha256: str
+    kind: str
+    obligation_key: str | None
+    target_evidence_id: str | None
+    action_sha256: str
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        raise TypeError("controller_action_factory_required")
+
+    def __setattr__(self, name: str, value: object) -> None:
+        raise AttributeError("controller_action_immutable")
+
+    def __delattr__(self, name: str) -> None:
+        raise AttributeError("controller_action_immutable")
+
+    def __repr__(self) -> str:
+        return "ControllerAction(<redacted>)"
+
+    def __copy__(self) -> ControllerAction:
+        raise TypeError("controller_action_copy_forbidden")
+
+    def __deepcopy__(self, memo: object) -> ControllerAction:
+        raise TypeError("controller_action_copy_forbidden")
+
+    def __reduce__(self) -> object:
+        raise TypeError("controller_action_pickle_forbidden")
+
+    def __reduce_ex__(self, protocol: int) -> object:
+        raise TypeError("controller_action_pickle_forbidden")
+
+    @classmethod
+    def _create(
+        cls,
+        *,
+        execution_identity_sha256: str,
+        kind: str,
+        obligation_key: str | None,
+        target_evidence_id: str | None,
+        _token: object,
+    ) -> ControllerAction:
+        if cls is not ControllerAction or _token is not _CONTROLLER_ACTION_TOKEN:
+            raise ValueError("controller_action_factory_required")
+        result = object.__new__(cls)
+        for name, value in (
+            ("stage", "controller_action"),
+            ("policy_sha256", _CONTROLLER_DECISION_POLICY_SHA256),
+            ("execution_identity_sha256", execution_identity_sha256),
+            ("kind", kind),
+            ("obligation_key", obligation_key),
+            ("target_evidence_id", target_evidence_id),
+        ):
+            object.__setattr__(result, name, value)
+        object.__setattr__(result, "action_sha256", "0" * 64)
+        object.__setattr__(
+            result,
+            "action_sha256",
+            _canonical_sha256(result._payload()),
+        )
+        result._validate_payload()
+        return result
+
+    def _payload(self) -> dict[str, Any]:
+        return {
+            "schema_version": SCHEMA_VERSION,
+            "stage": self.stage,
+            "policy_sha256": self.policy_sha256,
+            "execution_identity_sha256": self.execution_identity_sha256,
+            "kind": self.kind,
+            "obligation_key": self.obligation_key,
+            "target_evidence_id": self.target_evidence_id,
+        }
+
+    def _validate_payload(self) -> None:
+        if self.stage != "controller_action":
+            raise ValueError("invalid_controller_action_stage")
+        if self.policy_sha256 != _CONTROLLER_DECISION_POLICY_SHA256:
+            raise ValueError("controller_action_policy_hash_mismatch")
+        _require_hash(
+            self.execution_identity_sha256,
+            "invalid_controller_action_execution_identity_sha256",
+        )
+        if type(self.kind) is not str or self.kind not in _CONTROLLER_ACTION_KIND_SET:
+            raise ValueError("invalid_controller_action_kind")
+        if self.kind in _CONTROLLER_TERMINAL_KINDS:
+            if self.obligation_key is not None or self.target_evidence_id is not None:
+                raise ValueError("terminal_controller_action_must_be_untargeted")
+        elif self.kind in _CONTROLLER_OBLIGATION_ONLY_KINDS:
+            if type(self.obligation_key) is not str or not self.obligation_key:
+                raise ValueError("controller_action_obligation_required")
+            if self.target_evidence_id is not None:
+                raise ValueError("controller_action_forbids_evidence_target")
+        elif self.kind in _CONTROLLER_EVIDENCE_TARGET_KINDS:
+            if type(self.obligation_key) is not str or not self.obligation_key:
+                raise ValueError("controller_action_obligation_required")
+            if type(self.target_evidence_id) is not str or not self.target_evidence_id:
+                raise ValueError("controller_action_evidence_target_required")
+        else:
+            raise ValueError("unsupported_controller_action_shape")
+        _require_hash(self.action_sha256, "invalid_controller_action_sha256")
+        if self.action_sha256 != _canonical_sha256(self._payload()):
+            raise ValueError("controller_action_hash_mismatch")
+
+    def to_dict(self) -> dict[str, Any]:
+        self._validate_payload()
+        return {**self._payload(), "action_sha256": self.action_sha256}
+
+
+def _controller_allowed_actions_sha256(
+    actions: tuple[ControllerAction, ...],
+) -> str:
+    return _canonical_sha256(
+        {
+            "schema_version": SCHEMA_VERSION,
+            "allowed_actions": [action.to_dict() for action in actions],
+        }
+    )
+
+
+class ControllerDecisionReceipt:
+    """Exact live d2 decision permit; d2.i supports revision zero only."""
+
+    __slots__ = (
+        "stage",
+        "policy_id",
+        "policy_sha256",
+        "execution_identity_sha256",
+        "execution_snapshot_sha256",
+        "state_sha256",
+        "ledger_sha256",
+        "ledger_revision",
+        "previous_transition_sha256",
+        "decision_ordinal",
+        "allowed_actions",
+        "allowed_actions_sha256",
+        "selected_action",
+        "reason_code",
+        "decision_sha256",
+        "__weakref__",
+    )
+
+    stage: str
+    policy_id: str
+    policy_sha256: str
+    execution_identity_sha256: str
+    execution_snapshot_sha256: str
+    state_sha256: str
+    ledger_sha256: str
+    ledger_revision: int
+    previous_transition_sha256: str | None
+    decision_ordinal: int
+    allowed_actions: tuple[ControllerAction, ...]
+    allowed_actions_sha256: str
+    selected_action: ControllerAction
+    reason_code: str
+    decision_sha256: str
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        raise TypeError("controller_decision_factory_required")
+
+    def __setattr__(self, name: str, value: object) -> None:
+        raise AttributeError("controller_decision_immutable")
+
+    def __delattr__(self, name: str) -> None:
+        raise AttributeError("controller_decision_immutable")
+
+    def __repr__(self) -> str:
+        return "ControllerDecisionReceipt(<redacted>)"
+
+    def __copy__(self) -> ControllerDecisionReceipt:
+        raise TypeError("controller_decision_copy_forbidden")
+
+    def __deepcopy__(self, memo: object) -> ControllerDecisionReceipt:
+        raise TypeError("controller_decision_copy_forbidden")
+
+    def __reduce__(self) -> object:
+        raise TypeError("controller_decision_pickle_forbidden")
+
+    def __reduce_ex__(self, protocol: int) -> object:
+        raise TypeError("controller_decision_pickle_forbidden")
+
+    @classmethod
+    def _create(
+        cls,
+        *,
+        execution: HarnessExecution,
+        allowed_actions: tuple[ControllerAction, ...],
+        _token: object,
+    ) -> ControllerDecisionReceipt:
+        if cls is not ControllerDecisionReceipt or _token is not _CONTROLLER_DECISION_TOKEN:
+            raise ValueError("controller_decision_factory_required")
+        result = object.__new__(cls)
+        for name, value in (
+            ("stage", "controller_decision"),
+            ("policy_id", HARNESS_EXECUTION_POLICY_ID),
+            ("policy_sha256", _CONTROLLER_DECISION_POLICY_SHA256),
+            ("execution_identity_sha256", execution.execution_identity_sha256),
+            ("execution_snapshot_sha256", execution.execution_snapshot_sha256),
+            ("state_sha256", execution.state.state_sha256),
+            ("ledger_sha256", execution.ledger.ledger_sha256),
+            ("ledger_revision", execution.ledger.revision),
+            ("previous_transition_sha256", execution.last_transition_sha256),
+            ("decision_ordinal", execution.step_index + 1),
+            ("allowed_actions", allowed_actions),
+            (
+                "allowed_actions_sha256",
+                _controller_allowed_actions_sha256(allowed_actions),
+            ),
+            ("selected_action", allowed_actions[0]),
+            ("reason_code", "first_eligible_nonterminal"),
+        ):
+            object.__setattr__(result, name, value)
+        object.__setattr__(result, "decision_sha256", "0" * 64)
+        object.__setattr__(
+            result,
+            "decision_sha256",
+            _canonical_sha256(result._payload()),
+        )
+        result._validate_payload()
+        return result
+
+    def _payload(self) -> dict[str, Any]:
+        return {
+            "schema_version": SCHEMA_VERSION,
+            "stage": self.stage,
+            "policy_id": self.policy_id,
+            "policy_sha256": self.policy_sha256,
+            "execution_identity_sha256": self.execution_identity_sha256,
+            "execution_snapshot_sha256": self.execution_snapshot_sha256,
+            "state_sha256": self.state_sha256,
+            "ledger_sha256": self.ledger_sha256,
+            "ledger_revision": self.ledger_revision,
+            "previous_transition_sha256": self.previous_transition_sha256,
+            "decision_ordinal": self.decision_ordinal,
+            "allowed_actions": [
+                action.to_dict() for action in self.allowed_actions
+            ],
+            "allowed_actions_sha256": self.allowed_actions_sha256,
+            "selected_action": self.selected_action.to_dict(),
+            "reason_code": self.reason_code,
+        }
+
+    def _validate_payload(self) -> None:
+        if self.stage != "controller_decision":
+            raise ValueError("invalid_controller_decision_stage")
+        if self.policy_id != HARNESS_EXECUTION_POLICY_ID:
+            raise ValueError("controller_decision_policy_id_mismatch")
+        if self.policy_sha256 != _CONTROLLER_DECISION_POLICY_SHA256:
+            raise ValueError("controller_decision_policy_hash_mismatch")
+        for name in (
+            "execution_identity_sha256",
+            "execution_snapshot_sha256",
+            "state_sha256",
+            "ledger_sha256",
+            "allowed_actions_sha256",
+            "decision_sha256",
+        ):
+            _require_hash(getattr(self, name), f"invalid_controller_decision_{name}")
+        _d1_nonnegative_int(
+            self.ledger_revision,
+            "invalid_controller_decision_ledger_revision",
+        )
+        if type(self.decision_ordinal) is not int or self.decision_ordinal < 1:
+            raise ValueError("invalid_controller_decision_ordinal")
+        if self.previous_transition_sha256 is not None:
+            _require_hash(
+                self.previous_transition_sha256,
+                "invalid_controller_decision_previous_transition_sha256",
+            )
+        if type(self.allowed_actions) is not tuple or not self.allowed_actions:
+            raise ValueError("controller_decision_allowed_actions_required")
+        if any(type(action) is not ControllerAction for action in self.allowed_actions):
+            raise TypeError("invalid_controller_decision_allowed_action")
+        if type(self.selected_action) is not ControllerAction:
+            raise TypeError("invalid_controller_decision_selected_action")
+        if self.selected_action is not self.allowed_actions[0]:
+            raise ValueError("controller_decision_must_select_first_allowed")
+        for action in self.allowed_actions:
+            action._validate_payload()
+            if action.execution_identity_sha256 != self.execution_identity_sha256:
+                raise ValueError("controller_action_execution_identity_mismatch")
+        if self.allowed_actions_sha256 != _controller_allowed_actions_sha256(
+            self.allowed_actions
+        ):
+            raise ValueError("controller_allowed_actions_hash_mismatch")
+        if self.reason_code != "first_eligible_nonterminal":
+            raise ValueError("invalid_controller_decision_reason")
+        if self.decision_sha256 != _canonical_sha256(self._payload()):
+            raise ValueError("controller_decision_hash_mismatch")
+
+    def to_dict(self) -> dict[str, Any]:
+        self._validate_payload()
+        return {**self._payload(), "decision_sha256": self.decision_sha256}
+
+
+def _d2_initial_action_specs(
+    execution: HarnessExecution,
+) -> tuple[tuple[str, str | None, str | None], ...]:
+    state = execution.state
+    ledger = execution.ledger
+    if (
+        execution.step_index != 0
+        or execution.last_transition_sha256 is not None
+        or ledger.revision != 0
+        or ledger.previous_ledger_sha256 is not None
+    ):
+        raise ValueError("controller_decision_cross_state_not_ready")
+    if state.belief.source_kind not in {"fact", "compare"}:
+        raise ValueError("controller_decision_source_authority_not_ready")
+    entries = state.belief.evidence_map
+    if (
+        type(entries) is not tuple
+        or tuple(entry.obligation_key for entry in entries) != ledger.obligation_keys
+        or any(entry.observation_stage != "unsearched" for entry in entries)
+    ):
+        raise ValueError("controller_decision_initial_state_required")
+    if (
+        any(ledger.round_indexes)
+        or ledger.consumed_action_sha256s
+        or ledger.consumed_lane_keys
+        or ledger.unavailable_action_sha256s
+        or ledger.nonterminal_action_count != 0
+        or any(ledger.no_progress_streaks)
+    ):
+        raise ValueError("controller_decision_zero_consumption_required")
+    specs: list[tuple[str, str | None, str | None]] = []
+    for obligation_key in ledger.obligation_keys:
+        specs.extend(
+            (
+                ("retrieve_dense", obligation_key, None),
+                ("retrieve_lexical", obligation_key, None),
+            )
+        )
+    specs.append(("abstain", None, None))
+    return tuple(specs)
+
+
+def _build_controller_decision_authority_accessors(
+    action_cls: type,
+    decision_cls: type,
+    canonical_sha256: Any,
+):
+    authority_lock = Lock()
+    authorities: dict[int, tuple[Any, ...]] = {}
+    authority_shadow: dict[int, tuple[Any, ...]] = {}
+    histories: dict[tuple[str, str], tuple[Any, ...]] = {}
+    history_shadow: dict[tuple[str, str], tuple[Any, ...]] = {}
+
+    def drop_decision(identity: int, dead: ReferenceType[Any]) -> None:
+        with authority_lock:
+            current = authorities.get(identity)
+            if current is not None and current[0] is dead:
+                authorities.pop(identity, None)
+                authority_shadow.pop(identity, None)
+
+    def drop_execution(
+        key: tuple[str, str],
+        dead: ReferenceType[Any],
+    ) -> None:
+        with authority_lock:
+            current = histories.get(key)
+            if current is not None and current[0] is dead:
+                histories.pop(key, None)
+                history_shadow.pop(key, None)
+
+    def issue(
+        *,
+        execution: HarnessExecution,
+        store: EvidenceStore,
+        config: HarnessExecutionConfig,
+        runtime: HarnessRuntimeBinding,
+        specs: tuple[tuple[str, str | None, str | None], ...],
+    ) -> ControllerDecisionReceipt:
+        key = (
+            execution.execution_identity_sha256,
+            execution.execution_snapshot_sha256,
+        )
+        with authority_lock:
+            current = histories.get(key)
+            shadow = history_shadow.get(key)
+            if (current is None) != (shadow is None) or (
+                current is not None and current is not shadow
+            ):
+                raise ValueError("controller_decision_history_authority_drift")
+            if current is not None:
+                if (
+                    current[0]() is not execution
+                    or current[1] is not store
+                    or current[2] is not config
+                    or current[3] is not runtime
+                    or current[4] != specs
+                ):
+                    raise ValueError("controller_decision_root_identity_mismatch")
+                issued = current[5]()
+                if issued is None:
+                    raise ValueError("controller_decision_already_issued")
+                return issued
+
+            actions = tuple(
+                action_cls._create(
+                    execution_identity_sha256=execution.execution_identity_sha256,
+                    kind=kind,
+                    obligation_key=obligation_key,
+                    target_evidence_id=target_evidence_id,
+                    _token=_CONTROLLER_ACTION_TOKEN,
+                )
+                for kind, obligation_key, target_evidence_id in specs
+            )
+            decision = decision_cls._create(
+                execution=execution,
+                allowed_actions=actions,
+                _token=_CONTROLLER_DECISION_TOKEN,
+            )
+            decision_identity = id(decision)
+            decision_weak = ref(
+                decision,
+                lambda dead, identity=decision_identity: drop_decision(
+                    identity, dead
+                ),
+            )
+            authority = (
+                decision_weak,
+                canonical_sha256(decision.to_dict()),
+                execution,
+                store,
+                config,
+                runtime,
+                actions,
+                tuple(actions),
+                decision.selected_action,
+                specs,
+            )
+            authorities[decision_identity] = authority
+            authority_shadow[decision_identity] = authority
+            execution_weak = ref(
+                execution,
+                lambda dead, history_key=key: drop_execution(history_key, dead),
+            )
+            history = (
+                execution_weak,
+                store,
+                config,
+                runtime,
+                specs,
+                decision_weak,
+            )
+            histories[key] = history
+            history_shadow[key] = history
+            return decision
+
+    def require(receipt: object) -> tuple[Any, ...]:
+        with authority_lock:
+            if type(receipt) is not decision_cls:
+                raise TypeError("controller_decision_receipt_required")
+            identity = id(receipt)
+            current = authorities.get(identity)
+            shadow = authority_shadow.get(identity)
+            if (
+                current is None
+                or current is not shadow
+                or current[0]() is not receipt
+            ):
+                raise ValueError("controller_decision_runtime_authority_required")
+            key = (
+                receipt.execution_identity_sha256,
+                receipt.execution_snapshot_sha256,
+            )
+            history = histories.get(key)
+            if history is None or history is not history_shadow.get(key):
+                raise ValueError("controller_decision_history_authority_drift")
+            if history[0]() is not current[2] or history[5]() is not receipt:
+                raise ValueError("controller_decision_history_authority_drift")
+            return current
+
+    return issue, require
+
+
+(
+    _issue_controller_decision_authority,
+    _require_controller_decision_permit,
+) = _build_controller_decision_authority_accessors(
+    ControllerAction,
+    ControllerDecisionReceipt,
+    _canonical_sha256,
+)
+del _build_controller_decision_authority_accessors
+
+
+def _build_controller_decision_public_api(
+    *,
+    action_cls: type,
+    decision_cls: type,
+    execution_cls: type,
+    store_cls: type,
+    config_cls: type,
+    runtime_cls: type,
+    execution_validator: Any,
+    action_specs: Any,
+    authority_issuer: Any,
+    authority_reader: Any,
+    canonical_sha256: Any,
+):
+    global_pins = (
+        ("SCHEMA_VERSION", SCHEMA_VERSION),
+        ("HARNESS_EXECUTION_POLICY_ID", HARNESS_EXECUTION_POLICY_ID),
+        ("_CONTROLLER_ACTION_TOKEN", _CONTROLLER_ACTION_TOKEN),
+        ("_CONTROLLER_DECISION_TOKEN", _CONTROLLER_DECISION_TOKEN),
+        ("_CONTROLLER_ACTION_KINDS", _CONTROLLER_ACTION_KINDS),
+        ("_CONTROLLER_ACTION_KIND_SET", _CONTROLLER_ACTION_KIND_SET),
+        (
+            "_CONTROLLER_OBLIGATION_ONLY_KINDS",
+            _CONTROLLER_OBLIGATION_ONLY_KINDS,
+        ),
+        (
+            "_CONTROLLER_EVIDENCE_TARGET_KINDS",
+            _CONTROLLER_EVIDENCE_TARGET_KINDS,
+        ),
+        ("_CONTROLLER_TERMINAL_KINDS", _CONTROLLER_TERMINAL_KINDS),
+        (
+            "_CONTROLLER_DECISION_POLICY_SHA256",
+            _CONTROLLER_DECISION_POLICY_SHA256,
+        ),
+        ("_controller_allowed_actions_sha256", _controller_allowed_actions_sha256),
+        ("_require_hash", _require_hash),
+        ("_d1_nonnegative_int", _d1_nonnegative_int),
+        ("ref", ref),
+    )
+    callable_pins = tuple(
+        (
+            function,
+            object.__getattribute__(function, "__code__"),
+            object.__getattribute__(function, "__defaults__"),
+            object.__getattribute__(function, "__kwdefaults__"),
+        )
+        for function in (
+            execution_validator,
+            action_specs,
+            authority_issuer,
+            authority_reader,
+            canonical_sha256,
+            _controller_allowed_actions_sha256,
+            _require_hash,
+            _d1_nonnegative_int,
+        )
+    )
+    class_pins = []
+    for owner in (action_cls, decision_cls):
+        namespace = type.__getattribute__(owner, "__dict__")
+        members = []
+        for name in sorted(namespace):
+            member = namespace[name]
+            function = None
+            if type(member) is FunctionType:
+                function = member
+            elif type(member) in {classmethod, staticmethod}:
+                function = object.__getattribute__(member, "__func__")
+            members.append(
+                (
+                    name,
+                    member,
+                    type(member),
+                    None
+                    if function is None
+                    else (
+                        function,
+                        object.__getattribute__(function, "__code__"),
+                        object.__getattribute__(function, "__defaults__"),
+                        object.__getattribute__(function, "__kwdefaults__"),
+                    ),
+                )
+            )
+        class_pins.append((owner, tuple(members)))
+    class_pins = tuple(class_pins)
+
+    def validate_dependencies() -> None:
+        module = globals()
+        for name, issued in global_pins:
+            if module.get(name) is not issued:
+                raise ValueError("controller_decision_dependency_drift")
+        for name, issued in (
+            ("ControllerAction", action_cls),
+            ("ControllerDecisionReceipt", decision_cls),
+            ("HarnessExecution", execution_cls),
+            ("EvidenceStore", store_cls),
+            ("HarnessExecutionConfig", config_cls),
+            ("HarnessRuntimeBinding", runtime_cls),
+            ("validate_harness_execution", execution_validator),
+            ("_d2_initial_action_specs", action_specs),
+            ("_issue_controller_decision_authority", authority_issuer),
+            ("_require_controller_decision_permit", authority_reader),
+            ("_canonical_sha256", canonical_sha256),
+        ):
+            if module.get(name) is not issued:
+                raise ValueError("controller_decision_dependency_drift")
+        for function, code, defaults, kwdefaults in callable_pins:
+            if (
+                object.__getattribute__(function, "__code__") is not code
+                or object.__getattribute__(function, "__defaults__") is not defaults
+                or object.__getattribute__(function, "__kwdefaults__")
+                is not kwdefaults
+            ):
+                raise ValueError("controller_decision_dependency_drift")
+        for owner, members in class_pins:
+            namespace = type.__getattribute__(owner, "__dict__")
+            if tuple(sorted(namespace)) != tuple(value[0] for value in members):
+                raise ValueError("controller_decision_dependency_drift")
+            for name, issued, issued_type, function_pin in members:
+                current = namespace.get(name)
+                if current is not issued or type(current) is not issued_type:
+                    raise ValueError("controller_decision_dependency_drift")
+                if function_pin is not None:
+                    function = (
+                        current
+                        if type(current) is FunctionType
+                        else object.__getattribute__(current, "__func__")
+                    )
+                    if (
+                        function is not function_pin[0]
+                        or object.__getattribute__(function, "__code__")
+                        is not function_pin[1]
+                        or object.__getattribute__(function, "__defaults__")
+                        is not function_pin[2]
+                        or object.__getattribute__(function, "__kwdefaults__")
+                        is not function_pin[3]
+                    ):
+                        raise ValueError("controller_decision_dependency_drift")
+
+    def decide_controller_action(
+        *,
+        execution: HarnessExecution,
+        store: EvidenceStore,
+        config: HarnessExecutionConfig,
+        runtime: HarnessRuntimeBinding,
+    ) -> ControllerDecisionReceipt:
+        """Issue one exact revision-zero decision without executing its action."""
+
+        validate_dependencies()
+        if type(execution) is not execution_cls:
+            raise TypeError("harness_execution_required")
+        if type(store) is not store_cls:
+            raise TypeError("evidence_store_required")
+        if type(config) is not config_cls:
+            raise TypeError("harness_execution_config_required")
+        if type(runtime) is not runtime_cls:
+            raise TypeError("harness_runtime_binding_required")
+        execution_validator(
+            execution=execution,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+        specs = action_specs(execution)
+        receipt = authority_issuer(
+            execution=execution,
+            store=store,
+            config=config,
+            runtime=runtime,
+            specs=specs,
+        )
+        validate_controller_decision_receipt(
+            receipt=receipt,
+            execution=execution,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+        return receipt
+
+    def validate_controller_decision_receipt(
+        *,
+        receipt: ControllerDecisionReceipt,
+        execution: HarnessExecution,
+        store: EvidenceStore,
+        config: HarnessExecutionConfig,
+        runtime: HarnessRuntimeBinding,
+    ) -> None:
+        """Require the exact unchanged decision and its live execution graph."""
+
+        validate_dependencies()
+        if type(receipt) is not decision_cls:
+            raise TypeError("controller_decision_receipt_required")
+        if type(execution) is not execution_cls:
+            raise TypeError("harness_execution_required")
+        if type(store) is not store_cls:
+            raise TypeError("evidence_store_required")
+        if type(config) is not config_cls:
+            raise TypeError("harness_execution_config_required")
+        if type(runtime) is not runtime_cls:
+            raise TypeError("harness_runtime_binding_required")
+        execution_validator(
+            execution=execution,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+        authority = authority_reader(receipt)
+        if (
+            authority[2] is not execution
+            or authority[3] is not store
+            or authority[4] is not config
+            or authority[5] is not runtime
+            or authority[6] is not receipt.allowed_actions
+            or any(
+                issued is not actual
+                for issued, actual in zip(
+                    authority[7], receipt.allowed_actions
+                )
+            )
+            or authority[8] is not receipt.selected_action
+        ):
+            raise ValueError("controller_decision_nested_identity_drift")
+        expected_specs = action_specs(execution)
+        if authority[9] != expected_specs:
+            raise ValueError("controller_decision_action_specs_drift")
+        actual_specs = tuple(
+            (
+                action.kind,
+                action.obligation_key,
+                action.target_evidence_id,
+            )
+            for action in receipt.allowed_actions
+        )
+        if actual_specs != expected_specs:
+            raise ValueError("controller_decision_allowed_actions_mismatch")
+        receipt._validate_payload()
+        if (
+            receipt.execution_identity_sha256
+            != execution.execution_identity_sha256
+            or receipt.execution_snapshot_sha256
+            != execution.execution_snapshot_sha256
+            or receipt.state_sha256 != execution.state.state_sha256
+            or receipt.ledger_sha256 != execution.ledger.ledger_sha256
+            or receipt.ledger_revision != execution.ledger.revision
+            or receipt.previous_transition_sha256
+            != execution.last_transition_sha256
+            or receipt.decision_ordinal != execution.step_index + 1
+        ):
+            raise ValueError("controller_decision_execution_binding_mismatch")
+        if authority[1] != canonical_sha256(receipt.to_dict()):
+            raise ValueError("controller_decision_runtime_authority_drift")
+
+    decide_controller_action.__name__ = "decide_controller_action"
+    decide_controller_action.__qualname__ = "decide_controller_action"
+    validate_controller_decision_receipt.__name__ = (
+        "validate_controller_decision_receipt"
+    )
+    validate_controller_decision_receipt.__qualname__ = (
+        "validate_controller_decision_receipt"
+    )
+    return decide_controller_action, validate_controller_decision_receipt
+
+
+(
+    decide_controller_action,
+    validate_controller_decision_receipt,
+) = _build_controller_decision_public_api(
+    action_cls=ControllerAction,
+    decision_cls=ControllerDecisionReceipt,
+    execution_cls=HarnessExecution,
+    store_cls=EvidenceStore,
+    config_cls=HarnessExecutionConfig,
+    runtime_cls=HarnessRuntimeBinding,
+    execution_validator=validate_harness_execution,
+    action_specs=_d2_initial_action_specs,
+    authority_issuer=_issue_controller_decision_authority,
+    authority_reader=_require_controller_decision_permit,
+    canonical_sha256=_canonical_sha256,
+)
+del _build_controller_decision_public_api
+
+
 _RETRIEVAL_OBLIGATION_TOKEN = object()
 _LANE_SEARCH_RECEIPT_TOKEN = object()
 _FUSION_RECEIPT_TOKEN = object()

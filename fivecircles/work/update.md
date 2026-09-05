@@ -789,3 +789,39 @@ This file summarizes recent updates so other agents can continue without re‑di
 ### Next
 
 - EH2.6.c3.5 live-authority/replay/nonpromotion adversarial gate로 즉시 릴레이한다.
+## Addendum (2026-09-05) - EH2.6.c3.4 publication and relay
+### Git
+- 3c2d7d0 pushed to origin/feat/total-integration; only C3.4 code/test/contract/report/log paths and hunks were selected.
+
+### Relay
+- CONTINUE_WITH_NEXT_FORM selects EH2.6.c3.5 and starts its contract/adversarial RED immediately.
+
+### Boundary
+- ActionEffectReceipt remains structural-only; public mint/reducer/authority and live API/model/Langfuse calls remain absent.
+## Addendum (2026-09-05) - EH2.6.c3.5 publication and relay
+### Scope
+- Structural ActionEffectReceipt non-authority and seven live source-validator authority regressions.
+
+### Change
+- Added constant redacted repr, exact all-effect public/module inventory, clone/replay/serialization/subclass nonpromotion gates, and coherent alternate-live-graph validation for lane/fusion/parent/bridge/rerank/semantic/absence.
+
+### Verification
+- Focused 18/18, related 147/147, full 1288/1288, repository safety 867 files, Mermaid render and Playwright images2/tables8/page-errors0/mobile-overflow0; independent review APPROVE with P0/P1 none.
+
+### Publication
+- Commit aa0ff9d pushed to origin/feat/total-integration; unrelated dirty and resources excluded.
+
+### External calls
+- OpenAI/model/Langfuse/golden/VLM calls 0; synthetic offline fixtures only.
+
+### Relay
+- CONTINUE_WITH_NEXT_FORM to EH2.6.d1 ExecutionLedger and HarnessExecution aggregate.
+## Addendum (2026-09-05) - EH2.6.d1 publication and relay
+### Backend
+- Initial-only ExecutionLedger/HarnessExecution authority sealed and pushed as 6ada15b.
+
+### Tests
+- Focused 10, related 234, full 1298, safety 868, browser QA and independent review passed.
+
+### Maintenance
+- Next READY leaf is EH2.6.d2 allowed-action and decision-permit contract; external calls remain zero.

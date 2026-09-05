@@ -1,6 +1,6 @@
 # EH-RC0 재개 체크포인트
 
-갱신: 2026-09-05 · EH2.6.d1 완료, 다음 READY는 EH2.6.d2. 토큰 절약을 위해 이 문서의 한눈에 보는 상태와 계약 §16.10부터 읽기.
+갱신: 2026-09-05 · EH2.6.d2.i 완료, parent d2는 PARTIAL, 다음 READY는 EH2.6.c4.0. 토큰 절약을 위해 이 문서의 한눈에 보는 상태와 계약 §16.10부터 읽기.
 
 ## 중단/애매함 발생 시
 
@@ -21,8 +21,9 @@
   후속 전체 범위의 선택 commit·검증이 끝난 뒤 `feat/local-qwen-mini131-eval`에 병합한다.
   새 브랜치는 만들지 않는다.
 - 완료: EH-A.1~3 감사·기준선·계약/flow 초안. 805 tests PASS, 실패/skip 0 (변경 전).
-- 현재 IN_PROGRESS: **Phase 2**. EH2.1~2.5와 EH2.6.a~d1 PASS. 다음 leaf는 exact live state와
-  zero-consumption ledger로 allowed action을 산출하고 cross-state decision permit을 봉인하는 `EH2.6.d2`다.
+- 현재 IN_PROGRESS: **Phase 2**. EH2.1~2.5, EH2.6.a~d1과 revision-0 slice `d2.i` PASS.
+  parent d2는 cross-state matrix가 없어 PARTIAL이다. 다음 leaf는 source/outcome/per-target transition authority를
+  봉인하는 `EH2.6.c4.0`이다.
 - 기존 평가 Batch 2의 활성 책임은 `EH2.EVAL`로 통합했다. EVAL.1~3은 완료, 사람 승인·qrels 보강과
   sealed held-out 실행은 EVAL.4~6에 남아 있으며 EH2 runtime에는 gold 값을 주입하지 않는다.
 - blocker: 없음. 실제 생성/API 호출은 계속 0이며 Phase 2는 provider-free 합성 테스트로 진행한다.
@@ -54,7 +55,11 @@
   exact initial state/store/config/runtime에서만 idempotent하게 발급한다. stable identity와 mutable-snapshot hash를
   분리하고 zero consumption, canonical obligation order, closure-private authority/history, 32-thread 단일 winner,
   GC tombstone과 clone·nested drift·mixed dependency·serialization 비승격을 닫았다. focused10·관련234·전체1298·
-  safety868·Playwright·독립 APPROVE, 외부 호출 0이다. d2 decision/c4 effect/d3 run 권한은 아직 없다.
+  safety868·Playwright·독립 APPROVE, 외부 호출 0이다. EH2.6.d2.i는 exact live revision-0 fact/compare
+  all-unsearched execution에서 canonical action order와 selected-first `ControllerDecisionReceipt`를 발급·검증한다.
+  stable identity/current snapshot/state/ledger를 결합하고 idempotence·32-thread winner·GC tombstone·clone/mixed
+  graph·nonpromotion을 닫았다. focused8, d1+d2.i 18, 관련278, 전체1306, safety873, Playwright·독립 APPROVE이며
+  외부 호출 0이다. c4 effect/advance, d2.x cross-state decision과 d3 run 권한은 아직 없다.
 
 ## 완료된 첫 leaf 참고: EH0.1.a (현재 작업 아님)
 
@@ -114,7 +119,8 @@
 | EH2.6.c3.3 | COMPLETED | three-reason bounded absence, exact proof matrix, zero-provider/nonpromotion, cache authority와 follow-up root-lifetime exact-once. focused67/related192/full1267/safety858, Playwright, independent APPROVE; 다음 EH2.6.c3.4 |
 | EH2.6.c3.4 | COMPLETED | 19-field closed effect value와 pure validator. source-kind 포함 full matrix, context/absence/hash/serialization fail-closed, public authority 없음. focused11/related114/full1278/safety861, Playwright, independent APPROVE; 다음 EH2.6.c3.5 |
 | EH2.6.c3.5 | COMPLETED | effect exact symbol inventory/redacted repr/nonpromotion과 7종 source validator clone·coherent mixed graph provider-zero gate. focused18/related147/full1288/safety867, Playwright, independent APPROVE; 다음 EH2.6.d1 |
-| EH2.6.d1 | COMPLETED | initial-only `ExecutionLedger`+`HarnessExecution`, stable identity/snapshot hash 분리, exact root authority/idempotence/concurrency/GC/clone gate. focused10/related234/full1298/safety868, Playwright, independent APPROVE; 다음 EH2.6.d2 |
+| EH2.6.d1 | COMPLETED | `6ada15b` push. initial-only `ExecutionLedger`+`HarnessExecution`, stable identity/snapshot hash 분리, exact root authority/idempotence/concurrency/GC/clone gate. focused10/related234/full1298/safety868, Playwright, independent APPROVE; 다음 EH2.6.d2 |
+| EH2.6.d2.i | COMPLETED | revision-0 fact/compare selected-first controller permit. stable identity+current snapshot/state/ledger binding, exact order, idempotence/concurrency/GC/clone/nonpromotion gate. focused8, d1+d2.i18, related278, full1306, safety873, Playwright, independent APPROVE; parent d2 PARTIAL, 다음 EH2.6.c4.0 |
 
 ## 안전/컨텍스트 규칙
 

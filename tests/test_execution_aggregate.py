@@ -179,7 +179,6 @@ class ExecutionAggregateContractTests(unittest.TestCase):
         import midprojectrag.orchestration as public_api
 
         for forbidden in (
-            "ControllerDecisionReceipt",
             "HarnessTransitionReceipt",
             "advance_execution_ledger",
             "consume_execution_action",

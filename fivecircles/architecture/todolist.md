@@ -225,8 +225,13 @@ runtime은 local profile 기본·LLM provider 교체형으로 유지하며 새 �
         - [x] **EH2.6.c3.5.d** 7종 source validator의 exact-class receipt/dependency clone·mixed graph를
           provider replay 없이 거절했다. focused18·관련147·전체1288·safety867, Playwright와 독립 APPROVE를
           통과했고 실제 API/model/Langfuse 호출은 0이다.
-    - [ ] **EH2.6.c4** `[BLOCKED_BY_EH2.6.d2]` exact controller decision-bound `ActionEffectReceipt` mint,
-      monotonic one-obligation reducer와 hash-chained transition/no-progress를 구현한다.
+    - [ ] **EH2.6.c4** exact controller decision-bound `ActionEffectReceipt` mint, monotonic one-obligation reducer와
+      hash-chained transition/no-progress를 구현한다.
+      - [ ] **EH2.6.c4.0** `[READY]` opaque source-owner authority, ordered exact
+        effect/outcome transition history, per-target parent/bridge issuer와 정식 structural-effect bridge를 추가한다.
+      - [ ] **EH2.6.c4.1** initial decision permit의 selected action 하나만 exact source receipt/effect로 mint하고
+        ledger claim·advance 및 transition authority를 구현한다.
+      - [ ] **EH2.6.c4.2** `[BLOCKED_BY_EH2.6.d2.x]` transition-aware full action matrix를 reducer에 연결한다.
     - [ ] **EH2.6.c5** verified/contradicted/confirmed-missing·raw bool/ID 공격 focused gate를 통과한다.
   - [ ] **EH2.6.d** bounded E1 controller와 replay를 구현한다.
     - [x] **EH2.6.d1** lane/action/capability/round 소비 스키마와 exact initial state/empty last-transition을
@@ -241,6 +246,17 @@ runtime은 local profile 기본·LLM provider 교체형으로 유지하며 새 �
         flow/HTML 검증을 통과했다. 실제 API/model/Langfuse/golden 호출은 0이다.
     - [ ] **EH2.6.d2** state+ledger 기반 allowed action과 cross-state `ControllerDecisionReceipt`, c4 effect mint
       permit을 구현한다.
+      - [x] **EH2.6.d2.a** EH2.5 preview와 controller permit을 분리하고 ledger outcome/source-owner/per-target
+        issuer 공백을 독립 감사했다. 전체 d2를 initial slice와 c4.0 뒤 cross-state slice로 분할하고 첫 RED를 고정했다.
+      - [x] **EH2.6.d2.i** exact live revision-0 `fact|compare` all-unsearched execution에서만 stable
+        `ControllerAction`과 selected-first `ControllerDecisionReceipt`를 발급·검증한다.
+        - [x] **EH2.6.d2.i.1** exact order/signature, EH2.5·structural effect 비승격과 non-authorizing surface를 닫는다.
+        - [x] **EH2.6.d2.i.2** repeat·32-thread single winner, GC tombstone, clone/nested tuple·action replacement,
+          mixed graph·drift·serialization과 provider/clock 0회를 닫는다.
+        - [x] **EH2.6.d2.i.3** 관련·전체·safety·독립 리뷰·flow/HTML·선택 push를 완료하되 parent d2는 열어 둔다.
+      - [ ] **EH2.6.d2.x** `[BLOCKED_BY_EH2.6.c4.0+c4.1]` exact transition/effect outcome과 source-owner
+        authority로 consumed action/lane, fuse/context/capability eligibility와 cross-state chain을 완성한다.
+      - [ ] **EH2.6.d2.d** d2.i+d2.x를 합친 full decision matrix와 c4 permit 연동을 회귀·리뷰한다.
     - [ ] **EH2.6.d3** start/step/run과 terminal `HarnessRunResult`를 구현한다.
     - [ ] **EH2.6.d4** action/round/deadline/post-deadline/no-progress/capability 종료를 호출 수까지 검증한다.
     - [ ] **EH2.6.d5** provider·clock 0회 strict execution replay와 fact/compare/follow-up 합성 E2E를 통과한다.
