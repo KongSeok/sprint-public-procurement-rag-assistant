@@ -2544,6 +2544,805 @@ _ISSUED_VALIDATE_HARNESS_RUNTIME_BINDING_PUBLIC = (
 )
 
 
+# EH2.6.d1 controller-level execution authority.  This is intentionally
+# separate from `_RetrievalExecutionLedger`, which owns only b3 lane execution.
+_EXECUTION_LEDGER_TOKEN = object()
+_HARNESS_EXECUTION_TOKEN = object()
+_CONTROLLER_LANES = frozenset({"dense", "lexical"})
+
+
+def _d1_nonnegative_int(value: object, code: str) -> int:
+    if type(value) is not int or value < 0:
+        raise ValueError(code)
+    return value
+
+
+def _d1_hash_tuple(value: object, code: str) -> tuple[str, ...]:
+    if type(value) is not tuple:
+        raise TypeError(code)
+    if len(value) != len(set(value)):
+        raise ValueError(f"duplicate_{code}")
+    for item in value:
+        _require_hash(item, code)
+    return value
+
+
+@dataclass(frozen=True, slots=True, weakref_slot=True, init=False, repr=False)
+class ExecutionLedger:
+    """Immutable controller consumption snapshot; d1 issues revision zero only."""
+
+    stage: str
+    execution_identity_sha256: str
+    revision: int
+    previous_ledger_sha256: str | None
+    obligation_keys: tuple[str, ...]
+    round_indexes: tuple[int, ...]
+    consumed_action_sha256s: tuple[str, ...]
+    consumed_lane_keys: tuple[tuple[str, int, str], ...]
+    unavailable_action_sha256s: tuple[str, ...]
+    nonterminal_action_count: int
+    no_progress_streaks: tuple[int, ...]
+    ledger_sha256: str
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        raise TypeError("execution_ledger_factory_required")
+
+    def __repr__(self) -> str:
+        return "ExecutionLedger(<redacted>)"
+
+    def __copy__(self) -> ExecutionLedger:
+        raise TypeError("execution_ledger_copy_forbidden")
+
+    def __deepcopy__(self, memo: object) -> ExecutionLedger:
+        raise TypeError("execution_ledger_copy_forbidden")
+
+    def __reduce__(self) -> object:
+        raise TypeError("execution_ledger_pickle_forbidden")
+
+    def __reduce_ex__(self, protocol: int) -> object:
+        raise TypeError("execution_ledger_pickle_forbidden")
+
+    @classmethod
+    def _create_initial(
+        cls,
+        *,
+        execution_identity_sha256: str,
+        obligation_keys: tuple[str, ...],
+        _token: object,
+    ) -> ExecutionLedger:
+        if _token is not _EXECUTION_LEDGER_TOKEN:
+            raise ValueError("execution_ledger_factory_required")
+        result = object.__new__(cls)
+        object.__setattr__(result, "stage", "execution_ledger")
+        object.__setattr__(
+            result, "execution_identity_sha256", execution_identity_sha256
+        )
+        object.__setattr__(result, "revision", 0)
+        object.__setattr__(result, "previous_ledger_sha256", None)
+        object.__setattr__(result, "obligation_keys", obligation_keys)
+        object.__setattr__(
+            result, "round_indexes", tuple(0 for _ in obligation_keys)
+        )
+        object.__setattr__(result, "consumed_action_sha256s", ())
+        object.__setattr__(result, "consumed_lane_keys", ())
+        object.__setattr__(result, "unavailable_action_sha256s", ())
+        object.__setattr__(result, "nonterminal_action_count", 0)
+        object.__setattr__(
+            result, "no_progress_streaks", tuple(0 for _ in obligation_keys)
+        )
+        object.__setattr__(result, "ledger_sha256", "0" * 64)
+        object.__setattr__(
+            result, "ledger_sha256", _canonical_sha256(result._payload())
+        )
+        result._validate_payload()
+        return result
+
+    def _payload(self) -> dict[str, Any]:
+        return {
+            "schema_version": SCHEMA_VERSION,
+            "stage": self.stage,
+            "execution_identity_sha256": self.execution_identity_sha256,
+            "revision": self.revision,
+            "previous_ledger_sha256": self.previous_ledger_sha256,
+            "obligation_keys": list(self.obligation_keys),
+            "round_indexes": list(self.round_indexes),
+            "consumed_action_sha256s": list(self.consumed_action_sha256s),
+            "consumed_lane_keys": [list(value) for value in self.consumed_lane_keys],
+            "unavailable_action_sha256s": list(
+                self.unavailable_action_sha256s
+            ),
+            "nonterminal_action_count": self.nonterminal_action_count,
+            "no_progress_streaks": list(self.no_progress_streaks),
+        }
+
+    def _validate_payload(self) -> None:
+        if self.stage != "execution_ledger":
+            raise ValueError("invalid_execution_ledger_stage")
+        _require_hash(
+            self.execution_identity_sha256,
+            "invalid_execution_identity_sha256",
+        )
+        _d1_nonnegative_int(self.revision, "invalid_execution_ledger_revision")
+        if self.revision == 0:
+            if self.previous_ledger_sha256 is not None:
+                raise ValueError("initial_execution_ledger_has_previous")
+        else:
+            _require_hash(
+                self.previous_ledger_sha256,
+                "invalid_previous_execution_ledger_sha256",
+            )
+        if (
+            type(self.obligation_keys) is not tuple
+            or not self.obligation_keys
+            or any(type(value) is not str or not value for value in self.obligation_keys)
+            or len(self.obligation_keys) != len(set(self.obligation_keys))
+        ):
+            raise ValueError("invalid_execution_ledger_obligations")
+        for name, values in (
+            ("round_indexes", self.round_indexes),
+            ("no_progress_streaks", self.no_progress_streaks),
+        ):
+            if type(values) is not tuple or len(values) != len(self.obligation_keys):
+                raise ValueError(f"invalid_execution_ledger_{name}")
+            for value in values:
+                _d1_nonnegative_int(value, f"invalid_execution_ledger_{name}")
+        consumed = _d1_hash_tuple(
+            self.consumed_action_sha256s,
+            "execution_ledger_consumed_action_sha256s",
+        )
+        unavailable = _d1_hash_tuple(
+            self.unavailable_action_sha256s,
+            "execution_ledger_unavailable_action_sha256s",
+        )
+        if not set(unavailable).issubset(consumed):
+            raise ValueError("unavailable_action_not_consumed")
+        if type(self.consumed_lane_keys) is not tuple:
+            raise TypeError("execution_ledger_consumed_lane_keys")
+        if len(self.consumed_lane_keys) != len(set(self.consumed_lane_keys)):
+            raise ValueError("duplicate_execution_ledger_consumed_lane_keys")
+        obligation_set = set(self.obligation_keys)
+        for value in self.consumed_lane_keys:
+            if (
+                type(value) is not tuple
+                or len(value) != 3
+                or type(value[0]) is not str
+                or value[0] not in obligation_set
+                or type(value[1]) is not int
+                or value[1] < 1
+                or type(value[2]) is not str
+                or value[2] not in _CONTROLLER_LANES
+            ):
+                raise ValueError("invalid_execution_ledger_consumed_lane_key")
+        _d1_nonnegative_int(
+            self.nonterminal_action_count,
+            "invalid_execution_ledger_nonterminal_action_count",
+        )
+        if self.nonterminal_action_count != len(consumed):
+            raise ValueError("execution_ledger_action_count_mismatch")
+        _require_hash(self.ledger_sha256, "invalid_execution_ledger_sha256")
+        if self.ledger_sha256 != _canonical_sha256(self._payload()):
+            raise ValueError("execution_ledger_hash_mismatch")
+
+    def to_dict(self) -> dict[str, Any]:
+        self._validate_payload()
+        return {**self._payload(), "ledger_sha256": self.ledger_sha256}
+
+
+class HarnessExecution:
+    """Exact live controller aggregate; d1 exposes only the initial snapshot."""
+
+    __slots__ = (
+        "stage",
+        "execution_identity_sha256",
+        "source_kind",
+        "source_binding_sha256",
+        "source_receipt_sha256",
+        "evidence_bundle_sha256",
+        "execution_config_sha256",
+        "runtime_binding_sha256",
+        "initial_state",
+        "state",
+        "ledger",
+        "last_transition_sha256",
+        "step_index",
+        "execution_snapshot_sha256",
+        "__weakref__",
+    )
+
+    stage: str
+    execution_identity_sha256: str
+    source_kind: str
+    source_binding_sha256: str
+    source_receipt_sha256: str
+    evidence_bundle_sha256: str
+    execution_config_sha256: str
+    runtime_binding_sha256: str
+    initial_state: HarnessState
+    state: HarnessState
+    ledger: ExecutionLedger
+    last_transition_sha256: str | None
+    step_index: int
+    execution_snapshot_sha256: str
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        raise TypeError("harness_execution_factory_required")
+
+    def __setattr__(self, name: str, value: object) -> None:
+        raise AttributeError("harness_execution_immutable")
+
+    def __delattr__(self, name: str) -> None:
+        raise AttributeError("harness_execution_immutable")
+
+    def __repr__(self) -> str:
+        return "HarnessExecution(<redacted>)"
+
+    def __copy__(self) -> HarnessExecution:
+        raise TypeError("harness_execution_copy_forbidden")
+
+    def __deepcopy__(self, memo: object) -> HarnessExecution:
+        raise TypeError("harness_execution_copy_forbidden")
+
+    def __reduce__(self) -> object:
+        raise TypeError("harness_execution_pickle_forbidden")
+
+    def __reduce_ex__(self, protocol: int) -> object:
+        raise TypeError("harness_execution_pickle_forbidden")
+
+    @classmethod
+    def _create_initial(
+        cls,
+        *,
+        execution_identity_sha256: str,
+        initial_state: HarnessState,
+        ledger: ExecutionLedger,
+        config: HarnessExecutionConfig,
+        runtime: HarnessRuntimeBinding,
+        _token: object,
+    ) -> HarnessExecution:
+        if _token is not _HARNESS_EXECUTION_TOKEN:
+            raise ValueError("harness_execution_factory_required")
+        belief = initial_state.belief
+        result = object.__new__(cls)
+        for name, value in (
+            ("stage", "harness_execution"),
+            ("execution_identity_sha256", execution_identity_sha256),
+            ("source_kind", belief.source_kind),
+            ("source_binding_sha256", belief.binding_sha256),
+            ("source_receipt_sha256", belief.source_receipt_sha256),
+            ("evidence_bundle_sha256", belief.evidence_bundle_sha256),
+            ("execution_config_sha256", config.config_sha256),
+            ("runtime_binding_sha256", runtime.binding_sha256),
+            ("initial_state", initial_state),
+            ("state", initial_state),
+            ("ledger", ledger),
+            ("last_transition_sha256", None),
+            ("step_index", 0),
+        ):
+            object.__setattr__(result, name, value)
+        object.__setattr__(result, "execution_snapshot_sha256", "0" * 64)
+        object.__setattr__(
+            result,
+            "execution_snapshot_sha256",
+            _canonical_sha256(result._payload()),
+        )
+        result._validate_payload()
+        return result
+
+    def _payload(self) -> dict[str, Any]:
+        return {
+            "schema_version": SCHEMA_VERSION,
+            "stage": self.stage,
+            "execution_identity_sha256": self.execution_identity_sha256,
+            "source_kind": self.source_kind,
+            "source_binding_sha256": self.source_binding_sha256,
+            "source_receipt_sha256": self.source_receipt_sha256,
+            "evidence_bundle_sha256": self.evidence_bundle_sha256,
+            "execution_config_sha256": self.execution_config_sha256,
+            "runtime_binding_sha256": self.runtime_binding_sha256,
+            "initial_state_sha256": self.initial_state.state_sha256,
+            "state_sha256": self.state.state_sha256,
+            "ledger_sha256": self.ledger.ledger_sha256,
+            "last_transition_sha256": self.last_transition_sha256,
+            "step_index": self.step_index,
+        }
+
+    def _validate_payload(self) -> None:
+        if self.stage != "harness_execution":
+            raise ValueError("invalid_harness_execution_stage")
+        if self.source_kind not in {"fact", "compare", "follow_up"}:
+            raise ValueError("invalid_harness_execution_source_kind")
+        for name in (
+            "execution_identity_sha256",
+            "source_binding_sha256",
+            "source_receipt_sha256",
+            "evidence_bundle_sha256",
+            "execution_config_sha256",
+            "runtime_binding_sha256",
+            "execution_snapshot_sha256",
+        ):
+            _require_hash(getattr(self, name), f"invalid_{name}")
+        if type(self.initial_state) is not HarnessState or type(self.state) is not HarnessState:
+            raise TypeError("harness_execution_state_required")
+        if type(self.ledger) is not ExecutionLedger:
+            raise TypeError("harness_execution_ledger_required")
+        self.ledger._validate_payload()
+        if self.ledger.execution_identity_sha256 != self.execution_identity_sha256:
+            raise ValueError("harness_execution_ledger_identity_mismatch")
+        if self.ledger.obligation_keys != self.initial_state.progress.required_obligation_keys:
+            raise ValueError("harness_execution_obligation_order_mismatch")
+        if self.source_kind != self.initial_state.belief.source_kind:
+            raise ValueError("harness_execution_source_kind_mismatch")
+        if self.source_binding_sha256 != self.initial_state.belief.binding_sha256:
+            raise ValueError("harness_execution_source_binding_mismatch")
+        if self.source_receipt_sha256 != self.initial_state.belief.source_receipt_sha256:
+            raise ValueError("harness_execution_source_receipt_mismatch")
+        if self.evidence_bundle_sha256 != self.initial_state.belief.evidence_bundle_sha256:
+            raise ValueError("harness_execution_bundle_mismatch")
+        _d1_nonnegative_int(self.step_index, "invalid_harness_execution_step_index")
+        if self.step_index != self.ledger.revision:
+            raise ValueError("harness_execution_step_ledger_mismatch")
+        if self.step_index == 0:
+            if self.initial_state is not self.state or self.last_transition_sha256 is not None:
+                raise ValueError("invalid_initial_harness_execution")
+        else:
+            _require_hash(
+                self.last_transition_sha256,
+                "invalid_harness_execution_last_transition_sha256",
+            )
+        if self.execution_snapshot_sha256 != _canonical_sha256(self._payload()):
+            raise ValueError("harness_execution_hash_mismatch")
+
+    def to_dict(self) -> dict[str, Any]:
+        self._validate_payload()
+        return {
+            **self._payload(),
+            "execution_snapshot_sha256": self.execution_snapshot_sha256,
+        }
+
+
+def _d1_execution_identity_payload(
+    *,
+    state: HarnessState,
+    config: HarnessExecutionConfig,
+    runtime: HarnessRuntimeBinding,
+) -> dict[str, Any]:
+    belief = state.belief
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "authority_kind": "harness_execution_identity",
+        "source_kind": belief.source_kind,
+        "source_binding_sha256": belief.binding_sha256,
+        "source_receipt_sha256": belief.source_receipt_sha256,
+        "evidence_bundle_sha256": belief.evidence_bundle_sha256,
+        "execution_config_sha256": config.config_sha256,
+        "runtime_binding_sha256": runtime.binding_sha256,
+        "initial_state_sha256": state.state_sha256,
+        "obligation_keys": list(state.progress.required_obligation_keys),
+    }
+
+
+def _build_harness_execution_authority_accessors(
+    ledger_cls: type,
+    execution_cls: type,
+    canonical_sha256: Any,
+):
+    authority_lock = Lock()
+    authorities: dict[int, tuple[Any, ...]] = {}
+    authority_shadow: dict[int, tuple[Any, ...]] = {}
+    histories: dict[str, tuple[Any, ...]] = {}
+    history_shadow: dict[str, tuple[Any, ...]] = {}
+
+    def _drop_execution(identity: int, dead: ReferenceType[Any]) -> None:
+        with authority_lock:
+            current = authorities.get(identity)
+            if current is not None and current[0] is dead:
+                authorities.pop(identity, None)
+                authority_shadow.pop(identity, None)
+
+    def _drop_root(
+        execution_identity_sha256: str,
+        dead: ReferenceType[Any],
+    ) -> None:
+        with authority_lock:
+            current = histories.get(execution_identity_sha256)
+            if current is not None and current[0] is dead:
+                histories.pop(execution_identity_sha256, None)
+                history_shadow.pop(execution_identity_sha256, None)
+
+    def issue(
+        *,
+        execution_identity_sha256: str,
+        state: HarnessState,
+        store: EvidenceStore,
+        config: HarnessExecutionConfig,
+        runtime: HarnessRuntimeBinding,
+    ) -> HarnessExecution:
+        with authority_lock:
+            current = histories.get(execution_identity_sha256)
+            shadow = history_shadow.get(execution_identity_sha256)
+            if (current is None) != (shadow is None) or (
+                current is not None and current is not shadow
+            ):
+                raise ValueError("harness_execution_history_authority_drift")
+            if current is not None:
+                if (
+                    current[0]() is not state
+                    or current[1] is not store
+                    or current[2] is not config
+                    or current[3] is not runtime
+                ):
+                    raise ValueError("harness_execution_root_identity_mismatch")
+                issued = current[4]()
+                if issued is None:
+                    raise ValueError("harness_execution_already_issued")
+                return issued
+
+            ledger = ledger_cls._create_initial(
+                execution_identity_sha256=execution_identity_sha256,
+                obligation_keys=state.progress.required_obligation_keys,
+                _token=_EXECUTION_LEDGER_TOKEN,
+            )
+            execution = execution_cls._create_initial(
+                execution_identity_sha256=execution_identity_sha256,
+                initial_state=state,
+                ledger=ledger,
+                config=config,
+                runtime=runtime,
+                _token=_HARNESS_EXECUTION_TOKEN,
+            )
+            execution_identity = id(execution)
+            execution_weak = ref(
+                execution,
+                lambda dead, identity=execution_identity: _drop_execution(
+                    identity, dead
+                ),
+            )
+            authority = (
+                execution_weak,
+                canonical_sha256(execution.to_dict()),
+                state,
+                state,
+                ledger,
+                store,
+                config,
+                runtime,
+                None,
+                (
+                    ledger.obligation_keys,
+                    ledger.round_indexes,
+                    ledger.consumed_action_sha256s,
+                    ledger.consumed_lane_keys,
+                    ledger.unavailable_action_sha256s,
+                    ledger.no_progress_streaks,
+                ),
+            )
+            authorities[execution_identity] = authority
+            authority_shadow[execution_identity] = authority
+            state_weak = ref(
+                state,
+                lambda dead, key=execution_identity_sha256: _drop_root(key, dead),
+            )
+            history = (state_weak, store, config, runtime, execution_weak)
+            histories[execution_identity_sha256] = history
+            history_shadow[execution_identity_sha256] = history
+            return execution
+
+    def require(execution: object) -> tuple[Any, ...]:
+        with authority_lock:
+            identity = id(execution)
+            current = authorities.get(identity)
+            shadow = authority_shadow.get(identity)
+            if (
+                current is None
+                or current is not shadow
+                or current[0]() is not execution
+            ):
+                raise ValueError("harness_execution_runtime_authority_required")
+            history = histories.get(execution.execution_identity_sha256)
+            if history is None or history is not history_shadow.get(
+                execution.execution_identity_sha256
+            ):
+                raise ValueError("harness_execution_history_authority_drift")
+            if history[0]() is not current[2] or history[4]() is not execution:
+                raise ValueError("harness_execution_history_authority_drift")
+            return current
+
+    return issue, require
+
+
+(
+    _issue_harness_execution_authority,
+    _require_harness_execution_authority,
+) = _build_harness_execution_authority_accessors(
+    ExecutionLedger,
+    HarnessExecution,
+    _canonical_sha256,
+)
+del _build_harness_execution_authority_accessors
+
+
+def _build_harness_execution_public_api(
+    *,
+    ledger_cls: type,
+    execution_cls: type,
+    state_cls: type,
+    store_cls: type,
+    config_cls: type,
+    runtime_cls: type,
+    state_validator: Any,
+    config_validator: Any,
+    runtime_validator: Any,
+    identity_payload: Any,
+    canonical_sha256: Any,
+    authority_issuer: Any,
+    authority_reader: Any,
+):
+    d1_global_pins = (
+        ("SCHEMA_VERSION", SCHEMA_VERSION),
+        ("_CONTROLLER_LANES", _CONTROLLER_LANES),
+        ("_EXECUTION_LEDGER_TOKEN", _EXECUTION_LEDGER_TOKEN),
+        ("_HARNESS_EXECUTION_TOKEN", _HARNESS_EXECUTION_TOKEN),
+        ("_require_hash", _require_hash),
+        ("_d1_nonnegative_int", _d1_nonnegative_int),
+        ("_d1_hash_tuple", _d1_hash_tuple),
+        ("ref", ref),
+    )
+    callable_pins = tuple(
+        (
+            function,
+            object.__getattribute__(function, "__code__"),
+            object.__getattribute__(function, "__defaults__"),
+            object.__getattribute__(function, "__kwdefaults__"),
+        )
+        for function in (
+            state_validator,
+            config_validator,
+            runtime_validator,
+            identity_payload,
+            canonical_sha256,
+            authority_issuer,
+            authority_reader,
+            _require_hash,
+            _d1_nonnegative_int,
+            _d1_hash_tuple,
+        )
+    )
+    class_pins = []
+    for owner in (ledger_cls, execution_cls):
+        namespace = type.__getattribute__(owner, "__dict__")
+        members = []
+        for name in sorted(namespace):
+            member = namespace[name]
+            function = None
+            if type(member) is FunctionType:
+                function = member
+            elif type(member) in {classmethod, staticmethod}:
+                function = object.__getattribute__(member, "__func__")
+            members.append(
+                (
+                    name,
+                    member,
+                    type(member),
+                    None
+                    if function is None
+                    else (
+                        function,
+                        object.__getattribute__(function, "__code__"),
+                        object.__getattribute__(function, "__defaults__"),
+                        object.__getattribute__(function, "__kwdefaults__"),
+                    ),
+                )
+            )
+        class_pins.append((owner, tuple(members)))
+    class_pins = tuple(class_pins)
+
+    def validate_dependencies() -> None:
+        module = globals()
+        for name, issued in d1_global_pins:
+            if module.get(name) is not issued:
+                raise ValueError("harness_execution_dependency_drift")
+        for name, issued in (
+            ("ExecutionLedger", ledger_cls),
+            ("HarnessExecution", execution_cls),
+            ("HarnessState", state_cls),
+            ("EvidenceStore", store_cls),
+            ("HarnessExecutionConfig", config_cls),
+            ("HarnessRuntimeBinding", runtime_cls),
+            ("validate_harness_state", state_validator),
+            ("validate_harness_execution_config", config_validator),
+            ("validate_harness_runtime_binding", runtime_validator),
+            ("_d1_execution_identity_payload", identity_payload),
+            ("_canonical_sha256", canonical_sha256),
+            ("_issue_harness_execution_authority", authority_issuer),
+            ("_require_harness_execution_authority", authority_reader),
+        ):
+            if module.get(name) is not issued:
+                raise ValueError("harness_execution_dependency_drift")
+        for function, code, defaults, kwdefaults in callable_pins:
+            if (
+                object.__getattribute__(function, "__code__") is not code
+                or object.__getattribute__(function, "__defaults__") is not defaults
+                or object.__getattribute__(function, "__kwdefaults__")
+                is not kwdefaults
+            ):
+                raise ValueError("harness_execution_dependency_drift")
+        for owner, members in class_pins:
+            namespace = type.__getattribute__(owner, "__dict__")
+            if tuple(sorted(namespace)) != tuple(value[0] for value in members):
+                raise ValueError("harness_execution_dependency_drift")
+            for name, issued, issued_type, function_pin in members:
+                current = namespace.get(name)
+                if current is not issued or type(current) is not issued_type:
+                    raise ValueError("harness_execution_dependency_drift")
+                if function_pin is not None:
+                    function = (
+                        current
+                        if type(current) is FunctionType
+                        else object.__getattribute__(current, "__func__")
+                    )
+                    if (
+                        function is not function_pin[0]
+                        or object.__getattribute__(function, "__code__")
+                        is not function_pin[1]
+                        or object.__getattribute__(function, "__defaults__")
+                        is not function_pin[2]
+                        or object.__getattribute__(function, "__kwdefaults__")
+                        is not function_pin[3]
+                    ):
+                        raise ValueError("harness_execution_dependency_drift")
+
+    def issue_harness_execution(
+        *,
+        state: HarnessState,
+        store: EvidenceStore,
+        config: HarnessExecutionConfig,
+        runtime: HarnessRuntimeBinding,
+    ) -> HarnessExecution:
+        """Seal one zero-consumption E1 aggregate without executing work."""
+
+        validate_dependencies()
+        if type(state) is not state_cls:
+            raise TypeError("harness_state_required")
+        if type(store) is not store_cls:
+            raise TypeError("evidence_store_required")
+        if type(config) is not config_cls:
+            raise TypeError("harness_execution_config_required")
+        if type(runtime) is not runtime_cls:
+            raise TypeError("harness_runtime_binding_required")
+        state_validator(state=state, store=store)
+        if state.belief.source_kind == "compare" and any(
+            entry.observation_stage != "unsearched"
+            for entry in state.belief.evidence_map
+        ):
+            raise ValueError("e1_compare_seed_not_unsearched")
+        config_validator(config)
+        if config.mode != "e1_bounded":
+            raise ValueError("e1_bounded_execution_config_required")
+        runtime_validator(binding=runtime, store=store)
+        if state.belief.evidence_bundle_sha256 != runtime.evidence_bundle_sha256:
+            raise ValueError("harness_execution_runtime_bundle_mismatch")
+        execution_identity_sha256 = canonical_sha256(
+            identity_payload(state=state, config=config, runtime=runtime)
+        )
+        execution = authority_issuer(
+            execution_identity_sha256=execution_identity_sha256,
+            state=state,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+        validate_harness_execution(
+            execution=execution,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+        return execution
+
+    def validate_harness_execution(
+        *,
+        execution: HarnessExecution,
+        store: EvidenceStore,
+        config: HarnessExecutionConfig,
+        runtime: HarnessRuntimeBinding,
+    ) -> None:
+        """Require the exact unchanged d1 aggregate and dependency graph."""
+
+        validate_dependencies()
+        if type(execution) is not execution_cls:
+            raise TypeError("harness_execution_required")
+        if type(store) is not store_cls:
+            raise TypeError("evidence_store_required")
+        if type(config) is not config_cls:
+            raise TypeError("harness_execution_config_required")
+        if type(runtime) is not runtime_cls:
+            raise TypeError("harness_runtime_binding_required")
+        authority = authority_reader(execution)
+        if (
+            authority[2] is not execution.initial_state
+            or authority[3] is not execution.state
+            or authority[4] is not execution.ledger
+            or authority[5] is not store
+            or authority[6] is not config
+            or authority[7] is not runtime
+            or authority[8] is not None
+            or any(
+                issued is not actual
+                for issued, actual in zip(
+                    authority[9],
+                    (
+                        execution.ledger.obligation_keys,
+                        execution.ledger.round_indexes,
+                        execution.ledger.consumed_action_sha256s,
+                        execution.ledger.consumed_lane_keys,
+                        execution.ledger.unavailable_action_sha256s,
+                        execution.ledger.no_progress_streaks,
+                    ),
+                )
+            )
+        ):
+            raise ValueError("harness_execution_nested_identity_drift")
+        state_validator(state=execution.initial_state, store=store)
+        if execution.state is not execution.initial_state:
+            state_validator(state=execution.state, store=store)
+        config_validator(config)
+        if config.mode != "e1_bounded":
+            raise ValueError("e1_bounded_execution_config_required")
+        runtime_validator(binding=runtime, store=store)
+        execution._validate_payload()
+        ledger = execution.ledger
+        if any(
+            value > config.max_retrieval_rounds_per_obligation
+            for value in ledger.round_indexes
+        ):
+            raise ValueError("execution_ledger_round_budget_exceeded")
+        if any(
+            value > config.max_no_progress_per_obligation
+            for value in ledger.no_progress_streaks
+        ):
+            raise ValueError("execution_ledger_no_progress_budget_exceeded")
+        if ledger.nonterminal_action_count > config.max_nonterminal_actions:
+            raise ValueError("execution_ledger_action_budget_exceeded")
+        expected_identity = canonical_sha256(
+            identity_payload(
+                state=execution.initial_state,
+                config=config,
+                runtime=runtime,
+            )
+        )
+        if execution.execution_identity_sha256 != expected_identity:
+            raise ValueError("harness_execution_identity_mismatch")
+        if authority[1] != canonical_sha256(execution.to_dict()):
+            raise ValueError("harness_execution_runtime_authority_drift")
+
+    issue_harness_execution.__name__ = "issue_harness_execution"
+    issue_harness_execution.__qualname__ = "issue_harness_execution"
+    validate_harness_execution.__name__ = "validate_harness_execution"
+    validate_harness_execution.__qualname__ = "validate_harness_execution"
+    return issue_harness_execution, validate_harness_execution
+
+
+(
+    issue_harness_execution,
+    validate_harness_execution,
+) = _build_harness_execution_public_api(
+    ledger_cls=ExecutionLedger,
+    execution_cls=HarnessExecution,
+    state_cls=HarnessState,
+    store_cls=EvidenceStore,
+    config_cls=HarnessExecutionConfig,
+    runtime_cls=HarnessRuntimeBinding,
+    state_validator=validate_harness_state,
+    config_validator=validate_harness_execution_config,
+    runtime_validator=validate_harness_runtime_binding,
+    identity_payload=_d1_execution_identity_payload,
+    canonical_sha256=_canonical_sha256,
+    authority_issuer=_issue_harness_execution_authority,
+    authority_reader=_require_harness_execution_authority,
+)
+del _build_harness_execution_public_api
+
+
 _RETRIEVAL_OBLIGATION_TOKEN = object()
 _LANE_SEARCH_RECEIPT_TOKEN = object()
 _FUSION_RECEIPT_TOKEN = object()
@@ -15302,8 +16101,10 @@ __all__ = (
     "BridgeContextReceipt",
     "E0ControlReceipt",
     "E0ObligationResult",
+    "ExecutionLedger",
     "FusionReceipt",
     "HARNESS_EXECUTION_POLICY_ID",
+    "HarnessExecution",
     "HarnessExecutionConfig",
     "HarnessRuntimeBinding",
     "LaneSearchReceipt",
@@ -15330,7 +16131,9 @@ __all__ = (
     "issue_retrieval_absence_confirmation",
     "issue_semantic_absence_confirmation",
     "issue_followup_absence_confirmation",
+    "issue_harness_execution",
     "validate_bridge_context_receipt",
+    "validate_harness_execution",
     "validate_harness_execution_config",
     "validate_harness_runtime_binding",
     "validate_e0_control_receipt",

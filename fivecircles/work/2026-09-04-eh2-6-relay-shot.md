@@ -856,7 +856,10 @@
 ### 7. Push / Publication
 
 - git status 확인: user-owned 대규모 dirty에서 C3.5 code/test/contract/report/checkpoint hunk만 선별한다.
-- 상태: IN_PROGRESS.
+- 커밋/푸시: `aa0ff9d` (`test(harness): close effect non-authority gate`)를
+  `origin/feat/total-integration`에 push했다. resources/private/gold/VLM과 무관 dirty는 제외했다.
+- 공식 logall: push SHA·검증·다음 relay를 `fivecircles/work/update.md`에 기록했다.
+- 상태: COMPLETED.
 
 ### 8. Closeout Report
 
@@ -868,7 +871,100 @@
 
 - C3.5 종료·push 뒤 refreshed score table에서 다음 READY를 선택해 새 form을 즉시 시작한다.
 - refreshed 점수: d1=8 READY/SELECTED, c4=7 BLOCKED_BY_d2, c5=6 WAIT_AFTER_c4, EVAL.4=5 WAIT_HUMAN.
-- push·logall 뒤 Cycle 11 새 form으로 d1 계약/RED를 즉시 시작한다.
+- push·logall 뒤 아래 Cycle 11 새 form으로 d1 계약/RED를 즉시 시작한다.
+- 멈춘 이유, 있으면: 없음.
+- 상태: `CONTINUE_WITH_NEXT_FORM` / COMPLETED.
+
+### 10. Final Ledger
+
+- Scope / Target / Relay select: COMPLETED.
+- Doc / Contract / Implementation / Validation / Repair / Report: COMPLETED.
+- Push / Relay: COMPLETED.
+- Flow diagram verification: PARTIAL — effect 비권한 gate까지 MATCHED, execution aggregate 이후는 GAP.
+- 남은 리스크: 기존 source validator 성공도 structural effect 실행 권한은 아니다. 동일 golden 품질은 미측정이다.
+
+## Cycle 11 — EH2.6.d1 ExecutionLedger + HarnessExecution aggregate
+
+### 0. Scope Intake
+
+- 요청 범위: C3.5 push·logall 뒤 refreshed score 8점 READY인 d1을 새 원샷딜로 즉시 시작한다.
+- 브랜치: `feat/total-integration`; 새 브랜치 생성/병합 없음.
+- 사용자 제약: user-owned dirty·VLM·resources 보존, 실제 API/model/Langfuse/golden 실행 0.
+- 완료 기준: 한 execution root가 exact initial state와 current state, last transition, lane/action/capability/round
+  소비를 함께 소유하는 closed aggregate를 만들되 d2 decision permit, c4 effect mint/reducer는 열지 않는다.
+- 위험/확인 필요: 기존 lane/fusion/source receipt의 authority·claim을 복제하거나 structural effect를 live effect로
+  승격하지 않는다. execution lifetime, owner identity, hash chain과 동시 접근을 먼저 계약한다.
+- 상태: COMPLETED.
+
+### 1. Start Report / Target Check
+
+- 사용할 스킬: `mermaid-flow-report`.
+- 기준 타겟 플로우: exact bound/config/runtime/initial state → execution aggregate → d2 decision → c4 effect/reducer.
+- 현재 플로우: source/effect structural 계약은 MATCHED, execution aggregate와 transition chain은 GAP.
+- 점수표/선정 기준: d1=8 READY/SELECTED, c4=7 BLOCKED_BY_d2, c5=6 WAIT_AFTER_c4, EVAL.4=5 WAIT_HUMAN.
+- 상태: COMPLETED.
+
+### 2. Relay Unit Selection
+
+- 사용할 스킬: `relay-shot`.
+- 확인한 TODO source: refreshed flow report, TODO §EH2.6.d, 계약 §16.10, checkpoint/active context.
+- 선택한 다음 단위작업: `EH2.6.d1` closed execution ledger/aggregate와 non-authorizing public surface.
+- 플로우폼 반영: 이 Cycle 11 form.
+- 상태: `CONTINUE_WITH_NEXT_FORM` / COMPLETED.
+
+### 3. Doc / Contract
+
+- 사용할 스킬: `doc-contract-writer`.
+- 재귀 TODO: d1.a ownership/lifetime/schema/RED → d1.b ledger+aggregate factory/validator →
+  d1.c clone/mixed/replay/concurrency/nonpromotion gate → d1.d related/full/safety/report/review.
+- 문서 생성/수정: §16.10과 module contract에서 controller ledger를 b3 retrieval ledger와 분리하고 initial-only,
+  exact root authority, idempotence/concurrency/GC tombstone, stable identity와 mutable snapshot hash를 봉인했다.
+  d2 decision permit, c4 effect mint/reducer, d3 start/step/run은 명시적으로 열지 않았다.
+- 상태: COMPLETED.
+
+### 4. Implementation
+
+- 사용할 스킬: `one-go`; 재귀 leaf는 `batch-sequential-runner`.
+- 구현 결과: immutable `ExecutionLedger`와 non-dataclass immutable `HarnessExecution`, package factory/validator를
+  추가했다. exact initial state/store/config/runtime에서만 revision 0·zero consumption·canonical obligation order로
+  발급되며 same-object idempotence, 32-thread single winner, root-lifetime history와 GC tombstone을 유지한다.
+  `execution_identity_sha256`는 후속 effect binding용 stable root identity이고 `execution_snapshot_sha256`는 현재
+  state/ledger snapshot을 봉인한다.
+- 상태: COMPLETED.
+
+### 5. Validation + Report
+
+- 사용할 스킬: `test-runner`, `mermaid-flow-report`, `logall`.
+- TDD/focused: import 부재 RED → nested identity/class drift RED → 10/10 PASS.
+- 관련 회귀: execution/state/action/follow-up/effect/absence/rerank/retrieval/semantic 234/234 PASS.
+- 전체/안전: 권한 환경 전체 1,298/1,298 PASS, repository safety 868파일 PASS, `git diff --check` PASS.
+- 외부 실행: API/OpenAI/model/Langfuse/golden/VLM/provider/clock 0회.
+- 리포트: current Mermaid/PNG와 MD/HTML을 d1 완료·d2 SELECTED로 갱신했다. Playwright desktop/mobile은
+  images2, tables8, page errors0, mobile overflow0 PASS이며 렌더 이미지를 직접 확인했다.
+- 상태: COMPLETED.
+
+### 6. Repair Loop
+
+- 독립 리뷰 P1 4건을 수리했다: dataclass recursive `asdict` 비누출, d1 module-global pin,
+  pre-searched compare seed 거절, effect binding용 stable identity와 snapshot hash 분리.
+- 리뷰어의 `_HEX64` 지적은 다른 모듈 구현과 혼동한 것으로 확인했다. 실제 `_require_hash`는 pinned code 안의
+  literal hex alphabet을 사용하며 존재하지 않는 global을 추가하지 않았다. 독립 재리뷰는 APPROVE, P0/P1 0건이다.
+- 상태: COMPLETED.
+
+### 7. Push / Publication
+
+- git status 확인: user-owned 대규모 dirty에서 d1 code/test/contract/report/checkpoint hunk만 선별한다.
+- 상태: IN_PROGRESS.
+
+### 8. Closeout Report
+
+- 시작 타겟 대비 현재 플로우: initial-only execution ledger/aggregate authority MATCHED.
+- 남은 GAP: d2 allowed action/decision permit, c4 live effect mint/reducer, d3~d5 controller/replay, E2E/golden A/B.
+- 상태: COMPLETED.
+
+### 9. Relay Shot
+
+- d1 종료·push/logall 뒤 refreshed score table에서 d2를 READY/SELECTED로 고르고 Cycle 12 새 form을 즉시 시작한다.
 - 상태: PUSH_AFTER_RELAY_PENDING.
 
 ### 10. Final Ledger
@@ -876,5 +972,5 @@
 - Scope / Target / Relay select: COMPLETED.
 - Doc / Contract / Implementation / Validation / Repair / Report: COMPLETED.
 - Push / Relay: IN_PROGRESS.
-- Flow diagram verification: PARTIAL — effect 비권한 gate까지 MATCHED, execution aggregate 이후는 GAP.
-- 남은 리스크: 기존 source validator 성공도 structural effect 실행 권한은 아니다. 동일 golden 품질은 미측정이다.
+- Flow diagram verification: PARTIAL — initial execution aggregate까지 MATCHED, decision/effect transition 이후 GAP.
+- 남은 리스크: d1 aggregate는 action/effect 실행 권한이 아니며 동일 golden 품질은 미측정이다.

@@ -283,6 +283,26 @@ detail, gold/qrels, path/key, transition, answer/citation, readiness, or authori
 secret-scanned and must be rebound to live provenance by c4. C3.5 also regresses the existing seven source validators'
 exact receipt/dependency authority and provider-free mixed-graph rejection. Future effect-source dereference, exact
 decision permit, one-step issuance, and effect replay authority remain exclusively d2/c4 responsibilities.
+EH2.6.d1 adds the controller-level `ExecutionLedger` and `HarnessExecution` aggregate in
+`execution_contracts.py`; it does not expose or rename b3's private `_RetrievalExecutionLedger`.
+The controller ledger is an immutable snapshot whose canonical obligation order comes from the exact initial
+`HarnessState`. It seals aligned retrieval-round and no-progress counters plus ordered, unique action, lane, and
+unavailable-capability consumption. D1 can issue only the revision-zero snapshot: every counter is zero, every
+consumption tuple is empty, and `previous_ledger_sha256` is null. Authenticated advancement remains c4 work.
+
+`issue_harness_execution` accepts only an exact live state/store/config/runtime graph, derives source binding and
+source-receipt hashes from that state, requires `e1_bounded`, and calls no clock, retriever, verifier, reranker,
+model, or provider. The aggregate binds one stable execution identity, exact initial/current state and ledger
+identities, and a null last transition at step zero. Repeated live issuance is idempotent and concurrent callers
+share one winner; an equal-payload rebuilt state, mixed config/runtime/store, aggregate or nested clone, post-issue
+drift, and a reissue after aggregate collection while the original state root remains live fail closed. Public
+serialization contains only hashes, counters, and closed keys, never recursive state text or provider data.
+The stable root is `execution_identity_sha256`; the changing aggregate digest is
+`execution_snapshot_sha256`. Future `ActionEffectReceipt.execution_sha256` must bind the former, never the
+snapshot digest.
+Constructors, copy/deepcopy, pickle, and `from_dict` are unavailable. D1 exports no decision, effect issuer,
+reducer, transition, consume, advance, start/step/run, or terminal authority: d2 owns the state+ledger decision
+permit, c4 owns live effect mint and authenticated ledger/state transition, and d3-d5 own execution and replay.
 An E1 compare seed must be all-unsearched; already hybrid-searched EH2.4 coverage cannot be
 relabeled as independent lane execution. Once all approved retrieval paths close with no
 candidates, controller-only `verify_slot` performs a zero-provider exhaustion check that may

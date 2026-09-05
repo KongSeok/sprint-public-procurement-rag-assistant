@@ -229,8 +229,16 @@ runtime은 local profile 기본·LLM provider 교체형으로 유지하며 새 �
       monotonic one-obligation reducer와 hash-chained transition/no-progress를 구현한다.
     - [ ] **EH2.6.c5** verified/contradicted/confirmed-missing·raw bool/ID 공격 focused gate를 통과한다.
   - [ ] **EH2.6.d** bounded E1 controller와 replay를 구현한다.
-    - [ ] **EH2.6.d1** lane/action/capability/round 소비와 exact state/last-transition을 함께 봉인하는
-      `ExecutionLedger`·`HarnessExecution` aggregate를 구현한다.
+    - [x] **EH2.6.d1** lane/action/capability/round 소비 스키마와 exact initial state/empty last-transition을
+      함께 봉인하는 `ExecutionLedger`·`HarnessExecution` aggregate를 구현한다.
+      - [x] **EH2.6.d1.a** controller ledger와 b3 `_RetrievalExecutionLedger`의 책임을 분리하고,
+        initial-only schema·lifetime·non-authority 계약 및 첫 TDD RED를 고정한다.
+      - [x] **EH2.6.d1.b** exact initial state/store/config/runtime에서만 idempotent하게 발급되는
+        zero-consumption `ExecutionLedger`·`HarnessExecution`과 live validator를 구현한다.
+      - [x] **EH2.6.d1.c** constructor/clone/nested drift/mixed dependency, repeat·concurrency·GC tombstone,
+        serialization·public-surface 비승격과 provider/clock 0회 focused gate를 통과한다.
+      - [x] **EH2.6.d1.d** focused10·관련234·전체1298·safety868, 독립 P0/P1 APPROVE와
+        flow/HTML 검증을 통과했다. 실제 API/model/Langfuse/golden 호출은 0이다.
     - [ ] **EH2.6.d2** state+ledger 기반 allowed action과 cross-state `ControllerDecisionReceipt`, c4 effect mint
       permit을 구현한다.
     - [ ] **EH2.6.d3** start/step/run과 terminal `HarnessRunResult`를 구현한다.

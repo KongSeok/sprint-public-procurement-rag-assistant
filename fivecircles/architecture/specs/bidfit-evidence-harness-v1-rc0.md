@@ -1015,6 +1015,26 @@ parent/child 혼합, 골든 값 의존을 검출한다. 정확한 새 파일/메
   순서 보존 dedupe해 candidate로 넣고, 없을 때만 provisional missing으로 둔다. 기존 progress가 주장한
   verified ID도 candidate 이상으로 승격하지 않으며 새 runtime-bound `SemanticVerificationReceipt`만 verified를
   만든다. `$answer_support`와 각 slot은 별도 obligation이고 한 transition은 하나만 바꾼다.
+- d1의 controller-level `ExecutionLedger`는 b3의 private `_RetrievalExecutionLedger`와 별개다. 전자는 exact
+  initial `HarnessState`의 canonical obligation 순서에 맞춘 retrieval round·no-progress counter와 ordered unique
+  action/lane/unavailable-capability 소비를 봉인하고, 후자는 source retrieval lane의 one-shot 실행만 소유한다.
+  d1 public issuer는 revision 0, null previous ledger, all-zero counter, empty consumption만 발급한다. 실제 consume,
+  advance와 새 ledger snapshot 발급은 exact d2 decision permit을 받은 c4만 수행한다.
+- `HarnessExecution`의 stable identity는 state에서 owner-derived한 source kind/binding/receipt, evidence bundle,
+  exact execution config/runtime, initial state와 obligation order를 함께 hash한다. snapshot hash는 exact
+  initial/current state, ledger와 null-or-exact last transition reference를 별도로 봉인한다. d1 initial aggregate는
+  `initial_state is state`, `step_index=ledger.revision=0`, `last_transition_sha256=null`이어야 한다.
+  `issue_harness_execution`은 exact live state/store/config/runtime만 받고 source hash를 caller에게 받지 않으며,
+  `mode=e1_bounded`를 요구한다. provider와 clock을 호출하지 않는다.
+  stable root field는 `execution_identity_sha256`, 변하는 aggregate digest는
+  `execution_snapshot_sha256`로 구분한다. 후속 `ActionEffectReceipt.execution_sha256`는 전자와 결합하며
+  snapshot digest와 결합하면 안 된다.
+- aggregate authority는 exact nested identity와 full payload를 mirrored private registry에 묶는다. 같은 live root의
+  반복·동시 발급은 같은 object 한 개만 반환하고, rebuilt-equal state, mixed store/config/runtime, clone/nested drift,
+  aggregate GC 뒤 root-lifetime reissue는 fail-closed한다. public serialization은 state/ledger를 재귀 복제하지 않고
+  SHA와 closed consumption/counter만 내보낸다. constructor/copy/deepcopy/pickle/from-dict는 금지한다.
+  d1은 `ControllerAction|ControllerDecisionReceipt`, decision permit, effect mint, reducer, transition, consume/advance,
+  start/step/run/result/replay를 공개하지 않는다. 각각 d2, c4, d3-d5의 단일 책임으로 남긴다.
 - reducer는 exact before state와 effect로 exact after state를 하나만 결정한다. lane 실행, parent context,
   terminal stop/abstain은 exact same state object를 after로 사용한다. 상태가 실제 바뀌는 effect만 새 state를
   발급하고 그 source receipt가 effect SHA를 가리키며, 한 nonterminal transition은 하나의 obligation만
