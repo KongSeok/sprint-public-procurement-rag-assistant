@@ -432,3 +432,9 @@ Reference:
 - 라이브러리 pin import가 HF 상수를 먼저 만든다. 이후 env 변경으로 해결하려 하지 말고 Hub/Transformers effective cache를 함께 검사한다.
 - 실패 실행은 보존하고 신규 namespace에서 재검증한다. 실측 시작 뒤 추가한 guard를 해당 실행에 소급 적용하지 않는다.
 - refs: `errorlogs/backend/2026-09-06-retrieval-smoke-runtime.md`.
+
+### 문서 정답 분모와 위치 정답 분모 분리 (2026-09-06)
+
+- doc qrels는 원래 inventory에서 검증하고 anchor owner로 추정하지 않는다. partial 위치 결측으로 원래 정답 수를 줄이지 않는다.
+- 보고/계약 경로는 rg 목록으로 확인한다. 미측정과 0, 구조적 가용성과 사람 승인도 분리한다.
+- refs: `errorlogs/backend/2026-09-06-stage-ranking-validation.md`.

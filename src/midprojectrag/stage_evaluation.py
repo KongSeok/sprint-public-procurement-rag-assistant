@@ -22,6 +22,8 @@ from .stage_checkpoints import (
     SCHEMA, canonical_sha, source_block_anchor_sha, validate_checkpoint,
 )
 from .stage_metrics import StageInput, score_stages
+from .stage_ranking import score_rankings
+from .stage_document_qrels import DocumentQrels, validate_document_inventory
 
 Anchor = tuple[str, str, str]
 _HEX = re.compile(r"[0-9a-f]{64}\Z")
@@ -51,17 +53,25 @@ def _hash(value: object) -> str:
     return value
 
 
-def _json_rows(raw: bytes) -> list[dict]:
+def _unique_json_keys(pairs):
     # Duplicate keys must not silently change a sealed input's interpretation.
-    def unique(pairs):
-        result = {}
-        for key, value in pairs:
-            if key in result:
-                raise ValueError("duplicate_json_key")
-            result[key] = value
-        return result
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError("duplicate_json_key")
+        result[key] = value
+    return result
 
-    rows = [json.loads(line, object_pairs_hook=unique) for line in raw.decode("utf-8").splitlines() if line.strip()]
+
+def _json_object(raw: bytes) -> dict:
+    value = json.loads(raw.decode("utf-8"), object_pairs_hook=_unique_json_keys)
+    if type(value) is not dict:
+        raise ValueError("json_object_required")
+    return value
+
+
+def _json_rows(raw: bytes) -> list[dict]:
+    rows = [json.loads(line, object_pairs_hook=_unique_json_keys) for line in raw.decode("utf-8").splitlines() if line.strip()]
     if any(type(row) is not dict for row in rows):
         raise ValueError("jsonl_object_required")
     return rows
@@ -226,6 +236,12 @@ def _metric_paths(metrics: dict):
             for stage, at_k in metric.items():
                 for k, value in at_k.items():
                     yield f"stage_recall.{stage}.{k}", value
+        elif name == "stage_rank":
+            for unit, by_stage in metric.items():
+                for stage, at_k in by_stage.items():
+                    for k, scores in at_k.items():
+                        for score, value in scores.items():
+                            yield f"stage_rank.{unit}.{stage}.{k}.{score}", value
         else:
             yield name, metric
 
@@ -250,7 +266,8 @@ def _aggregate(rows: Sequence[dict]) -> dict:
 
 def evaluate_records(qrels: Sequence[dict], records: Sequence[dict], *, store: EvidenceStore,
                      snapshot: SourceSnapshot, ks: tuple[int, ...] = (1, 3, 5, 10),
-                     pre_context_stage: str = "fusion", inventory_mode: str = "partial") -> dict:
+                     pre_context_stage: str = "fusion", inventory_mode: str = "partial",
+                     input_inventory: dict | None = None, qrels_file_sha256: str | None = None) -> dict:
     """One fixed run configuration; missing cases remain visible in the ledger."""
     if pre_context_stage not in {"lane_dense", "lane_lexical", "fusion"}:
         raise ValueError("pre_context_stage_must_precede_rerank")
@@ -267,6 +284,10 @@ def evaluate_records(qrels: Sequence[dict], records: Sequence[dict], *, store: E
     suite_counts = dict(Counter(row["suite"] for row in qrels))
     if inventory_mode == "mini131" and suite_counts != MINI131_SUITE_COUNTS:
         raise ValueError("mini131_inventory_incomplete")
+    document_qrels = (validate_document_inventory(input_inventory, qrels, snapshot=snapshot,
+                                                  qrels_file_sha256=qrels_file_sha256)
+                      if input_inventory is not None else {})
+    missing_document_qrels = DocumentQrels("missing", reason="document_inventory_missing")
     run_by_case = {}
     config_hashes = set()
     for raw in records:
@@ -292,19 +313,34 @@ def evaluate_records(qrels: Sequence[dict], records: Sequence[dict], *, store: E
                 checkpoint_hashes[checkpoint["stage"]] = checkpoint["projection_sha256"]
                 all_receipts.extend(receipts)
         scores = score_stages(anchors, stages, qrel_status=status, ks=ks, pre_context_stage=pre_context_stage)
+        doc_gold = document_qrels.get(case_id, missing_document_qrels)
+        scores["stage_rank"] = score_rankings(anchors, stages, source_status=status,
+            required_doc_ids=doc_gold.required, document_status=doc_gold.status,
+            document_missing_reason=doc_gold.reason or "document_qrels_missing", ks=ks)
         case_results.append({
             "case_id": case_id, "suite": qrel["suite"], "qrel_status": status,
+            "document_qrel_status": doc_gold.status, "document_qrel_issue": doc_gold.reason,
+            "required_document_count": len(doc_gold.required) if doc_gold.status == "ready" else None,
             "qrel_issue": issue, "run_status": "recorded" if run is not None else "missing",
             "run_id": run["run_id"] if run is not None else None,
             "checkpoint_hashes": checkpoint_hashes, "metrics": scores,
         })
     scoring = {"schema_version": SCHEMA, "ks": list(ks), "pre_context_stage": pre_context_stage,
                "unit": "source_block", "rank_policy": "raw_candidate_positions",
-               "gain_policy": "distinct_required_anchors", "context_support": "selected_children_only"}
+               "gain_policy": "distinct_required_anchors", "context_support": "selected_children_only",
+               "ranking": {"revision": "stage-rank-v1", "units": ["source_anchor", "document"],
+                           "rank_policy": "first_seen_unique_unit_compact_positions",
+                           "grouped_unit_policy": "unavailable_without_internal_order",
+                           "document_gold_policy": "verified_original_inventory_only",
+                           "gain_policy": "binary", "idcg_policy": "full_required_units_capped_at_k",
+                           "case_reciprocal_rank": "rr", "aggregate_reciprocal_rank": "mrr",
+                           "aggregation": "available_case_macro_mean_with_full_inventory_counts"}}
     report = {
         "schema_version": SCHEMA, "measurement_kind": "offline_source_block",
         "integrity_scope": "artifact_consistency_not_live_execution_authority",
         "semantic_answer_quality_measured": False, "model_calls": 0,
+        "formal_comparison_authorized": False,
+        "input_inventory_sha256": input_inventory["inventory_sha256"] if input_inventory is not None else None,
         "source_snapshot_sha256": snapshot.snapshot_sha256,
         "evidence_store_sha256": store.bundle_sha256,
         "run_config_sha256": next(iter(config_hashes), None),
@@ -313,7 +349,8 @@ def evaluate_records(qrels: Sequence[dict], records: Sequence[dict], *, store: E
         "case_count": len(case_results), "suite_counts": suite_counts,
         "inventory": {"mode": inventory_mode, "complete": inventory_mode == "mini131",
                       "expected_suite_counts": MINI131_SUITE_COUNTS.copy(),
-                      "qrels_ready": sum(row["qrel_status"] == "ready" for row in case_results)},
+                      "qrels_ready": sum(row["qrel_status"] == "ready" for row in case_results),
+                      "document_qrels_ready": sum(row["document_qrel_status"] == "ready" for row in case_results)},
         "cases": case_results, "aggregate": _aggregate(case_results),
         "by_suite": {suite: _aggregate([r for r in case_results if r["suite"] == suite])
                      for suite in sorted({r["suite"] for r in case_results})},
@@ -330,6 +367,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--inventory-mode", choices=["mini131", "partial"], default="mini131",
                         help="Default requires all 131 cases by suite; partial reports are explicitly incomplete.")
     parser.add_argument("--pre-context-stage", choices=["lane_dense", "lane_lexical", "fusion"], default="fusion")
+    parser.add_argument("--input-inventory", type=Path,
+                        help="Optional config-bound Mini131 input receipt for independent document qrels.")
     args = parser.parse_args(argv)
     try:
         output = private_path(args.output, args.data_root)
@@ -341,11 +380,16 @@ def main(argv: Sequence[str] | None = None) -> int:
                                         input_hashes=bundle_receipt["input_hashes"])
         qrels_raw = private_path(args.qrels, args.data_root).read_bytes()
         records_raw = private_path(args.records, args.data_root).read_bytes()
+        inventory_raw = private_path(args.input_inventory, args.data_root).read_bytes() if args.input_inventory else None
         report = evaluate_records(_json_rows(qrels_raw), _json_rows(records_raw), store=store,
                                   snapshot=snapshot, ks=tuple(args.ks), pre_context_stage=args.pre_context_stage,
-                                  inventory_mode=args.inventory_mode)
+                                  inventory_mode=args.inventory_mode,
+                                  input_inventory=_json_object(inventory_raw) if inventory_raw is not None else None,
+                                  qrels_file_sha256=sha256(qrels_raw).hexdigest())
         report.pop("report_sha256")
         report["input_file_sha256s"] = {"qrels": sha256(qrels_raw).hexdigest(), "records": sha256(records_raw).hexdigest()}
+        if inventory_raw is not None:
+            report["input_file_sha256s"]["input_inventory"] = sha256(inventory_raw).hexdigest()
         report["report_sha256"] = canonical_sha(report)
         # No directory creation or overwrite side effects; caller chooses an existing private parent.
         write_new_json(output, report)

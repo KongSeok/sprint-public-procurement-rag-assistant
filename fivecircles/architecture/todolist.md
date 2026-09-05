@@ -12,7 +12,7 @@
 | 0 | 실행 큐·소유권·checkpoint/resume 정합화 | 완료·01426df push. 기존 체크박스 보존 |
 | 1 | EH2.EVAL.4.a → 4.b / 4.c | .a/.b 구현·private131 생성 완료; 위치 의미 승인/보강 .c는 잔여 |
 | 2 완료 | EH4.7b.1 → b.2 | recorder·실제 로컬12회 PASS; qrels/질문 제작 책임 없음 |
-| 3 | EH4.7c.1 + EXP-SELECT.2.a | retrieval MRR/nDCG + 세 구성의 비교 조건/metric threshold 봉인 |
+| 3 진행 | EH4.7c.1 완료 → EXP-SELECT.2.a.2 | 순위 채점·실제12기록 재채점 PASS → 정식 비교 사전 감사/동결 |
 | 4 | EXP-SELECT.3.a | 동일 승인 qrels에서 page KURE / compat child KURE / child+Kiwi BM25·RRF paired run |
 | 5 | EXP-SELECT.3.b | 실패 경계·품질/효율 delta로 다음 개선 축 선택. 모든 연구 아이디어 자동 구현 금지 |
 | 6 | 선택된 개선 + EH2/EH3/EH4 후속 | Controller·전문 경로·생성/인용·E2E는 해당 기존 선행 gate를 유지 |
@@ -73,6 +73,10 @@
     - [x] **EXP-SELECT.2.a.1** recorder용 local3종 closed draft 설정/검증 구현. focused8·관련58·독립 APPROVE.
       query/scope/history·예산·pre_context_stage·hash 구분, formal 승격/gold필드 거절. 실파일binding/정식 freeze는 다음 gate.
     - [ ] **EXP-SELECT.2.a.2** 승인 qrels/paired 분모·실물 artifact·지표 threshold를 정식 freeze receipt로 봉인한다.
+      - [ ] **EXP-SELECT.2.a.2.i** 전체131의 original request·qrel·검수 근거·기술적 지원 여부를 모델0으로 사전 감사한다.
+        formal 승인/분모는 자동 확정하지 않는다. set13 request 부재와 finalizer의 page 포함 refs/부분 출력 차이를 표시한다.
+      - [ ] **EXP-SELECT.2.a.2.ii** metric/cutoff/threshold·오류 처리·paired 범위와 해당 qrels의 사람 승인을 확정한다.
+      - [ ] **EXP-SELECT.2.a.2.iii** 확정된 입력만 closed freeze로 검증·봉인한다. 기술 가용성이나 과거 검수 요약을 승인서로 대체하지 않는다.
   - [ ] **EXP-SELECT.2.b** E2E/후속 구성은 .2.a를 참조하고 generator/prompt/judge·추가 축만 확장 동결한다.
 - [ ] **EXP-SELECT.3** parser→chunker→embedder→fusion→reranker→Harness 순으로 한 축씩 component ablation을
   실행하고 retrieval 품질·효율·guardrail을 분리 기록한다. 구현 회귀 PASS를 품질 향상으로 대체하지 않는다.
@@ -376,11 +380,11 @@ runtime은 local profile 기본·LLM provider 교체형으로 유지하며 새 �
     - [x] **EH4.7b.2** offline KURE 실제12회 연결 PASS/관련93 PASS. 입력131 유지·sample2×3종×2회,
       동일 query/scope·반복 후보 일치·파일 불변·private0600. query embedding12/API·생성0, 품질 비교 아님.
   - [ ] **EH4.7c** MRR/nDCG·slot·문장/구간 완전성 등 나머지 계층 지표. block recall만으로 내용 완전성을 주장하지 않음.
-    - [ ] **EH4.7c.1** retrieval-only MRR/nDCG를 원문 anchor와 distinct-document 단위로 분리한다.
+    - [x] **EH4.7c.1** retrieval-only MRR/nDCG를 원문 anchor와 distinct-document 단위로 분리한다.
       @k/중복 gain/IDCG/qrel 결측·미실행 정의를 .7a 규칙과 정합화하고 합성 회귀한다. 공식값은 EXP-SELECT.3.a에서 측정한다.
-      - [ ] **EH4.7c.1.a** unique source-anchor / original document RR·binary nDCG 순수 함수. multi-anchor 내부순위 미추정.
-      - [ ] **EH4.7c.1.b** 검증된 input inventory의 original doc qrels를 독립 연결; block missing/doc ready 분리.
-      - [ ] **EH4.7c.1.c** private CLI·전체131 집계/누락 분모·scoring hash/회귀를 통합, formal 승인과 분리.
+      - [x] **EH4.7c.1.a** unique source-anchor / original document RR·binary nDCG 구현. focused24 PASS/독립 APPROVE.
+      - [x] **EH4.7c.1.b** original doc qrels와 block 가용성 독립 연결. inventory/관련33 PASS, 전체 분모·hash 보존.
+      - [x] **EH4.7c.1.c** CLI/전체131·unit별 집계/hash 통합. 관련118·독립 APPROVE, 실제12기록 재채점6파일 PASS/모델0.
     - [ ] **EH4.7c.2** slot·문장/구간 완전성은 해당 EH2/EH3 실행 기록을 확보한 후 별도 연결한다.
 - [ ] **EH4.8** generation/list/analytics/visual 평가를 추가한다. 완료: 결정론/semantic adapter 분리, completeness/exact 검증, 혼합 평균 금지.
 - [ ] **EH4.9** frozen corpus/gold/config의 재현 가능한 실행 receipt를 남긴다. 완료: 실제/합성/미실행 구분, old/new scorer·latency·모델 가용성 별도.

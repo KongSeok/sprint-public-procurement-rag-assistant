@@ -184,3 +184,27 @@ DoD: schema/arm 구별·공통query/budget·불변 projection·hash drift·gold/
   page와 child의 검증 보증 수준/비용이 다르므로 smoke wall time은 serving latency 비교 점수가 아니다.
 - 완료 기준:12개 기록의 동일 case별 query/scope/config, required stages ok·calls 관측, untouched hashes,
   private 저장·누출 없는 집계. 오류/미실행이 있으면 smoke PASS를 주지 않는다. 성능 수치/우승은 판정하지 않는다.
+
+## 순위 지표·원래 문서 qrels — EH4.7c.1 (2026-09-06)
+
+- .a: `stage_ranking.score_rankings`는 source-anchor와 distinct-document의 **고유 단위 순위**에서 RR@k와
+  binary nDCG@k를 계산한다. first-seen 중복 제거 후 순위를 압축하며, 기존 raw candidate Recall@k는 바꾸지 않는다.
+  case별 값은 RR이고 그 macro mean이 MRR다. DCG는 relevant/log2(rank+1)의 합,
+  IDCG는 전체 required unit 수와 k 중 작은 수만큼 이상적인 binary gain을 합산한다. 검색된 정답 수로 분모 축소 금지.
+- source row에 anchor가 여러 개이면 내부 순위가 없으므로 source 순위 지표는 unavailable(grouped_source_anchor_rank).
+  임의 정렬·한 rank에 gain2를 넣어 nDCG>1을 만들지 않는다. doc projection은 row의 모든 anchor가 같은 문서일 때만
+  가능하다. 빈 row·여러 문서가 섞인 row도 해당 순위 단위를 unavailable로 남긴다. 미실행/null과 실행된 빈 결과/0 구분.
+- .b: 문서 정답은 anchor owner를 모아 추정하지 않고 기존 private input inventory의 original required_doc_ids만 사용한다.
+  inventory가 없으면 doc metric은 document_inventory_missing. block qrels가 missing이어도 원래 doc qrels는 ready일 수 있다.
+  specialized suite 및 명시적 abstention reason만 positive doc metric의 not_applicable이다. doc 목록이 없는 positive는 missing.
+- `stage_document_qrels`는 mini131-stage-inputs-v1의 closed fields/131개 ID·suite/count·case metadata를 검증한다.
+  outer inventory SHA, 실제 qrels를 복원한 inputs SHA, qrels 파일 SHA, source snapshot SHA를 모두 확인한다.
+  중복/잘못된 doc ID·snapshot 밖 문서·부분 case집합·stage qrel count 차이를 거절하며 일부를 제거하지 않는다.
+  원래 입력 파일의 검증 receipt를 재사용하는 구조 검증이며 의미 승인/실시간 실행 권한의 증명은 아니다.
+- .c: `stage_evaluation --input-inventory`는 선택적 추가 입력이다. 기존 closed qrels/records 포맷은 유지하고,
+  inventory 부재 시 문서 지표만 null로 남긴다. source/document qrel 상태·unit별 rank/gain/IDCG 정책과
+  scoring revision/hash, inventory 파일/receipt SHA를 출력한다. 새 중첩 metric도 전체131/suite별 집계에 포함한다.
+  available-only 평균 옆에 전체/미실행/미적용 수를 반드시 유지한다. 정식 paired subset이나 formal 승인 자동 생성 금지.
+- 검증: 정답2개 중1개만 검색하면 nDCG@10≈0.6131; 중복/그룹/빈 결과/0..1 bounds/입력 불변,
+  block missing/doc ready, anchor A/doc gold A+B, inventory 변조·중복키·partial131 거절, 기존 Recall 회귀.
+  구현 이후에도 의미 승인·사전 threshold/paired freeze 및 정식3종 비교는 EXP-SELECT.2.a.2/.3.a의 별도 gate다.

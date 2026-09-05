@@ -964,3 +964,11 @@ This file summarizes recent updates so other agents can continue without re‑di
 - refs: test/errorlogs/backend/2026-09-06-retrieval-smoke-runtime.md. smoke wall은 관측 비용 포함이며 품질·serving latency 아님.
 ### Next
 - Cycle D 선택 push 후 EH4.7c.1.a/b/c 순위 지표·원래 문서 qrels·CLI 통합으로 릴레이한다.
+
+## Addendum (2026-09-06) - 순위 채점·원래 문서 qrels 연결
+### Backend
+- source/doc RR·nDCG, 원래131 inventory와 CLI/집계를 연결했다. refs: `architecture/specs/stage-evaluation-v1.md`.
+- source-ready30/doc-ready97 분리; formal 승인 없음. 다음 EXP-SELECT.2.a.2.i 사전 감사 폼을 열었다.
+### Tests
+- 관련118·독립34 PASS. 기존12기록 재채점6파일 PASS/모델0·입력 불변. refs: `2026-09-05-search-first-relay.md`.
+- PNG 확인, HTML browser 기존 BLOCKED 유지. refs: `test/errorlogs/backend/2026-09-06-stage-ranking-validation.md`.

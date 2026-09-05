@@ -75,8 +75,9 @@ flowchart LR
 flowchart LR
   A["기존131 / 검수 이력 유지"] --> B["입력 sidecar 완료 / ready30·missing67·NA34"]
   B --> C["recorder / 실제 KURE 12회 PASS"]
-  C --> D["resolver·핵심 지표 연결 PASS"]
-  D -.-> E["GAP: 순위 지표·qrel 승인·정식3종 비교"]
+  C --> D["resolver·Recall·RR/nDCG 구현 PASS"]
+  D --> H["원래 doc gold97 / block gold30 · 의미 승인 별도"]
+  H -.-> E["GAP: 승인·조건 동결·정식3종 비교"]
   F["Controller c4.0.e 기술 READY"] -.-> G["우선순위 대기 / 코드 보존"]
 ```
 
@@ -88,7 +89,8 @@ flowchart LR
 | 실행 큐·책임·복구 경로 | MATCHED | TODO/checkpoint/resume 재구성; 기존 ID 157개 상태 보존 |
 | source join·핵심 채점 코드 | MATCHED | 112 집중·관련 테스트 재실행 PASS; 품질 점수 아님 |
 | 기존 입력 → 위치 sidecar → 실측 recorder | PARTIAL | 입력·recorder/실제12회 PASS; .4.c 위치 의미 승인 잔여 |
-| 동결 → 세 구성 비교 → 개선 선택 | GAP | EXP-SELECT.2.a / EH4.7c.1 / EXP-SELECT.3.a/b 미실행 |
+| 순위 지표·원래 doc qrels | MATCHED(코드) | RR/MRR·binary nDCG, original doc97/block30 분리, 관련118 PASS |
+| 동결 → 세 구성 비교 → 개선 선택 | GAP | EXP-SELECT.2.a.2 / EXP-SELECT.3.a/b 미실행 |
 | Controller → 전문 경로·생성/E2E | PARTIAL | 기존 구현 유지; 검색 선행 예외가 E2E gate를 닫지 않음 |
 
 색: 초록=검증된 경로, 주황=private/local-first·승인, 빨강=미연결, 회색=선택·우선순위 제어.
@@ -194,10 +196,10 @@ qrels.jsonl + inventory.json. inventory SHA `d8d2f52bc75419bc8c1da2f81b1bc81f613
 | 4 Implementation | offline runner·preflight·기존 artifact12회 실제 연결 | COMPLETED |
 | 5 Validation + Report | 관련93 PASS/독립 APPROVE, 실제12회·동일 query/scope·파일 불변·0700/0600. browser는 기존 BLOCKED | PASS_WITH_RISKS |
 | 6 Repair Loop | HF cache 조기 설정으로002 PASS. effective TRANSFORMERS_CACHE 추가 gate는 합성/별도 preflight PASS | REPAIRED |
-| 7 Push / Publication | 실제 기록은 private, 코드·집계·로그 선택. 커밋 receipt는 다음 cycle에 기록 | READY |
+| 7 Push / Publication | 소유13파일 선택, c7e2067 → origin/feat/total-integration push 성공 | COMPLETED |
 | 8 Closeout Report | mermaid-flow-report/로그올, 131 품질 비교 미실행·GAP/PARTIAL | UPDATED |
 | 9 Relay Shot | EH4.7c.1.a/b/c 8점 선택. source rank/원래 doc qrels/CLI를 순차 연결 | CONTINUE_WITH_NEXT_FORM |
-| 10 Final Ledger | 선택 push 뒤 아래 Cycle E 시작. 실제12회는 semantic/formal 승인 아님 | CLOSEOUT_READY |
+| 10 Final Ledger | 선택 push 뒤 Cycle E 시작. 실제12회는 semantic/formal 승인 아님 | CLOSED_WITH_RISKS |
 
 ### Cycle D 실제 실행 증거
 
@@ -217,11 +219,46 @@ qrels.jsonl + inventory.json. inventory SHA `d8d2f52bc75419bc8c1da2f81b1bc81f613
 | 0 Scope Intake | local-first/feat/total-integration. 131 질문·답변·VLM·index 불변. 모델/API 호출 없음 | READY |
 | 1 Start Report | recorder 실측 MATCHED, 순위 지표·정식 비교 GAP. 최신 Mermaid 경로 참조 | COMPLETED |
 | 2 Relay Unit Selection | relay-shot c.1 8점, Controller4점. 비교 채점의 앞선 연결 선택 | SELECTED |
-| 3 Doc / Contract | unique source anchor와 original-doc 분리, binary IDCG·중복·grouped rank·private inventory 계약 | NEXT |
-| 4 Implementation | one-go/batch sequential: .a 순수 지표 → .b doc inventory → .c CLI/집계 | READY |
-| 5 Validation + Report | test-runner: 수학적 bounds/미실행/전문 suite/131분모/변조 거절/회귀·Mermaid·로그 | READY |
-| 6 Repair Loop | source rank을 임의 정렬하지 않고, 문서 정답 분모를 anchor owner로 축소하지 않음 | READY |
-| 7 Push / Publication | 코드·계약·집계·로그만, private 입력/점수 비공개 | READY |
-| 8 Closeout Report | 코드 검증/실측/의미 승인 분리. browser 우회 금지 | READY |
-| 9 Relay Shot | EXP-SELECT.2.a.2 정식 승인·동결 gate 확인. 없는 사람 승인을 만들지 않음 | READY |
-| 10 Final Ledger | Cycle D push 확인 후 .a 착수. 원래 core/보조69 검수 이력 유지 | READY |
+| 3 Doc / Contract | unique source anchor와 original-doc 분리, binary IDCG·중복·grouped rank·private inventory 계약/독립 설계 리뷰 | COMPLETED |
+| 4 Implementation | .a 순수 지표 → .b doc inventory → .c CLI/집계 순차 구현 | COMPLETED |
+| 5 Validation + Report | 관련118 PASS·독립34 PASS/APPROVE, 실제12기록 재채점6파일. PNG 직접 검토·browser BLOCKED | PASS_WITH_RISKS |
+| 6 Repair Loop | 계산 오류 없음. 보고 경로 추측2건은 실제 목록으로 바로잡음 | REPAIRED |
+| 7 Push / Publication | 코드·계약·집계·로그 선택 stage. private 입력/점수 비공개 | READY |
+| 8 Closeout Report | 실제 재채점/의미 승인 분리. mermaid-flow-report·로그올, browser 우회 금지 | UPDATED |
+| 9 Relay Shot | EXP-SELECT.2.a.2.i 사전 감사8점 선택. 아래 새 폼 후 착수 | CONTINUE_WITH_NEXT_FORM |
+| 10 Final Ledger | code/replay PASS, 정식 비교 미실행·GAP/PARTIAL. 선택 push 뒤 Cycle F | CLOSED_WITH_RISKS |
+
+### Cycle E 실행 증거
+
+- 순수24 → inventory 관련33 → 통합61 → 영향 기반118 PASS(1.114s). 독립 정적/통합34 PASS·APPROVE.
+- 원래 source qrels30 / document qrels97 / positive 미적용34. 본문 refs 결측67 때문에 doc gold를 버리지 않는다.
+- 기존12기록(2문항×3종×2회)을 CLI로 재채점해 private6보고서·receipt1 생성. 각 보고서131행·실제기록2 유지.
+  각 dense nDCG 분모는 available1/unavailable96/not-applicable34. 이는 전체131 검색 실측/정식 점수가 아니다.
+- 반복 round metric 동일, 기존 입력/기록 불변, private0700/7파일0600/Git ignored, 모델/API/생성0.
+  위치 `resources/data_refined/private/evaluation/stage-ranking-smoke-v1-20260906-001`, receipt SHA
+  `ca967f7aa07d1508d758c6fe6236453eb9795fa319d6ca4c83d18d4fd81b2591`.
+- rank/gain/IDCG·caseRR/aggregateMRR 정책을 scoring SHA에 포함. 미실행은 null, 실제 빈 결과만0.
+- safety926 PASS, diff-check PASS. 현재PNG 갱신/직접 검토, HTML browser QA 기존 정책 BLOCKED 유지.
+
+### 다음 점수표
+
+| 남은 연결 | 계산·점수 | 다음 조치 |
+| --- | --- | --- |
+| qrel·original request → 정식 승인/조건 동결 | 2+3+2+2−1 = 8 | .2.a.2.i 모델0 사전 감사부터 |
+| Controller c4.0.e | 1+2+1+1−1 = 4 | 기술 READY/우선순위 대기 유지 |
+
+## Cycle F — EXP-SELECT.2.a.2.i 공식 비교 사전 감사
+
+| 단계 | 실행 내용 | 상태 |
+| --- | --- | --- |
+| 0 Scope Intake | 기존131/검수 이력 불변. 모델0; formal 분모·사람 승인 자동 생성 금지 | READY |
+| 1 Start Report | 순위 채점 연결 MATCHED / 승인·실행 지원범위 GAP, 최신 target/current 사용 | COMPLETED |
+| 2 Relay Unit Selection | relay-shot 8점: doc-ready와 original request 가용성을 구분하는 선행 감사 | SELECTED |
+| 3 Doc / Contract | config/source/inventory·case 일치, scope/미지원 options·승인 미확정 사유를 content-free 기록 | READY |
+| 4 Implementation | one-go: private preflight CLI·합성 회귀·실제 model0 감사 | READY |
+| 5 Validation + Report | 131 유지/unknown 승인·token budget 미측정을0으로 처리하지 않음. 기존 파이프라인 무변경 | READY |
+| 6 Repair Loop | set13 catalog_all→dense all 자동변환 금지; finalizer4필드 refs/부분집합 자동 대체 금지 | READY |
+| 7 Push / Publication | 사전 감사 도구·문서·로그만 선택, raw131/private receipt 제외 | READY |
+| 8 Closeout Report | 후보·지원·승인·공식분모 구분 및 남은 사용자 결정 표시 | READY |
+| 9 Relay Shot | .2.a.2.ii/iii 안전 여부 확인. 승인/범위 선택 필요 시 구체적 조건 기록 | READY |
+| 10 Final Ledger | Cycle E 선택 push 후 착수, 현재 범위는 감사이지 정식 평가 실행이 아님 | READY |
