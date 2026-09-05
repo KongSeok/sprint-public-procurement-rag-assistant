@@ -9,8 +9,8 @@
 
 | 순서 | 기존 TODO / 단위 | 실행 조건·결과 |
 | --- | --- | --- |
-| 0 | 실행 큐·소유권·checkpoint/resume 정합화 | 현재 문서 재구성 cycle. 기존 체크박스는 보존 |
-| 1 | EH2.EVAL.4.a → 4.b / 4.c | Mini131 입력·위치 가용성 감사 → private adapter. 의미 승인/위치 보강은 4.c 별도 |
+| 0 | 실행 큐·소유권·checkpoint/resume 정합화 | 완료·01426df push. 기존 체크박스 보존 |
+| 1 | EH2.EVAL.4.a → 4.b / 4.c | .a/.b 구현·private131 생성 완료; 위치 의미 승인/보강 .c는 잔여 |
 | 2 | EH4.7b.1 → b.2 | 실제 raw lane/fusion/context recorder와 smoke; qrels/질문 제작 책임 없음 |
 | 3 | EH4.7c.1 + EXP-SELECT.2.a | retrieval MRR/nDCG + 세 구성의 비교 조건/metric threshold 봉인 |
 | 4 | EXP-SELECT.3.a | 동일 승인 qrels에서 page KURE / compat child KURE / child+Kiwi BM25·RRF paired run |
@@ -70,6 +70,9 @@
     source/code/config/scorer hash·사전 통과 기준을 고정한다. API/생성 judge는 미사용으로 표시한다.
     recorder 최소 설정 schema는 EH4.7b.1 전에 정의하고, 구성별 `pre_context_stage`도 지정한다.
     dense-only의 직전 단계는 lane_dense, hybrid는 fusion이다. b.2 smoke와 정식 동결/품질 판정을 구분한다.
+    - [ ] **EXP-SELECT.2.a.1** recorder용 local3종 최소 설정 schema/합성 검증을 먼저 구현한다.
+      query/scope/history·후보/context 예산·pre_context_stage·source/config hash를 명시하며 draft는 정식 freeze가 아니다.
+    - [ ] **EXP-SELECT.2.a.2** 승인 qrels/paired 분모·실물 artifact·지표 threshold를 정식 freeze receipt로 봉인한다.
   - [ ] **EXP-SELECT.2.b** E2E/후속 구성은 .2.a를 참조하고 generator/prompt/judge·추가 축만 확장 동결한다.
 - [ ] **EXP-SELECT.3** parser→chunker→embedder→fusion→reranker→Harness 순으로 한 축씩 component ablation을
   실행하고 retrieval 품질·효율·guardrail을 분리 기록한다. 구현 회귀 PASS를 품질 향상으로 대체하지 않는다.
@@ -149,11 +152,11 @@ runtime은 local profile 기본·LLM provider 교체형으로 유지하며 새 �
   evaluator-only `AnchorResolutionReceipt`/청킹 변경 join 구현은 `EH4.7a.1`에서 연결했다.
   잔여: 전체131 sidecar 매핑·기존 검수 lineage 확인·positive/hard-negative 확정. gold는 runtime에 넣지 않는다.
   - 중복 방지 코멘트(2026-09-05): 위 `AnchorResolutionReceipt`/청킹 변경 join 구현·회귀는 `EH4.7a.1`에서 한 번만 수행하고 여기서는 해당 결과를 참조한다. qrels 보강·검수 책임은 이 항목에 유지하며, resolver 완료를 이 항목 전체 완료나 별도 구현 성과로 중복 계산하지 않는다.
-  - [ ] **EH2.EVAL.4.a** 기존 pinned Mini131 8개 source/hash·suite·case ID·검수 lineage·원문 anchor 가용성을
-    읽기 전용 감사한다. 131 전체와 ready/missing/not-applicable 집계, 실제 승인 근거와 정형 필드 차이를 기록한다.
-  - [ ] **EH2.EVAL.4.b** .4.a 입력에서 evaluator-only closed sidecar/가용성 ledger를 생성하는 adapter를
-    구현·합성 검증한다. 질문/답변 불변, 원문 owner/locator 검증, 기존 anchor만 재사용하고 없는 위치는 missing.
-    safe request는 원래 user scope만 사용하며 정답 doc를 runtime scope로 넣지 않는다. private 신규 파일만 생성한다.
+  - [x] **EH2.EVAL.4.a** 기존 pinned8 source SHA/count·RAG129+parser2·고유ID131 검증.
+    core30 answer/52 refs의 owner+locator 일치, supplemental69 block refs0. 기존69 검수/11수정 이력과 draft 필드를 구분한다.
+  - [x] **EH2.EVAL.4.b** evaluator-only sidecar/가용성 adapter 구현. 집중15·관련65 PASS, 독립 APPROVE.
+    기존131 private 생성: ready30/missing67/not-applicable34, 원문 owner/locator·source SHA 검증.
+    질문/답변/검수 불변·후보186 gold 비승격·request/모델/API 생성0. 공식 비교 승인은 .4.c/EXP-SELECT.2.a 별도.
   - [ ] **EH2.EVAL.4.c** 기존 사람 검수 근거를 연결하고 부족한 positive/hard-negative 위치를 원문으로 보강·
     승인한다. 자동 ID/hash 검사를 의미 승인으로 승격하지 않는다. 전체 inventory와 지표별 승인 분모를 봉인한다.
 - [ ] **EH2.EVAL.5 / SEALED-HOLDOUT** 이미 실행된 RAG129를 사후 held-out으로 바꾸지 않는다.

@@ -934,3 +934,13 @@ This file summarizes recent updates so other agents can continue without re‑di
 ### Tests
 - 전체1393: 최초1390 PASS/환경실패2/skip1. 권한을 맞춘 해당2건 재실행 PASS; 코드 변경 없음.
 - refs: test/errorlogs/backend/2026-09-06-search-first-test-permissions.md. HTML browser BLOCKED는 별도 유지.
+
+## Addendum (2026-09-06) - EH2.EVAL.4 입력 adapter 완료
+### Backend
+- 기존 pinned8 입력·131ID와 원문 위치를 재검증하고 private qrels/inventory adapter를 구현했다. 질문/답변/검수 불변.
+- 실제131 생성: ready30/missing67/not-applicable34. 보조69 검수 재사용, 후보186 자동 gold 승격 금지.
+### Tests
+- focused15·관련65 PASS, 독립 APPROVE, 실제CLI 신규 private 저장 PASS. 모델/API0·공식 비교 미승인.
+- refs: test/errorlogs/backend/2026-09-06-stage-inputs-validation.md, work/2026-09-05-search-first-relay.md.
+### Next
+- EXP-SELECT.2.a 최소 recorder schema→EH4.7b.1 실제 단계 기록으로 릴레이. 위치 의미 승인 .4.c는 별도 잔여.

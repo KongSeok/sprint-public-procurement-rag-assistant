@@ -77,3 +77,33 @@ MRR/nDCG·slot·distinct-document 상세 채점과 실제 131 전 단계 실행�
 
 위험: 구형 결과에 단계 기록이 없으면 복구할 수 없다. 기존 검수는 보존하고 해당 case의 위치 qrel/실행 로그만 보강한다.
 마이그레이션: 기존 evaluator와 run-record schema를 바꾸지 않는 병렬 CLI다. UI/production은 opt-in recorder 연결 후 별도 승인한다.
+
+## Mini131 입력 adapter — EH2.EVAL.4.b (2026-09-06)
+
+`stage_inputs.build_inputs(cases, ledger_rows, snapshot, source_file_hashes)`는 기존 검증된 Mini131 입력에서
+closed qrels 131행과 content-free 가용성 ledger를 만든다. 기존 `verify_suite`를 CLI에서 먼저 사용한다.
+입력 source case의 원본 row SHA/ID/lane 및 ledger와 정확한 집합 일치, suite별40/56/13/10/10/2를 확인한다.
+원문 manifest가 명시된 row는 snapshot과 일치해야 한다. hash/owner가 어긋난 입력은 거절하고 재해석하지 않는다.
+
+- core40의 `gold.evidence_refs`, answer56의 `evidence_refs`만 source-block anchor로 재사용한다.
+  source_conflict는 positive 근거가 필요한 text case로 남긴다. unknown decision/refs shape는 거절한다.
+- 기존 anchor 전부 owner/locator SHA가 확인될 때만 구조적 `ready`. 일부만 맞으면 전체 case `missing`으로
+  남기고 일치한 일부로 분모를 줄이지 않는다. 없는 위치를 supporting_refs/검색 결과/모델 답변에서 추정하지 않는다.
+- abstain text12와 visual10/analytics10/parser2는 이번 positive source-block recall에 `not_applicable`이다.
+  전문 suite 및 기권 행동 평가는 제거된 것이 아니라 별도 지표 대상이다. set13의 doc qrels는 유지하지만
+  source-block 위치가 없으므로 해당 block metric에는 `missing`이다.
+- ledger: `case_id,suite,source_row_sha256,source_manifest_status,qrel_status,reason,required_anchor_count,
+  required_doc_ids,source_review_status,source_review_sha256,reviewed_draft_sha256,semantic_approval`.
+  `semantic_approval=not_assessed_by_adapter` 고정. source review status는 draft/approved 등 원래 필드만
+  정규화해 기록하고 hash는 원래 검수 객체를 보존한다. 보조69 기존 검수 보고서는 EVAL.4.a/c에서 연결한다.
+  `ready`는 의미 승인이나 공식 비교 허가가 아니다. doc qrel/검수 정보는 evaluator-only이며 request를 생성하지 않는다.
+
+`python -m midprojectrag.stage_inputs --repo-root … --config … --data-root … --bundle … --manifest …
+--blocks-dir … --output-dir …`는 기존 bundle/source snapshot을 검증하고 새 private 디렉터리(0700)에만
+`qrels.jsonl`과 `inventory.json`(0600)을 만든다. inventory를 마지막에 기록하고 qrels file SHA를 봉인한다.
+출력 디렉터리가 이미 있으면 거절한다. 중간 실패 폴더는 자동 덮어쓰기/삭제하지 않으며 완료 receipt 없이는 소비하지 않는다.
+stdout은 status/count/hash만, 오류는 고정 코드만 출력한다. 모델/API/임베딩/runtime request 생성은 0이다.
+
+검증: 전체131/130거절·중복/다른 lane·SHA drift·원문 locator mismatch·부분 근거 제외·gold 본문 비누출·
+기존 질문/답변/검수 객체 불변·CLI private path/exclusive write/0600·기존 evaluator 연결.
+공식 paired subset/승인 freeze와 hard-negative 보강은 .4.c/EXP-SELECT.2.a의 별도 gate다.

@@ -1,7 +1,8 @@
 # EH-RC0 재개 체크포인트
 
-갱신: 2026-09-05 · 사용자 승인으로 검색 비교 선행 큐로 변경. 현재 문서 재구성 cycle,
-다음은 EH2.EVAL.4.a → .4.b. c4.0.e는 기술 READY / 우선순위 대기이며 parent c4.0/d2 PARTIAL 유지.
+갱신: 2026-09-06 · Cycle B EH2.EVAL.4.a/b 완료: 실제 private131, ready30/missing67/not-applicable34.
+다음은 EXP-SELECT.2.a 최소 recorder schema → EH4.7b.1. .4.c 위치 의미 승인은 별도 잔여다.
+c4.0.e는 기술 READY / 우선순위 대기이며 parent c4.0/d2 PARTIAL 유지. `01426df`는 앞선 납품 push다.
 현재 폼: `2026-09-05-search-first-relay.md`. 아래 완료 원장의 '다음'은 당시 이력이며 현재 큐가 우선한다.
 
 ## 중단/애매함 발생 시
@@ -31,6 +32,10 @@
   sealed held-out 실행은 EVAL.4~6에 남아 있으며 EH2 runtime에는 gold 값을 주입하지 않는다.
 - 평가 연결: EH4.7a source resolver/단계 지표/CLI는 집중·관련112 PASS, 실제98문서/20,118블록 검증.
   코드 구현 완료와 실제131 stage 기록·품질 측정 미실행을 구분한다. HTML browser QA는 정책 차단 잔여다.
+- EH2.EVAL.4.a/b: pinned8 입력/131ID·core52 locator join PASS. adapter15·관련65 PASS/독립 APPROVE.
+  새 private 입력 `resources/data_refined/private/evaluation/mini131-stage-inputs-v1-20260906-001` 생성.
+  inventory SHA `d8d2f52bc75419bc8c1da2f81b1bc81f613e735651e66ed8c3c746663df6ff9e`.
+  ready30은 구조적 가용성이다. 보조69 기존 검수와 draft 필드를 구분하며 후보186은 자동 gold 승격하지 않는다.
 - 실행 순서: EVAL.4 입력/위치 → EH4.7b recorder → EH4.7c.1/EXP-SELECT.2.a → EXP-SELECT.3.a/b.
   Controller 전체 완료는 이 retrieval-only 경로의 선행 조건이 아니다. VLM/API/기본 profile은 변경하지 않는다.
 - blocker: 문서/입력 감사에는 없음. 위치 qrel 의미 승인·동결 전 공식 비교/tuning/우승 주장은 보류한다.

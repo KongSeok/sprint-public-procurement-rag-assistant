@@ -415,3 +415,8 @@ Reference:
 - private 인덱스 읽기도 lock 파일 쓰기를 요구한다. 중첩 macOS sandbox 거절도 별도 환경 사유로 기록한다.
 - 실패한 테스트만 승인된 권한으로 재검증하며 최초 전체 실행을 소급해 전부 PASS로 바꾸지 않는다.
 - 참조: `errorlogs/backend/2026-09-06-search-first-test-permissions.md`.
+
+### 기존 골든셋의 위치 가용성과 검수 이력 분리 (2026-09-06)
+
+- source-block ready는 의미 승인이 아니다. 자동 검색 후보·CSV 보조 참조를 확정 qrels로 승격하지 않는다.
+- private 감사는 원문 출력 대신 키/집계/hash만 조회한다. refs: `errorlogs/backend/2026-09-06-stage-inputs-validation.md`.

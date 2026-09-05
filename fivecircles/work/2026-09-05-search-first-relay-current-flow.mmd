@@ -1,6 +1,6 @@
 flowchart LR
-  A["기존131 / 검수 이력 유지"] --> B["큐·소유권·재개 순서 정합화"]
-  B --> C["GAP: 위치 sidecar / recorder"]
+  A["기존131 / 검수 이력 유지"] --> B["입력 sidecar 완료 / ready30·missing67·NA34"]
+  B --> C["GAP: 위치 의미 승인 / 실제 recorder"]
   C -.-> D["resolver·핵심 지표 코드 PASS"]
   D -.-> E["GAP: 실제3종 비교·개선 선택"]
   F["Controller c4.0.e 기술 READY"] -.-> G["우선순위 대기 / 코드 보존"]

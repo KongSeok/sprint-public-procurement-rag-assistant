@@ -20,10 +20,10 @@
 | 4 Implementation | one-go/batch-sequential-runner: 문서만 순차 패치, 앱/모델 변경 없음 | COMPLETED |
 | 5 Validation + Report | ID157 상태 보존·중복0、112 회귀 PASS、독립 APPROVE、PNG2 직접 검토 | PASS_WITH_RISKS: HTML browser BLOCKED |
 | 6 Repair Loop | schema 선행/pre_context_stage와 사전 paired 분모 2건 보완·재리뷰 APPROVE | COMPLETED |
-| 7 Push / Publication | 이번 소유 변경만 선택 stage. resources·기존 사용자 dirty 제외, force 금지 | PENDING |
+| 7 Push / Publication | `01426df` → origin/feat/total-integration. resources·기존 사용자 dirty 제외 | COMPLETED |
 | 8 Closeout Report | Mermaid/PNG/HTML·gap·새 점수표, logall 반영 | COMPLETED / HTML browser BLOCKED |
-| 9 Relay Shot | 다음 `EH2.EVAL.4.a` 입력·위치 가용성 감사, 아래 새 폼 작성 | SELECTED; push 후 시작 |
-| 10 Final Ledger | 문서/검증/푸시/리포트/릴레이의 실제 결과로 갱신 | PENDING |
+| 9 Relay Shot | 다음 `EH2.EVAL.4.a` 입력·위치 가용성 감사, 아래 새 폼으로 착수 | CONTINUE_WITH_NEXT_FORM |
+| 10 Final Ledger | Doc/Implementation/Repair/Push/Report 완료, Validation 위험 명시, 전체 flow GAP/PARTIAL | Cycle A CLOSED_WITH_RISKS |
 
 ### 재구성 완료 기준
 
@@ -73,8 +73,8 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-  A["기존131 / 검수 이력 유지"] --> B["큐·소유권·재개 순서 정합화"]
-  B --> C["GAP: 위치 sidecar / recorder"]
+  A["기존131 / 검수 이력 유지"] --> B["입력 sidecar 완료 / ready30·missing67·NA34"]
+  B --> C["GAP: 위치 의미 승인 / 실제 recorder"]
   C -.-> D["resolver·핵심 지표 코드 PASS"]
   D -.-> E["GAP: 실제3종 비교·개선 선택"]
   F["Controller c4.0.e 기술 READY"] -.-> G["우선순위 대기 / 코드 보존"]
@@ -87,7 +87,7 @@ flowchart LR
 | 기존131·검수 이력 보존 | MATCHED | 문항/답변 파일 무수정, suite 분모 계약 유지 |
 | 실행 큐·책임·복구 경로 | MATCHED | TODO/checkpoint/resume 재구성; 기존 ID 157개 상태 보존 |
 | source join·핵심 채점 코드 | MATCHED | 112 집중·관련 테스트 재실행 PASS; 품질 점수 아님 |
-| 기존 입력 → 위치 sidecar → 실측 recorder | GAP | EVAL.4.a/b/c 및 EH4.7b가 다음 경로 |
+| 기존 입력 → 위치 sidecar → 실측 recorder | PARTIAL | EVAL.4.a/b 완료; 위치 의미 승인 .4.c와 EH4.7b 잔여 |
 | 동결 → 세 구성 비교 → 개선 선택 | GAP | EXP-SELECT.2.a / EH4.7c.1 / EXP-SELECT.3.a/b 미실행 |
 | Controller → 전문 경로·생성/E2E | PARTIAL | 기존 구현 유지; 검색 선행 예외가 E2E gate를 닫지 않음 |
 
@@ -109,17 +109,68 @@ flowchart LR
 
 | 단계 | 실행 내용 | 상태 |
 | --- | --- | --- |
-| 0 Scope Intake | EH2.EVAL.4.a → .4.b, 기존131/검수69 재사용. .4.c 의미 승인은 자동 대체하지 않음 | READY |
+| 0 Scope Intake | EH2.EVAL.4.a → .4.b, 기존131/검수69 재사용. .4.c 의미 승인은 자동 대체하지 않음 | IN_PROGRESS (2026-09-06) |
 | 1 Start Report | 위 target/current의 입력→sidecar GAP, mermaid-flow-report 기준 사용 | COMPLETED |
 | 2 Relay Unit Selection | relay-shot: EVAL.4.a 11점, 최상단 미연결 입력 노드. 기존8source/hash 재검증부터 | SELECTED |
 | 3 Doc / Contract | doc-contract-writer: stage-evaluation-v1 sidecar와 기존 pinned Mini131 config 재사용; closed 가용성 ledger | READY |
-| 4 Implementation | one-go/batch-sequential-runner: .4.a 읽기 감사 후 .4.b adapter/합성 tests를 순차 구현. source/gold 불변 | NOT_STARTED |
-| 5 Validation + Report | 131 ID·suite count,8file SHA, owner/locator, 누락/null, user scope/gold 분리, private exclusive write | READY |
-| 6 Repair Loop | 입력/adapter 검증 실패만 작은 leaf로 수리; 없는 근거 추정 금지 | NOT_NEEDED_YET |
+| 4 Implementation | .4.a 감사·.4.b stage_inputs/합성 tests 구현. source/gold 불변 | COMPLETED |
+| 5 Validation + Report | focused15·관련65·독립 APPROVE, 실제 private131 생성; 원본/모델/API 무변경 | PASS_WITH_RISKS: HTML browser BLOCKED |
+| 6 Repair Loop | 모듈 부재 TDD RED→GREEN. partial qrel·specialized schema·비누출 검증 | COMPLETED |
 | 7 Push / Publication | 승인 범위 코드·계약·집계만 선택 push, private sidecar/trace 제외 | NOT_STARTED |
-| 8 Closeout Report | 같은 원장/HTML에 실제 입력 집계·코드/실측 상태 갱신, logall | NOT_STARTED |
-| 9 Relay Shot | 다음 .4.c의 외부 승인 여부 점검, 준비된 recorder 최소 schema/구현으로 연결 | NOT_STARTED |
-| 10 Final Ledger | 현재는 새 폼만 선택; Cycle A push 성공 후 CONTINUE_WITH_NEXT_FORM로 시작 | READY |
+| 8 Closeout Report | 같은 원장/HTML에 실제 입력 집계·코드/실측 상태 갱신, logall | COMPLETED |
+| 9 Relay Shot | .4.c는 위치 의미 승인 잔여. 병행 가능 최소 recorder schema를 Cycle C로 선택 | SELECTED |
+| 10 Final Ledger | Doc/Implementation/Validation/Repair/Report 완료, 선택 push 진행 | IN_PROGRESS |
 
 브라우저 제약은 Cycle B에서도 유지한다. golden/model 호출 없이 입력 가용성을 먼저 감사한다.
 사람 검수 결과와 ID/hash 통과를 별도 필드로 유지하며 새 gold를 만들어낸 것으로 기록하지 않는다.
+
+### Cycle B 실물 입력 결과 — 2026-09-06
+
+| suite | 전체 | 구조적 ready | 위치 missing | positive block metric 미적용 |
+| --- | --- | --- | --- | --- |
+| core40 | 40 | 30 | 0 | 10 기권 |
+| answer56 | 56 | 0 | 54 | 2 기권 |
+| set13 | 13 | 0 | 13 | 0 |
+| visual10 / analytics10 / parser2 | 22 | 0 | 0 | 22 전용 평가 |
+| 합계 | 131 | 30 | 67 | 34 |
+
+8 source SHA/count·129 RAG+2parser 고유 ID 검증, current98문서/20,118블록 확인.
+core52 refs는33 unique blocks/19문서에 exact join했다. supplemental69는 문서 SHA 참조114개가
+일치하지만 확정 source-block refs는0이다. 별도 검수 후보186개(54문항)는 gold로 승격하지 않았다.
+analytics는 nested calculation_contract, parser는 receipt.artifacts의 manifest SHA를 사용했다.
+
+보조69 검수는 private `resources/shared_team/golden-prom.md`와 `golden-prom-report.md` 및
+`evaluation/private/supplemental/build-v1/review-case-index.jsonl`의69 ID로 확인했다.
+2026-09-01 홍우석 컨펌/11건 수정 기록을 유지한다. 정형 review.status=draft와 별개다.
+private 원문/질답은 이 문서에 복사하지 않는다.
+
+출력: `resources/data_refined/private/evaluation/mini131-stage-inputs-v1-20260906-001`의
+qrels.jsonl + inventory.json. inventory SHA `d8d2f52bc75419bc8c1da2f81b1bc81f613e735651e66ed8c3c746663df6ff9e`.
+`formal_comparison_authorized=false`, model_calls0. **전체131 검색 품질 실측이 아닌 입력 준비 완료**다.
+검증: adapter15·관련65 PASS(3.919초), 독립 review50 PASS/APPROVE, actual CLI prepared.
+실물 파일 SHA·131행·0600·기존8 source SHA 불변·Git 제외 확인. safety913파일·diff-check PASS.
+
+### 갱신된 gap / 다음 점수
+
+| 연결 | 상태 | 다음 작업 / 점수 |
+| --- | --- | --- |
+| 기존131 → closed 입력 adapter | MATCHED(구조적 가용성) | .4.a/b 완료, 의미 승인 아님 |
+| 부족 위치 → 승인된 qrels | PARTIAL | .4.c, 사람 검수 필요; 자동 완료 금지 |
+| 최소 설정 schema → 실제 recorder | GAP | EXP-SELECT.2.a.1 10점(4+3+1+2+0) → EH4.7b.1 9점 |
+| 동결 → 3종 비교 | GAP | 공식 .2.a freeze 및 승인 qrel 뒤 .3.a |
+
+## Cycle C — recorder 최소 설정 계약과 실제 기록 연결
+
+| 단계 | 실행 내용 | 상태 |
+| --- | --- | --- |
+| 0 Scope Intake | EXP-SELECT.2.a.1 최소 schema → EH4.7b.1, local3종·기존 index/source 불변 | READY |
+| 1 Start Report | 위 입력 준비 MATCHED / recorder GAP, mermaid-flow-report의 현재 경로 사용 | COMPLETED |
+| 2 Relay Unit Selection | relay-shot: schema10점이 recorder9점의 선행 노드. .4.c 사람 승인을 대신하지 않음 | SELECTED |
+| 3 Doc / Contract | 구성별 pre_context_stage·query/scope/history·budget/hash·draft/frozen 경계 | READY |
+| 4 Implementation | one-go/batch-sequential-runner: schema 검증 후 raw lane/fusion/context recorder 순차 구현 | NOT_STARTED |
+| 5 Validation + Report | closed schema·동일 query/순서·gold 비주입·raw 단계 역산 금지·offline fixture | READY |
+| 6 Repair Loop | 최소 계약/단계 기록 오류만 집중 수리 | NOT_NEEDED_YET |
+| 7 Push / Publication | 이번 소유 코드/계약/로그만 선택, 실제 trace·private 입력 제외 | NOT_STARTED |
+| 8 Closeout Report | 새 stage 연결과 미실측 경계를 갱신·logall | NOT_STARTED |
+| 9 Relay Shot | b.2 로컬 KURE smoke 가용성 확인, 정식 비교 동결 gate 유지 | NOT_STARTED |
+| 10 Final Ledger | Cycle B 선택 push 이후 CONTINUE_WITH_NEXT_FORM | READY |
