@@ -218,7 +218,7 @@ qrels.jsonl + inventory.json. inventory SHA `d8d2f52bc75419bc8c1da2f81b1bc81f613
 
 | 단계 | 실행 내용 | 상태 |
 | --- | --- | --- |
-| 0 Scope Intake | local-first/feat/total-integration. 131 질문·답변·VLM·index 불변. 모델/API 호출 없음 | READY |
+| 0 Scope Intake | local-first/feat/total-integration. 131 질문·답변·VLM·index 불변. 모델/API 호출 없음 | COMPLETED |
 | 1 Start Report | recorder 실측 MATCHED, 순위 지표·정식 비교 GAP. 최신 Mermaid 경로 참조 | COMPLETED |
 | 2 Relay Unit Selection | relay-shot c.1 8점, Controller4점. 비교 채점의 앞선 연결 선택 | SELECTED |
 | 3 Doc / Contract | unique source anchor와 original-doc 분리, binary IDCG·중복·grouped rank·private inventory 계약/독립 설계 리뷰 | COMPLETED |
@@ -253,17 +253,17 @@ qrels.jsonl + inventory.json. inventory SHA `d8d2f52bc75419bc8c1da2f81b1bc81f613
 
 | 단계 | 실행 내용 | 상태 |
 | --- | --- | --- |
-| 0 Scope Intake | 기존131/검수 이력 불변. 모델0; formal 분모·사람 승인 자동 생성 금지 | READY |
+| 0 Scope Intake | 기존131/검수 이력 불변. 모델0; formal 분모·사람 승인 자동 생성 금지 | COMPLETED |
 | 1 Start Report | 순위 채점 연결 MATCHED / 승인·실행 지원범위 GAP, 최신 target/current 사용 | COMPLETED |
 | 2 Relay Unit Selection | relay-shot 8점: doc-ready와 original request 가용성을 구분하는 선행 감사 | SELECTED |
 | 3 Doc / Contract | config/source/inventory·case 일치, 원래 scope만 사용·token 미검사·승인 미확정 content-free 계약 | COMPLETED |
 | 4 Implementation | private preflight CLI·9회귀·실제 모델0 감사002 완료 | COMPLETED |
 | 5 Validation + Report | 관련127/독립9 PASS·APPROVE. 실제131·원본/입력 불변·0600/Git ignored. browser 기존 BLOCKED | PASS_WITH_RISKS |
 | 6 Repair Loop | 유효한 다른 request가 섞이는 합성 gap 수정. source question/history/scope 직접 비교, 최신002 재검증 | REPAIRED |
-| 7 Push / Publication | 사전 감사 코드·문서·로그만 선택, raw131/private receipt 제외 | READY |
+| 7 Push / Publication | 소유13파일 선택 6617514 → origin/feat/total-integration push 성공. raw131/private 제외 | COMPLETED |
 | 8 Closeout Report | 후보·지원·승인·공식분모 및 현재PNG 갱신. logall/다음 결정 기록 | UPDATED |
 | 9 Relay Shot | .ii는 사용자 선택/승인 필요. set13 제외·범위 변경·공식 qrel 승인·threshold를 임의 확정하지 않음 | STOP_WITH_REASON |
-| 10 Final Ledger | Cycle E/F 실행 완료. 현재 비교 큐는 사용자 결정 대기, Controller는 별도 기술READY/우선순위 대기 유지 | CLOSED_WITH_RISKS |
+| 10 Final Ledger | Doc/Implementation/Test/Logall/Push 완료. 비교 큐는 사용자 결정 대기, Controller 기술READY/우선순위 대기 | CLOSED_WITH_RISKS |
 
 ### Cycle F 감사 결과 — 전체131 유지
 
