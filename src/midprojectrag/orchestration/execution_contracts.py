@@ -15660,6 +15660,904 @@ def validate_absence_confirmation_receipt(
         raise ValueError("absence_confirmation_runtime_authority_drift")
 
 
+# EH2.6.c4.0.b closed source/outcome projection ------------------------------
+
+_CONTROLLER_SOURCE_RECEIPT_KINDS = frozenset(
+    {
+        "lane_search",
+        "fusion",
+        "parent_context",
+        "bridge_context",
+        "rerank",
+        "semantic_verification",
+        "absence_confirmation",
+        "controller_decision",
+    }
+)
+_CONTROLLER_SOURCE_OUTCOME_ROWS = frozenset(
+    {
+        ("retrieve_dense", "lane_search", "applied", True),
+        ("retrieve_dense", "lane_search", "empty", True),
+        ("retrieve_dense", "lane_search", "provider_error", True),
+        ("retrieve_dense", "lane_search", "contract_error", False),
+        ("retrieve_dense", "lane_search", "contract_error", True),
+        ("retrieve_lexical", "lane_search", "applied", True),
+        ("retrieve_lexical", "lane_search", "empty", True),
+        ("retrieve_lexical", "lane_search", "provider_error", True),
+        ("retrieve_lexical", "lane_search", "contract_error", False),
+        ("retrieve_lexical", "lane_search", "contract_error", True),
+        ("fuse", "fusion", "applied", True),
+        ("fuse", "fusion", "empty", True),
+        ("expand_parent", "parent_context", "applied", True),
+        ("bridge_table", "bridge_context", "applied", True),
+        ("bridge_table", "bridge_context", "empty", True),
+        ("bridge_figure", "bridge_context", "applied", True),
+        ("bridge_figure", "bridge_context", "empty", True),
+        ("rerank", "rerank", "applied", True),
+        ("rerank", "rerank", "unavailable", False),
+        ("rerank", "rerank", "provider_error", True),
+        ("rerank", "rerank", "contract_error", True),
+        ("verify_slot", "semantic_verification", "applied", True),
+        ("verify_slot", "semantic_verification", "unsupported", True),
+        ("verify_slot", "semantic_verification", "unavailable", False),
+        ("verify_slot", "absence_confirmation", "empty", False),
+        ("stop", "controller_decision", "terminal", False),
+        ("abstain", "controller_decision", "terminal", False),
+    }
+)
+
+
+class _ControllerSourceOutcomeProjection:
+    """Immutable, non-authorizing projection of one exact live source receipt."""
+
+    __slots__ = (
+        "execution",
+        "decision",
+        "selected_action",
+        "source_owner",
+        "source_receipt",
+        "source_kind",
+        "source_receipt_kind",
+        "source_receipt_sha256",
+        "native_outcome",
+        "outcome",
+        "ordered_evidence_ids",
+        "parent_context_receipt_sha256s",
+        "bridge_context_receipt_sha256s",
+        "absence_confirmation_sha256",
+        "call_performed",
+        "__weakref__",
+    )
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        raise TypeError("controller_source_outcome_resolver_required")
+
+    def __setattr__(self, name: str, value: object) -> None:
+        raise AttributeError("controller_source_outcome_immutable")
+
+    def __delattr__(self, name: str) -> None:
+        raise AttributeError("controller_source_outcome_immutable")
+
+    def __repr__(self) -> str:
+        return "_ControllerSourceOutcomeProjection(<redacted>)"
+
+    def __copy__(self) -> object:
+        raise TypeError("controller_source_outcome_copy_forbidden")
+
+    def __deepcopy__(self, memo: object) -> object:
+        raise TypeError("controller_source_outcome_copy_forbidden")
+
+    def __reduce__(self) -> object:
+        raise TypeError("controller_source_outcome_pickle_forbidden")
+
+    def __reduce_ex__(self, protocol: int) -> object:
+        raise TypeError("controller_source_outcome_pickle_forbidden")
+
+
+
+def _validate_controller_source_outcome_projection_shape(
+    projection: _ControllerSourceOutcomeProjection,
+) -> None:
+    if type(projection) is not _ControllerSourceOutcomeProjection:
+        raise TypeError("controller_source_outcome_projection_required")
+    if (
+        type(projection.execution) is not HarnessExecution
+        or type(projection.decision) is not ControllerDecisionReceipt
+        or projection.selected_action is not projection.decision.selected_action
+        or type(projection.source_owner) is not _ControllerSourceOwnerAuthority
+        or type(projection.source_kind) is not str
+        or projection.source_kind not in {"fact", "compare", "follow_up"}
+        or projection.source_receipt_kind
+        not in _CONTROLLER_SOURCE_RECEIPT_KINDS
+        or type(projection.source_receipt_sha256) is not str
+        or len(projection.source_receipt_sha256) != 64
+        or type(projection.native_outcome) is not str
+        or type(projection.outcome) is not str
+        or type(projection.ordered_evidence_ids) is not tuple
+        or any(
+            type(item) is not str or not item
+            for item in projection.ordered_evidence_ids
+        )
+        or len(projection.ordered_evidence_ids)
+        != len(set(projection.ordered_evidence_ids))
+        or type(projection.parent_context_receipt_sha256s) is not tuple
+        or any(
+            type(item) is not str or len(item) != 64
+            for item in projection.parent_context_receipt_sha256s
+        )
+        or type(projection.bridge_context_receipt_sha256s) is not tuple
+        or any(
+            type(item) is not str or len(item) != 64
+            for item in projection.bridge_context_receipt_sha256s
+        )
+        or (
+            projection.absence_confirmation_sha256 is not None
+            and (
+                type(projection.absence_confirmation_sha256) is not str
+                or len(projection.absence_confirmation_sha256) != 64
+            )
+        )
+        or type(projection.call_performed) is not bool
+    ):
+        raise ValueError("invalid_controller_source_outcome_projection")
+
+
+def _build_controller_source_outcome_projection_authority():
+    authority_lock = Lock()
+    get_frame = _GET_FRAME
+    code_type = CodeType
+    authorities: dict[int, tuple[object, ...]] = {}
+    cache: dict[tuple[object, ...], ReferenceType[object]] = {}
+    known_keys: set[tuple[object, ...]] = set()
+    authorized_caller_code: CodeType | None = None
+    value_names = tuple(
+        name
+        for name in _ControllerSourceOutcomeProjection.__slots__
+        if name != "__weakref__"
+    )
+
+    def key_for(values: tuple[tuple[str, object], ...]) -> tuple[object, ...]:
+        supplied = dict(values)
+        execution = supplied["execution"]
+        decision = supplied["decision"]
+        source_receipt = supplied["source_receipt"]
+        return (
+            "controller-source-outcome-v1",
+            id(execution),
+            object.__getattribute__(execution, "execution_identity_sha256"),
+            id(decision),
+            object.__getattribute__(decision, "decision_sha256"),
+            id(source_receipt),
+            supplied["source_receipt_sha256"],
+        )
+
+    def exact_values(
+        projection: _ControllerSourceOutcomeProjection,
+    ) -> tuple[object, ...]:
+        return tuple(
+            object.__getattribute__(projection, name) for name in value_names
+        )
+
+    def matches(
+        actual: tuple[object, ...], expected: tuple[object, ...]
+    ) -> bool:
+        return all(
+            (
+                current is issued
+                if index < 5
+                else type(current) is type(issued) and current == issued
+            )
+            for index, (current, issued) in enumerate(zip(actual, expected))
+        )
+
+    def read_unlocked(
+        projection: _ControllerSourceOutcomeProjection,
+    ) -> tuple[object, ...]:
+        current = authorities.get(id(projection))
+        if (
+            type(current) is not tuple
+            or len(current) != 2
+            or current[0]() is not projection
+            or type(current[1]) is not tuple
+            or not matches(exact_values(projection), current[1])
+        ):
+            raise ValueError(
+                "controller_source_outcome_projection_authority_required"
+            )
+        _validate_controller_source_outcome_projection_shape(projection)
+        return current
+
+    def drop(
+        identity: int, dead: ReferenceType[_ControllerSourceOutcomeProjection]
+    ) -> None:
+        with authority_lock:
+            current = authorities.get(identity)
+            if type(current) is tuple and current[0] is dead:
+                authorities.pop(identity, None)
+
+    def issue(
+        values: tuple[tuple[str, object], ...],
+    ) -> _ControllerSourceOutcomeProjection:
+        if get_frame(1).f_code is not authorized_caller_code:
+            raise ValueError(
+                "controller_source_outcome_resolver_authority_required"
+            )
+        if (
+            type(values) is not tuple
+            or tuple(name for name, _value in values) != value_names
+        ):
+            raise ValueError("invalid_controller_source_outcome_projection")
+        key = key_for(values)
+        expected = tuple(value for _name, value in values)
+        with authority_lock:
+            cached_weak = cache.get(key)
+            if cached_weak is not None:
+                cached = cached_weak()
+                if cached is None:
+                    raise ValueError(
+                        "controller_source_outcome_projection_remint_forbidden"
+                    )
+                read_unlocked(cached)
+                if not matches(exact_values(cached), expected):
+                    raise ValueError(
+                        "controller_source_outcome_projection_history_drift"
+                    )
+                return cached
+            if key in known_keys:
+                raise ValueError(
+                    "controller_source_outcome_projection_history_drift"
+                )
+            projection = object.__new__(_ControllerSourceOutcomeProjection)
+            for name, value in values:
+                object.__setattr__(projection, name, value)
+            _validate_controller_source_outcome_projection_shape(projection)
+            identity = id(projection)
+            projection_weak = ref(
+                projection,
+                lambda dead, identity=identity: drop(identity, dead),
+            )
+            record = (projection_weak, exact_values(projection))
+            authorities[identity] = record
+            cache[key] = projection_weak
+            known_keys.add(key)
+            return projection
+
+    def read(
+        projection: _ControllerSourceOutcomeProjection,
+    ) -> tuple[object, ...]:
+        with authority_lock:
+            return read_unlocked(projection)
+
+    def seal_issuer(caller_code: CodeType) -> None:
+        nonlocal authorized_caller_code
+        if (
+            type(caller_code) is not code_type
+            or authorized_caller_code is not None
+        ):
+            raise ValueError(
+                "controller_source_outcome_issuer_seal_forbidden"
+            )
+        authorized_caller_code = caller_code
+
+    return issue, read, seal_issuer
+
+
+(
+    _issue_controller_source_outcome_projection,
+    _read_controller_source_outcome_projection_authority,
+    _seal_controller_source_outcome_projection_issuer,
+) = _build_controller_source_outcome_projection_authority()
+del _build_controller_source_outcome_projection_authority
+
+
+def _resolve_controller_source_outcome_impl(
+    *,
+    execution: HarnessExecution,
+    decision: ControllerDecisionReceipt,
+    source_receipt: object,
+    store: EvidenceStore,
+    config: HarnessExecutionConfig,
+    runtime: HarnessRuntimeBinding,
+) -> _ControllerSourceOutcomeProjection:
+    """Resolve a live receipt without minting effects or performing calls."""
+
+    _ISSUED_RUNTIME_GATE_DEPENDENCY_CHECKER()
+    validate_controller_decision_receipt(
+        receipt=decision,
+        execution=execution,
+        store=store,
+        config=config,
+        runtime=runtime,
+    )
+    source_owner = _require_controller_source_owner(
+        execution=execution,
+        store=store,
+        config=config,
+        runtime=runtime,
+    )
+    selected_action = object.__getattribute__(decision, "selected_action")
+    action_kind = object.__getattribute__(selected_action, "kind")
+    action_obligation_key = object.__getattribute__(
+        selected_action, "obligation_key"
+    )
+    action_target_evidence_id = object.__getattribute__(
+        selected_action, "target_evidence_id"
+    )
+
+    source_receipt_kind: str
+    source_receipt_sha256: str
+    native_outcome: str
+    outcome: str
+    ordered_evidence_ids: tuple[str, ...]
+    parent_context_receipt_sha256s: tuple[str, ...] = ()
+    bridge_context_receipt_sha256s: tuple[str, ...] = ()
+    absence_confirmation_sha256: str | None = None
+    call_performed: bool
+    root_source: object
+    resolved_obligation_key: str | None
+    resolved_target_evidence_id: str | None = None
+
+    if type(source_receipt) is LaneSearchReceipt:
+        authority = _read_lane_search_receipt_authority(source_receipt)
+        obligation = object.__getattribute__(authority, "obligation")
+        validate_lane_search_receipt(
+            receipt=source_receipt,
+            obligation=obligation,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+        obligation_authority = _require_retrieval_obligation_authority(
+            obligation
+        )
+        root_source = object.__getattribute__(obligation_authority, "source")
+        lane = object.__getattribute__(source_receipt, "lane")
+        if action_kind != f"retrieve_{lane}":
+            raise ValueError("controller_source_outcome_action_mismatch")
+        source_receipt_kind = "lane_search"
+        source_receipt_sha256 = object.__getattribute__(
+            source_receipt, "receipt_sha256"
+        )
+        native_outcome = object.__getattribute__(source_receipt, "outcome")
+        outcome = native_outcome
+        ordered_evidence_ids = object.__getattribute__(
+            source_receipt, "ordered_evidence_ids"
+        )
+        call_performed = object.__getattribute__(
+            source_receipt, "call_performed"
+        )
+        resolved_obligation_key = object.__getattribute__(
+            obligation, "obligation_key"
+        )
+    elif type(source_receipt) is FusionReceipt:
+        authority = _read_fusion_receipt_authority(source_receipt)
+        obligation = object.__getattribute__(authority, "obligation")
+        validate_fusion_receipt(
+            receipt=source_receipt,
+            obligation=obligation,
+            dense_receipt=object.__getattribute__(authority, "dense_receipt"),
+            lexical_receipt=object.__getattribute__(authority, "lexical_receipt"),
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+        root_source = object.__getattribute__(
+            _require_retrieval_obligation_authority(obligation), "source"
+        )
+        source_receipt_kind = "fusion"
+        source_receipt_sha256 = object.__getattribute__(
+            source_receipt, "receipt_sha256"
+        )
+        native_outcome = object.__getattribute__(source_receipt, "outcome")
+        outcome = native_outcome
+        ordered_evidence_ids = object.__getattribute__(
+            source_receipt, "ordered_evidence_ids"
+        )
+        call_performed = object.__getattribute__(
+            source_receipt, "call_performed"
+        )
+        resolved_obligation_key = object.__getattribute__(
+            obligation, "obligation_key"
+        )
+    elif type(source_receipt) in {ParentContextReceipt, BridgeContextReceipt}:
+        is_parent = type(source_receipt) is ParentContextReceipt
+        authority = (
+            _read_parent_context_receipt_authority(source_receipt)
+            if is_parent
+            else _read_bridge_context_receipt_authority(source_receipt)
+        )
+        obligation = _cached_semantic_obligation(
+            object.__getattribute__(authority, "semantic_issuance_key")
+        )
+        if obligation is None:
+            raise ValueError(
+                "controller_source_outcome_semantic_authority_required"
+            )
+        if is_parent:
+            validate_parent_context_receipt(
+                receipt=source_receipt,
+                obligation=obligation,
+                store=store,
+                config=config,
+                runtime=runtime,
+            )
+            source_receipt_kind = "parent_context"
+            native_outcome = "applied"
+            outcome = "applied"
+            ordered_evidence_ids = ()
+            parent_context_receipt_sha256s = (
+                object.__getattribute__(source_receipt, "receipt_sha256"),
+            )
+            expected_action_kind = "expand_parent"
+        else:
+            validate_bridge_context_receipt(
+                receipt=source_receipt,
+                obligation=obligation,
+                store=store,
+                config=config,
+                runtime=runtime,
+            )
+            source_receipt_kind = "bridge_context"
+            native_outcome = object.__getattribute__(source_receipt, "outcome")
+            outcome = native_outcome
+            ordered_evidence_ids = object.__getattribute__(
+                source_receipt, "linked_evidence_ids"
+            )
+            bridge_context_receipt_sha256s = (
+                object.__getattribute__(source_receipt, "receipt_sha256"),
+            )
+            expected_action_kind = (
+                "bridge_table"
+                if object.__getattribute__(source_receipt, "bridge_kind")
+                == "table"
+                else "bridge_figure"
+            )
+        if action_kind != expected_action_kind:
+            raise ValueError("controller_source_outcome_action_mismatch")
+        semantic_authority = _read_semantic_obligation_authority(obligation)
+        root_source = object.__getattribute__(semantic_authority, "source")
+        source_receipt_sha256 = object.__getattribute__(
+            source_receipt, "receipt_sha256"
+        )
+        call_performed = True
+        resolved_obligation_key = object.__getattribute__(
+            obligation, "obligation_key"
+        )
+        resolved_target_evidence_id = object.__getattribute__(
+            source_receipt, "seed_evidence_id"
+        )
+    elif type(source_receipt) is RerankReceipt:
+        authority = _read_rerank_receipt_authority(source_receipt)
+        obligation = _cached_semantic_obligation(
+            object.__getattribute__(authority, "semantic_issuance_key")
+        )
+        if obligation is None:
+            raise ValueError(
+                "controller_source_outcome_semantic_authority_required"
+            )
+        parent_receipts = object.__getattribute__(authority, "parent_receipts")
+        bridge_receipts = object.__getattribute__(authority, "bridge_receipts")
+        validate_rerank_receipt(
+            receipt=source_receipt,
+            obligation=obligation,
+            parent_receipts=parent_receipts,
+            bridge_receipts=bridge_receipts,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+        semantic_authority = _read_semantic_obligation_authority(obligation)
+        root_source = object.__getattribute__(semantic_authority, "source")
+        source_receipt_kind = "rerank"
+        source_receipt_sha256 = object.__getattribute__(
+            source_receipt, "receipt_sha256"
+        )
+        native_outcome = object.__getattribute__(source_receipt, "outcome")
+        outcome = (
+            "unavailable"
+            if native_outcome == "skipped_unavailable"
+            else native_outcome
+        )
+        ordered_evidence_ids = object.__getattribute__(
+            source_receipt, "ordered_evidence_ids"
+        )
+        parent_context_receipt_sha256s = object.__getattribute__(
+            source_receipt, "parent_context_receipt_sha256s"
+        )
+        bridge_context_receipt_sha256s = object.__getattribute__(
+            source_receipt, "bridge_context_receipt_sha256s"
+        )
+        call_performed = object.__getattribute__(
+            source_receipt, "call_performed"
+        )
+        resolved_obligation_key = object.__getattribute__(
+            obligation, "obligation_key"
+        )
+    elif type(source_receipt) is SemanticVerificationReceipt:
+        authority = _read_semantic_receipt_authority(source_receipt)
+        obligation = object.__getattribute__(authority, "obligation")
+        validate_semantic_verification_receipt(
+            receipt=source_receipt,
+            obligation=obligation,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+        semantic_authority = _read_semantic_obligation_authority(obligation)
+        root_source = object.__getattribute__(semantic_authority, "source")
+        source_receipt_kind = "semantic_verification"
+        source_receipt_sha256 = object.__getattribute__(
+            source_receipt, "receipt_sha256"
+        )
+        native_outcome = object.__getattribute__(
+            source_receipt, "disposition"
+        )
+        outcome = (
+            "applied"
+            if native_outcome in {"supported", "contradicted"}
+            else native_outcome
+        )
+        ordered_evidence_ids = (
+            object.__getattribute__(source_receipt, "verified_evidence_ids")
+            if native_outcome == "supported"
+            else object.__getattribute__(
+                source_receipt, "contradicted_evidence_ids"
+            )
+            if native_outcome == "contradicted"
+            else ()
+        )
+        parent_context_receipt_sha256s = object.__getattribute__(
+            obligation, "parent_context_receipt_sha256s"
+        )
+        bridge_context_receipt_sha256s = object.__getattribute__(
+            obligation, "bridge_context_receipt_sha256s"
+        )
+        call_performed = object.__getattribute__(
+            source_receipt, "call_performed"
+        )
+        resolved_obligation_key = object.__getattribute__(
+            obligation, "obligation_key"
+        )
+    elif type(source_receipt) is AbsenceConfirmationReceipt:
+        validate_absence_confirmation_receipt(
+            receipt=source_receipt,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+        authority = _find_absence_confirmation_authority(source_receipt)
+        if any(
+            weak() is None
+            for weak in object.__getattribute__(
+                authority, "prerequisite_weaks"
+            )
+        ):
+            raise ValueError(
+                "controller_source_outcome_absence_prerequisite_required"
+            )
+        root_source = object.__getattribute__(authority, "root_weak")()
+        if root_source is None:
+            raise ValueError("controller_source_outcome_root_required")
+        source_receipt_kind = "absence_confirmation"
+        source_receipt_sha256 = object.__getattribute__(
+            source_receipt, "receipt_sha256"
+        )
+        native_outcome = object.__getattribute__(source_receipt, "reason")
+        outcome = "empty"
+        ordered_evidence_ids = ()
+        absence_confirmation_sha256 = source_receipt_sha256
+        call_performed = False
+        resolved_obligation_key = object.__getattribute__(
+            source_receipt, "obligation_key"
+        )
+    elif type(source_receipt) is ControllerDecisionReceipt:
+        if source_receipt is not decision or action_kind not in {"stop", "abstain"}:
+            raise ValueError("controller_source_outcome_action_mismatch")
+        root_source = object.__getattribute__(source_owner, "source")
+        source_receipt_kind = "controller_decision"
+        source_receipt_sha256 = object.__getattribute__(
+            source_receipt, "decision_sha256"
+        )
+        native_outcome = "terminal"
+        outcome = "terminal"
+        ordered_evidence_ids = ()
+        call_performed = False
+        resolved_obligation_key = None
+    else:
+        raise TypeError("controller_source_receipt_required")
+
+    if root_source is not object.__getattribute__(source_owner, "source"):
+        raise ValueError("controller_source_outcome_owner_identity_mismatch")
+    if (
+        resolved_obligation_key != action_obligation_key
+        or resolved_target_evidence_id != action_target_evidence_id
+    ):
+        raise ValueError("controller_source_outcome_action_target_mismatch")
+    if (
+        action_kind,
+        source_receipt_kind,
+        outcome,
+        call_performed,
+    ) not in _CONTROLLER_SOURCE_OUTCOME_ROWS:
+        raise ValueError("controller_source_outcome_row_forbidden")
+
+    return _issue_controller_source_outcome_projection(
+        values=(
+            ("execution", execution),
+            ("decision", decision),
+            ("selected_action", selected_action),
+            ("source_owner", source_owner),
+            ("source_receipt", source_receipt),
+            (
+                "source_kind",
+                object.__getattribute__(source_owner, "source_kind"),
+            ),
+            ("source_receipt_kind", source_receipt_kind),
+            ("source_receipt_sha256", source_receipt_sha256),
+            ("native_outcome", native_outcome),
+            ("outcome", outcome),
+            ("ordered_evidence_ids", ordered_evidence_ids),
+            (
+                "parent_context_receipt_sha256s",
+                parent_context_receipt_sha256s,
+            ),
+            (
+                "bridge_context_receipt_sha256s",
+                bridge_context_receipt_sha256s,
+            ),
+            (
+                "absence_confirmation_sha256",
+                absence_confirmation_sha256,
+            ),
+            ("call_performed", call_performed),
+        ),
+    )
+
+
+_seal_controller_source_outcome_projection_issuer(
+    object.__getattribute__(
+        _resolve_controller_source_outcome_impl,
+        "__code__",
+    )
+)
+del _seal_controller_source_outcome_projection_issuer
+
+
+def _close_controller_source_outcome_resolver(implementation: FunctionType):
+    module = globals()
+    dependency_names = tuple(
+        sorted(
+            name
+            for name in object.__getattribute__(implementation, "__code__").co_names
+            if name in module and name != "_resolve_controller_source_outcome_impl"
+        )
+    )
+    global_pins = tuple((name, module[name]) for name in dependency_names)
+    callable_pins = tuple(
+        (
+            name,
+            value,
+            object.__getattribute__(value, "__code__"),
+            object.__getattribute__(value, "__defaults__"),
+            object.__getattribute__(value, "__kwdefaults__"),
+            object.__getattribute__(value, "__globals__"),
+            object.__getattribute__(value, "__closure__"),
+            tuple(
+                cell.cell_contents
+                for cell in (object.__getattribute__(value, "__closure__") or ())
+            ),
+        )
+        for name, value in global_pins
+        if type(value) is FunctionType
+    )
+    implementation_pin = (
+        object.__getattribute__(implementation, "__code__"),
+        object.__getattribute__(implementation, "__defaults__"),
+        object.__getattribute__(implementation, "__kwdefaults__"),
+        object.__getattribute__(implementation, "__globals__"),
+        object.__getattribute__(implementation, "__closure__"),
+    )
+    implementation_closure_contents = tuple(
+        cell.cell_contents
+        for cell in (implementation_pin[4] or ())
+    )
+
+    def validate_dependencies() -> None:
+        if (
+            object.__getattribute__(implementation, "__code__")
+            is not implementation_pin[0]
+            or object.__getattribute__(implementation, "__defaults__")
+            is not implementation_pin[1]
+            or object.__getattribute__(implementation, "__kwdefaults__")
+            is not implementation_pin[2]
+            or object.__getattribute__(implementation, "__globals__")
+            is not implementation_pin[3]
+            or object.__getattribute__(implementation, "__closure__")
+            is not implementation_pin[4]
+            or any(
+                cell.cell_contents is not issued
+                for cell, issued in zip(
+                    implementation_pin[4] or (),
+                    implementation_closure_contents,
+                )
+            )
+        ):
+            raise ValueError("controller_source_outcome_dependency_drift")
+        for name, issued in global_pins:
+            if module.get(name) is not issued:
+                raise ValueError("controller_source_outcome_dependency_drift")
+        for (
+            name,
+            function,
+            code,
+            defaults,
+            kwdefaults,
+            globals_state,
+            closure,
+            closure_contents,
+        ) in callable_pins:
+            current_closure = object.__getattribute__(function, "__closure__")
+            if (
+                object.__getattribute__(function, "__code__") is not code
+                or (
+                    name != "_ISSUED_RUNTIME_GATE_DEPENDENCY_CHECKER"
+                    and object.__getattribute__(function, "__defaults__")
+                    is not defaults
+                )
+                or object.__getattribute__(function, "__kwdefaults__")
+                is not kwdefaults
+                or object.__getattribute__(function, "__globals__")
+                is not globals_state
+                or current_closure is not closure
+                or len(current_closure or ()) != len(closure_contents)
+                or any(
+                    cell.cell_contents is not issued
+                    for cell, issued in zip(
+                        current_closure or (), closure_contents
+                    )
+                )
+            ):
+                raise ValueError("controller_source_outcome_dependency_drift")
+
+    def resolve_controller_source_outcome(
+        *,
+        execution: HarnessExecution,
+        decision: ControllerDecisionReceipt,
+        source_receipt: object,
+        store: EvidenceStore,
+        config: HarnessExecutionConfig,
+        runtime: HarnessRuntimeBinding,
+    ) -> _ControllerSourceOutcomeProjection:
+        validate_dependencies()
+        return implementation(
+            execution=execution,
+            decision=decision,
+            source_receipt=source_receipt,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+
+    resolve_controller_source_outcome.__name__ = (
+        "_resolve_controller_source_outcome"
+    )
+    resolve_controller_source_outcome.__qualname__ = (
+        "_resolve_controller_source_outcome"
+    )
+    return resolve_controller_source_outcome
+
+
+_resolve_controller_source_outcome = _close_controller_source_outcome_resolver(
+    _resolve_controller_source_outcome_impl
+)
+del _resolve_controller_source_outcome_impl
+del _close_controller_source_outcome_resolver
+
+
+def _close_controller_source_outcome_projection_reader(
+    *,
+    authority_reader: FunctionType,
+    resolver: FunctionType,
+    dependency_checker: FunctionType,
+):
+    read_attribute = object.__getattribute__
+    function_pins = tuple(
+        (
+            name,
+            function,
+            read_attribute(function, "__code__"),
+            read_attribute(function, "__defaults__"),
+            read_attribute(function, "__kwdefaults__"),
+            read_attribute(function, "__globals__"),
+            read_attribute(function, "__closure__"),
+            tuple(
+                cell.cell_contents
+                for cell in (read_attribute(function, "__closure__") or ())
+            ),
+        )
+        for name, function in (
+            ("authority_reader", authority_reader),
+            ("resolver", resolver),
+            ("dependency_checker", dependency_checker),
+        )
+    )
+
+    def require_controller_source_outcome_projection(
+        *,
+        projection: _ControllerSourceOutcomeProjection,
+        store: EvidenceStore,
+        config: HarnessExecutionConfig,
+        runtime: HarnessRuntimeBinding,
+    ) -> _ControllerSourceOutcomeProjection:
+        """Re-resolve a sealed projection; lookalikes never authorize."""
+
+        for (
+            name,
+            function,
+            code,
+            defaults,
+            kwdefaults,
+            globals_state,
+            closure,
+            closure_contents,
+        ) in function_pins:
+            current_closure = read_attribute(function, "__closure__")
+            if (
+                read_attribute(function, "__code__") is not code
+                or (
+                    name != "dependency_checker"
+                    and read_attribute(function, "__defaults__") is not defaults
+                )
+                or read_attribute(function, "__kwdefaults__") is not kwdefaults
+                or read_attribute(function, "__globals__") is not globals_state
+                or current_closure is not closure
+                or len(current_closure or ()) != len(closure_contents)
+                or any(
+                    cell.cell_contents is not issued
+                    for cell, issued in zip(
+                        current_closure or (), closure_contents
+                    )
+                )
+            ):
+                raise ValueError(
+                    "controller_source_outcome_dependency_drift"
+                )
+        dependency_checker()
+        authority_reader(projection)
+        current = resolver(
+            execution=read_attribute(projection, "execution"),
+            decision=read_attribute(projection, "decision"),
+            source_receipt=read_attribute(projection, "source_receipt"),
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+        if current is not projection:
+            raise ValueError(
+                "controller_source_outcome_projection_identity_mismatch"
+            )
+        return projection
+
+    require_controller_source_outcome_projection.__name__ = (
+        "_require_controller_source_outcome_projection"
+    )
+    require_controller_source_outcome_projection.__qualname__ = (
+        "_require_controller_source_outcome_projection"
+    )
+    return require_controller_source_outcome_projection
+
+
+_require_controller_source_outcome_projection = (
+    _close_controller_source_outcome_projection_reader(
+        authority_reader=_read_controller_source_outcome_projection_authority,
+        resolver=_resolve_controller_source_outcome,
+        dependency_checker=_ISSUED_RUNTIME_GATE_DEPENDENCY_CHECKER,
+    )
+)
+del _close_controller_source_outcome_projection_reader
+del _read_controller_source_outcome_projection_authority
+
+
 (
     _claim_e0_execution,
     _close_e0_execution,
@@ -16321,6 +17219,30 @@ _RUNTIME_GATE_FUNCTION_PINS = tuple(
             "validate_absence_confirmation_receipt",
             validate_absence_confirmation_receipt,
         ),
+        (
+            "validate_controller_decision_receipt",
+            validate_controller_decision_receipt,
+        ),
+        (
+            "_require_controller_source_owner",
+            _require_controller_source_owner,
+        ),
+        (
+            "_validate_controller_source_outcome_projection_shape",
+            _validate_controller_source_outcome_projection_shape,
+        ),
+        (
+            "_issue_controller_source_outcome_projection",
+            _issue_controller_source_outcome_projection,
+        ),
+        (
+            "_resolve_controller_source_outcome",
+            _resolve_controller_source_outcome,
+        ),
+        (
+            "_require_controller_source_outcome_projection",
+            _require_controller_source_outcome_projection,
+        ),
     )
 )
 _ISSUED_RUNTIME_GATE_FUNCTION_PINS = _RUNTIME_GATE_FUNCTION_PINS
@@ -16419,6 +17341,18 @@ _RUNTIME_GATE_OBJECT_PINS = (
         type,
     ),
     ("Candidate", Candidate, type),
+    ("HarnessExecution", HarnessExecution, type),
+    ("ControllerDecisionReceipt", ControllerDecisionReceipt, type),
+    (
+        "_ControllerSourceOwnerAuthority",
+        _ControllerSourceOwnerAuthority,
+        type,
+    ),
+    (
+        "_ControllerSourceOutcomeProjection",
+        _ControllerSourceOutcomeProjection,
+        type,
+    ),
     ("SearchResult", SearchResult, type),
     ("ResolvedScope", ResolvedScope, type),
     ("Lock", Lock, type(Lock)),
@@ -16623,6 +17557,16 @@ _RUNTIME_GATE_OBJECT_PINS = (
     ("_SEMANTIC_ROLES", _SEMANTIC_ROLES, frozenset),
     ("_SEMANTIC_DISPOSITIONS", _SEMANTIC_DISPOSITIONS, frozenset),
     ("_ABSENCE_REASONS", _ABSENCE_REASONS, frozenset),
+    (
+        "_CONTROLLER_SOURCE_RECEIPT_KINDS",
+        _CONTROLLER_SOURCE_RECEIPT_KINDS,
+        frozenset,
+    ),
+    (
+        "_CONTROLLER_SOURCE_OUTCOME_ROWS",
+        _CONTROLLER_SOURCE_OUTCOME_ROWS,
+        frozenset,
+    ),
     ("_CONTEXT_BRIDGE_KIND_PAIRS", _CONTEXT_BRIDGE_KIND_PAIRS, tuple),
     ("_CONTEXT_PENDING", _CONTEXT_PENDING, object),
     ("_CONTEXT_COMPLETED", _CONTEXT_COMPLETED, object),
@@ -17087,6 +18031,19 @@ _RUNTIME_GATE_CLASS_PINS = (
         ),
     ),
     _runtime_gate_class_pin(_AbsenceConfirmationAuthority, ("__init__",)),
+    _runtime_gate_class_pin(
+        _ControllerSourceOutcomeProjection,
+        (
+            "__init__",
+            "__setattr__",
+            "__delattr__",
+            "__repr__",
+            "__copy__",
+            "__deepcopy__",
+            "__reduce__",
+            "__reduce_ex__",
+        ),
+    ),
 )
 _ISSUED_RUNTIME_GATE_CLASS_PINS = _RUNTIME_GATE_CLASS_PINS
 _RUNTIME_GATE_DEPENDENCY_DEFAULTS = (

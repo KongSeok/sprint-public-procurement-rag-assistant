@@ -1067,6 +1067,19 @@ parent/child 혼합, 골든 값 의존을 검출한다. 정확한 새 파일/메
   c4.0.a 구현은 raw `HarnessState._create`에서 source-owner 인자를 제거하고 state 생성+owner 등록을 하나의
   closure-held boundary로 묶는다. registrar/reader module alias는 초기화 후 삭제하며 owner→origin-state mirror는
   state hash가 아니라 exact identity와 owner 수명 tombstone으로 재사용을 차단한다.
+- c4.0.b는 private `_resolve_controller_source_outcome(execution, decision, source_receipt, store, config, runtime)`
+  하나로 lane/fusion/parent/bridge/rerank/semantic/absence/decision의 exact live authority를 역참조한다. caller는
+  source kind, outcome, evidence/context/absence ID, call flag 또는 hash를 공급하지 않는다. resolver는 exact
+  decision permit과 c4.0.a source owner를 먼저 검증하고, receipt authority에서 obligation과 선행 receipt를 복구해
+  기존 validator를 재사용한 뒤 selected action의 kind·obligation·target과 exact root identity를 대조한다.
+  결과는 exact object identity와 closed normalization만 담는 immutable private projection이며 public export,
+  serialization, effect mint, claim/history, reducer, ledger/state transition 또는 provider/clock 호출 권한이 아니다.
+  semantic `supported|contradicted`는 effect 재료상 `applied`로 정규화하되 native disposition과 해당 evidence ID를
+  보존한다. `unsupported` projection의 absence SHA는 이 단계에서는 `None`이며, 후속 c4 structural bridge가 exact
+  `bounded_no_verified_support` absence receipt를 함께 검증하기 전에는 effect authority가 될 수 없다. Projection은
+  resolver만 발급할 수 있도록 exact caller-code로 봉인되고, 발급 이력은 live identity mirror와 GC tombstone으로
+  보호한다. normal attribute 변경뿐 아니라 `object.__setattr__`, structural clone, equal-payload receipt/owner 교체,
+  validator/runtime dependency 교체도 reader 재검증에서 닫힌다. authority reader와 builder 별칭은 초기화 후 삭제한다.
 - c4.0의 source/outcome history key는 action hash 하나가 아니라 stable execution identity, decision ordinal,
   before snapshot과 exact selected action identity를 함께 사용한다. preflight 실패는 claim하지 않고, 실제 child 호출을
   시작한 뒤 오류·drift는 failed tombstone으로 소비한다. valid source receipt를 decision 이후 사후 포장하는 방식과

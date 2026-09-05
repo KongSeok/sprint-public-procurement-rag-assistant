@@ -233,8 +233,10 @@ runtime은 local profile 기본·LLM provider 교체형으로 유지하며 새 �
           state 생성 시 private authority로 보존하고 `HarnessExecution`이 public payload 변경 없이 상속한다.
           equal-hash clone·사후 부착·legacy follow-up 승격과 validator/accessor drift를 차단했고 focused+인접43·
           전체1315·safety874·Playwright·독립 APPROVE를 통과했다. 외부 호출은 0이다.
-        - [ ] **EH2.6.c4.0.b** lane/fusion/parent/bridge/rerank/semantic/absence/decision receipt를 exact validator로
-          역참조해 closed source kind·owner·outcome·call/evidence/context/absence projection으로 정규화한다.
+        - [x] **EH2.6.c4.0.b** lane/fusion/parent/bridge/rerank/semantic/absence/decision receipt를 exact validator로
+          역참조해 closed source kind·owner·outcome·call/evidence/context/absence projection으로 정규화했다.
+          direct issuer·forced mutation·structural/equal-payload clone·cross-owner·dependency drift와 GC remint를
+          차단했고 focused14·인접168·전체1329·safety877·Playwright를 통과했다. 외부 호출은 0이다.
         - [ ] **EH2.6.c4.0.c** `(execution identity, decision ordinal, before snapshot, selected action)` 기반
           pristine→claimed→sourced→effect-bound→transitioned/failed one-step history와 동시성/GC tombstone을 닫는다.
         - [ ] **EH2.6.c4.0.d** validated selected target에서만 parent/table/figure를 exact-one 발급하고 기존

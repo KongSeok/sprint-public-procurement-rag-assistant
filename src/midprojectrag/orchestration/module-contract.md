@@ -337,6 +337,20 @@ state, or produce a transition.
 C4.0.a removes source inputs from the raw state factory and atomically seals state creation plus owner registration
 behind a closure-held boundary. Registrar/reader module aliases are deleted after initialization; an exact-identity
 owner-to-origin-state mirror and owner-lifetime tombstone reject reuse by any other root, including equal hashes.
+C4.0.b adds one module-private typed resolver over lane, fusion, parent, bridge, rerank, semantic, absence, and
+controller-decision receipts. Its caller supplies only the exact execution, decision, receipt, store, config, and
+runtime graph. Source kind, native/effect outcome, evidence/context/absence IDs, call status, and hashes are derived
+only after the exact decision permit, inherited source owner, receipt authority, recovered prerequisites, and the
+existing live validator all agree with the selected action's kind, obligation, target, and root identity. The result
+is an immutable non-serializable projection retaining exact object identities; it is not exported and grants no
+effect, claim/history, reducer, ledger/state transition, provider, or clock authority. Semantic supported and
+contradicted dispositions normalize to applied while retaining the native disposition and corresponding evidence;
+unsupported deliberately carries no absence SHA at this leaf and still requires a later exact
+`bounded_no_verified_support` absence binding before any effect can be authorized. Only the resolver's exact code
+may invoke the projection issuer. Issuance is identity-mirrored and tombstoned; the authority reader and builder
+aliases are deleted after initialization. The sealed reader re-runs the exact resolver, so ordinary or forced
+attribute mutation, structural/equal-payload clones, cross-owner roots, and validator/runtime dependency replacement
+cannot turn the projection into effect authority.
 An E1 compare seed must be all-unsearched; already hybrid-searched EH2.4 coverage cannot be
 relabeled as independent lane execution. Once all approved retrieval paths close with no
 candidates, controller-only `verify_slot` performs a zero-provider exhaustion check that may
