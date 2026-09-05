@@ -891,3 +891,21 @@ This file summarizes recent updates so other agents can continue without re‑di
 
 ### Next
 - refreshed TODO의 EH2.6.c4.0.d를 READY로 선택한다. exact semantic authority와 validated target에서 parent/table/figure exact-one을 고르고 rerank용 full batch tuple identity/order를 보존하는 private non-authorizing accumulator의 첫 RED를 즉시 실행한다.
+## Addendum (2026-09-05) - EH2.6.c4.0.d target context accumulator 완료 및 c4.0.e 릴레이
+### Scope
+- exact semantic obligation의 bounded context target에서 parent/table/figure receipt exact-one과 complete rerank batch identity/order를 보존하는 private non-authorizing accumulator를 구현했다.
+
+### Repair
+- captured selection helper drift를 pinning으로 차단하고 executable weakref callback을 제거했다. live semantic root remint tombstone과 dead-root passive cleanup을 분리했으며 missing/duplicate/wrong-role 변조 회귀를 추가했다.
+
+### Validation
+- focused 13/13, context/controller/source adjacent 175/175, full 1372/1372, repository safety 883 files, git diff --check와 Chrome/Playwright QA PASS, independent review APPROVE(P0/P1 0).
+
+### Publication
+- f154a75 feat(harness): seal target context accumulation 및 fdb8520 docs(harness): close target context relay를 origin/feat/total-integration에 push했다. user-owned dirty와 resources는 제외했다.
+
+### External calls
+- API/OpenAI/model/Langfuse/golden/VLM/provider/clock 실제 호출은 0회다.
+
+### Next
+- refreshed TODO의 EH2.6.c4.0.e structural-effect bridge를 READY leaf로 선택해 새 Cycle 17 form과 첫 RED를 시작한다.

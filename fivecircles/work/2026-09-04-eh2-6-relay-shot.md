@@ -1420,9 +1420,10 @@
 
 ### 7. Push / Publication
 
-- 선택 커밋과 보고 커밋을 `origin/feat/total-integration`에 push한다. 실제 SHA는 push 뒤 기록한다.
-- 공식 `logall`로 구현·수리·검증·SHA·외부 호출 0·다음 c4.0.e를 `fivecircles/work/update.md`에 기록한다.
-- 상태: IN_PROGRESS.
+- 선택 커밋 `f154a75` (`feat(harness): seal target context accumulation`)과 보고 커밋 `fdb8520`
+  (`docs(harness): close target context relay`)을 `origin/feat/total-integration`에 push했다.
+- 공식 `logall`로 구현·수리·검증·SHA·외부 호출 0·다음 c4.0.e를 `fivecircles/work/update.md`에 기록했다.
+- 상태: COMPLETED.
 
 ### 8. Closeout Report
 
@@ -1434,10 +1435,10 @@
 ### 9. Relay Shot
 
 - c4.0.d 종료·push·logall 뒤 TODO를 새로 읽고 c4.0.e READY면 새 form/첫 RED를 즉시 시작한다.
-- 상태: IN_PROGRESS.
+- 상태: `CONTINUE_WITH_NEXT_FORM` / COMPLETED.
 
 ### 10. Final Ledger
 
 - Scope / Target / Relay select: COMPLETED.
 - Doc / Contract / Implementation / Validation / Repair / Report: COMPLETED.
-- Push / Publication / Relay: IN_PROGRESS.
+- Push / Publication / Relay: COMPLETED.
