@@ -16,7 +16,7 @@ flowchart LR
     R3["HB · DH 팀 실험"]
   end
 
-  subgraph BUILD["현재 feat/total-integration · EH2.6.c3.4"]
+  subgraph BUILD["현재 feat/total-integration · EH2.6.c3.5"]
     C1["EvidenceStore<br/>page parent + child"]
     C2["KURE child + Kiwi BM25<br/>독립 retrieval lane"]
     C3["QueryPlan · Belief/Progress<br/>config/runtime authority"]
@@ -31,7 +31,8 @@ flowchart LR
     C12["ID-less rerank + derived semantic<br/>global role order · owner budget<br/>auxiliary parent unindexed · route one-shot"]
     C13["bounded three-reason absence<br/>zero-provider proof matrix · no promotion<br/>follow-up root-lifetime exact-once"]
     C14["closed ActionEffectReceipt value<br/>19-field canonical schema · full closed matrix<br/>public mint/authority absent"]
-    C1 --> C2 --> C3 --> C4 --> C5 --> C6 --> C7 --> C8 --> C9 --> C10 --> C11 --> C12 --> C13 --> C14
+    C15["effect non-authority gate<br/>repr/copy/pickle/subclass nonleakage<br/>7 source validators clone·mixed reject · provider replay 0"]
+    C1 --> C2 --> C3 --> C4 --> C5 --> C6 --> C7 --> C8 --> C9 --> C10 --> C11 --> C12 --> C13 --> C14 --> C15
   end
 
   GAP["미완성<br/>live source authority → decision permit<br/>effect mint/reducer → specialist → generation → E2E"]
@@ -43,7 +44,7 @@ flowchart LR
   R1 --> C1
   R2 --> C1
   R3 --> C1
-  C14 --> GAP --> SELECT
+  C15 --> GAP --> SELECT
   CONTROL --> SELECT
   SELECT -. "winner 미선정" .-> LOCAL
 
@@ -53,7 +54,7 @@ flowchart LR
   classDef red fill:#fde9e6,stroke:#d98e84,color:#1f2933,stroke-width:1.5px
   classDef gray fill:#eef1ed,stroke:#aab5ad,color:#1f2933,stroke-width:1.5px
   class B1,B2,B3 green
-  class C1,C2,C3,C4,C5,C6,C7,C8,C9,C10,C11,C12,C13,C14 blue
+  class C1,C2,C3,C4,C5,C6,C7,C8,C9,C10,C11,C12,C13,C14,C15 blue
   class GOLD gray
   class R1,R2,R3,API amber
   class GAP red

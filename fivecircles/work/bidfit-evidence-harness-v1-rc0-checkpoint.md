@@ -1,6 +1,6 @@
 # EH-RC0 재개 체크포인트
 
-갱신: 2026-09-05 · EH2.6.c3.4 완료, 다음 READY는 EH2.6.c3.5. 토큰 절약을 위해 이 문서의 한눈에 보는 상태와 계약 §16.10부터 읽기.
+갱신: 2026-09-05 · EH2.6.c3.5 완료, 다음 READY는 EH2.6.d1. 토큰 절약을 위해 이 문서의 한눈에 보는 상태와 계약 §16.10부터 읽기.
 
 ## 중단/애매함 발생 시
 
@@ -21,8 +21,8 @@
   후속 전체 범위의 선택 commit·검증이 끝난 뒤 `feat/local-qwen-mini131-eval`에 병합한다.
   새 브랜치는 만들지 않는다.
 - 완료: EH-A.1~3 감사·기준선·계약/flow 초안. 805 tests PASS, 실패/skip 0 (변경 전).
-- 현재 IN_PROGRESS: **Phase 2**. EH2.1~2.5와 EH2.6.a~c3.4 PASS. 다음 leaf는 structural value를
-  authority로 오인하지 못하게 하는 `EH2.6.c3.5` adversarial gate다.
+- 현재 IN_PROGRESS: **Phase 2**. EH2.1~2.5와 EH2.6.a~c3.5 PASS. 다음 leaf는 lane/action/capability/round
+  소비와 exact state/last-transition을 함께 봉인하는 `EH2.6.d1` execution aggregate다.
 - 기존 평가 Batch 2의 활성 책임은 `EH2.EVAL`로 통합했다. EVAL.1~3은 완료, 사람 승인·qrels 보강과
   sealed held-out 실행은 EVAL.4~6에 남아 있으며 EH2 runtime에는 gold 값을 주입하지 않는다.
 - blocker: 없음. 실제 생성/API 호출은 계속 0이며 Phase 2는 provider-free 합성 테스트로 진행한다.
@@ -47,6 +47,9 @@
   EH2.6.c3.4는 19-field `ActionEffectReceipt`와 pure structural validator만 공개한다. action/receipt/outcome/call/
   source-kind 전수 matrix, evidence/context/absence projection, serialization drift를 닫았고 public mint/issuer/
   reducer/authority는 없다. focused11·관련114·전체1278·safety861·Playwright·독립 APPROVE, 외부 호출 0이다.
+  EH2.6.c3.5는 effect namespace/public surface와 constant redacted repr를 봉인하고, lane/fusion/parent/bridge/
+  rerank/semantic/absence validator가 exact receipt/dependency clone과 완성된 alternate live graph를 provider replay
+  없이 거절함을 검증했다. focused18·관련147·전체1288·safety867·Playwright·독립 APPROVE, 외부 호출 0이다.
 
 ## 완료된 첫 leaf 참고: EH0.1.a (현재 작업 아님)
 
@@ -105,6 +108,7 @@
 | EH2.6.c3.2 | COMPLETED | ID-less rerank + derived semantic. global role order, owner budget, exact context batch, auxiliary parent 비승격, base/derived route와 provider-error post-call gate. focused9/related128/full1229/safety854, provider 0; 다음 EH2.6.c3.3.a |
 | EH2.6.c3.3 | COMPLETED | three-reason bounded absence, exact proof matrix, zero-provider/nonpromotion, cache authority와 follow-up root-lifetime exact-once. focused67/related192/full1267/safety858, Playwright, independent APPROVE; 다음 EH2.6.c3.4 |
 | EH2.6.c3.4 | COMPLETED | 19-field closed effect value와 pure validator. source-kind 포함 full matrix, context/absence/hash/serialization fail-closed, public authority 없음. focused11/related114/full1278/safety861, Playwright, independent APPROVE; 다음 EH2.6.c3.5 |
+| EH2.6.c3.5 | COMPLETED | effect exact symbol inventory/redacted repr/nonpromotion과 7종 source validator clone·coherent mixed graph provider-zero gate. focused18/related147/full1288/safety867, Playwright, independent APPROVE; 다음 EH2.6.d1 |
 
 ## 안전/컨텍스트 규칙
 

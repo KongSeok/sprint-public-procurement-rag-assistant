@@ -940,6 +940,21 @@ parent/child 혼합, 골든 값 의존을 검출한다. 정확한 새 파일/메
   primary absence source는 `empty`이고 absence SHA가 source SHA와 같아야 한다. `controller_decision`과
   primary `absence_confirmation` source는 parent/bridge context tuple이 모두 비어 있어야 하며, post-call
   rerank/verify 실패의 context provenance는 후속 live source-authority 계층이 검증한다.
+- c3.5는 **negative non-authority gate**이며 새 issuer/registry/reducer를 만들지 않는다. exact-class
+  `object.__new__`, module-private token 또는 동일 payload 반복 생성으로 structurally valid effect를 만들 수
+  있어도 이는 schema fixture일 뿐 claim/tombstone/execution authority를 등록하지 않는다. c3.5는 기존 lane,
+  fusion, parent, bridge, rerank, semantic, absence source validator가 receipt/dependency clone과 완성된 mixed live
+  graph를 provider replay 없이 거절함을 함께 검증한다. 다만 그 검증은 source receipt 자체의 기존 authority이며,
+  structural effect를 승인하는 새 권한이 아니다.
+- c3.5 동안 package public callable 중 `ActionEffectReceipt`를 받는 것은 pure structural validator 하나뿐이다.
+  validator와 serializer는 source receipt/store/config/runtime/decision permit 추가 인자를 받지 않고, 반복 structural
+  receipt는 같은 canonical hash를 가질 수 있으나 서로 다른 비권한 값이다. effect mint 시 live source를 다시
+  dereference하는 책임, exact decision permit, replay claim과 exact-once mint는 d2/c4가 소유하며 structural validator
+  성공이나 기존 source validator 성공만으로 effect authority를 만들면 안 된다.
+- effect의 `repr`은 payload를 출력하지 않고, 공개 serialization은 exact allowlist만 반환한다. raw query/text/value,
+  provider error detail, gold/qrels/expected answer, path/key, after-state/transition/answer/citation/ready/authority 전용
+  필드는 추가하지 않는다. allowlist 안의 structural ID 문자열은 c4가 live provenance에 다시 결합해야 하며 문자열
+  blacklist를 권한 검사로 쓰지 않는다. copy/deepcopy/pickle/from-dict와 subclass 승격은 계속 fail-closed한다.
 - `AbsenceConfirmationReceipt`는 모든 허용 retrieval/verification 경로가 bounded하게 종결된 한 obligation에
   한해 `bounded_no_candidate|bounded_no_verified_support|followup_approved_paths_exhausted`를 기록한다.
   이는 해당 query/scope/budget에서 support를 확보하지 못했다는 뜻이며 corpus에 사실이 없다는 주장이 아니다.

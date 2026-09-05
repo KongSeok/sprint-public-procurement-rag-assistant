@@ -261,6 +261,14 @@ def _calls(path):
     return () if not path.exists() else tuple(path.read_text(encoding="utf-8").splitlines())
 
 
+def _clone_slots(value):
+    clone = object.__new__(type(value))
+    for name in type(value).__slots__:
+        if name != "__weakref__":
+            object.__setattr__(clone, name, getattr(value, name))
+    return clone
+
+
 class RetrievalObligationTests(unittest.TestCase):
     def setUp(self):
         self._temporary = TemporaryDirectory()
@@ -1454,6 +1462,55 @@ class RetrievalObligationTests(unittest.TestCase):
                 config=config,
                 runtime=runtime,
             )
+
+    def test_b3_r10t2_public_lane_validator_rejects_clone_and_mixed_dependencies_without_replay(self):
+        store, config, runtime, obligations, dense_log, lexical_log = self._fact_case(
+            name="r10t2"
+        )
+        obligation = obligations[0]
+        receipt = execute_retrieval_lane(
+            obligation=obligation,
+            lane="dense",
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+        other = self._fact_case(name="r10t2-other")
+        execute_retrieval_lane(
+            obligation=other[3][0],
+            lane="dense",
+            store=other[0],
+            config=other[1],
+            runtime=other[2],
+        )
+        base = {
+            "receipt": receipt,
+            "obligation": obligation,
+            "store": store,
+            "config": config,
+            "runtime": runtime,
+        }
+        bad = (
+            {"receipt": _clone_slots(receipt)},
+            {"obligation": _clone_slots(obligation)},
+            {"obligation": other[3][0]},
+            {"store": type(store).from_dict(store.to_dict())},
+            {"config": type(config).from_dict(config.to_dict())},
+            {"runtime": _clone_slots(runtime)},
+            {"runtime": other[2]},
+            {
+                "obligation": other[3][0],
+                "store": other[0],
+                "config": other[1],
+                "runtime": other[2],
+            },
+        )
+        for override in bad:
+            with self.subTest(mixed=tuple(override)):
+                with self.assertRaises((TypeError, ValueError)):
+                    validate_lane_search_receipt(**{**base, **override})
+        self.assertEqual((_calls(dense_log), _calls(lexical_log)), (("dense",), ()))
+        self.assertEqual((_calls(other[4]), _calls(other[5])), (("dense",), ()))
 
     def test_b3_r10u_call_performed_is_bound_to_the_outcome(self):
         store, config, runtime, obligations, _dense_log, _lexical_log = self._fact_case(

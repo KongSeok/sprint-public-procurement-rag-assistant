@@ -32,6 +32,7 @@ from midprojectrag.orchestration import (
 )
 
 from tests.test_retrieval_obligations import (
+    _clone_slots,
     _calls,
     _compare_bound,
     _fact_bound,
@@ -215,6 +216,82 @@ class E0FusionTests(unittest.TestCase):
         for forbidden in _FORBIDDEN_RUNTIME_WORDS:
             self.assertNotIn(forbidden, serialized)
             self.assertNotIn(forbidden, repr(receipt))
+
+    def test_b4_r1a_public_fusion_validator_rejects_clone_and_mixed_graph_without_replay(self):
+        store, config, runtime, obligations, dense_log, lexical_log = self._fact_case(
+            name="r1a", mode="e1_bounded"
+        )
+        obligation = obligations[0]
+        dense, lexical = self._lane_pair(
+            obligation=obligation, store=store, config=config, runtime=runtime
+        )
+        receipt = self._fuse(
+            obligation=obligation,
+            dense=dense,
+            lexical=lexical,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+        other = self._fact_case(name="r1a-other", mode="e1_bounded")
+        other_obligation = other[3][0]
+        other_dense, other_lexical = self._lane_pair(
+            obligation=other_obligation,
+            store=other[0],
+            config=other[1],
+            runtime=other[2],
+        )
+        self._fuse(
+            obligation=other_obligation,
+            dense=other_dense,
+            lexical=other_lexical,
+            store=other[0],
+            config=other[1],
+            runtime=other[2],
+        )
+        base = {
+            "receipt": receipt,
+            "obligation": obligation,
+            "dense_receipt": dense,
+            "lexical_receipt": lexical,
+            "store": store,
+            "config": config,
+            "runtime": runtime,
+        }
+        bad = (
+            {"receipt": _clone_slots(receipt)},
+            {"dense_receipt": _clone_slots(dense)},
+            {"lexical_receipt": _clone_slots(lexical)},
+            {"obligation": _clone_slots(obligation)},
+            {"obligation": other_obligation},
+            {"dense_receipt": other_dense},
+            {"lexical_receipt": other_lexical},
+            {"dense_receipt": lexical, "lexical_receipt": dense},
+            {"store": type(store).from_dict(store.to_dict())},
+            {"config": type(config).from_dict(config.to_dict())},
+            {"runtime": _clone_slots(runtime)},
+            {"runtime": other[2]},
+            {
+                "obligation": other_obligation,
+                "dense_receipt": other_dense,
+                "lexical_receipt": other_lexical,
+                "store": other[0],
+                "config": other[1],
+                "runtime": other[2],
+            },
+        )
+        for override in bad:
+            with self.subTest(mixed=tuple(override)):
+                with self.assertRaises((TypeError, ValueError)):
+                    validate_fusion_receipt(**{**base, **override})
+        self.assertEqual(
+            (_calls(dense_log), _calls(lexical_log)),
+            (("dense",), ("lexical",)),
+        )
+        self.assertEqual(
+            (_calls(other[4]), _calls(other[5])),
+            (("dense",), ("lexical",)),
+        )
 
     def test_b4_r2_two_empty_lanes_still_execute_one_empty_fusion(self):
         store, config, runtime, obligations, _dense_log, _lexical_log = self._fact_case(

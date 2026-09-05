@@ -214,8 +214,17 @@ runtime은 local profile 기본·LLM provider 교체형으로 유지하며 새 �
         - [x] **EH2.6.c3.4.c** constructor/from-dict/public issuer 차단, serialization·malformed matrix,
           state/terminal/citation 비승격과 provider-zero focused gate를 통과했다. closed matrix는 source kind까지
           전수 교차검증했고 focused11·관련114·전체1278·safety861·독립 APPROVE를 확보했다.
-      - [ ] **EH2.6.c3.5** source/store/config/runtime clone·drift·mixed authority, replay/serialization,
+      - [x] **EH2.6.c3.5** source/store/config/runtime clone·drift·mixed authority, replay/serialization,
         projection 비승격·비누출 focused gate와 관련·전체·safety 회귀를 통과한다.
+        - [x] **EH2.6.c3.5.a** structural value와 d2/c4 live authority 책임을 분리하고 no-consumer/non-authority,
+          representation 비누출 계약과 `repr` TDD RED를 고정한다.
+        - [x] **EH2.6.c3.5.b** public/package callable·signature·module registry를 감사해 source/store/config/runtime
+          clone·drift·mixed 입력이 effect authority로 승격될 현재 경로가 없음을 focused gate로 증명한다.
+        - [x] **EH2.6.c3.5.c** equal-hash replay, exact/subclass clone, copy/pickle/from-dict, repr/to-dict,
+          state/terminal/citation 비승격·금지 key/string과 provider-zero 회귀를 통과한다.
+        - [x] **EH2.6.c3.5.d** 7종 source validator의 exact-class receipt/dependency clone·mixed graph를
+          provider replay 없이 거절했다. focused18·관련147·전체1288·safety867, Playwright와 독립 APPROVE를
+          통과했고 실제 API/model/Langfuse 호출은 0이다.
     - [ ] **EH2.6.c4** `[BLOCKED_BY_EH2.6.d2]` exact controller decision-bound `ActionEffectReceipt` mint,
       monotonic one-obligation reducer와 hash-chained transition/no-progress를 구현한다.
     - [ ] **EH2.6.c5** verified/contradicted/confirmed-missing·raw bool/ID 공격 focused gate를 통과한다.

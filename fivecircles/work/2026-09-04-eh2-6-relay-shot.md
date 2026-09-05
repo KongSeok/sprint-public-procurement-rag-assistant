@@ -762,8 +762,9 @@
 ### 7. Push / Publication
 
 - git status 확인: user-owned 대규모 dirty에서 C3.4 code/test/contract/report/log hunk만 선별한다.
-- 커밋/푸시: 검증 뒤 아래 단계에서 수행한다.
-- 상태: IN_PROGRESS.
+- 커밋/푸시: `3c2d7d0` (`feat(harness): add closed action effect contract`)을
+  `origin/feat/total-integration`에 push했다. resources/private/gold/VLM 및 무관 dirty는 제외했다.
+- 상태: COMPLETED.
 
 ### 8. Closeout Report
 
@@ -776,11 +777,104 @@
 
 - C3.4 종료·push 뒤 TODO를 다시 채점하고 안전한 READY가 있으면 다음 새 form을 즉시 시작한다.
 - 다음 후보: `EH2.6.c3.5` source/store/config/runtime clone·drift·mixed authority 및 nonpromotion gate.
-- 상태: PUSH_AFTER_RELAY_PENDING.
+- 새 원샷딜 시작 여부: 아래 Cycle 10 form을 쓰고 structural value와 live authority의 경계 계약·RED를
+  즉시 시작한다.
+- 멈춘 이유, 있으면: 없음.
+- 상태: `CONTINUE_WITH_NEXT_FORM` / COMPLETED.
 
 ### 10. Final Ledger
 
 - Scope / Target / Relay select: COMPLETED.
 - Doc / Contract: COMPLETED.
-- Implementation / Validation / Repair / Report: COMPLETED.
+- Implementation / Validation / Repair / Push / Report / Relay: COMPLETED.
+- Flow diagram verification: PARTIAL — closed effect value까지 MATCHED, live authority/controller/reducer는 GAP.
+- 남은 리스크: structurally valid effect는 execution authority가 아니다. 동일 golden 성능 개선도 아직 미측정이다.
+
+## Cycle 10 — EH2.6.c3.5 effect non-authority adversarial gate
+
+### 0. Scope Intake
+
+- 요청 범위: C3.4 push·logall 뒤 최고 점수 READY TODO C3.5를 새 원샷딜로 즉시 시작한다.
+- 브랜치: `feat/total-integration`; 새 브랜치 생성/병합 없음.
+- 사용자 제약: user-owned dirty·VLM·resources 보존, 실제 API/model/Langfuse/golden 실행 0.
+- 완료 기준: source/store/config/runtime clone·drift·mixed input이 structural receipt를 execution authority로
+  승격할 공개 경로가 없고, replay/serialization/subclass/비누출·비승격 경계를 adversarial test로 봉인한다.
+- 위험/확인 필요: 기존 7종 source receipt의 live identity 검사는 c3.5에서 회귀시키되, d2/c4의 effect-side
+  live source dereference·decision permit·mint/replay authority를 미리 구현하거나 private token을 보안 경계로
+  오인하지 않는다.
+- 상태: COMPLETED.
+
+### 1. Start Report / Target Check
+
+- 사용할 스킬: `mermaid-flow-report`.
+- 기준 타겟 플로우: structural effect value → exact live source/decision authority → reducer.
+- 현재 플로우: c3.4 DTO/validator MATCHED, authority consumer·issuer·reducer는 모두 부재한다.
+- 점수표/선정 기준: c3.5=8 READY, d1=8 WAIT_AFTER_c3, c4=7 BLOCKED_BY_d2, EVAL.4=5 WAIT.
+- 상태: COMPLETED.
+
+### 2. Relay Unit Selection
+
+- 사용할 스킬: `relay-shot`.
+- 확인한 TODO source: refreshed flow report, TODO §EH2.6.c3, 계약 §16.10, checkpoint/active context.
+- 선택한 다음 단위작업: `EH2.6.c3.5` structural non-authority adversarial gate.
+- 플로우폼 반영: 이 Cycle 10 form.
+- 상태: `CONTINUE_WITH_NEXT_FORM` / COMPLETED.
+
+### 3. Doc / Contract
+
+- 사용할 스킬: `doc-contract-writer`.
+- 재귀 TODO: c3.5.a live-authority 책임 분리/RED → c3.5.b clone·drift·mixed/no-consumer gate →
+  c3.5.c replay·serialization·nonpromotion·nonleakage → c3.5.d 7종 source validator coherent live-graph 회귀.
+- 문서 생성/수정: §16.10과 module contract에서 기존 7종 source receipt authority는 현재 회귀 대상으로,
+  effect-side live dereference·decision permit·mint/replay authority는 d2/c4 책임으로 분리했다. recursive TODO와
+  focused acceptance까지 봉인했다.
+- 상태: COMPLETED.
+
+### 4. Implementation
+
+- 사용할 스킬: `one-go`; 재귀 leaf는 `batch-sequential-runner`.
+- 구현 결과: `ActionEffectReceipt`를 constant redacted repr로 바꾸고, package effect export와 module all-`effect`
+  symbol inventory를 exact allowlist로 고정했다. 새 issuer/consumer/registry/reducer는 추가하지 않았다.
+- 상태: COMPLETED.
+
+### 5. Validation + Report
+
+- 사용할 스킬: `test-runner`, `mermaid-flow-report`, `logall`.
+- 자동 테스트: focused 18/18, 7종 source validator 관련 147/147, 전체 1,288/1,288, safety 867파일 PASS.
+- 리포트: current Mermaid/PNG와 HTML을 c3.5로 갱신했다. Playwright desktop/mobile에서 images2, tables8,
+  page errors0, mobile overflow0 PASS. API/model/Langfuse 호출은 0이다.
+- 상태: COMPLETED.
+
+### 6. Repair Loop
+
+- 첫 RED: 기본 repr가 실행/source hash와 evidence ID를 노출해 실패했다. constant redacted repr로 수리했다.
+- 독립 리뷰 P1: 고정 이름/annotation audit 우회와 단일 dependency 혼합의 조기 실패 허점을 발견했다.
+  all-`effect` exact inventory, 완성된 alternate live graph 전체 교체, 양쪽 provider counter로 수리했다.
+- 재리뷰: APPROVE, P0/P1 없음.
+- 상태: COMPLETED.
+
+### 7. Push / Publication
+
+- git status 확인: user-owned 대규모 dirty에서 C3.5 code/test/contract/report/checkpoint hunk만 선별한다.
+- 상태: IN_PROGRESS.
+
+### 8. Closeout Report
+
+- 시작 타겟 대비 최종 현재 플로우: structural effect 비권한 경계와 기존 source live-authority 회귀 MATCHED.
+- 남은 GAP: d1 execution aggregate, d2 decision permit, c4 live effect mint/reducer, controller/E2E/golden A/B.
+- 상태: COMPLETED.
+
+### 9. Relay Shot
+
+- C3.5 종료·push 뒤 refreshed score table에서 다음 READY를 선택해 새 form을 즉시 시작한다.
+- refreshed 점수: d1=8 READY/SELECTED, c4=7 BLOCKED_BY_d2, c5=6 WAIT_AFTER_c4, EVAL.4=5 WAIT_HUMAN.
+- push·logall 뒤 Cycle 11 새 form으로 d1 계약/RED를 즉시 시작한다.
+- 상태: PUSH_AFTER_RELAY_PENDING.
+
+### 10. Final Ledger
+
+- Scope / Target / Relay select: COMPLETED.
+- Doc / Contract / Implementation / Validation / Repair / Report: COMPLETED.
 - Push / Relay: IN_PROGRESS.
+- Flow diagram verification: PARTIAL — effect 비권한 gate까지 MATCHED, execution aggregate 이후는 GAP.
+- 남은 리스크: 기존 source validator 성공도 structural effect 실행 권한은 아니다. 동일 golden 품질은 미측정이다.

@@ -275,6 +275,14 @@ issuer after an exact d2 permit. `_create` registers no authority and is not a P
 separate exact decision-permit authority and dereference the live source receipt before reduction.
 Controller-decision and primary absence sources carry empty parent/bridge context tuples. Post-call rerank or verify
 failure provenance belongs to the later live source-authority check rather than this structural DTO.
+C3.5 is a negative non-authority gate, not a provisional issuer. Until d2/c4, the package has no effect consumer other
+than the pure structural validator; it accepts no source receipt, store, config, runtime, or decision-permit argument.
+Equal-hash structural recreations remain distinct non-authorizing values and register no replay claim. Their `repr`
+must not emit payload fields, while the exact allowlisted `to_dict` adds no dedicated raw query, text/value, provider
+detail, gold/qrels, path/key, transition, answer/citation, readiness, or authority field. Structural ID strings are not
+secret-scanned and must be rebound to live provenance by c4. C3.5 also regresses the existing seven source validators'
+exact receipt/dependency authority and provider-free mixed-graph rejection. Future effect-source dereference, exact
+decision permit, one-step issuance, and effect replay authority remain exclusively d2/c4 responsibilities.
 An E1 compare seed must be all-unsearched; already hybrid-searched EH2.4 coverage cannot be
 relabeled as independent lane execution. Once all approved retrieval paths close with no
 candidates, controller-only `verify_slot` performs a zero-provider exhaustion check that may

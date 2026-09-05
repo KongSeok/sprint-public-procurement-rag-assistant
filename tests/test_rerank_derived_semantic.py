@@ -441,8 +441,22 @@ class RerankDerivedSemanticAcceptanceTests(unittest.TestCase):
         self.assertEqual(_calls(case["call_log"]), ("rerank",))
 
     def test_exact_complete_context_batches_and_authorities_are_required_pre_call(self):
-        case = self._case(name="prerequisite")
-        other = self._case(name="prerequisite-other")
+        verifier_log = self.tempdir / "prerequisite-verifier.log"
+        other_verifier_log = self.tempdir / "prerequisite-other-verifier.log"
+        case = self._case(
+            name="prerequisite",
+            verifier=_AuxVerifier(
+                call_log_path=verifier_log,
+                request_log_path=self.tempdir / "prerequisite-verifier-request.log",
+            ),
+        )
+        other = self._case(
+            name="prerequisite-other",
+            verifier=_AuxVerifier(
+                call_log_path=other_verifier_log,
+                request_log_path=self.tempdir / "prerequisite-other-verifier-request.log",
+            ),
+        )
         base = {
             "obligation": case["semantic"],
             "parent_receipts": case["parents"],
@@ -467,9 +481,45 @@ class RerankDerivedSemanticAcceptanceTests(unittest.TestCase):
                     execution_contracts.execute_semantic_rerank(**{**base, **override})
         self.assertEqual(_calls(case["call_log"]), ())
         receipt = execution_contracts.execute_semantic_rerank(**base)
+        self._execute(other)
         self.assertEqual(_calls(case["call_log"]), ("rerank",))
         with self.assertRaisesRegex(ValueError, "authority"):
             validate_rerank_receipt(receipt=_clone_slots(receipt), **base)
+        validator_bad = bad + (
+            {"obligation": _clone_slots(case["semantic"])},
+            {"parent_receipts": tuple(list(case["parents"]))},
+            {"bridge_receipts": tuple(list(case["bridges"]))},
+            {"bridge_receipts": (_clone_slots(case["bridges"][0]),) + case["bridges"][1:]},
+            {"runtime": _clone_slots(case["runtime"])},
+            {
+                "obligation": other["semantic"],
+                "parent_receipts": other["parents"],
+                "bridge_receipts": other["bridges"],
+                "store": other["store"],
+                "config": other["config"],
+                "runtime": other["runtime"],
+            },
+        )
+        for override in validator_bad:
+            with self.subTest(validator_mixed=tuple(override)):
+                with self.assertRaises((TypeError, ValueError)):
+                    validate_rerank_receipt(
+                        receipt=receipt,
+                        **{**base, **override},
+                    )
+        self.assertEqual(_calls(case["call_log"]), ("rerank",))
+        self.assertEqual(_calls(other["call_log"]), ("rerank",))
+        self.assertEqual(
+            (
+                _calls(self.tempdir / "prerequisite-dense.log"),
+                _calls(self.tempdir / "prerequisite-lexical.log"),
+                _calls(self.tempdir / "prerequisite-other-dense.log"),
+                _calls(self.tempdir / "prerequisite-other-lexical.log"),
+                _calls(verifier_log),
+                _calls(other_verifier_log),
+            ),
+            (("dense",), ("lexical",), ("dense",), ("lexical",), (), ()),
+        )
 
     def test_derived_verifier_uses_unindexed_auxiliary_parents_without_promotion(self):
         verifier_log = self.tempdir / "aux-verifier.log"

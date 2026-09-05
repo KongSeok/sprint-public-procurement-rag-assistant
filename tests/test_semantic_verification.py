@@ -935,6 +935,73 @@ class SemanticVerificationExecutionTests(unittest.TestCase):
             )
         self.assertEqual(_calls(call_log), ())
 
+    def test_public_receipt_validator_rejects_clone_and_mixed_dependencies_without_replay(self):
+        call_log = self.tempdir / "receipt-validator-clone.log"
+        store, config, runtime, obligation = self._retrieval_case(
+            name="receipt-validator-clone",
+            verifier=_SemanticVerifier(raw_result=_raw(), call_log_path=call_log),
+        )
+        receipt = execution_contracts.execute_semantic_verification(
+            obligation=obligation, store=store, config=config, runtime=runtime
+        )
+        other = self._retrieval_case(
+            name="receipt-validator-other",
+            verifier=_SemanticVerifier(
+                raw_result=_raw(),
+                call_log_path=self.tempdir / "receipt-validator-other.log",
+            ),
+        )
+        execution_contracts.execute_semantic_verification(
+            obligation=other[3], store=other[0], config=other[1], runtime=other[2]
+        )
+
+        def clone(value):
+            result = object.__new__(type(value))
+            for name in type(value).__slots__:
+                if name != "__weakref__":
+                    object.__setattr__(result, name, getattr(value, name))
+            return result
+
+        base = {
+            "receipt": receipt,
+            "obligation": obligation,
+            "store": store,
+            "config": config,
+            "runtime": runtime,
+        }
+        bad = (
+            {"receipt": clone(receipt)},
+            {"obligation": clone(obligation)},
+            {"obligation": other[3]},
+            {"store": type(store).from_dict(store.to_dict())},
+            {"config": type(config).from_dict(config.to_dict())},
+            {"runtime": clone(runtime)},
+            {"runtime": other[2]},
+            {
+                "obligation": other[3],
+                "store": other[0],
+                "config": other[1],
+                "runtime": other[2],
+            },
+        )
+        for override in bad:
+            with self.subTest(mixed=tuple(override)):
+                with self.assertRaises((TypeError, ValueError)):
+                    validate_semantic_verification_receipt(
+                        **{**base, **override}
+                    )
+        self.assertEqual(_calls(call_log), ("verify",))
+        self.assertEqual(
+            (
+                _calls(self.tempdir / "receipt-validator-clone-dense.log"),
+                _calls(self.tempdir / "receipt-validator-clone-lexical.log"),
+                _calls(self.tempdir / "receipt-validator-other-dense.log"),
+                _calls(self.tempdir / "receipt-validator-other-lexical.log"),
+                _calls(self.tempdir / "receipt-validator-other.log"),
+            ),
+            (("dense",), ("lexical",), ("dense",), ("lexical",), ("verify",)),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

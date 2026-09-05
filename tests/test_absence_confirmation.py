@@ -1330,10 +1330,13 @@ class AbsenceConfirmationAcceptanceTests(unittest.TestCase):
         case = self._retrieval_case(name="validator-exact")
         receipt = self._issue_retrieval(case)
         other = self._retrieval_case(name="validator-other")
+        self._issue_retrieval(other)
         bad_dependencies = (
             {"store": type(case[1]).from_dict(case[1].to_dict())},
             {"config": type(case[2]).from_dict(case[2].to_dict())},
+            {"runtime": _clone_slots(case[3])},
             {"runtime": other[3]},
+            {"store": other[1], "config": other[2], "runtime": other[3]},
         )
         base = {"receipt": receipt, "store": case[1], "config": case[2], "runtime": case[3]}
         for override in bad_dependencies:
@@ -1344,6 +1347,8 @@ class AbsenceConfirmationAcceptanceTests(unittest.TestCase):
                     )
         self.assertEqual(_calls(self.tempdir / "validator-exact-dense.log"), ("dense",))
         self.assertEqual(_calls(self.tempdir / "validator-exact-lexical.log"), ("lexical",))
+        self.assertEqual(_calls(self.tempdir / "validator-other-dense.log"), ("dense",))
+        self.assertEqual(_calls(self.tempdir / "validator-other-lexical.log"), ("lexical",))
 
     def test_prerequisite_gc_preserves_validation_and_root_gc_releases_history(self) -> None:
         case = self._retrieval_case(name="gc")

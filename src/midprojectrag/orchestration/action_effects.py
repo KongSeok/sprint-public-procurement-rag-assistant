@@ -568,7 +568,7 @@ def _validate_action_effect_receipt_payload(payload: dict[str, Any]) -> None:
         raise ValueError("action_effect_controller_source_mismatch")
 
 
-@dataclass(frozen=True, slots=True, weakref_slot=True, init=False)
+@dataclass(frozen=True, slots=True, weakref_slot=True, repr=False, init=False)
 class ActionEffectReceipt:
     """Closed structural action-effect value; never execution authority."""
 
@@ -594,6 +594,9 @@ class ActionEffectReceipt:
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         raise TypeError("action_effect_receipt_factory_required")
+
+    def __repr__(self) -> str:
+        return "ActionEffectReceipt(<redacted>)"
 
     def __copy__(self) -> object:
         raise TypeError("action_effect_receipt_not_serializable")

@@ -446,6 +446,7 @@ class ContextSourceReceiptAcceptanceTests(unittest.TestCase):
         store, config, runtime, obligation, _dense, _lexical = case
         parent = self._issue_parent(case)[0]
         bridge = self._issue_bridge(case)[0]
+        provider_calls_before = (_calls(_dense), _calls(_lexical))
 
         for receipt, validator in (
             (parent, validate_parent_context_receipt),
@@ -483,10 +484,43 @@ class ContextSourceReceiptAcceptanceTests(unittest.TestCase):
                         runtime=runtime,
                     )
 
+        other_case = self._case(name="other-runtime")
+        self._issue_parent(other_case)
+        self._issue_bridge(other_case)
         cloned_store = EvidenceStore.from_dict(store.to_dict())
         cloned_config = type(config).from_dict(config.to_dict())
-        other_case = self._case(name="other-runtime")
         other_runtime = other_case[2]
+        validator_base = {
+            "obligation": obligation,
+            "store": store,
+            "config": config,
+            "runtime": runtime,
+        }
+        for receipt, validator in (
+            (parent, validate_parent_context_receipt),
+            (bridge, validate_bridge_context_receipt),
+        ):
+            for overrides in (
+                {"obligation": obligation_clone},
+                {"store": cloned_store},
+                {"config": cloned_config},
+                {"runtime": _clone_slots(runtime)},
+                {"runtime": other_runtime},
+                {
+                    "obligation": other_case[3],
+                    "store": other_case[0],
+                    "config": other_case[1],
+                    "runtime": other_case[2],
+                },
+            ):
+                with self.subTest(
+                    validator=validator.__name__, mixed=tuple(overrides)
+                ):
+                    with self.assertRaises((TypeError, ValueError)):
+                        validator(
+                            receipt=receipt,
+                            **{**validator_base, **overrides},
+                        )
         for overrides in (
             {"store": cloned_store},
             {"config": cloned_config},
@@ -506,6 +540,11 @@ class ContextSourceReceiptAcceptanceTests(unittest.TestCase):
                 with self.subTest(issuer=issuer.__name__, mixed=tuple(overrides)):
                     with self.assertRaises((TypeError, ValueError)):
                         issuer(**arguments)
+        self.assertEqual((_calls(_dense), _calls(_lexical)), provider_calls_before)
+        self.assertEqual(
+            (_calls(other_case[4]), _calls(other_case[5])),
+            (("dense",), ("lexical",)),
+        )
         self.assertEqual((_NeverVerifier.calls, _NeverReranker.calls), (0, 0))
 
     def test_receipt_payloads_are_content_free_and_repeat_issue_is_deterministic(self):
