@@ -1362,7 +1362,7 @@
   canonical order를 그대로 보존하는 private accumulator를 구현한다.
 - 비범위: d2.i를 candidate decision으로 확장, public effect mint, step claim 결합, provider/model/clock,
   reducer/ledger/state transition. claim/effect 연결은 c4.0.e/c4.1에 둔다.
-- 상태: IN_PROGRESS.
+- 상태: COMPLETED.
 
 ### 1. Start Report / Target Check
 
@@ -1387,39 +1387,57 @@
   full parent/bridge batch tuple은 same-object identity와 canonical order를 잃지 않는다.
 - d2.i에 candidate-target success fixture가 없으므로 이 leaf는 sealed non-authorizing accumulator로 제한하고
   claim/effect authority로 승격하지 않는다.
-- 상태: IN_PROGRESS.
+- 상태: COMPLETED.
 
 ### 4. Implementation
 
 - 사용할 스킬: `one-go`; focused TDD와 read-only receipt/batch inventory를 병렬 수행한다.
 - 첫 RED: `tests/test_controller_target_context_accumulator.py`에서 private boundary/signature가 아직 없음을
   증명한다. 두 seed 중 B를 선택해 A가 선택되지 않고 full batch tuple identity/order가 보존돼야 한다.
-- 상태: IN_PROGRESS.
+- exact semantic root와 bounded context target에서 parent/table/figure receipt exact-one을 고르고 complete
+  parent/bridge tuple의 same-object identity·canonical order를 보존하는 private accumulator를 구현했다.
+  결과는 immutable·non-serializable·non-authorizing이며 provider/model/clock/effect/reducer/transition을
+  호출하거나 발급하지 않는다.
+- 상태: COMPLETED.
 
 ### 5. Validation + Report
 
 - 사용할 스킬: `test-runner`, `mermaid-flow-report`, `logall`.
-- 상태: PENDING.
+- focused13/13, context/controller/source 인접175/175, 전체1372/1372, repository safety883파일,
+  `git diff --check` PASS다. 독립 최종 correctness review는 `APPROVE`, blocker 0건이다.
+- current Mermaid/PNG·MD/HTML을 c4.0.d DONE·c4.0.e SELECTED로 갱신하고 Chrome+Playwright
+  desktop/mobile QA를 통과했다. 외부 API/OpenAI/model/Langfuse/golden/VLM/provider/clock 호출은 0회다.
+- 상태: COMPLETED.
 
 ### 6. Repair Loop
 
-- 상태: PENDING.
+- 독립 리뷰가 재현한 captured selection helper code 교체 경로를 code/defaults/closure pin으로 차단했다.
+- executable weakref callback을 제거하고 live semantic root에는 remint tombstone을 유지하되, dead root는
+  다음 accumulator/read에서 authority·cache/shadow·tombstone·root-key mirror를 함께 수거하도록 고쳤다.
+- missing/duplicate/wrong-role mutation 회귀를 명시적으로 추가하고 계약의 candidate를 실제 구현 범위인
+  bounded context candidate로 좁혔다.
+- 상태: COMPLETED.
 
 ### 7. Push / Publication
 
-- 상태: PENDING.
+- 선택 커밋과 보고 커밋을 `origin/feat/total-integration`에 push한다. 실제 SHA는 push 뒤 기록한다.
+- 공식 `logall`로 구현·수리·검증·SHA·외부 호출 0·다음 c4.0.e를 `fivecircles/work/update.md`에 기록한다.
+- 상태: IN_PROGRESS.
 
 ### 8. Closeout Report
 
-- 상태: PENDING.
+- c4.0.d per-target context accumulator는 MATCHED다. parent c4.0은 e structural-effect bridge가 남아
+  PARTIAL이고 c4.1 effect/advance, d2.x cross-state permit, reducer/transition은 아직 권한이 없다.
+- 이 완료는 retrieval 성능 향상 또는 golden 우승 판정이 아니라 controller 실행 무결성 완료다.
+- 상태: COMPLETED.
 
 ### 9. Relay Shot
 
 - c4.0.d 종료·push·logall 뒤 TODO를 새로 읽고 c4.0.e READY면 새 form/첫 RED를 즉시 시작한다.
-- 상태: PENDING.
+- 상태: IN_PROGRESS.
 
 ### 10. Final Ledger
 
 - Scope / Target / Relay select: COMPLETED.
-- Doc / Contract / Implementation: IN_PROGRESS.
-- Validation / Repair / Push / Report / Relay: PENDING.
+- Doc / Contract / Implementation / Validation / Repair / Report: COMPLETED.
+- Push / Publication / Relay: IN_PROGRESS.

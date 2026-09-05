@@ -1,6 +1,6 @@
 # EH-RC0 재개 체크포인트
 
-갱신: 2026-09-05 · EH2.6.c4.0.c 완료, parent c4.0/d2는 PARTIAL, 다음 READY는 EH2.6.c4.0.d. 토큰 절약을 위해 이 문서의 한눈에 보는 상태와 계약 §16.10부터 읽기.
+갱신: 2026-09-05 · EH2.6.c4.0.d 완료, parent c4.0/d2는 PARTIAL, 다음 READY는 EH2.6.c4.0.e. 토큰 절약을 위해 이 문서의 한눈에 보는 상태와 계약 §16.10부터 읽기.
 
 ## 중단/애매함 발생 시
 
@@ -22,9 +22,9 @@
   새 브랜치는 만들지 않는다.
 - 완료: EH-A.1~3 감사·기준선·계약/flow 초안. 805 tests PASS, 실패/skip 0 (변경 전).
 - 현재 IN_PROGRESS: **Phase 2**. EH2.1~2.5, EH2.6.a~d1, revision-0 `d2.i`, c4.0.a exact source-owner,
-  c4.0.b typed source/outcome resolver, c4.0.c one-step claim/history PASS. parent c4.0/d2는 PARTIAL이다.
-  다음 leaf는 validated selected target에서 parent/table/figure exact-one과 rerank prerequisite batch
-  identity/order를 보존하는 `EH2.6.c4.0.d`다.
+  c4.0.b typed source/outcome resolver, c4.0.c one-step claim/history, c4.0.d per-target context accumulator
+  PASS. parent c4.0/d2는 PARTIAL이다. 다음 leaf는 c4.0.c claim/source와 c4.0.d target context를 exact
+  structural effect 재료로만 결합하는 `EH2.6.c4.0.e`다.
 - 기존 평가 Batch 2의 활성 책임은 `EH2.EVAL`로 통합했다. EVAL.1~3은 완료, 사람 승인·qrels 보강과
   sealed held-out 실행은 EVAL.4~6에 남아 있으며 EH2 runtime에는 gold 값을 주입하지 않는다.
 - blocker: 없음. 실제 생성/API 호출은 계속 0이며 Phase 2는 provider-free 합성 테스트로 진행한다.
@@ -75,8 +75,13 @@
   projection·clone/mixed/drift·GC/post-child 실패를 terminal failed tombstone으로 유지한다.
   focused30/30·인접249/249·전체1359/1359·safety881파일·`git diff --check`·독립 최종
   `APPROVE` PASS이며 API/OpenAI/model/Langfuse/golden/VLM/provider/clock 외부 호출은 0회다.
-  c4.0.d~e per-target/structural bridge, c4 effect/advance, d2.x cross-state
-  decision과 d3 run 권한은 아직 없다.
+  EH2.6.c4.0.d는 exact semantic obligation과 `_context_seed_evidence_ids`가 함께 봉인한 bounded context
+  candidate에서 parent/table/figure receipt exact-one을 선택하고, complete parent/bridge tuple identity와
+  canonical order를 보존하는 private non-authorizing accumulator를 추가했다. missing/duplicate/wrong-role/
+  cross-root/clone·order/helper drift와 live-root GC remint를 차단하고 dead semantic root의 cache/tombstone을
+  executable callback 없이 수거한다. focused13/13·인접175/175·전체1372/1372·safety883파일·
+  `git diff --check`·독립 최종 `APPROVE` PASS이며 외부 호출은 0회다.
+  c4.0.e structural bridge, c4 effect/advance, d2.x cross-state decision과 d3 run 권한은 아직 없다.
 
 ## 완료된 첫 leaf 참고: EH0.1.a (현재 작업 아님)
 
@@ -141,6 +146,7 @@
 | EH2.6.c4.0.a | COMPLETED | `c0455f8` push. exact state-creation source owner와 execution identity 상속. equal-hash clone·owner 재사용/사후 부착·legacy follow-up·dependency drift 차단. focused+인접43, full1315, safety874, Playwright, independent APPROVE; parent c4.0/d2 PARTIAL, 다음 EH2.6.c4.0.b |
 | EH2.6.c4.0.b | COMPLETED | `ab5a223` push. exact typed source/outcome resolver와 sealed non-authorizing projection. direct issuer·forced mutation/clone·cross-owner·dependency drift·GC remint 차단. focused14, related168, full1329, safety877, Playwright, independent APPROVE; parent c4.0/d2 PARTIAL, 다음 EH2.6.c4.0.c |
 | EH2.6.c4.0.c | COMPLETED | exact step identity를 closure-private single-winner history에 봉인하고 claim-authorized prepare→source, shared lane epoch/claim fence, terminal failed tombstone으로 사후 포장·중복·역순·clone/mixed/drift·GC를 차단. focused30/30, adjacent249/249, full1359/1359, safety881파일, diff-check, independent APPROVE, 외부 호출 0; parent c4.0/d2 PARTIAL, 다음 EH2.6.c4.0.d |
+| EH2.6.c4.0.d | COMPLETED | exact semantic root의 bounded target에서 parent/table/figure exact-one을 선택하고 complete context batch tuple identity/order를 보존하는 private accumulator. missing/duplicate/wrong-role/cross-root/clone/order/helper drift와 live-root remint 차단, dead-root passive cleanup. focused13/13, adjacent175/175, full1372/1372, safety883파일, diff-check, independent APPROVE, 외부 호출 0; parent c4.0/d2 PARTIAL, 다음 EH2.6.c4.0.e |
 
 ## 안전/컨텍스트 규칙
 
