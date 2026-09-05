@@ -74,9 +74,9 @@ flowchart LR
 ```mermaid
 flowchart LR
   A["기존131 / 검수 이력 유지"] --> B["입력 sidecar 완료 / ready30·missing67·NA34"]
-  B --> C["recorder 코드 PASS / 실제 KURE smoke 잔여"]
+  B --> C["recorder / 실제 KURE 12회 PASS"]
   C --> D["resolver·핵심 지표 연결 PASS"]
-  D -.-> E["GAP: 실제3종 비교·개선 선택"]
+  D -.-> E["GAP: 순위 지표·qrel 승인·정식3종 비교"]
   F["Controller c4.0.e 기술 READY"] -.-> G["우선순위 대기 / 코드 보존"]
 ```
 
@@ -87,7 +87,7 @@ flowchart LR
 | 기존131·검수 이력 보존 | MATCHED | 문항/답변 파일 무수정, suite 분모 계약 유지 |
 | 실행 큐·책임·복구 경로 | MATCHED | TODO/checkpoint/resume 재구성; 기존 ID 157개 상태 보존 |
 | source join·핵심 채점 코드 | MATCHED | 112 집중·관련 테스트 재실행 PASS; 품질 점수 아님 |
-| 기존 입력 → 위치 sidecar → 실측 recorder | PARTIAL | 입력·recorder 코드 완료/관련88 PASS; b.2 실제 smoke·.4.c 의미 승인 잔여 |
+| 기존 입력 → 위치 sidecar → 실측 recorder | PARTIAL | 입력·recorder/실제12회 PASS; .4.c 위치 의미 승인 잔여 |
 | 동결 → 세 구성 비교 → 개선 선택 | GAP | EXP-SELECT.2.a / EH4.7c.1 / EXP-SELECT.3.a/b 미실행 |
 | Controller → 전문 경로·생성/E2E | PARTIAL | 기존 구현 유지; 검색 선행 예외가 E2E gate를 닫지 않음 |
 
@@ -170,10 +170,10 @@ qrels.jsonl + inventory.json. inventory SHA `d8d2f52bc75419bc8c1da2f81b1bc81f613
 | 4 Implementation | stage_recorder/retrieval_experiment, 기본 앱·VLM 무수정 | COMPLETED |
 | 5 Validation + Report | recorder12·관련88 PASS/독립 APPROVE. browser QA는 기존 정책 BLOCKED | PASS_WITH_RISKS |
 | 6 Repair Loop | child kind=text, UTF8 query SHA, timer 검증비용 분리; 테스트 모듈명 재탐색 | REPAIRED |
-| 7 Push / Publication | 소유 코드/계약/로그 선택; private 자료 제외. commit/push receipt는 다음 cycle에 기록 | READY |
+| 7 Push / Publication | 소유15파일 선택, d130fef → origin/feat/total-integration push 성공 | COMPLETED |
 | 8 Closeout Report | 실제 query/model0, recorder→scorer 합성 연결; 흐름 GAP/PARTIAL·logall | UPDATED |
 | 9 Relay Shot | b.2 9점(3+3+2+2−1) 선택. 아래 Cycle D 폼 후 실제 smoke로 진입 | CONTINUE_WITH_NEXT_FORM |
-| 10 Final Ledger | Doc/Implementation PASS, validation risk 분리, 선택 push 후 다음 폼 | CLOSEOUT_READY |
+| 10 Final Ledger | Doc/Implementation PASS, validation risk 분리, 선택 push 후 Cycle D 착수 | CLOSED_WITH_RISKS |
 
 ### Cycle C 검증 / 남은 연결
 
@@ -187,14 +187,41 @@ qrels.jsonl + inventory.json. inventory SHA `d8d2f52bc75419bc8c1da2f81b1bc81f613
 
 | 단계 | 실행 내용 | 상태 |
 | --- | --- | --- |
-| 0 Scope Intake | branch feat/total-integration, 기존 index/source 불변. local 모델만, generation/API0 | READY |
+| 0 Scope Intake | branch feat/total-integration, 기존 index/source 불변. local 모델만, generation/API0 | COMPLETED |
 | 1 Start Report | recorder→scorer 코드 연결 PASS, 실제 호출 미검증. 최신 target/current 사용 | COMPLETED |
 | 2 Relay Unit Selection | relay-shot b.2 9점. pinned artifact/runtime→actual observation 연결 | SELECTED |
-| 3 Doc / Contract | offline loader·actual query·cold/warm 구분·private 신규 출력 계약 보강 | NEXT |
-| 4 Implementation | one-go/sequential: preflight → 세 arm 소규모 smoke runner → actual run | READY |
-| 5 Validation + Report | test-runner: hash/lock/0600·동일 query/scope·실제 call counts·미실행 표시. 브라우저 우회 금지 | READY |
-| 6 Repair Loop | loader/recorder 호환 오류만 수정. corpus/embedding 재생성 금지 | READY |
-| 7 Push / Publication | 실제 기록은 private, 코드·집계·로그만 선택 | READY |
-| 8 Closeout Report | mermaid-flow-report/로그올, 실제 실행≠품질향상 경계 유지 | READY |
-| 9 Relay Shot | EH4.7c.1 MRR/nDCG 구현 가능성 확인. 정식 qrel 승인 대신 만들지 않음 | READY |
-| 10 Final Ledger | Cycle C 선택 push 확인 후 즉시 착수. 런타임 가용성 실패 시 구체 원인 기록 | READY |
+| 3 Doc / Contract | offline loader·actual query·cold/warm 구분·private 신규 출력 계약 보강 | COMPLETED |
+| 4 Implementation | offline runner·preflight·기존 artifact12회 실제 연결 | COMPLETED |
+| 5 Validation + Report | 관련93 PASS/독립 APPROVE, 실제12회·동일 query/scope·파일 불변·0700/0600. browser는 기존 BLOCKED | PASS_WITH_RISKS |
+| 6 Repair Loop | HF cache 조기 설정으로002 PASS. effective TRANSFORMERS_CACHE 추가 gate는 합성/별도 preflight PASS | REPAIRED |
+| 7 Push / Publication | 실제 기록은 private, 코드·집계·로그 선택. 커밋 receipt는 다음 cycle에 기록 | READY |
+| 8 Closeout Report | mermaid-flow-report/로그올, 131 품질 비교 미실행·GAP/PARTIAL | UPDATED |
+| 9 Relay Shot | EH4.7c.1.a/b/c 8점 선택. source rank/원래 doc qrels/CLI를 순차 연결 | CONTINUE_WITH_NEXT_FORM |
+| 10 Final Ledger | 선택 push 뒤 아래 Cycle E 시작. 실제12회는 semantic/formal 승인 아님 | CLOSEOUT_READY |
+
+### Cycle D 실제 실행 증거
+
+- 성공002: sample2×3 arm×2 round=12 기록, query embedding12, API/생성0, 동일 query/scope/config.
+- 모든 필수 단계 ok. arm별 두 반복의 후보 ID 동일, 원래8입력·source snapshot·index 전후 불변.
+- private 디렉터리0700/파일15개0600, Git ignored. 실제 receipt SHA:
+  `ef1612860541197e4183f4ccd41070864fe953b1a770c17a4322dc2c40e5113b`.
+- 위치: `resources/data_refined/private/evaluation/retrieval-smoke-v1-20260906-002`.
+- 001 cache 초기화 실패 폴더는 보존. 마지막 effective-cache 보강은93 회귀와 별도 모델0 preflight로 검증;
+  이미 실행 중이던002에 소급 적용했다고 주장하지 않는다. jq 검증의 중간 배열 접근 오류는 수정 후 반복 후보 일치 PASS.
+- 64GiB RAM / CPU4 thread 환경. loader/guard/관측 시간이 포함된 smoke wall은 serving latency 비교가 아니다.
+
+## Cycle E — EH4.7c.1 순위 지표 / 원래 문서 qrels / CLI
+
+| 단계 | 실행 내용 | 상태 |
+| --- | --- | --- |
+| 0 Scope Intake | local-first/feat/total-integration. 131 질문·답변·VLM·index 불변. 모델/API 호출 없음 | READY |
+| 1 Start Report | recorder 실측 MATCHED, 순위 지표·정식 비교 GAP. 최신 Mermaid 경로 참조 | COMPLETED |
+| 2 Relay Unit Selection | relay-shot c.1 8점, Controller4점. 비교 채점의 앞선 연결 선택 | SELECTED |
+| 3 Doc / Contract | unique source anchor와 original-doc 분리, binary IDCG·중복·grouped rank·private inventory 계약 | NEXT |
+| 4 Implementation | one-go/batch sequential: .a 순수 지표 → .b doc inventory → .c CLI/집계 | READY |
+| 5 Validation + Report | test-runner: 수학적 bounds/미실행/전문 suite/131분모/변조 거절/회귀·Mermaid·로그 | READY |
+| 6 Repair Loop | source rank을 임의 정렬하지 않고, 문서 정답 분모를 anchor owner로 축소하지 않음 | READY |
+| 7 Push / Publication | 코드·계약·집계·로그만, private 입력/점수 비공개 | READY |
+| 8 Closeout Report | 코드 검증/실측/의미 승인 분리. browser 우회 금지 | READY |
+| 9 Relay Shot | EXP-SELECT.2.a.2 정식 승인·동결 gate 확인. 없는 사람 승인을 만들지 않음 | READY |
+| 10 Final Ledger | Cycle D push 확인 후 .a 착수. 원래 core/보조69 검수 이력 유지 | READY |

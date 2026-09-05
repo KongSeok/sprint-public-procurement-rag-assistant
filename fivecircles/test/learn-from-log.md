@@ -426,3 +426,9 @@ Reference:
 - retrieval granularity(child)와 Evidence.kind(text)를 같은 enum으로 보지 않는다. 실제 builder fixture로 정상 경로를 검사한다.
 - 관측기 validation은 호출 timer 밖에 둔다. 실패/미측정을 0으로 덮지 않고 기존 UTF-8 query hash 규칙을 재사용한다.
 - 테스트 파일명을 추정하지 않고 rg 목록으로 확인한다. refs: `errorlogs/backend/2026-09-06-stage-recorder-validation.md`.
+
+### Offline 모델 cache는 프로세스 시작 전에 고정 (2026-09-06)
+
+- 라이브러리 pin import가 HF 상수를 먼저 만든다. 이후 env 변경으로 해결하려 하지 말고 Hub/Transformers effective cache를 함께 검사한다.
+- 실패 실행은 보존하고 신규 namespace에서 재검증한다. 실측 시작 뒤 추가한 guard를 해당 실행에 소급 적용하지 않는다.
+- refs: `errorlogs/backend/2026-09-06-retrieval-smoke-runtime.md`.

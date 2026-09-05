@@ -954,3 +954,13 @@ This file summarizes recent updates so other agents can continue without re‑di
 - refs: test/errorlogs/backend/2026-09-06-stage-recorder-validation.md. HTML browser BLOCKED는 별도 유지.
 ### Next
 - 로그·선택 push 후 Cycle D EH4.7b.2 실제 로컬 KURE smoke 착수. 정식 성능 비교 승인과 구분한다.
+
+## Addendum (2026-09-06) - 로컬 검색12회 smoke 완료
+### Backend
+- 기존 인덱스로 원래2질문×3종×2회 검색/기록 PASS. query embedding12, API·생성0, 파일 불변·반복 후보 동일.
+- 기존131 평가셋은 유지했다. 신규002 private만 저장, 초기 cache 실패001도 보존. receipt는 search-first relay 참조.
+### Tests
+- HF startup cache 실패 재현·수정 후 실제 PASS. 관련93 PASS/독립 APPROVE, 파일15개0600·폴더0700·Git ignored.
+- refs: test/errorlogs/backend/2026-09-06-retrieval-smoke-runtime.md. smoke wall은 관측 비용 포함이며 품질·serving latency 아님.
+### Next
+- Cycle D 선택 push 후 EH4.7c.1.a/b/c 순위 지표·원래 문서 qrels·CLI 통합으로 릴레이한다.

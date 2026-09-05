@@ -21,7 +21,7 @@ HEAD는 7ad229f8c85fb48ebb1c53f4424db4a224b562a7 이었다.
 fivecircles/architecture/todolist.md 상단 실행 큐에서 현재 leaf 하나만 선택한다.
 한 번에 하나를 계약 확인→테스트→구현→focused 검증→체크포인트 순으로 처리한다.
 크면 .a/.b처럼 다시 나눈다. 완료한 감사와 전체 문서를 매번 다시 읽지 않는다.
-EVAL.4.a/b와 최소 draft/recorder EH4.7b.1은 완료했다. 현재 다음 위치는 EH4.7b.2 로컬 KURE smoke다.
+EVAL.4.a/b와 draft/recorder·로컬12회 smoke는 완료했다. 현재 다음은 EH4.7c.1.a/b/c 순위 지표·doc qrels·CLI다.
 그다음 실제 recorder smoke → retrieval 지표/승인 조건 동결 → 3종 검색 비교다.
 EH2.6.c4.0.e는 기술 READY/우선순위 대기로 보존했다. Controller 전체 완료를 첫 비교 선행조건으로 오해하지 않는다.
 기존131 질문/답변과 보조69 검수는 유지하며, 부족한 위치 qrels와 정형 승인 필드는 별도 표시한다.

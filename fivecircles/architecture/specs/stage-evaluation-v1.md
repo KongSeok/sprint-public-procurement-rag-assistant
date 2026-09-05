@@ -158,3 +158,29 @@ DoD: schema/arm 구별·공통query/budget·불변 projection·hash drift·gold/
   이 leaf는 합성 실행으로 검증하며 실제 KURE query 호출은 b.2에서 별도 증명한다.
 - DoD: 3종 호출 수/공통 query/scope, raw→fusion→return→context 순서, scoped empty/error/unavailable,
   owner/granularity/rank/hash drift, 합성 production 거절, content-free serialization, 기존 scorer 연결 회귀.
+
+## Offline 연결 smoke — EH4.7b.2 (2026-09-06)
+
+`python -m midprojectrag.retrieval_smoke --repo-root … --config … --data-root … --artifact-root …
+--inputs-dir … --output-dir …`는 기존 suite/lock/store/source/input inventory 및 index를 재검증한다.
+입력131은 유지하고 원래 core request 중 첫 explicit/첫 all 각1개만 연결 시험에 사용한다(gold 조건 선택 금지).
+각 arm에서 동일2개 request를 2회 실행하며 arm/round별 독립 파일로 기록한다. 이는 131→2 평가셋 축소가 아니다.
+질의 총12회, 실패 시 자동 재시도/범위 확대/전체 평가/생성/API 호출은 하지 않는다.
+
+- HF cache offline-only, 고정 revision CPU KURE. 네트워크 다운로드·문서 재임베딩·index/source 변경 금지.
+  page/child encoder는 서로 별개이며 child dense/hybrid만 같은 loaded backend를 재사용한다.
+  `HF_HOME=<private/hf-cache> HF_HUB_CACHE=<private/hf-cache/hub> HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1`을
+  Python 시작 전에 설정한다. dense 모듈의 라이브러리 pin 과정에서 HF 상수가 초기화되므로 실행 중 env 변경으로
+  cache를 전환하지 않는다. 시작 cache 불일치는 모델/출력 폴더 생성 전에 fail-fast한다.
+  Hub 상수뿐 아니라 실제 tokenizer의 effective `TRANSFORMERS_CACHE`도 검사하여 legacy override를 거절한다.
+- page_index digest는 metadata.json 파일 SHA, child lane digest는 각각 receipt.json 파일 SHA로 통일한다.
+  실제 파일 및 원래8입력은 전후 SHA 비교하고 각 loader의 자체 검증을 유지한다.
+- inventory는 canonical SHA·완료 상태·qrels file SHA·source/config/snapshot/131 case identity를 재검증한다.
+  구조적 ready만 확인하며 qrels를 runtime에 전달하거나 의미 승인하지 않는다.
+- 신규 private 디렉터리0700/파일0600/exclusive. arm/round별 records와 observations, 실행 전 계획,
+  마지막 run receipt를 저장한다. 기존 디렉터리 거절, 중간 실패의 기록은 유지하고 완료 receipt 없이는 완료 취급 금지.
+- loader별 시간과 실제 query 전체 wall time/단계 시간을 분리한다. 첫 backend query는 lazy model load를
+  포함할 수 있다고 표시하고 native encoder/model-load 세부시간은 null이다. 전후 guard/관측 비용도 전체 wall에 포함한다.
+  page와 child의 검증 보증 수준/비용이 다르므로 smoke wall time은 serving latency 비교 점수가 아니다.
+- 완료 기준:12개 기록의 동일 case별 query/scope/config, required stages ok·calls 관측, untouched hashes,
+  private 저장·누출 없는 집계. 오류/미실행이 있으면 smoke PASS를 주지 않는다. 성능 수치/우승은 판정하지 않는다.

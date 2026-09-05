@@ -11,7 +11,7 @@
 | --- | --- | --- |
 | 0 | 실행 큐·소유권·checkpoint/resume 정합화 | 완료·01426df push. 기존 체크박스 보존 |
 | 1 | EH2.EVAL.4.a → 4.b / 4.c | .a/.b 구현·private131 생성 완료; 위치 의미 승인/보강 .c는 잔여 |
-| 2 | EH4.7b.1 → b.2 | 실제 raw lane/fusion/context recorder와 smoke; qrels/질문 제작 책임 없음 |
+| 2 완료 | EH4.7b.1 → b.2 | recorder·실제 로컬12회 PASS; qrels/질문 제작 책임 없음 |
 | 3 | EH4.7c.1 + EXP-SELECT.2.a | retrieval MRR/nDCG + 세 구성의 비교 조건/metric threshold 봉인 |
 | 4 | EXP-SELECT.3.a | 동일 승인 qrels에서 page KURE / compat child KURE / child+Kiwi BM25·RRF paired run |
 | 5 | EXP-SELECT.3.b | 실패 경계·품질/효율 delta로 다음 개선 축 선택. 모든 연구 아이디어 자동 구현 금지 |
@@ -369,15 +369,18 @@ runtime은 local profile 기본·LLM provider 교체형으로 유지하며 새 �
   - [ ] **EH4.7a.G** 집중·관련 회귀/독립 리뷰/흐름 보고/로그. 네 핵심 지표 선행 leaf이며 EH4.7 전체·실제131 실측 완료와 구분.
     - 2026-09-05: 코드 집중·관련112 PASS, 실제98/20,118 source 검증, 리뷰 APPROVE, PNG/문서/로그 완료. 잔여는 HTML 브라우저 QA(file URL 정책 차단). 실제131 실측은 EH4.7b.
   - 계약: `specs/stage-evaluation-v1.md`. EDA10 추가/40개 축소/새 골든셋은 범위 밖. qrel 보강 원천은 `EH2.EVAL.4` 유지.
-  - [ ] **EH4.7b** 실제 검색 단계 recorder만 연결한다. Mini131 입력/qrels adapter는 EH2.EVAL.4.b,
+  - [x] **EH4.7b** 실제 검색 단계 recorder 연결·local12회 smoke 완료. Mini131 입력/qrels adapter는 EH2.EVAL.4.b,
     정식 paired 실측은 EXP-SELECT.3.a에서 한 번 수행한다. 없는 과거 단계를 역산하지 않는다.
     - [x] **EH4.7b.1** raw dense/lexical→전체 fusion→반환10/context5 기록기 구현. focused12·관련88 PASS/독립 APPROVE.
       관측 receipt와 EH2 live authority 구분, page 독립 provenance·content-free/error/unavailable 유지. 실제 모델 smoke는 b.2.
-    - [ ] **EH4.7b.2** pinned local artifact·KURE offline 가용성·공통 query/scope/config와 stage 누락 처리를
-      smoke한다. 실제 query embedding은 모델 실행으로 기록하고 연결 성공을 품질 향상으로 부르지 않는다.
+    - [x] **EH4.7b.2** offline KURE 실제12회 연결 PASS/관련93 PASS. 입력131 유지·sample2×3종×2회,
+      동일 query/scope·반복 후보 일치·파일 불변·private0600. query embedding12/API·생성0, 품질 비교 아님.
   - [ ] **EH4.7c** MRR/nDCG·slot·문장/구간 완전성 등 나머지 계층 지표. block recall만으로 내용 완전성을 주장하지 않음.
     - [ ] **EH4.7c.1** retrieval-only MRR/nDCG를 원문 anchor와 distinct-document 단위로 분리한다.
       @k/중복 gain/IDCG/qrel 결측·미실행 정의를 .7a 규칙과 정합화하고 합성 회귀한다. 공식값은 EXP-SELECT.3.a에서 측정한다.
+      - [ ] **EH4.7c.1.a** unique source-anchor / original document RR·binary nDCG 순수 함수. multi-anchor 내부순위 미추정.
+      - [ ] **EH4.7c.1.b** 검증된 input inventory의 original doc qrels를 독립 연결; block missing/doc ready 분리.
+      - [ ] **EH4.7c.1.c** private CLI·전체131 집계/누락 분모·scoring hash/회귀를 통합, formal 승인과 분리.
     - [ ] **EH4.7c.2** slot·문장/구간 완전성은 해당 EH2/EH3 실행 기록을 확보한 후 별도 연결한다.
 - [ ] **EH4.8** generation/list/analytics/visual 평가를 추가한다. 완료: 결정론/semantic adapter 분리, completeness/exact 검증, 혼합 평균 금지.
 - [ ] **EH4.9** frozen corpus/gold/config의 재현 가능한 실행 receipt를 남긴다. 완료: 실제/합성/미실행 구분, old/new scorer·latency·모델 가용성 별도.

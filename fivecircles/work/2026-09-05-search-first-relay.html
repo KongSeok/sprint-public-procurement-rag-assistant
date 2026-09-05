@@ -9,7 +9,7 @@
 <section><h2>실행 순서</h2><table><thead><tr><th>순서</th><th>작업</th><th>기존 TODO</th></tr></thead><tbody>
 <tr><td>0</td><td>큐·소유권·재개 문서 재구성</td><td>이번 문서 cycle</td></tr>
 <tr><td>1</td><td>기존131 입력·private adapter 완료. 부족한 근거 승인은 잔여</td><td>EH2.EVAL.4.a/b 완료 · .c 잔여</td></tr>
-<tr><td>2</td><td>실제 raw lane/fusion/context 기록과 연결 smoke</td><td>EH4.7b.1/b.2</td></tr>
+<tr><td>2</td><td>기록기·실제 로컬 KURE12회 연결 완료</td><td>EH4.7b.1/b.2 완료</td></tr>
 <tr><td>3</td><td>retrieval MRR/nDCG·비교 조건 동결</td><td>EH4.7c.1 / EXP-SELECT.2.a</td></tr>
 <tr><td>4</td><td>page KURE / compat child KURE / child+Kiwi·RRF 비교</td><td>EXP-SELECT.3.a</td></tr>
 <tr><td>5</td><td>실패 원인으로 다음 개선 축 선택</td><td>EXP-SELECT.3.b → EH2/3/4 후속</td></tr></tbody></table>
@@ -21,16 +21,17 @@
 <tr><td>큐·책임·재개 경로</td><td>MATCHED · 기존157개 ID 상태 보존</td><td>문서 재구성, 성능 점수 아님</td></tr>
 <tr><td>resolver·핵심 stage 지표</td><td>MATCHED · 집중/관련112 PASS</td><td>전체131 품질 미실측</td></tr>
 <tr><td>입력 sidecar</td><td>MATCHED · adapter 구현·65 관련 테스트 PASS</td><td>실제131 입력 생성: ready30/missing67/미적용34. 의미 승인은 아님</td></tr>
-<tr><td>retrieval recorder</td><td>구현 완료 · recorder12/관련88 PASS</td><td>실제 로컬 KURE smoke 착수. 품질 비교는 미실행</td></tr>
+<tr><td>retrieval recorder</td><td>구현·관련93 PASS/독립 APPROVE</td><td>실제12회 PASS, query embedding12/API·생성0. 반복 후보 동일/파일 불변</td></tr>
 <tr><td>3종 비교·개선 선택</td><td>GAP · 동결/승인 필요</td><td>미실행</td></tr>
 <tr><td>Controller·E2E</td><td>PARTIAL · 기존 구현 유지</td><td>별도 gate 유지</td></tr></tbody></table></section>
 <section><h2>Done / Not Done Priority</h2><p>점수는 작업 연결 우선순위이며 성능이 아닙니다. upstream 0–4 + connection 0–3 + safety 0–2 + validation 0–2 + risk 0…−3.</p>
 <table><thead><tr><th>남은 작업</th><th>점수</th><th>선택 이유</th></tr></thead><tbody>
-<tr><td>EH4.7b.2 실제 KURE smoke</td><td>9</td><td>3+3+2+2−1. 구현된 기록기에 실제 로컬 호출 연결</td></tr>
-<tr><td>retrieval 지표·조건 동결</td><td>8</td><td>공정한 세 구성 비교</td></tr>
+<tr><td>EH4.7c.1 순위 지표·문서 qrels 연결</td><td>8</td><td>2+3+2+2−1. 공정한 세 구성 비교 채점기</td></tr>
+<tr><td>정식 qrel 승인·조건 동결</td><td>8</td><td>구조적 ready/연결 smoke를 품질 승인으로 승격하지 않음</td></tr>
 <tr><td>Controller c4.0.e</td><td>4</td><td>첫 검색 비교에는 선행 불필요</td></tr></tbody></table></section>
 <section><h2>검증과 해석 범위</h2><p>전체131 ledger와 지표별 승인/누락/미적용 분모를 함께 유지합니다. paired subset은 실행 전에 봉인하며 구성 오류 때문에 사후 축소하지 않습니다. 보조69 사람 검수와 정형 승인 필드 상태는 구분합니다.</p>
-<p>앞선112 회귀·입력 adapter 관련65 PASS, recorder 관련88 PASS/독립 APPROVE. 실제 private131 입력 생성 완료. 기본 profile/VLM/원문·질문·답변 무변경. Cycle C의 모델/API 호출0.</p>
+<p>앞선112 회귀·입력 adapter 관련65 PASS, 이번 관련93 PASS/독립 APPROVE. 실제 private131 입력은 유지하며 sample2×3종×2회 연결을 확인했습니다. 기본 profile/VLM/원문·질문·답변 무변경.</p>
+<p>초기 HF cache 경로 오류는 수정했으며 실패001 폴더를 보존했습니다. 성공002는 private0700/파일15개0600, 반복 후보 일치. 전체 wall은 관측/guard 비용을 포함하므로 서비스 latency가 아닙니다.</p>
 <p class="note">Flow diagram verification: GAP/PARTIAL. HTML 브라우저 QA는 file URL 접근 정책으로 BLOCKED. PNG 생성·정적 검증을 브라우저 스크린샷 PASS로 대체하지 않습니다.</p>
 <p><a href="2026-09-05-search-first-relay.md">원샷딜 폼·로그·최신 릴레이 결과</a> · <a href="../architecture/todolist.md">TODO 단일 원천</a></p></section>
 </body></html>
