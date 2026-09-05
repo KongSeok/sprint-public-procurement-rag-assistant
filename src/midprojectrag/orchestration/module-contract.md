@@ -351,6 +351,22 @@ may invoke the projection issuer. Issuance is identity-mirrored and tombstoned; 
 aliases are deleted after initialization. The sealed reader re-runs the exact resolver, so ordinary or forced
 attribute mutation, structural/equal-payload clones, cross-owner roots, and validator/runtime dependency replacement
 cannot turn the projection into effect authority.
+C4.0.c adds a closure-private one-step history keyed by stable execution identity, decision ordinal, the before
+snapshot, and exact selected-action identity. Its only live edges in this leaf are pristine-to-claimed,
+claim-authorized prepare-to-source, and an explicit or automatic nonterminal-to-failed tombstone. Prepared is a
+private weak-bound substate while the public status remains claimed. Calling the C4.0.b resolver directly grants no
+step authority. Exact decision and owner preflight happen before history creation; source validation happens only
+through the exact claim during prepare and bind. The claim and source projection are immutable, non-serializable
+exact-object capabilities; duplicate/concurrent claim, reordered binding, forced mutation, structural/equal-payload
+clones, cross-root graphs, post-child dependency drift, and claim/projection/execution GC remint fail closed for the
+execution lifetime. Lane dispatch and claim share a monotonic epoch fence, so a live LaneSearchReceipt from an
+attempt that began at or before the claim cutoff cannot be attached retroactively. Failed receipt mint explicitly
+discards its pending permit, while callback-free weak registry rows are mirror-validated and passively pruned. Only
+live lane receipts and terminal controller decisions have temporal source authority here; other C4.0.b source kinds
+remain fail-closed until their exact dispatch hooks exist. Effect-bound and transitioned are reserved states, but
+their entry points stay dormant until C4.0.e and C4.1 seal exact effect and transition authorities; passing an
+arbitrary structural object cannot advance the history. The bookkeeping boundary performs no provider/clock call,
+effect mint, reducer work, ledger advance, or state transition.
 An E1 compare seed must be all-unsearched; already hybrid-searched EH2.4 coverage cannot be
 relabeled as independent lane execution. Once all approved retrieval paths close with no
 candidates, controller-only `verify_slot` performs a zero-provider exhaustion check that may

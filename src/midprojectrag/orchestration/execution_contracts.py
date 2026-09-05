@@ -6913,6 +6913,7 @@ def _mint_lane_search_receipt(
     result_sha256: str,
     call_performed: bool,
     transition_permit: _LaneClosurePermit,
+    source_attempt: object = None,
 ) -> LaneSearchReceipt:
     obligation_authority = _require_retrieval_obligation_authority(obligation)
     ledger_transition_sha256 = _consume_lane_closure_permit(
@@ -7018,6 +7019,10 @@ def _mint_lane_search_receipt(
             issued_payload_sha256=_canonical_sha256(receipt.to_dict()),
         ),
     )
+    _record_controller_source_attempt(
+        permit=source_attempt,
+        receipt=receipt,
+    )
     return receipt
 
 
@@ -7099,6 +7104,7 @@ def execute_retrieval_lane(
     limit = object.__getattribute__(obligation, f"{lane}_k")
     query = authority.raw_query
     authority.ledger._claim(obligation_sha256, lane)
+    source_attempt = _begin_controller_source_attempt()
     raw_result: object = None
     provider_failed = False
     dispatch_contract_failed = False
@@ -7121,6 +7127,9 @@ def execute_retrieval_lane(
         call_performed = True
     except Exception:
         dispatch_contract_failed = True
+    except BaseException:
+        _discard_controller_source_attempt(permit=source_attempt)
+        raise
     evidence_ids: tuple[str, ...] = ()
     anchors: tuple[StableEvidenceAnchor, ...] = ()
     result_sha256 = ""
@@ -7135,6 +7144,9 @@ def execute_retrieval_lane(
             )
         except (TypeError, ValueError):
             result_contract_failed = True
+        except BaseException:
+            _discard_controller_source_attempt(permit=source_attempt)
+            raise
     outcome = (
         "provider_error"
         if provider_failed
@@ -7144,33 +7156,42 @@ def execute_retrieval_lane(
         if evidence_ids
         else "empty"
     )
-    transition_permit = authority.ledger._close(
-        obligation_sha256,
-        lane,
-        outcome=outcome,
-    )
-    if provider_failed:
-        return _mint_lane_search_receipt(
-            obligation=obligation,
-            lane=lane,
-            store=store,
-            config=config,
-            runtime=runtime,
-            result=None,
-            evidence_ids=(),
-            anchors=(),
-            outcome="provider_error",
-            error_code="lane_provider_error",
-            result_sha256=_canonical_sha256(
-                {
-                    "schema_version": SCHEMA_VERSION,
-                    "lane": lane,
-                    "outcome": "provider_error",
-                }
-            ),
-            call_performed=call_performed,
-            transition_permit=transition_permit,
+    try:
+        transition_permit = authority.ledger._close(
+            obligation_sha256,
+            lane,
+            outcome=outcome,
         )
+    except BaseException:
+        _discard_controller_source_attempt(permit=source_attempt)
+        raise
+    if provider_failed:
+        try:
+            return _mint_lane_search_receipt(
+                obligation=obligation,
+                lane=lane,
+                store=store,
+                config=config,
+                runtime=runtime,
+                result=None,
+                evidence_ids=(),
+                anchors=(),
+                outcome="provider_error",
+                error_code="lane_provider_error",
+                result_sha256=_canonical_sha256(
+                    {
+                        "schema_version": SCHEMA_VERSION,
+                        "lane": lane,
+                        "outcome": "provider_error",
+                    }
+                ),
+                call_performed=call_performed,
+                transition_permit=transition_permit,
+                source_attempt=source_attempt,
+            )
+        except BaseException:
+            _discard_controller_source_attempt(permit=source_attempt)
+            raise
     if dispatch_contract_failed or result_contract_failed:
         error_code = (
             "lane_post_call_contract_error"
@@ -7179,43 +7200,53 @@ def execute_retrieval_lane(
             if dispatch_contract_failed
             else "lane_result_contract_error"
         )
+        try:
+            return _mint_lane_search_receipt(
+                obligation=obligation,
+                lane=lane,
+                store=store,
+                config=config,
+                runtime=runtime,
+                result=None,
+                evidence_ids=(),
+                anchors=(),
+                outcome="contract_error",
+                error_code=error_code,
+                result_sha256=_canonical_sha256(
+                    {
+                        "schema_version": SCHEMA_VERSION,
+                        "lane": lane,
+                        "outcome": "contract_error",
+                        "error_code": error_code,
+                    }
+                ),
+                call_performed=call_performed,
+                transition_permit=transition_permit,
+                source_attempt=source_attempt,
+            )
+        except BaseException:
+            _discard_controller_source_attempt(permit=source_attempt)
+            raise
+    try:
         return _mint_lane_search_receipt(
             obligation=obligation,
             lane=lane,
             store=store,
             config=config,
             runtime=runtime,
-            result=None,
-            evidence_ids=(),
-            anchors=(),
-            outcome="contract_error",
-            error_code=error_code,
-            result_sha256=_canonical_sha256(
-                {
-                    "schema_version": SCHEMA_VERSION,
-                    "lane": lane,
-                    "outcome": "contract_error",
-                    "error_code": error_code,
-                }
-            ),
+            result=raw_result,
+            evidence_ids=evidence_ids,
+            anchors=anchors,
+            outcome=outcome,
+            error_code="none",
+            result_sha256=result_sha256,
             call_performed=call_performed,
             transition_permit=transition_permit,
+            source_attempt=source_attempt,
         )
-    return _mint_lane_search_receipt(
-        obligation=obligation,
-        lane=lane,
-        store=store,
-        config=config,
-        runtime=runtime,
-        result=raw_result,
-        evidence_ids=evidence_ids,
-        anchors=anchors,
-        outcome=outcome,
-        error_code="none",
-        result_sha256=result_sha256,
-        call_performed=call_performed,
-        transition_permit=transition_permit,
-    )
+    except BaseException:
+        _discard_controller_source_attempt(permit=source_attempt)
+        raise
 
 
 def validate_lane_search_receipt(
@@ -15928,6 +15959,19 @@ def _build_controller_source_outcome_projection_authority():
         with authority_lock:
             return read_unlocked(projection)
 
+    def is_issued_identity(projection: object) -> bool:
+        """Classify only exact issuer identity; this grants no read authority."""
+
+        with authority_lock:
+            if type(projection) is not _ControllerSourceOutcomeProjection:
+                return False
+            current = authorities.get(id(projection))
+            return (
+                type(current) is tuple
+                and len(current) == 2
+                and current[0]() is projection
+            )
+
     def seal_issuer(caller_code: CodeType) -> None:
         nonlocal authorized_caller_code
         if (
@@ -15939,12 +15983,13 @@ def _build_controller_source_outcome_projection_authority():
             )
         authorized_caller_code = caller_code
 
-    return issue, read, seal_issuer
+    return issue, read, is_issued_identity, seal_issuer
 
 
 (
     _issue_controller_source_outcome_projection,
     _read_controller_source_outcome_projection_authority,
+    _is_issued_controller_source_outcome_projection_identity,
     _seal_controller_source_outcome_projection_issuer,
 ) = _build_controller_source_outcome_projection_authority()
 del _build_controller_source_outcome_projection_authority
@@ -16556,6 +16601,1224 @@ _require_controller_source_outcome_projection = (
 )
 del _close_controller_source_outcome_projection_reader
 del _read_controller_source_outcome_projection_authority
+
+
+class _ControllerSourceAttemptPermit:
+    """Weakly held marker for one live lane-dispatch attempt."""
+
+    __slots__ = ("__weakref__",)
+
+    def __init__(self) -> None:
+        raise TypeError("controller_source_attempt_factory_required")
+
+
+def _build_controller_source_attempt_registry(*, permit_cls: type):
+    """Linearize lane dispatch start and controller claim under one lock."""
+
+    issuance_lock = Lock()
+    get_frame = _GET_FRAME
+    attempts: dict[int, tuple[ReferenceType[object], int]] = {}
+    attempts_shadow: dict[int, tuple[ReferenceType[object], int]] = {}
+    receipts: dict[int, tuple[ReferenceType[object], int]] = {}
+    receipts_shadow: dict[int, tuple[ReferenceType[object], int]] = {}
+    # Keep the mutable counter behind an identity-stable dual mirror.  Runtime
+    # pins authenticate closure-cell identities, so rebinding a nonlocal int
+    # after dispatch would otherwise look indistinguishable from tampering.
+    epoch_state = {"current": 0, "shadow": 0}
+    begin_code: CodeType | None = None
+    record_code: CodeType | None = None
+    claim_code: CodeType | None = None
+
+    def prune_unlocked() -> None:
+        for visible, shadow in (
+            (attempts, attempts_shadow),
+            (receipts, receipts_shadow),
+        ):
+            identities = set(dict.keys(visible)) | set(dict.keys(shadow))
+            for identity in identities:
+                current = dict.get(visible, identity)
+                sealed = dict.get(shadow, identity)
+                if (
+                    type(identity) is not int
+                    or type(current) is not tuple
+                    or len(current) != 2
+                    or sealed is not current
+                    or type(tuple.__getitem__(current, 0))
+                    is not ReferenceType
+                    or type(tuple.__getitem__(current, 1)) is not int
+                ):
+                    raise ValueError("controller_source_attempt_registry_drift")
+                if tuple.__getitem__(current, 0)() is None:
+                    dict.pop(visible, identity, None)
+                    dict.pop(shadow, identity, None)
+
+    def begin() -> object:
+        caller = get_frame(1)
+        if (
+            object.__getattribute__(caller, "f_code") is not begin_code
+            or object.__getattribute__(caller, "f_globals") is not globals()
+        ):
+            raise ValueError("controller_source_attempt_begin_authority_required")
+        with issuance_lock:
+            prune_unlocked()
+            current_epoch = dict.get(epoch_state, "current")
+            shadow_epoch = dict.get(epoch_state, "shadow")
+            if (
+                len(epoch_state) != 2
+                or type(current_epoch) is not int
+                or shadow_epoch is not current_epoch
+                or current_epoch < 0
+            ):
+                raise ValueError("controller_source_attempt_epoch_drift")
+            next_epoch = current_epoch + 1
+            dict.__setitem__(epoch_state, "current", next_epoch)
+            dict.__setitem__(epoch_state, "shadow", next_epoch)
+            permit = object.__new__(permit_cls)
+            identity = id(permit)
+            permit_weak = ref(permit)
+            attempt = (permit_weak, next_epoch)
+            dict.__setitem__(attempts, identity, attempt)
+            dict.__setitem__(attempts_shadow, identity, attempt)
+            return permit
+
+    def record(*, permit: object, receipt: LaneSearchReceipt) -> None:
+        caller = get_frame(1)
+        if (
+            object.__getattribute__(caller, "f_code") is not record_code
+            or object.__getattribute__(caller, "f_globals") is not globals()
+        ):
+            raise ValueError("controller_source_attempt_record_authority_required")
+        if type(receipt) is not LaneSearchReceipt:
+            raise TypeError("lane_search_receipt_required")
+        with issuance_lock:
+            prune_unlocked()
+            permit_identity = id(permit)
+            current_attempt = dict.get(attempts, permit_identity)
+            sealed_attempt = dict.get(attempts_shadow, permit_identity)
+            if (
+                type(permit) is not permit_cls
+                or type(current_attempt) is not tuple
+                or len(current_attempt) != 2
+                or sealed_attempt is not current_attempt
+                or tuple.__getitem__(current_attempt, 0)() is not permit
+                or type(tuple.__getitem__(current_attempt, 1)) is not int
+            ):
+                raise ValueError("controller_source_attempt_permit_required")
+            started_epoch = tuple.__getitem__(current_attempt, 1)
+            identity = id(receipt)
+            if (
+                dict.get(receipts, identity) is not None
+                or dict.get(receipts_shadow, identity) is not None
+            ):
+                raise ValueError("controller_source_attempt_receipt_reuse")
+            receipt_weak = ref(receipt)
+            entry = (receipt_weak, started_epoch)
+            dict.pop(attempts, permit_identity, None)
+            dict.pop(attempts_shadow, permit_identity, None)
+            dict.__setitem__(receipts, identity, entry)
+            dict.__setitem__(receipts_shadow, identity, entry)
+
+    def discard(*, permit: object) -> None:
+        caller = get_frame(1)
+        if (
+            object.__getattribute__(caller, "f_code") is not begin_code
+            or object.__getattribute__(caller, "f_globals") is not globals()
+        ):
+            raise ValueError(
+                "controller_source_attempt_discard_authority_required"
+            )
+        with issuance_lock:
+            prune_unlocked()
+            identity = id(permit)
+            current = dict.get(attempts, identity)
+            sealed = dict.get(attempts_shadow, identity)
+            if (
+                type(permit) is not permit_cls
+                or type(current) is not tuple
+                or len(current) != 2
+                or sealed is not current
+                or tuple.__getitem__(current, 0)() is not permit
+            ):
+                raise ValueError("controller_source_attempt_permit_required")
+            dict.pop(attempts, identity, None)
+            dict.pop(attempts_shadow, identity, None)
+
+    def receipt_epoch(receipt: object) -> int:
+        with issuance_lock:
+            prune_unlocked()
+            current = dict.get(receipts, id(receipt))
+            sealed = dict.get(receipts_shadow, id(receipt))
+            if (
+                type(current) is not tuple
+                or len(current) != 2
+                or sealed is not current
+                or tuple.__getitem__(current, 0)() is not receipt
+                or type(tuple.__getitem__(current, 1)) is not int
+            ):
+                raise ValueError("controller_source_attempt_authority_required")
+            return tuple.__getitem__(current, 1)
+
+    def claim_fence(installer: FunctionType) -> object:
+        caller = get_frame(1)
+        if (
+            object.__getattribute__(caller, "f_code") is not claim_code
+            or object.__getattribute__(caller, "f_globals") is not globals()
+            or type(installer) is not FunctionType
+        ):
+            raise ValueError("controller_step_claim_fence_authority_required")
+        with issuance_lock:
+            prune_unlocked()
+            current_epoch = dict.get(epoch_state, "current")
+            shadow_epoch = dict.get(epoch_state, "shadow")
+            if (
+                len(epoch_state) != 2
+                or type(current_epoch) is not int
+                or shadow_epoch is not current_epoch
+                or current_epoch < 0
+            ):
+                raise ValueError("controller_source_attempt_epoch_drift")
+            return installer(current_epoch)
+
+    def seal(
+        *,
+        issued_begin_code: CodeType,
+        issued_record_code: CodeType,
+        issued_claim_code: CodeType,
+    ) -> None:
+        nonlocal begin_code, record_code, claim_code
+        if (
+            type(issued_begin_code) is not CodeType
+            or type(issued_record_code) is not CodeType
+            or type(issued_claim_code) is not CodeType
+            or begin_code is not None
+            or record_code is not None
+            or claim_code is not None
+        ):
+            raise ValueError("controller_source_attempt_seal_forbidden")
+        begin_code = issued_begin_code
+        record_code = issued_record_code
+        claim_code = issued_claim_code
+
+    return (
+        begin,
+        record,
+        receipt_epoch,
+        claim_fence,
+        discard,
+        prune_unlocked,
+        seal,
+    )
+
+
+(
+    _begin_controller_source_attempt,
+    _record_controller_source_attempt,
+    _controller_source_attempt_epoch,
+    _controller_step_claim_fence,
+    _discard_controller_source_attempt,
+    _prune_controller_source_attempt_registry,
+    _seal_controller_source_attempt_registry,
+) = _build_controller_source_attempt_registry(
+    permit_cls=_ControllerSourceAttemptPermit,
+)
+del _build_controller_source_attempt_registry
+
+
+class _ControllerStepClaim:
+    """Exact, non-serializable capability for one controller decision step."""
+
+    __slots__ = (
+        "execution",
+        "decision",
+        "selected_action",
+        "step_key",
+        "__weakref__",
+    )
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        raise TypeError("controller_step_claim_factory_required")
+
+    def __setattr__(self, name: str, value: object) -> None:
+        raise AttributeError("controller_step_claim_immutable")
+
+    def __delattr__(self, name: str) -> None:
+        raise AttributeError("controller_step_claim_immutable")
+
+    def __repr__(self) -> str:
+        return "_ControllerStepClaim(<redacted>)"
+
+    def __copy__(self) -> object:
+        raise TypeError("controller_step_claim_copy_forbidden")
+
+    def __deepcopy__(self, memo: object) -> object:
+        raise TypeError("controller_step_claim_copy_forbidden")
+
+    def __reduce__(self) -> object:
+        raise TypeError("controller_step_claim_pickle_forbidden")
+
+    def __reduce_ex__(self, protocol: int) -> object:
+        raise TypeError("controller_step_claim_pickle_forbidden")
+
+
+def _build_controller_step_history_accessors(
+    *,
+    claim_cls: type,
+    execution_cls: type,
+    decision_cls: type,
+    action_cls: type,
+    projection_cls: type,
+    lane_receipt_cls: type,
+    store_cls: type,
+    config_cls: type,
+    runtime_cls: type,
+    decision_validator: FunctionType,
+    source_owner_reader: FunctionType,
+    projection_reader: FunctionType,
+    projection_identity_reader: FunctionType,
+    source_resolver: FunctionType,
+    source_attempt_epoch_reader: FunctionType,
+    source_claim_fence: FunctionType,
+    dependency_checker: FunctionType,
+):
+    """Build the root-lifetime CAS history for one selected controller step."""
+
+    history: dict[tuple[object, ...], tuple[object, ...]] = {}
+    history_shadow: dict[tuple[object, ...], tuple[object, ...]] = {}
+    claims: dict[int, tuple[object, ...]] = {}
+    claims_shadow: dict[int, tuple[object, ...]] = {}
+    history_lock = Lock()
+    nonterminal_statuses = frozenset(
+        {"claimed", "sourced", "effect_bound"}
+    )
+    all_statuses = frozenset(
+        {
+            "claimed",
+            "sourced",
+            "effect_bound",
+            "transitioned",
+            "failed",
+        }
+    )
+
+    def step_key(
+        execution: HarnessExecution,
+        decision: ControllerDecisionReceipt,
+        selected_action: ControllerAction,
+    ) -> tuple[object, ...]:
+        return (
+            "controller-step-v1",
+            object.__getattribute__(execution, "execution_identity_sha256"),
+            object.__getattribute__(decision, "decision_ordinal"),
+            object.__getattribute__(decision, "execution_snapshot_sha256"),
+            id(selected_action),
+        )
+
+    def read_history_unlocked(
+        key: tuple[object, ...],
+    ) -> tuple[object, ...] | None:
+        current = dict.get(history, key)
+        sealed = dict.get(history_shadow, key)
+        if current is None and sealed is None:
+            return None
+        if (
+            type(current) is not tuple
+            or len(current) != 18
+            or sealed is not current
+            or type(tuple.__getitem__(current, 0)) is not ReferenceType
+            or type(tuple.__getitem__(current, 1)) is not ReferenceType
+            or type(tuple.__getitem__(current, 2)) is not ReferenceType
+            or type(tuple.__getitem__(current, 10)) is not str
+            or tuple.__getitem__(current, 10) not in all_statuses
+            or type(tuple.__getitem__(current, 11)) is not ReferenceType
+            or (
+                tuple.__getitem__(current, 12) is not None
+                and type(tuple.__getitem__(current, 12)) is not ReferenceType
+            )
+            or (
+                tuple.__getitem__(current, 13) is not None
+                and type(tuple.__getitem__(current, 13)) is not ReferenceType
+            )
+            or (
+                tuple.__getitem__(current, 14) is not None
+                and type(tuple.__getitem__(current, 14)) is not ReferenceType
+            )
+            or tuple.__getitem__(current, 15) != key
+            or type(tuple.__getitem__(current, 16)) is not int
+            or type(tuple.__getitem__(current, 17)) is not int
+            or tuple.__getitem__(current, 17) < 0
+        ):
+            raise ValueError("controller_step_history_authority_drift")
+        execution = tuple.__getitem__(current, 0)()
+        decision = tuple.__getitem__(current, 1)()
+        selected_action = tuple.__getitem__(current, 2)()
+        if execution is not None and (
+            type(execution) is not execution_cls
+            or object.__getattribute__(execution, "execution_identity_sha256")
+            != tuple.__getitem__(current, 6)
+        ):
+            raise ValueError("controller_step_history_authority_drift")
+        if decision is not None and (
+            type(decision) is not decision_cls
+            or selected_action is None
+            or object.__getattribute__(decision, "selected_action")
+            is not selected_action
+            or object.__getattribute__(decision, "decision_ordinal")
+            != tuple.__getitem__(current, 7)
+            or object.__getattribute__(decision, "execution_snapshot_sha256")
+            != tuple.__getitem__(current, 8)
+        ):
+            raise ValueError("controller_step_history_authority_drift")
+        if selected_action is not None and (
+            type(selected_action) is not action_cls
+            or object.__getattribute__(selected_action, "action_sha256")
+            != tuple.__getitem__(current, 9)
+        ):
+            raise ValueError("controller_step_history_authority_drift")
+        if (
+            execution is not None
+            and decision is not None
+            and selected_action is not None
+            and step_key(execution, decision, selected_action) != key
+        ):
+            raise ValueError("controller_step_history_authority_drift")
+        status = tuple.__getitem__(current, 10)
+        projection_weak = tuple.__getitem__(current, 12)
+        if (
+            status in {"sourced", "effect_bound", "transitioned"}
+            and projection_weak is None
+        ):
+            raise ValueError("controller_step_history_authority_drift")
+        return current
+
+    def replace_status_unlocked(
+        key: tuple[object, ...],
+        current: tuple[object, ...],
+        status: str,
+        *,
+        projection_weak: ReferenceType[object] | None = None,
+        preserve_projection: bool = True,
+    ) -> tuple[object, ...]:
+        if status not in all_statuses:
+            raise ValueError("invalid_controller_step_status")
+        next_projection = (
+            tuple.__getitem__(current, 12)
+            if preserve_projection
+            else projection_weak
+        )
+        updated = (
+            current[:10]
+            + (status,)
+            + (current[11], next_projection, current[13], current[14])
+            + current[15:]
+        )
+        dict.__setitem__(history, key, updated)
+        dict.__setitem__(history_shadow, key, updated)
+        return updated
+
+    def drop_execution(
+        key: tuple[object, ...], dead: ReferenceType[object]
+    ) -> None:
+        with history_lock:
+            current = dict.get(history, key)
+            sealed = dict.get(history_shadow, key)
+            if (
+                type(current) is tuple
+                and sealed is current
+                and tuple.__getitem__(current, 0) is dead
+            ):
+                claim_identity = tuple.__getitem__(current, 16)
+                dict.pop(history, key, None)
+                dict.pop(history_shadow, key, None)
+                claim_record = dict.get(claims, claim_identity)
+                if (
+                    type(claim_record) is tuple
+                    and len(claim_record) == 2
+                    and tuple.__getitem__(claim_record, 1) is key
+                ):
+                    dict.pop(claims, claim_identity, None)
+                    dict.pop(claims_shadow, claim_identity, None)
+
+    def drop_claim(identity: int, dead: ReferenceType[object]) -> None:
+        with history_lock:
+            current_claim = dict.get(claims, identity)
+            sealed_claim = dict.get(claims_shadow, identity)
+            if (
+                type(current_claim) is not tuple
+                or len(current_claim) != 2
+                or sealed_claim is not current_claim
+                or tuple.__getitem__(current_claim, 0) is not dead
+            ):
+                return
+            key = tuple.__getitem__(current_claim, 1)
+            dict.pop(claims, identity, None)
+            dict.pop(claims_shadow, identity, None)
+            current = dict.get(history, key)
+            sealed = dict.get(history_shadow, key)
+            if (
+                type(current) is tuple
+                and len(current) == 18
+                and sealed is current
+                and tuple.__getitem__(current, 11) is dead
+                and tuple.__getitem__(current, 16) == identity
+                and tuple.__getitem__(current, 10) in nonterminal_statuses
+            ):
+                failed = (
+                    current[:10]
+                    + ("failed",)
+                    + (current[11], current[12], current[13], current[14])
+                    + current[15:]
+                )
+                dict.__setitem__(history, key, failed)
+                dict.__setitem__(history_shadow, key, failed)
+
+    def drop_projection(
+        key: tuple[object, ...], dead: ReferenceType[object]
+    ) -> None:
+        with history_lock:
+            current = dict.get(history, key)
+            sealed = dict.get(history_shadow, key)
+            if (
+                type(current) is tuple
+                and len(current) == 18
+                and sealed is current
+                and tuple.__getitem__(current, 12) is dead
+                and tuple.__getitem__(current, 10)
+                in {"claimed", "sourced", "effect_bound"}
+            ):
+                failed = (
+                    current[:10]
+                    + ("failed",)
+                    + (current[11], current[12], current[13], current[14])
+                    + current[15:]
+                )
+                dict.__setitem__(history, key, failed)
+                dict.__setitem__(history_shadow, key, failed)
+
+    def preflight(
+        *,
+        execution: HarnessExecution,
+        decision: ControllerDecisionReceipt,
+        store: EvidenceStore,
+        config: HarnessExecutionConfig,
+        runtime: HarnessRuntimeBinding,
+    ) -> ControllerAction:
+        if type(execution) is not execution_cls:
+            raise TypeError("harness_execution_required")
+        if type(decision) is not decision_cls:
+            raise TypeError("controller_decision_receipt_required")
+        if type(store) is not store_cls:
+            raise TypeError("evidence_store_required")
+        if type(config) is not config_cls:
+            raise TypeError("harness_execution_config_required")
+        if type(runtime) is not runtime_cls:
+            raise TypeError("harness_runtime_binding_required")
+        decision_validator(
+            receipt=decision,
+            execution=execution,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+        source_owner_reader(
+            execution=execution,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+        selected_action = object.__getattribute__(decision, "selected_action")
+        if type(selected_action) is not action_cls:
+            raise TypeError("controller_action_required")
+        return selected_action
+
+    def read_claim_unlocked(
+        claim: _ControllerStepClaim,
+    ) -> tuple[tuple[object, ...], tuple[object, ...]]:
+        if type(claim) is not claim_cls:
+            raise TypeError("controller_step_claim_required")
+        identity = id(claim)
+        current_claim = dict.get(claims, identity)
+        sealed_claim = dict.get(claims_shadow, identity)
+        if (
+            type(current_claim) is not tuple
+            or len(current_claim) != 2
+            or sealed_claim is not current_claim
+            or tuple.__getitem__(current_claim, 0)() is not claim
+        ):
+            raise ValueError("controller_step_claim_authority_required")
+        key = tuple.__getitem__(current_claim, 1)
+        current = read_history_unlocked(key)
+        exact_claim = False
+        if current is not None and tuple.__getitem__(current, 16) == identity:
+            try:
+                exact_claim = (
+                    object.__getattribute__(claim, "step_key") is key
+                    and object.__getattribute__(claim, "execution")
+                    is tuple.__getitem__(current, 0)()
+                    and object.__getattribute__(claim, "decision")
+                    is tuple.__getitem__(current, 1)()
+                    and object.__getattribute__(claim, "selected_action")
+                    is tuple.__getitem__(current, 2)()
+                )
+            except (AttributeError, TypeError):
+                exact_claim = False
+        if not exact_claim:
+            if (
+                current is not None
+                and tuple.__getitem__(current, 16) == identity
+                and tuple.__getitem__(current, 10) in nonterminal_statuses
+            ):
+                replace_status_unlocked(key, current, "failed")
+            raise ValueError("controller_step_claim_authority_required")
+        return key, current
+
+    def require_claim_dependencies(
+        claim: _ControllerStepClaim,
+        *,
+        store: EvidenceStore,
+        config: HarnessExecutionConfig,
+        runtime: HarnessRuntimeBinding,
+    ) -> tuple[tuple[object, ...], tuple[object, ...]]:
+        if type(store) is not store_cls:
+            raise TypeError("evidence_store_required")
+        if type(config) is not config_cls:
+            raise TypeError("harness_execution_config_required")
+        if type(runtime) is not runtime_cls:
+            raise TypeError("harness_runtime_binding_required")
+        with history_lock:
+            key, current = read_claim_unlocked(claim)
+            if (
+                tuple.__getitem__(current, 3) is not store
+                or tuple.__getitem__(current, 4) is not config
+                or tuple.__getitem__(current, 5) is not runtime
+            ):
+                raise ValueError("controller_step_dependency_identity_mismatch")
+            return key, current
+
+    def tombstone_registered_claim(
+        claim: _ControllerStepClaim,
+        key: tuple[object, ...] | None = None,
+    ) -> None:
+        """Fail an exact registered claim without trusting mutable root fields."""
+
+        if type(claim) is not claim_cls:
+            return
+        identity = id(claim)
+        with history_lock:
+            current_claim = dict.get(claims, identity)
+            sealed_claim = dict.get(claims_shadow, identity)
+            if (
+                type(current_claim) is not tuple
+                or len(current_claim) != 2
+                or sealed_claim is not current_claim
+                or tuple.__getitem__(current_claim, 0)() is not claim
+                or (
+                    key is not None
+                    and tuple.__getitem__(current_claim, 1) is not key
+                )
+            ):
+                return
+            registered_key = tuple.__getitem__(current_claim, 1)
+            current = dict.get(history, registered_key)
+            sealed = dict.get(history_shadow, registered_key)
+            if (
+                type(current) is tuple
+                and len(current) == 18
+                and sealed is current
+                and tuple.__getitem__(current, 11)()
+                is claim
+                and tuple.__getitem__(current, 16) == identity
+                and tuple.__getitem__(current, 10) in nonterminal_statuses
+            ):
+                # This is the emergency path used after the dependency gate
+                # has already detected drift.  Do not route it back through
+                # a helper whose code may be the dependency that drifted.
+                failed = (
+                    current[:10]
+                    + ("failed",)
+                    + (current[11], current[12], current[13], current[14])
+                    + current[15:]
+                )
+                dict.__setitem__(history, registered_key, failed)
+                dict.__setitem__(history_shadow, registered_key, failed)
+
+    def fail_claim_if_current(
+        claim: _ControllerStepClaim,
+        key: tuple[object, ...],
+    ) -> None:
+        tombstone_registered_claim(claim, key)
+
+    def prepare_controller_step_source(
+        *,
+        claim: _ControllerStepClaim,
+        source_receipt: object,
+        store: EvidenceStore,
+        config: HarnessExecutionConfig,
+        runtime: HarnessRuntimeBinding,
+    ) -> _ControllerSourceOutcomeProjection:
+        """Resolve and weak-bind one source under an exact claim capability."""
+
+        try:
+            key, current = require_claim_dependencies(
+                claim,
+                store=store,
+                config=config,
+                runtime=runtime,
+            )
+        except Exception:
+            tombstone_registered_claim(claim)
+            raise
+        if tuple.__getitem__(current, 10) != "claimed":
+            raise ValueError("controller_step_source_out_of_order")
+        if tuple.__getitem__(current, 12) is not None:
+            raise ValueError("controller_step_source_already_prepared")
+        try:
+            validate_step_dependencies()
+        except Exception:
+            fail_claim_if_current(claim, key)
+            raise
+
+        decision = object.__getattribute__(claim, "decision")
+        selected_action = object.__getattribute__(claim, "selected_action")
+        is_terminal_decision = (
+            source_receipt is decision
+            and object.__getattribute__(selected_action, "kind")
+            in {"stop", "abstain"}
+        )
+        if not is_terminal_decision and type(source_receipt) is not lane_receipt_cls:
+            raise ValueError("controller_step_source_receipt_not_ready")
+        if not is_terminal_decision:
+            try:
+                source_epoch = source_attempt_epoch_reader(source_receipt)
+            except Exception:
+                fail_claim_if_current(claim, key)
+                raise
+            if source_epoch <= tuple.__getitem__(current, 17):
+                fail_claim_if_current(claim, key)
+                raise ValueError("controller_step_retroactive_source_forbidden")
+
+        try:
+            projection = source_resolver(
+                execution=object.__getattribute__(claim, "execution"),
+                decision=decision,
+                source_receipt=source_receipt,
+                store=store,
+                config=config,
+                runtime=runtime,
+            )
+        except Exception:
+            fail_claim_if_current(claim, key)
+            raise
+        if (
+            type(projection) is not projection_cls
+            or object.__getattribute__(projection, "execution")
+            is not object.__getattribute__(claim, "execution")
+            or object.__getattribute__(projection, "decision") is not decision
+            or object.__getattribute__(projection, "selected_action")
+            is not selected_action
+            or object.__getattribute__(projection, "source_receipt")
+            is not source_receipt
+        ):
+            fail_claim_if_current(claim, key)
+            raise ValueError("controller_step_source_identity_mismatch")
+        projection_weak = ref(
+            projection,
+            lambda dead, history_key=key: drop_projection(history_key, dead),
+        )
+        with history_lock:
+            current_key, latest = read_claim_unlocked(claim)
+            if (
+                current_key is not key
+                or tuple.__getitem__(latest, 10) != "claimed"
+                or tuple.__getitem__(latest, 12) is not None
+            ):
+                raise ValueError("controller_step_source_out_of_order")
+            replace_status_unlocked(
+                key,
+                latest,
+                "claimed",
+                projection_weak=projection_weak,
+                preserve_projection=False,
+            )
+        return projection
+
+    def claim_controller_step(
+        *,
+        execution: HarnessExecution,
+        decision: ControllerDecisionReceipt,
+        store: EvidenceStore,
+        config: HarnessExecutionConfig,
+        runtime: HarnessRuntimeBinding,
+    ) -> _ControllerStepClaim:
+        validate_step_dependencies()
+        selected_action = preflight(
+            execution=execution,
+            decision=decision,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+        key = step_key(execution, decision, selected_action)
+
+        def install_claim(claim_epoch: int) -> _ControllerStepClaim:
+            if type(claim_epoch) is not int or claim_epoch < 0:
+                raise ValueError("invalid_controller_step_claim_epoch")
+            with history_lock:
+                current = read_history_unlocked(key)
+                if current is not None:
+                    if (
+                        tuple.__getitem__(current, 0)() is not execution
+                        or tuple.__getitem__(current, 1)() is not decision
+                        or tuple.__getitem__(current, 2)() is not selected_action
+                        or tuple.__getitem__(current, 3) is not store
+                        or tuple.__getitem__(current, 4) is not config
+                        or tuple.__getitem__(current, 5) is not runtime
+                    ):
+                        raise ValueError("controller_step_root_identity_mismatch")
+                    raise ValueError("controller_step_already_consumed")
+                claim = object.__new__(claim_cls)
+                object.__setattr__(claim, "execution", execution)
+                object.__setattr__(claim, "decision", decision)
+                object.__setattr__(claim, "selected_action", selected_action)
+                object.__setattr__(claim, "step_key", key)
+                claim_identity = id(claim)
+                execution_weak = ref(
+                    execution,
+                    lambda dead, history_key=key: drop_execution(
+                        history_key, dead
+                    ),
+                )
+                decision_weak = ref(decision)
+                action_weak = ref(selected_action)
+                claim_weak = ref(
+                    claim,
+                    lambda dead, identity=claim_identity: drop_claim(
+                        identity, dead
+                    ),
+                )
+                record = (
+                    execution_weak,
+                    decision_weak,
+                    action_weak,
+                    store,
+                    config,
+                    runtime,
+                    object.__getattribute__(
+                        execution, "execution_identity_sha256"
+                    ),
+                    object.__getattribute__(decision, "decision_ordinal"),
+                    object.__getattribute__(
+                        decision, "execution_snapshot_sha256"
+                    ),
+                    object.__getattribute__(selected_action, "action_sha256"),
+                    "claimed",
+                    claim_weak,
+                    None,
+                    None,
+                    None,
+                    key,
+                    claim_identity,
+                    claim_epoch,
+                )
+                claim_record = (claim_weak, key)
+                dict.__setitem__(history, key, record)
+                dict.__setitem__(history_shadow, key, record)
+                dict.__setitem__(claims, claim_identity, claim_record)
+                dict.__setitem__(claims_shadow, claim_identity, claim_record)
+                return claim
+
+        return source_claim_fence(install_claim)
+
+    def source_controller_step(
+        *,
+        claim: _ControllerStepClaim,
+        projection: _ControllerSourceOutcomeProjection,
+        store: EvidenceStore,
+        config: HarnessExecutionConfig,
+        runtime: HarnessRuntimeBinding,
+    ) -> None:
+        try:
+            key, current = require_claim_dependencies(
+                claim,
+                store=store,
+                config=config,
+                runtime=runtime,
+            )
+        except Exception:
+            tombstone_registered_claim(claim)
+            raise
+        if tuple.__getitem__(current, 10) != "claimed":
+            raise ValueError("controller_step_source_out_of_order")
+        try:
+            validate_step_dependencies()
+        except Exception:
+            # A caller that owns the exact private claim has crossed the
+            # irreversible child-dispatch boundary.  Dependency drift at this
+            # point must consume the step so it cannot be retried against a
+            # different runtime graph.
+            with history_lock:
+                current_key, latest = read_claim_unlocked(claim)
+                if (
+                    current_key is key
+                    and tuple.__getitem__(latest, 10) == "claimed"
+                ):
+                    replace_status_unlocked(key, latest, "failed")
+            raise
+        try:
+            projection_reader(
+                projection=projection,
+                store=store,
+                config=config,
+                runtime=runtime,
+            )
+        except Exception:
+            if projection_identity_reader(projection):
+                with history_lock:
+                    current_key, current = read_claim_unlocked(claim)
+                    if (
+                        current_key is key
+                        and tuple.__getitem__(current, 10) == "claimed"
+                    ):
+                        replace_status_unlocked(key, current, "failed")
+            raise
+        prepared_projection_weak = tuple.__getitem__(current, 12)
+        if (
+            prepared_projection_weak is None
+            or prepared_projection_weak() is not projection
+        ):
+            raise ValueError("controller_step_source_not_prepared")
+        if (
+            type(projection) is not projection_cls
+            or object.__getattribute__(projection, "execution")
+            is not object.__getattribute__(claim, "execution")
+            or object.__getattribute__(projection, "decision")
+            is not object.__getattribute__(claim, "decision")
+            or object.__getattribute__(projection, "selected_action")
+            is not object.__getattribute__(claim, "selected_action")
+        ):
+            raise ValueError("controller_step_source_identity_mismatch")
+        source_receipt = object.__getattribute__(projection, "source_receipt")
+        source_receipt_kind = object.__getattribute__(
+            projection, "source_receipt_kind"
+        )
+        try:
+            source_attempt_epoch = (
+                None
+                if source_receipt_kind == "controller_decision"
+                else source_attempt_epoch_reader(source_receipt)
+            )
+        except Exception:
+            fail_claim_if_current(claim, key)
+            raise
+        if (
+            source_attempt_epoch is not None
+            and source_attempt_epoch <= tuple.__getitem__(current, 17)
+        ):
+            with history_lock:
+                current_key, current = read_claim_unlocked(claim)
+                if (
+                    current_key is key
+                    and tuple.__getitem__(current, 10) == "claimed"
+                ):
+                    replace_status_unlocked(key, current, "failed")
+            raise ValueError("controller_step_retroactive_source_forbidden")
+        with history_lock:
+            current_key, current = read_claim_unlocked(claim)
+            if current_key is not key or tuple.__getitem__(current, 10) != "claimed":
+                raise ValueError("controller_step_source_out_of_order")
+            if (
+                tuple.__getitem__(current, 3) is not store
+                or tuple.__getitem__(current, 4) is not config
+                or tuple.__getitem__(current, 5) is not runtime
+            ):
+                raise ValueError("controller_step_dependency_identity_mismatch")
+            replace_status_unlocked(
+                key,
+                current,
+                "sourced",
+            )
+
+    def revalidate_bound_source(
+        key: tuple[object, ...],
+        current: tuple[object, ...],
+    ) -> bool:
+        projection_weak = tuple.__getitem__(current, 12)
+        projection = (
+            None if projection_weak is None else projection_weak()
+        )
+        if projection is not None:
+            try:
+                projection_reader(
+                    projection=projection,
+                    store=tuple.__getitem__(current, 3),
+                    config=tuple.__getitem__(current, 4),
+                    runtime=tuple.__getitem__(current, 5),
+                )
+                if (
+                    object.__getattribute__(projection, "execution")
+                    is not tuple.__getitem__(current, 0)()
+                    or object.__getattribute__(projection, "decision")
+                    is not tuple.__getitem__(current, 1)()
+                    or object.__getattribute__(projection, "selected_action")
+                    is not tuple.__getitem__(current, 2)()
+                ):
+                    raise ValueError("controller_step_source_identity_mismatch")
+                return True
+            except Exception:
+                pass
+        with history_lock:
+            latest = read_history_unlocked(key)
+            if (
+                latest is not None
+                and tuple.__getitem__(latest, 12) is projection_weak
+                and tuple.__getitem__(latest, 10)
+                in {"claimed", "sourced", "effect_bound"}
+            ):
+                replace_status_unlocked(key, latest, "failed")
+        return False
+
+    def fail_controller_step(*, claim: _ControllerStepClaim) -> None:
+        validate_step_dependencies()
+        with history_lock:
+            key, current = read_claim_unlocked(claim)
+            if tuple.__getitem__(current, 10) not in nonterminal_statuses:
+                raise ValueError("controller_step_terminal")
+            replace_status_unlocked(key, current, "failed")
+
+    def controller_step_status(
+        *,
+        execution: HarnessExecution,
+        decision: ControllerDecisionReceipt,
+        store: EvidenceStore,
+        config: HarnessExecutionConfig,
+        runtime: HarnessRuntimeBinding,
+    ) -> str:
+        validate_step_dependencies()
+        selected_action = preflight(
+            execution=execution,
+            decision=decision,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+        key = step_key(execution, decision, selected_action)
+        with history_lock:
+            current = read_history_unlocked(key)
+            if current is None:
+                return "pristine"
+            if (
+                tuple.__getitem__(current, 0)() is not execution
+                or tuple.__getitem__(current, 1)() is not decision
+                or tuple.__getitem__(current, 2)() is not selected_action
+                or tuple.__getitem__(current, 3) is not store
+                or tuple.__getitem__(current, 4) is not config
+                or tuple.__getitem__(current, 5) is not runtime
+            ):
+                raise ValueError("controller_step_root_identity_mismatch")
+            status = tuple.__getitem__(current, 10)
+        if status in {"sourced", "effect_bound"} or (
+            status == "claimed" and tuple.__getitem__(current, 12) is not None
+        ):
+            if not revalidate_bound_source(key, current):
+                return "failed"
+            with history_lock:
+                latest = read_history_unlocked(key)
+                if latest is None:
+                    raise ValueError("controller_step_history_authority_drift")
+                return tuple.__getitem__(latest, 10)
+        return status
+
+    def bind_controller_step_effect(
+        *,
+        claim: _ControllerStepClaim,
+        effect: object,
+        store: EvidenceStore,
+        config: HarnessExecutionConfig,
+        runtime: HarnessRuntimeBinding,
+    ) -> None:
+        validate_step_dependencies()
+        _key, current = require_claim_dependencies(
+            claim,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+        if tuple.__getitem__(current, 10) != "sourced":
+            raise ValueError("controller_step_effect_out_of_order")
+        if not revalidate_bound_source(_key, current):
+            raise ValueError("controller_step_source_drift")
+        raise ValueError("controller_step_effect_authority_not_ready")
+
+    def complete_controller_step(
+        *,
+        claim: _ControllerStepClaim,
+        transition: object,
+        store: EvidenceStore,
+        config: HarnessExecutionConfig,
+        runtime: HarnessRuntimeBinding,
+    ) -> None:
+        validate_step_dependencies()
+        _key, current = require_claim_dependencies(
+            claim,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+        if tuple.__getitem__(current, 10) != "effect_bound":
+            raise ValueError("controller_step_transition_out_of_order")
+        raise ValueError("controller_step_transition_authority_not_ready")
+
+    helper_pins = tuple(
+        (
+            function,
+            object.__getattribute__(function, "__code__"),
+            object.__getattribute__(function, "__defaults__"),
+            object.__getattribute__(function, "__kwdefaults__"),
+            object.__getattribute__(function, "__globals__"),
+            object.__getattribute__(function, "__closure__"),
+            tuple(
+                cell.cell_contents
+                for cell in (
+                    object.__getattribute__(function, "__closure__") or ()
+                )
+            ),
+        )
+        for function in (
+            step_key,
+            read_history_unlocked,
+            replace_status_unlocked,
+            drop_execution,
+            drop_claim,
+            drop_projection,
+            preflight,
+            read_claim_unlocked,
+            require_claim_dependencies,
+            tombstone_registered_claim,
+            fail_claim_if_current,
+            revalidate_bound_source,
+            decision_validator,
+            source_owner_reader,
+            projection_reader,
+            projection_identity_reader,
+            source_resolver,
+            # The shared attempt registry is sealed only after this accessor
+            # factory returns because the claim caller code does not exist
+            # before then.  Its finalized closures are pinned by the module
+            # runtime gate, so capturing the pre-seal cells here would make
+            # every legitimate claim look like dependency drift.
+        )
+    )
+
+    def validate_step_dependencies() -> None:
+        dependency_checker()
+        for (
+            function,
+            code,
+            defaults,
+            kwdefaults,
+            globals_state,
+            closure,
+            closure_contents,
+        ) in helper_pins:
+            current_closure = object.__getattribute__(function, "__closure__")
+            if (
+                object.__getattribute__(function, "__code__") is not code
+                or object.__getattribute__(function, "__defaults__")
+                is not defaults
+                or object.__getattribute__(function, "__kwdefaults__")
+                is not kwdefaults
+                or object.__getattribute__(function, "__globals__")
+                is not globals_state
+                or current_closure is not closure
+                or len(current_closure or ()) != len(closure_contents)
+                or any(
+                    cell.cell_contents is not issued
+                    for cell, issued in zip(
+                        current_closure or (), closure_contents
+                    )
+                )
+            ):
+                raise ValueError("controller_step_history_dependency_drift")
+
+    validate_step_dependencies.__name__ = (
+        "_validate_controller_step_history_dependencies"
+    )
+    validate_step_dependencies.__qualname__ = (
+        "_validate_controller_step_history_dependencies"
+    )
+    claim_controller_step.__name__ = "_claim_controller_step"
+    claim_controller_step.__qualname__ = "_claim_controller_step"
+    prepare_controller_step_source.__name__ = (
+        "_prepare_controller_step_source"
+    )
+    prepare_controller_step_source.__qualname__ = (
+        "_prepare_controller_step_source"
+    )
+    source_controller_step.__name__ = "_source_controller_step"
+    source_controller_step.__qualname__ = "_source_controller_step"
+    fail_controller_step.__name__ = "_fail_controller_step"
+    fail_controller_step.__qualname__ = "_fail_controller_step"
+    controller_step_status.__name__ = "_controller_step_status"
+    controller_step_status.__qualname__ = "_controller_step_status"
+    bind_controller_step_effect.__name__ = "_bind_controller_step_effect"
+    bind_controller_step_effect.__qualname__ = "_bind_controller_step_effect"
+    complete_controller_step.__name__ = "_complete_controller_step"
+    complete_controller_step.__qualname__ = "_complete_controller_step"
+    return (
+        validate_step_dependencies,
+        claim_controller_step,
+        prepare_controller_step_source,
+        source_controller_step,
+        fail_controller_step,
+        controller_step_status,
+        bind_controller_step_effect,
+        complete_controller_step,
+    )
+
+
+(
+    _validate_controller_step_history_dependencies,
+    _claim_controller_step,
+    _prepare_controller_step_source,
+    _source_controller_step,
+    _fail_controller_step,
+    _controller_step_status,
+    _bind_controller_step_effect,
+    _complete_controller_step,
+) = _build_controller_step_history_accessors(
+    claim_cls=_ControllerStepClaim,
+    execution_cls=HarnessExecution,
+    decision_cls=ControllerDecisionReceipt,
+    action_cls=ControllerAction,
+    projection_cls=_ControllerSourceOutcomeProjection,
+    lane_receipt_cls=LaneSearchReceipt,
+    store_cls=EvidenceStore,
+    config_cls=HarnessExecutionConfig,
+    runtime_cls=HarnessRuntimeBinding,
+    decision_validator=validate_controller_decision_receipt,
+    source_owner_reader=_require_controller_source_owner,
+    projection_reader=_require_controller_source_outcome_projection,
+    projection_identity_reader=(
+        _is_issued_controller_source_outcome_projection_identity
+    ),
+    source_resolver=_resolve_controller_source_outcome,
+    source_attempt_epoch_reader=_controller_source_attempt_epoch,
+    source_claim_fence=_controller_step_claim_fence,
+    dependency_checker=_ISSUED_RUNTIME_GATE_DEPENDENCY_CHECKER,
+)
+del _build_controller_step_history_accessors
+_seal_controller_source_attempt_registry(
+    issued_begin_code=object.__getattribute__(
+        execute_retrieval_lane, "__code__"
+    ),
+    issued_record_code=object.__getattribute__(
+        _mint_lane_search_receipt, "__code__"
+    ),
+    issued_claim_code=object.__getattribute__(
+        _claim_controller_step, "__code__"
+    ),
+)
+del _seal_controller_source_attempt_registry
+del _is_issued_controller_source_outcome_projection_identity
 
 
 (
@@ -17243,6 +18506,38 @@ _RUNTIME_GATE_FUNCTION_PINS = tuple(
             "_require_controller_source_outcome_projection",
             _require_controller_source_outcome_projection,
         ),
+        (
+            "_validate_controller_step_history_dependencies",
+            _validate_controller_step_history_dependencies,
+        ),
+        (
+            "_begin_controller_source_attempt",
+            _begin_controller_source_attempt,
+        ),
+        (
+            "_record_controller_source_attempt",
+            _record_controller_source_attempt,
+        ),
+        (
+            "_controller_source_attempt_epoch",
+            _controller_source_attempt_epoch,
+        ),
+        ("_controller_step_claim_fence", _controller_step_claim_fence),
+        (
+            "_discard_controller_source_attempt",
+            _discard_controller_source_attempt,
+        ),
+        (
+            "_prune_controller_source_attempt_registry",
+            _prune_controller_source_attempt_registry,
+        ),
+        ("_claim_controller_step", _claim_controller_step),
+        ("_prepare_controller_step_source", _prepare_controller_step_source),
+        ("_source_controller_step", _source_controller_step),
+        ("_fail_controller_step", _fail_controller_step),
+        ("_controller_step_status", _controller_step_status),
+        ("_bind_controller_step_effect", _bind_controller_step_effect),
+        ("_complete_controller_step", _complete_controller_step),
     )
 )
 _ISSUED_RUNTIME_GATE_FUNCTION_PINS = _RUNTIME_GATE_FUNCTION_PINS
@@ -17353,6 +18648,12 @@ _RUNTIME_GATE_OBJECT_PINS = (
         _ControllerSourceOutcomeProjection,
         type,
     ),
+    (
+        "_ControllerSourceAttemptPermit",
+        _ControllerSourceAttemptPermit,
+        type,
+    ),
+    ("_ControllerStepClaim", _ControllerStepClaim, type),
     ("SearchResult", SearchResult, type),
     ("ResolvedScope", ResolvedScope, type),
     ("Lock", Lock, type(Lock)),
@@ -18033,6 +19334,23 @@ _RUNTIME_GATE_CLASS_PINS = (
     _runtime_gate_class_pin(_AbsenceConfirmationAuthority, ("__init__",)),
     _runtime_gate_class_pin(
         _ControllerSourceOutcomeProjection,
+        (
+            "__init__",
+            "__setattr__",
+            "__delattr__",
+            "__repr__",
+            "__copy__",
+            "__deepcopy__",
+            "__reduce__",
+            "__reduce_ex__",
+        ),
+    ),
+    _runtime_gate_class_pin(
+        _ControllerSourceAttemptPermit,
+        ("__init__",),
+    ),
+    _runtime_gate_class_pin(
+        _ControllerStepClaim,
         (
             "__init__",
             "__setattr__",

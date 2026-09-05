@@ -1085,6 +1085,24 @@ parent/child 혼합, 골든 값 의존을 검출한다. 정확한 새 파일/메
   시작한 뒤 오류·drift는 failed tombstone으로 소비한다. valid source receipt를 decision 이후 사후 포장하는 방식과
   unrestricted payload→effect mint는 금지한다. c4.0 자체는 provider/clock을 호출하거나 effect/reducer/ledger/state를
   실행하지 않는다.
+- c4.0.c의 private one-step authority는 `pristine→claimed→sourced→effect-bound→transitioned`와
+  `claimed|sourced|effect-bound→failed`만 허용한다. claimed 내부의 `prepared`는 public status가 아니라 exact claim이
+  c4.0.b projection을 weak-bind한 closure-private substate다. exact decision permit과 source-owner preflight 실패는
+  history를 만들지 않는다. claim 뒤에는 exact claim capability를 요구하는 `_prepare_controller_step_source`만 source를
+  resolve·결합할 수 있고, c4.0.b resolver를 직접 호출해 얻은 projection은 step authority가 아니다. claim·prepared/source
+  projection·execution 중 하나가 GC되거나 post-child validator/runtime/root drift가 발생하면 live execution 수명 동안
+  terminal failed tombstone을 유지한다. 같은 step의 반복·동시 claim, out-of-order binding, exact claim/projection의
+  structural/equal-payload clone, forced mutation, cross-root dependency는 거절한다. history record는 exact
+  execution/decision/selected-action/claim identity와 store/config/runtime graph를 weak/identity mirror로 봉인한다.
+  `execute_retrieval_lane`은 provider 직전 monotonic source-attempt epoch를 발급하고 receipt mint가 같은 epoch를 결합한다.
+  `_claim_controller_step`은 동일 lock의 claim fence에서 현재 epoch를 cutoff로 봉인하므로 `attempt_epoch <= claim_epoch`인
+  완료 전·후 receipt의 사후 포장은 실패한다. 중간 예외로 receipt가 발급되지 않으면 executor의 exact discard가 mirrored
+  pending row를 즉시 제거하며, callback-free weak row는 다음 registry 접근에서 이중 mirror 검증 후 정리한다. 이 temporal
+  provenance는 현재 live `LaneSearchReceipt`와 terminal controller decision만 지원한다.
+  그 밖의 c4.0.b source kind는 후속 exact dispatch hook 전까지 fail-closed다. c4.0.c에서 실제로 여는 edge는 claim,
+  claim-authorized prepare, typed source binding, explicit/automatic failure뿐이다. effect-bound와 transitioned edge는 상태
+  집합에는 예약하지만, c4.0.e의 exact structural-effect authority와 c4.1의 transition authority가 닫히기 전에는 bare
+  effect/transition object로 진행할 수 없고 history도 변하지 않는다.
 - reducer는 exact before state와 effect로 exact after state를 하나만 결정한다. lane 실행, parent context,
   terminal stop/abstain은 exact same state object를 after로 사용한다. 상태가 실제 바뀌는 effect만 새 state를
   발급하고 그 source receipt가 effect SHA를 가리키며, 한 nonterminal transition은 하나의 obligation만
