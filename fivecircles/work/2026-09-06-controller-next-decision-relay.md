@@ -37,6 +37,7 @@
 - 전체1522/1522 PASS(186.315초, errors/failures/skips0, exit0). 최초1511에11 추가.
 - current mmdc PNG와 target 유지·HTML·Chrome desktop/mobile PASS(images2/tables8/pageerror0/외부요청0).
 - screenshot=`../test/playwright-screenshots/controller-next-decision-2026-09-06.png`. 상태: PASS.
+- staged-only 임시 트리 핵심79 PASS(21.063초,exit0), safety952·staged diff-check PASS.
 
 ## 6. Repair Loop
 
@@ -47,7 +48,7 @@
 
 ## 7. Push / Publication
 
-- 현 branch에 검증된 범위만 선택 commit/push. resources/다른 dirty 제외. 상태: TODO.
+- commit=`853c7ee`; origin/feat/total-integration push 성공(`7e1d5a4..853c7ee`). 검증된18파일, resources/다른 dirty 제외. 상태: COMPLETED.
 
 ## 8. Closeout Report
 
@@ -57,8 +58,8 @@
 ## 9. Relay Shot
 
 - 다음 후보는 실제 감사/테스트 결과로 새 form 선택. nominal 후보=c4.2 두 번째 lane 실행 연결 또는 d2.x 후속 matrix.
-- 상태: TODO.
+- 결정: CONTINUE_WITH_NEXT_FORM. Cycle20 `2026-09-06-controller-lexical-transition-relay.md` 계약을 시작한다.
 
 ## 10. Final Ledger
 
-- Intake/Selection/Doc/Implementation/Repair/Report=COMPLETED; Validation=PASS; Push/Relay=TODO.
+- Intake/Selection/Doc/Implementation/Repair/Report/Push=COMPLETED; Validation=PASS; Relay=CONTINUE_WITH_NEXT_FORM.
