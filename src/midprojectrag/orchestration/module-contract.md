@@ -364,7 +364,7 @@ attempt that began at or before the claim cutoff cannot be attached retroactivel
 discards its pending permit, while callback-free weak registry rows are mirror-validated and passively pruned. Only
 live lane receipts and terminal controller decisions have temporal source authority here; other C4.0.b source kinds
 remain fail-closed until their exact dispatch hooks exist. Effect-bound and transitioned are reserved states, but
-their entry points stay dormant until C4.0.e and C4.1 seal exact effect and transition authorities; passing an
+their entry points stay dormant until C4.1 seals exact effect and transition authorities; passing an
 arbitrary structural object cannot advance the history. The bookkeeping boundary performs no provider/clock call,
 effect mint, reducer work, ledger advance, or state transition.
 C4.0.d adds one private target-context accumulator over an exact live semantic obligation. It accepts only a closed
@@ -376,11 +376,41 @@ prerequisite is not weakened. Callers cannot provide receipts, batches, context 
 missing, duplicate, wrong-role, cross-root, cloned, or reordered context fails closed. The accumulated value is
 private, immutable, non-serializable, and non-authorizing: it cannot claim a C4.0.c step, mint an effect, reduce or
 advance state, or call a provider/model/clock. Revision-zero d2.i is not broadened into candidate-target decisions;
-exact claim/effect binding remains C4.0.e/C4.1 responsibility. Live results use weak caches without executable weakref
+exact claim/effect binding is prepared by C4.0.e and remains live-effect authority for C4.1. Live results use weak caches without executable weakref
 callbacks. Result GC preserves the same-key remint tombstone only while its exact semantic-obligation root remains
 live. Once that obligation is also dead, the next accumulator/read entry passively removes the dead authority,
 cache/shadow, tombstone, and root-key
 mirror so a long-lived process does not accumulate dead-root keys or collide with recycled identities.
+
+C4.0.e adds a closure-private structural-effect bridge over the exact sourced step claim and, only for an
+evidence-target action, the exact c4.0.d target context. `_prepare_controller_structural_effect_bridge` accepts
+only those live objects plus the exact store/config/runtime graph; action kind, outcome, source/context hashes,
+call status, and ordered evidence IDs are derived from the sealed projection/context rather than caller fields.
+The bridge is an immutable, non-serializable, redacted, non-authorizing preparation value. Its structural digest
+contains no raw query/text, provider detail, gold/qrels, after-state, effect, or transition data. An obligation-only
+or terminal action must not carry context; an evidence-target action must carry a same-action/same-target context
+whose selected receipt is the exact source projection receipt. A weak cache with a root-lifetime tombstone gives
+same-object idempotence and rejects GC remint while the execution root remains live; dead-root cleanup is passive.
+Projection/context clones, mixed dependencies, mutation, out-of-order/retroactive source, duplicate/remint, and
+helper/runtime dependency drift fail before any provider/model/verifier/reranker/clock/Langfuse call. The bridge
+does not change c4.0.c history (`sourced` remains `sourced`), does not mint `ActionEffectReceipt`, and does not
+enter `effect-bound`/`transitioned`; c4.1 owns those authorities.
+C4.1 connects the initial fact/compare selected dense action to a source-derived live `ActionEffectReceipt`,
+a revision-one `ExecutionLedger`, `HarnessTransitionReceipt`, and successor `HarnessExecution` through the
+private `_advance_initial_controller_step(bridge, store, config, runtime)` boundary. The effect uses the existing
+one-based `decision_ordinal` as `step_index`. Applied, empty, provider-error, and contract-error lane outcomes
+consume the selected action and first obligation's round-one dense lane exactly once. Lane completion is
+operational progress: the exact state object and no-progress streaks remain unchanged. The transition seals
+before/after state and ledger hashes, decision/effect hashes, the null previous transition, and equal semantic
+progress fingerprints without provenance/counters. Both predecessor and successor remain live-valid; the
+successor retains its exact decision/source/bridge lineage and does not replace the initial root registration.
+`_require_controller_initial_transition(execution, store, config, runtime)` returns the exact registered effect
+and transition after completion. It revalidates source and nested identity directly, without reopening the
+preparation bridge's sourced-only boundary. Duplicate/concurrent issuance permits one successor; an interrupted
+issuance consumes a failed claim and exposes no partial result. Public structural effect validation remains
+non-authorizing. This initial boundary makes no additional provider/model/clock call and does not enable a
+second decision, state-changing reducer, follow-up, terminal control, or non-lane context actions; those remain
+d2.x/c4.2 responsibilities. See `controller-initial-transition.md` for the focused acceptance contract.
 An E1 compare seed must be all-unsearched; already hybrid-searched EH2.4 coverage cannot be
 relabeled as independent lane execution. Once all approved retrieval paths close with no
 candidates, controller-only `verify_slot` performs a zero-provider exhaustion check that may

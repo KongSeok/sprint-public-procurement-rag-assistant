@@ -131,12 +131,19 @@ PYTHONPATH=src python -m midprojectrag.evaluation score \
 실제 평가의 기본 하한은 dev 40문항과 held-out 20문항이며, scoring config와 hard gate가 없거나
 약화되면 평가가 실패합니다. 자세한 계약과 리뷰 기준은 `evaluation/README.md`를 따릅니다.
 
-개발 환경에서는 프로젝트를 설치하거나 `src` 경로를 명시해 테스트합니다.
+전체 회귀는 프로젝트 `.venv`에서 실행합니다. 아래는 현재 macOS/arm64 개발 환경의 설치·검증 명령입니다.
+전체 테스트에 필요한 extras를 함께 설치하고, 기존 ML lock의 버전을 유지합니다.
+Linux/GCP 설치는 위 GCP 실행환경 안내를 따릅니다.
 
 ```bash
-python -m pip install -e .
-PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src python -m unittest discover -s tests -v
+.venv/bin/python -m pip install -e '.[test,rag,evidence-harness,gcp-local,pdf-fidelity,hwp,ui,observability]' -c requirements/gcp-local-lock.txt
+.venv/bin/python -m pip check
+PATH="$PWD/.venv/bin:$PATH" PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src \
+  .venv/bin/python -m unittest discover -s tests -t . -p 'test*.py'
 ```
+
+bare `python`은 Miniconda 등 다른 환경을 선택할 수 있습니다. `-t .`은 테스트 간 fixture import의
+모듈 이름을 `tests.*`로 통일합니다. 실행환경·실패 처리 규칙은 [테스트 정책](fivecircles/test/testpolicy.md)을 따릅니다.
 
 ## 작업 보고 문서
 

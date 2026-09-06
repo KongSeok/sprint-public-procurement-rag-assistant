@@ -980,3 +980,44 @@ This file summarizes recent updates so other agents can continue without re‑di
 ### Tests
 - focused9/관련127·독립 APPROVE, 실제 최신002 감사 PASS/0600·Git ignored. 이전001 보존.
 - source/request 합성 gap 수정. refs: `test/errorlogs/backend/2026-09-06-readiness-source-binding.md`. browser 기존 BLOCKED.
+
+## Addendum (2026-09-06) - EH2.6.c4.0.e structural-effect bridge 완료
+### Architecture
+- exact sourced claim과 bounded target context를 closure-private structural bridge로 결합했다.
+- bridge는 immutable/non-serializable/redacted이며 c4.1 전에는 effect mint·history advance·transition·public
+  surface로 승격되지 않는다. same-object idempotence와 root-lifetime remint tombstone을 고정했다.
+### Backend
+- `_require_controller_step_source`, `_prepare/_require_controller_structural_effect_bridge`와 private
+  `_ControllerStructuralEffectBridge`를 추가했다. caller payload/hash/outcome 주입, clone/mixed/out-of-order/
+  mutation/dependency drift를 fail-closed한다.
+### Tests
+- focused7/7, c4.0.c/d/e 인접50/50 PASS. `git diff --check`·repository safety 941파일 PASS.
+- 전체1,438건의 23 errors/2 failures는 private index lock, 미설치 선택 의존성, sandbox loopback 정책의
+  환경 실패이며 신규 bridge 실패는 없다. 외부 API/model/Langfuse/golden/VLM/provider/clock 호출 0회.
+- refs: `fivecircles/test/errorlogs/backend/2026-09-06-eh2-6-c40e-full-regression-environment.md`,
+  `fivecircles/architecture/specs/controller-structural-effect-bridge.md`.
+### Next
+- `EH2.6.c4.1` initial effect/transition을 다음 relay 단위로 선택했다. d2.x cross-state decision,
+  c4.2 reducer, EH3/EH4와 동일 golden 성능 비교는 이후 단계로 남긴다.
+
+## Addendum (2026-09-06) - Python 실행환경 오류 해결
+### Backend
+- 프로젝트 `.venv` extras 설치 동기화 완료. 기존 패키지 모두 충족, pip check 정상·ML lock32 불일치0.
+- bare Miniconda 사용 오류를 정정하고 README·testpolicy에 `.venv/bin/python`과 `-t .`을 고정했다.
+### Tests
+- 기존 실패 영역153/153, 전체1498/1498 PASS(211.055초). 오류·실패·skip0; 앱 코드·테스트 변경 없음.
+- refs: `fivecircles/test/errorlogs/backend/2026-09-06-eh2-6-c40e-full-regression-environment.md`.
+
+## Addendum (2026-09-06) - Python 환경 오류 Arrest 기록
+### Operations
+- Python 오선택·패키지 누락 오진·동일 실패 재실행을 `fivecircles/agent/mistakes-arrest.md`에 기록했다.
+- interpreter 확인·lock 대조·실패 영역 재검증 규칙을 고정하고 기존 오류 로그와 연결했다.
+
+## Addendum (2026-09-06) - EH2.6.c4.1 최초 dense 실행 전이
+### Backend
+- 원본 receipt→live effect→ledger1→transition→successor 연결. 동일 state와 predecessor 권위 유지, 중복 발급 차단.
+### Tests
+- 신규13·인접합91·전체1511 PASS(174.977초, 오류/실패/skip0), 독립 APPROVE. API·모델0.
+- current/target PNG·Chrome desktop/mobile 보고서 PASS. refs: `2026-09-06-controller-initial-transition-relay.md`.
+### Next
+- d2.x ledger-aware decision을 다음 릴레이로 선택. c4.2·controller/E2E·동일 골든셋 품질 비교는 미완성.

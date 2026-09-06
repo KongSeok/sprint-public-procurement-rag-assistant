@@ -10,8 +10,10 @@ readiness002 SHA: 5169ea665e13455fe7bad729e37fac8d8b7cec3103c35ecb44407a1908da55
 replay receipt: private/evaluation/stage-ranking-smoke-v1-20260906-001, SHA ca967f7aa07d1508d758c6fe6236453eb9795fa319d6ca4c83d18d4fd81b2591.
 actual receipt: private/evaluation/retrieval-smoke-v1-20260906-002, SHA ef1612860541197e4183f4ccd41070864fe953b1a770c17a4322dc2c40e5113b.
 .4.c 위치 의미 승인과 .2.a.2 정식 freeze는 별도 잔여다.
-c4.0.e는 기술 READY / 우선순위 대기이며 parent c4.0/d2 PARTIAL 유지. Cycle E d4b6d1a / F 6617514 push 완료다.
-현재 폼: `2026-09-05-search-first-relay.md`. 아래 완료 원장의 '다음'은 당시 이력이며 현재 큐가 우선한다.
+c4.0.e structural-effect bridge는 2026-09-06 focused7·인접50 PASS로 완료했고 parent c4.0/d2는 PARTIAL 유지.
+Cycle18 c4.1 최초 dense effect/ledger1/transition까지 구현·검증 완료: 신규13·인접합91·전체1511 PASS, 독립 APPROVE.
+다음 Controller leaf는 d2.x ledger-aware decision이다. Cycle E d4b6d1a / F 6617514 push 완료다.
+현재 폼: `2026-09-06-controller-initial-transition-relay.md`. 아래 완료 원장의 '다음'은 당시 이력이며 현재 큐가 우선한다.
 
 ## 중단/애매함 발생 시
 
@@ -167,6 +169,7 @@ c4.0.e는 기술 READY / 우선순위 대기이며 parent c4.0/d2 PARTIAL 유지
 | EH2.6.c4.0.b | COMPLETED | `ab5a223` push. exact typed source/outcome resolver와 sealed non-authorizing projection. direct issuer·forced mutation/clone·cross-owner·dependency drift·GC remint 차단. focused14, related168, full1329, safety877, Playwright, independent APPROVE; parent c4.0/d2 PARTIAL, 다음 EH2.6.c4.0.c |
 | EH2.6.c4.0.c | COMPLETED | exact step identity를 closure-private single-winner history에 봉인하고 claim-authorized prepare→source, shared lane epoch/claim fence, terminal failed tombstone으로 사후 포장·중복·역순·clone/mixed/drift·GC를 차단. focused30/30, adjacent249/249, full1359/1359, safety881파일, diff-check, independent APPROVE, 외부 호출 0; parent c4.0/d2 PARTIAL, 다음 EH2.6.c4.0.d |
 | EH2.6.c4.0.d | COMPLETED | exact semantic root의 bounded target에서 parent/table/figure exact-one을 선택하고 complete context batch tuple identity/order를 보존하는 private accumulator. missing/duplicate/wrong-role/cross-root/clone/order/helper drift와 live-root remint 차단, dead-root passive cleanup. focused13/13, adjacent175/175, full1372/1372, safety883파일, diff-check, independent APPROVE, 외부 호출 0; parent c4.0/d2 PARTIAL, 다음 EH2.6.c4.0.e |
+| EH2.6.c4.0.e | COMPLETED | exact sourced claim과 bounded target context를 closure-private structural bridge로 결합. immutable/non-serializable/redacted, same-object·root-lifetime remint tombstone, clone/mixed/order/mutation/GC gate. focused7/7·인접50/50 PASS. 최초 환경 오류23/2는 해결: 2026-09-06 `.venv` 전체1498/1498 PASS(오류/실패/skip0), safety941; c4.0.e 외부 호출0. parent c4.0/d2 PARTIAL, 다음 EH2.6.c4.1 |
 
 ## 안전/컨텍스트 규칙
 

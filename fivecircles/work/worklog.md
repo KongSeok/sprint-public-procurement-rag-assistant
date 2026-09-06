@@ -124,3 +124,17 @@
   - Evidence: preflight 28/28·129/129, private 0600, public 0644, evaluation 210/210,
     전체 unittest 728/728, staged clean-checkout 614/614 PASS(비공개 통합 8 expected skip).
     private 산출물은 Git 대상에서 제외한다.
+
+- [2026-09-06 11:53] Stage=Environment Repair/Test
+  - User request: 필요한 테스트 의존성 설치 및 기존 환경 오류 해소.
+  - Cause: 프로젝트 `.venv` 대신 Miniconda Python 3.13을 실행했다. 필요한 패키지는 `.venv`에 이미 있었다.
+  - Repair: 선언한 extras를 ML lock 제약으로 동기화, pip check 및 32개 ML pin 검증; README/testpolicy 실행 명령 정정.
+  - Evidence: 기존 실패 영역153/153, 전체1498/1498 PASS(211.055초), errors/failures/skipped0.
+  - Scope: 앱 코드·테스트·모델 lock 변경 없음. 기존1438건 실패 기록과 이번 정상 재실행 결과를 분리 기록했다.
+  - Reference: ../test/errorlogs/backend/2026-09-06-eh2-6-c40e-full-regression-environment.md.
+
+- [2026-09-06 14:21] Stage=Implementation/Test/Review (Cycle18)
+  - Summary: 최초 fact/compare dense 결과를 effect/history와 ledger1/successor로 연결. 동일 state·predecessor 보존.
+  - Evidence: 신규13, 인접합91, 전체1511 PASS(174.977초), 독립 APPROVE; Chrome desktop/mobile 정적 보고서 PASS.
+  - Scope: synthetic/offline; 실제 API/model/Langfuse/golden 호출0. default local/API profile·resources 불변.
+  - Reference: 2026-09-06-controller-initial-transition-relay.md. 다음 d2.x 새 폼은 선택 push 뒤 시작한다.

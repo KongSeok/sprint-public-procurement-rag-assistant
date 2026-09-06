@@ -2937,6 +2937,7 @@ def _build_harness_execution_authority_accessors(
     authority_shadow: dict[int, tuple[Any, ...]] = {}
     histories: dict[str, tuple[Any, ...]] = {}
     history_shadow: dict[str, tuple[Any, ...]] = {}
+    successor_issuer_code: CodeType | None = None
 
     def _drop_execution(identity: int, dead: ReferenceType[Any]) -> None:
         with authority_lock:
@@ -3062,17 +3063,66 @@ def _build_harness_execution_authority_accessors(
             if (
                 history[0]() is not current[2]
                 or history[4] is not current[10]
-                or history[5]() is not execution
+                or history[5]() is not (
+                    execution if current[8] is None else current[11]
+                )
             ):
                 raise ValueError("harness_execution_history_authority_drift")
             return current
 
-    return issue, require
+    def register_successor(
+        *, before: HarnessExecution, ledger: ExecutionLedger,
+        transition: object,
+    ) -> HarnessExecution:
+        caller = _GET_FRAME(1)
+        if (
+            caller.f_code is not successor_issuer_code
+            or caller.f_globals is not globals()
+        ):
+            raise ValueError("harness_execution_successor_issuer_required")
+        before_authority = require(before)
+        if before.step_index != 0 or before_authority[8] is not None:
+            raise ValueError("harness_execution_initial_successor_required")
+        execution = object.__new__(execution_cls)
+        for name in execution_cls.__slots__:
+            if name != "__weakref__":
+                object.__setattr__(execution, name, getattr(before, name))
+        object.__setattr__(execution, "ledger", ledger)
+        object.__setattr__(execution, "step_index", 1)
+        object.__setattr__(execution, "last_transition_sha256", transition.transition_sha256)
+        object.__setattr__(execution, "execution_snapshot_sha256", canonical_sha256(execution._payload()))
+        execution._validate_payload()
+        identity = id(execution)
+        execution_weak = ref(
+            execution, lambda dead, identity=identity: _drop_execution(identity, dead)
+        )
+        authority = (
+            execution_weak, canonical_sha256(execution.to_dict()),
+            before.initial_state, before.state, ledger,
+            before_authority[5], before_authority[6], before_authority[7], transition,
+            (ledger.obligation_keys, ledger.round_indexes, ledger.consumed_action_sha256s,
+             ledger.consumed_lane_keys, ledger.unavailable_action_sha256s, ledger.no_progress_streaks),
+            before_authority[10], before,
+        )
+        with authority_lock:
+            authorities[identity] = authority
+            authority_shadow[identity] = authority
+        return execution
+
+    def seal_successor_issuer(code: CodeType) -> None:
+        nonlocal successor_issuer_code
+        if successor_issuer_code is not None or type(code) is not CodeType:
+            raise ValueError("harness_execution_successor_issuer_already_sealed")
+        successor_issuer_code = code
+
+    return issue, require, register_successor, seal_successor_issuer
 
 
 (
     _issue_harness_execution_authority,
     _require_harness_execution_authority,
+    _register_harness_execution_successor,
+    _seal_harness_execution_successor_issuer,
 ) = _build_harness_execution_authority_accessors(
     ExecutionLedger,
     HarnessExecution,
@@ -3295,7 +3345,13 @@ def _build_harness_execution_public_api(
             or authority[5] is not store
             or authority[6] is not config
             or authority[7] is not runtime
-            or authority[8] is not None
+            or (execution.step_index == 0 and authority[8] is not None)
+            or (execution.step_index != 0 and (
+                authority[8] is None
+                or authority[8].transition_sha256 != execution.last_transition_sha256
+                or authority[8].after_ledger_sha256 != execution.ledger.ledger_sha256
+                or authority[8].after_state_sha256 != execution.state.state_sha256
+            ))
             or authority[10] is not source_owner
             or any(
                 issued is not actual
@@ -3345,6 +3401,10 @@ def _build_harness_execution_public_api(
             raise ValueError("harness_execution_identity_mismatch")
         if authority[1] != canonical_sha256(execution.to_dict()):
             raise ValueError("harness_execution_runtime_authority_drift")
+        if execution.step_index != 0:
+            _require_controller_initial_transition(
+                execution=execution, store=store, config=config, runtime=runtime
+            )
 
     issue_harness_execution.__name__ = "issue_harness_execution"
     issue_harness_execution.__qualname__ = "issue_harness_execution"
@@ -16887,6 +16947,8 @@ def _build_controller_step_history_accessors(
     claims: dict[int, tuple[object, ...]] = {}
     claims_shadow: dict[int, tuple[object, ...]] = {}
     history_lock = Lock()
+    effect_authority_reader: FunctionType | None = None
+    transition_authority_reader: FunctionType | None = None
     nonterminal_statuses = frozenset(
         {"claimed", "sourced", "effect_bound"}
     )
@@ -17627,6 +17689,52 @@ def _build_controller_step_history_accessors(
                 return tuple.__getitem__(latest, 10)
         return status
 
+    def require_controller_step_source(
+        *,
+        claim: _ControllerStepClaim,
+        projection: _ControllerSourceOutcomeProjection,
+        store: EvidenceStore,
+        config: HarnessExecutionConfig,
+        runtime: HarnessRuntimeBinding,
+    ) -> _ControllerSourceOutcomeProjection:
+        """Read the exact sourced projection without advancing history."""
+
+        try:
+            key, current = require_claim_dependencies(
+                claim,
+                store=store,
+                config=config,
+                runtime=runtime,
+            )
+        except Exception:
+            tombstone_registered_claim(claim)
+            raise
+        if tuple.__getitem__(current, 10) != "sourced":
+            raise ValueError("controller_structural_effect_bridge_source_out_of_order")
+        try:
+            projection_reader(
+                projection=projection,
+                store=store,
+                config=config,
+                runtime=runtime,
+            )
+            prepared_weak = tuple.__getitem__(current, 12)
+            if prepared_weak is None or prepared_weak() is not projection:
+                raise ValueError("controller_structural_effect_bridge_source_identity_mismatch")
+            if (
+                object.__getattribute__(projection, "execution")
+                is not object.__getattribute__(claim, "execution")
+                or object.__getattribute__(projection, "decision")
+                is not object.__getattribute__(claim, "decision")
+                or object.__getattribute__(projection, "selected_action")
+                is not object.__getattribute__(claim, "selected_action")
+            ):
+                raise ValueError("controller_structural_effect_bridge_source_identity_mismatch")
+        except Exception:
+            tombstone_registered_claim(claim, key)
+            raise
+        return projection
+
     def bind_controller_step_effect(
         *,
         claim: _ControllerStepClaim,
@@ -17646,7 +17754,18 @@ def _build_controller_step_history_accessors(
             raise ValueError("controller_step_effect_out_of_order")
         if not revalidate_bound_source(_key, current):
             raise ValueError("controller_step_source_drift")
-        raise ValueError("controller_step_effect_authority_not_ready")
+        if effect_authority_reader is None:
+            raise ValueError("controller_step_effect_authority_not_ready")
+        effect_authority_reader(
+            claim=claim, effect=effect, store=store, config=config, runtime=runtime
+        )
+        with history_lock:
+            key, latest = read_claim_unlocked(claim)
+            if latest is not current:
+                raise ValueError("controller_step_effect_out_of_order")
+            updated = latest[:10] + ("effect_bound", latest[11], latest[12], ref(effect), latest[14]) + latest[15:]
+            dict.__setitem__(history, key, updated)
+            dict.__setitem__(history_shadow, key, updated)
 
     def complete_controller_step(
         *,
@@ -17665,7 +17784,28 @@ def _build_controller_step_history_accessors(
         )
         if tuple.__getitem__(current, 10) != "effect_bound":
             raise ValueError("controller_step_transition_out_of_order")
-        raise ValueError("controller_step_transition_authority_not_ready")
+        if transition_authority_reader is None:
+            raise ValueError("controller_step_transition_authority_not_ready")
+        transition_authority_reader(
+            claim=claim, transition=transition, store=store, config=config, runtime=runtime
+        )
+        with history_lock:
+            key, latest = read_claim_unlocked(claim)
+            if latest is not current:
+                raise ValueError("controller_step_transition_out_of_order")
+            updated = latest[:10] + ("transitioned", latest[11], latest[12], latest[13], ref(transition)) + latest[15:]
+            dict.__setitem__(history, key, updated)
+            dict.__setitem__(history_shadow, key, updated)
+
+    def seal_completion_authorities(*, effect_reader: FunctionType, transition_reader: FunctionType) -> None:
+        nonlocal effect_authority_reader, transition_authority_reader
+        if (
+            effect_authority_reader is not None or transition_authority_reader is not None
+            or type(effect_reader) is not FunctionType or type(transition_reader) is not FunctionType
+        ):
+            raise ValueError("controller_step_completion_authority_already_sealed")
+        effect_authority_reader = effect_reader
+        transition_authority_reader = transition_reader
 
     helper_pins = tuple(
         (
@@ -17759,6 +17899,12 @@ def _build_controller_step_history_accessors(
     fail_controller_step.__qualname__ = "_fail_controller_step"
     controller_step_status.__name__ = "_controller_step_status"
     controller_step_status.__qualname__ = "_controller_step_status"
+    require_controller_step_source.__name__ = (
+        "_require_controller_step_source"
+    )
+    require_controller_step_source.__qualname__ = (
+        "_require_controller_step_source"
+    )
     bind_controller_step_effect.__name__ = "_bind_controller_step_effect"
     bind_controller_step_effect.__qualname__ = "_bind_controller_step_effect"
     complete_controller_step.__name__ = "_complete_controller_step"
@@ -17770,8 +17916,10 @@ def _build_controller_step_history_accessors(
         source_controller_step,
         fail_controller_step,
         controller_step_status,
+        require_controller_step_source,
         bind_controller_step_effect,
         complete_controller_step,
+        seal_completion_authorities,
     )
 
 
@@ -17782,8 +17930,10 @@ def _build_controller_step_history_accessors(
     _source_controller_step,
     _fail_controller_step,
     _controller_step_status,
+    _require_controller_step_source,
     _bind_controller_step_effect,
     _complete_controller_step,
+    _seal_controller_step_completion_authorities,
 ) = _build_controller_step_history_accessors(
     claim_cls=_ControllerStepClaim,
     execution_cls=HarnessExecution,
@@ -18421,6 +18571,953 @@ def _build_controller_target_context_accumulator(
     dependency_checker=_ISSUED_RUNTIME_GATE_DEPENDENCY_CHECKER,
 )
 del _build_controller_target_context_accumulator
+
+
+# EH2.6.c4.0.e closure-private structural-effect bridge ----------------------
+
+
+class _ControllerStructuralEffectBridge:
+    """Immutable structural preparation with no effect or transition authority."""
+
+    __slots__ = (
+        "claim",
+        "projection",
+        "target_context",
+        "execution_identity_sha256",
+        "decision_sha256",
+        "action_sha256",
+        "action_kind",
+        "obligation_key",
+        "target_evidence_id",
+        "source_receipt_kind",
+        "source_receipt_sha256",
+        "native_outcome",
+        "outcome",
+        "ordered_evidence_ids",
+        "parent_context_receipt_sha256s",
+        "bridge_context_receipt_sha256s",
+        "absence_confirmation_sha256",
+        "call_performed",
+        "structural_effect_sha256",
+        "__weakref__",
+    )
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        raise TypeError("controller_structural_effect_bridge_factory_required")
+
+    def __setattr__(self, name: str, value: object) -> None:
+        raise AttributeError("structural_effect_bridge_immutable")
+
+    def __delattr__(self, name: str) -> None:
+        raise AttributeError("structural_effect_bridge_immutable")
+
+    def __repr__(self) -> str:
+        return "_ControllerStructuralEffectBridge(<redacted>)"
+
+    def __copy__(self) -> object:
+        raise TypeError("structural_effect_bridge_not_serializable")
+
+    def __deepcopy__(self, memo: object) -> object:
+        raise TypeError("structural_effect_bridge_not_serializable")
+
+    def __reduce__(self) -> object:
+        raise TypeError("structural_effect_bridge_not_serializable")
+
+    def __reduce_ex__(self, protocol: int) -> object:
+        raise TypeError("structural_effect_bridge_not_serializable")
+
+
+def _build_controller_structural_effect_bridge_accessors(
+    *,
+    bridge_cls: type,
+    claim_cls: type,
+    projection_cls: type,
+    target_context_cls: type,
+    execution_cls: type,
+    action_cls: type,
+    store_cls: type,
+    config_cls: type,
+    runtime_cls: type,
+    source_reader: FunctionType,
+    projection_reader: FunctionType,
+    target_context_reader: FunctionType,
+    step_dependency_checker: FunctionType,
+    target_context_dependency_checker: FunctionType,
+    dependency_checker: FunctionType,
+    canonical_sha256: FunctionType,
+):
+    """Issue and validate a root-bound, non-authorizing structural bridge."""
+
+    bridge_lock = Lock()
+    authorities: dict[int, tuple[object, ...]] = {}
+    authority_shadow: dict[int, tuple[object, ...]] = {}
+    cache: dict[tuple[object, ...], ReferenceType[object]] = {}
+    cache_shadow: dict[tuple[object, ...], ReferenceType[object]] = {}
+    known_keys: set[tuple[object, ...]] = set()
+    known_keys_shadow: set[tuple[object, ...]] = set()
+    root_by_key: dict[tuple[object, ...], ReferenceType[object]] = {}
+    root_by_key_shadow: dict[tuple[object, ...], ReferenceType[object]] = {}
+    value_names = tuple(
+        name for name in bridge_cls.__slots__ if name != "__weakref__"
+    )
+    evidence_target_kinds = frozenset(
+        {"expand_parent", "bridge_table", "bridge_figure"}
+    )
+    terminal_kinds = frozenset({"stop", "abstain"})
+
+    def exact_values(bridge: object) -> tuple[object, ...]:
+        return tuple(object.__getattribute__(bridge, name) for name in value_names)
+
+    def context_digest(context: object) -> str:
+        selected = object.__getattribute__(context, "selected_receipt")
+        parents = object.__getattribute__(context, "parent_receipts")
+        bridges = object.__getattribute__(context, "bridge_receipts")
+        return canonical_sha256(
+            {
+                "schema_version": SCHEMA_VERSION,
+                "action_kind": object.__getattribute__(context, "action_kind"),
+                "target_evidence_id": object.__getattribute__(
+                    context, "target_evidence_id"
+                ),
+                "selected_receipt_sha256": object.__getattribute__(
+                    selected, "receipt_sha256"
+                ),
+                "parent_receipt_sha256s": [
+                    object.__getattribute__(item, "receipt_sha256")
+                    for item in parents
+                ],
+                "bridge_receipt_sha256s": [
+                    object.__getattribute__(item, "receipt_sha256")
+                    for item in bridges
+                ],
+            }
+        )
+
+    def validate_shape(bridge: object) -> None:
+        if type(bridge) is not bridge_cls:
+            raise TypeError("controller_structural_effect_bridge_required")
+        claim = object.__getattribute__(bridge, "claim")
+        projection = object.__getattribute__(bridge, "projection")
+        context = object.__getattribute__(bridge, "target_context")
+        if type(claim) is not claim_cls or type(projection) is not projection_cls:
+            raise ValueError("invalid_controller_structural_effect_bridge")
+        if context is not None and type(context) is not target_context_cls:
+            raise ValueError("invalid_controller_structural_effect_bridge")
+        if (
+            type(object.__getattribute__(bridge, "execution_identity_sha256")) is not str
+            or len(object.__getattribute__(bridge, "execution_identity_sha256")) != 64
+            or type(object.__getattribute__(bridge, "decision_sha256")) is not str
+            or len(object.__getattribute__(bridge, "decision_sha256")) != 64
+            or type(object.__getattribute__(bridge, "action_sha256")) is not str
+            or len(object.__getattribute__(bridge, "action_sha256")) != 64
+            or type(object.__getattribute__(bridge, "action_kind")) is not str
+            or type(object.__getattribute__(bridge, "source_receipt_kind")) is not str
+            or type(object.__getattribute__(bridge, "source_receipt_sha256")) is not str
+            or len(object.__getattribute__(bridge, "source_receipt_sha256")) != 64
+            or type(object.__getattribute__(bridge, "native_outcome")) is not str
+            or type(object.__getattribute__(bridge, "outcome")) is not str
+            or type(object.__getattribute__(bridge, "ordered_evidence_ids")) is not tuple
+            or type(object.__getattribute__(bridge, "parent_context_receipt_sha256s")) is not tuple
+            or type(object.__getattribute__(bridge, "bridge_context_receipt_sha256s")) is not tuple
+            or type(object.__getattribute__(bridge, "call_performed")) is not bool
+            or type(object.__getattribute__(bridge, "structural_effect_sha256")) is not str
+            or len(object.__getattribute__(bridge, "structural_effect_sha256")) != 64
+        ):
+            raise ValueError("invalid_controller_structural_effect_bridge")
+
+    def bridge_key(
+        *,
+        claim: object,
+        projection: object,
+        target_context: object | None,
+        store: object,
+        config: object,
+        runtime: object,
+    ) -> tuple[object, ...]:
+        execution = object.__getattribute__(claim, "execution")
+        decision = object.__getattribute__(claim, "decision")
+        action = object.__getattribute__(claim, "selected_action")
+        return (
+            "controller-structural-effect-bridge-v1",
+            id(execution),
+            object.__getattribute__(execution, "execution_identity_sha256"),
+            id(decision),
+            object.__getattribute__(decision, "decision_sha256"),
+            id(action),
+            id(projection),
+            object.__getattribute__(projection, "source_receipt_sha256"),
+            id(target_context) if target_context is not None else None,
+            id(store),
+            id(config),
+            id(runtime),
+        )
+
+    def derive_values(
+        *,
+        claim: object,
+        projection: object,
+        target_context: object | None,
+        store: object,
+        config: object,
+        runtime: object,
+    ) -> tuple[tuple[object, ...], tuple[object, ...]]:
+        if type(claim) is not claim_cls:
+            raise TypeError("controller_step_claim_required")
+        if type(projection) is not projection_cls:
+            raise TypeError("controller_source_outcome_projection_required")
+        source_reader(
+            claim=claim,
+            projection=projection,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+        projection_reader(
+            projection=projection,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+        action = object.__getattribute__(claim, "selected_action")
+        selected_action = object.__getattribute__(projection, "selected_action")
+        if selected_action is not action:
+            raise ValueError("controller_structural_effect_bridge_action_mismatch")
+        action_kind = object.__getattribute__(action, "kind")
+        if target_context is None and action_kind in evidence_target_kinds:
+            raise ValueError("controller_structural_effect_bridge_target_context_required")
+        if target_context is not None:
+            target_context_reader(
+                context=target_context,
+                store=store,
+                config=config,
+                runtime=runtime,
+            )
+            if (
+                object.__getattribute__(target_context, "action_kind") != action_kind
+                or object.__getattribute__(target_context, "target_evidence_id")
+                != object.__getattribute__(action, "target_evidence_id")
+                or object.__getattribute__(target_context, "selected_receipt")
+                is not object.__getattribute__(projection, "source_receipt")
+            ):
+                raise ValueError("controller_structural_effect_bridge_context_mismatch")
+        elif action_kind not in terminal_kinds and action_kind in evidence_target_kinds:
+            raise ValueError("controller_structural_effect_bridge_target_context_required")
+        source_receipt_kind = object.__getattribute__(projection, "source_receipt_kind")
+        source_receipt_sha256 = object.__getattribute__(
+            projection, "source_receipt_sha256"
+        )
+        action_obligation_key = object.__getattribute__(action, "obligation_key")
+        action_target_evidence_id = object.__getattribute__(
+            action, "target_evidence_id"
+        )
+        if target_context is not None and object.__getattribute__(projection, "source_receipt_kind") not in {
+            "parent_context",
+            "bridge_context",
+        }:
+            raise ValueError("controller_structural_effect_bridge_context_source_mismatch")
+        context_sha = None if target_context is None else context_digest(target_context)
+        values = (
+            claim,
+            projection,
+            target_context,
+            object.__getattribute__(projection, "execution").execution_identity_sha256,
+            object.__getattribute__(projection, "decision").decision_sha256,
+            object.__getattribute__(action, "action_sha256"),
+            action_kind,
+            action_obligation_key,
+            action_target_evidence_id,
+            source_receipt_kind,
+            source_receipt_sha256,
+            object.__getattribute__(projection, "native_outcome"),
+            object.__getattribute__(projection, "outcome"),
+            object.__getattribute__(projection, "ordered_evidence_ids"),
+            object.__getattribute__(projection, "parent_context_receipt_sha256s"),
+            object.__getattribute__(projection, "bridge_context_receipt_sha256s"),
+            object.__getattribute__(projection, "absence_confirmation_sha256"),
+            object.__getattribute__(projection, "call_performed"),
+            canonical_sha256(
+                {
+                    "schema_version": SCHEMA_VERSION,
+                    "stage": "controller_structural_effect_bridge",
+                    "execution_identity_sha256": object.__getattribute__(
+                        projection, "execution"
+                    ).execution_identity_sha256,
+                    "decision_sha256": object.__getattribute__(
+                        projection, "decision"
+                    ).decision_sha256,
+                    "action_sha256": object.__getattribute__(action, "action_sha256"),
+                    "action_kind": action_kind,
+                    "obligation_key": action_obligation_key,
+                    "target_evidence_id": action_target_evidence_id,
+                    "source_receipt_kind": source_receipt_kind,
+                    "source_receipt_sha256": source_receipt_sha256,
+                    "native_outcome": object.__getattribute__(
+                        projection, "native_outcome"
+                    ),
+                    "outcome": object.__getattribute__(projection, "outcome"),
+                    "ordered_evidence_ids": list(
+                        object.__getattribute__(projection, "ordered_evidence_ids")
+                    ),
+                    "parent_context_receipt_sha256s": list(
+                        object.__getattribute__(
+                            projection, "parent_context_receipt_sha256s"
+                        )
+                    ),
+                    "bridge_context_receipt_sha256s": list(
+                        object.__getattribute__(
+                            projection, "bridge_context_receipt_sha256s"
+                        )
+                    ),
+                    "absence_confirmation_sha256": object.__getattribute__(
+                        projection, "absence_confirmation_sha256"
+                    ),
+                    "call_performed": object.__getattribute__(
+                        projection, "call_performed"
+                    ),
+                    "target_context_sha256": context_sha,
+                }
+            ),
+        )
+        return values, bridge_key(
+            claim=claim,
+            projection=projection,
+            target_context=target_context,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+
+    def prune_dead_state_unlocked() -> None:
+        for identity in set(authorities) | set(authority_shadow):
+            current = dict.get(authorities, identity)
+            sealed = dict.get(authority_shadow, identity)
+            if (
+                type(current) is not tuple
+                or sealed is not current
+                or len(current) != 8
+                or type(current[0]) is not ReferenceType
+            ):
+                raise ValueError("controller_structural_effect_bridge_history_drift")
+            if current[0]() is None:
+                dict.pop(authorities, identity, None)
+                dict.pop(authority_shadow, identity, None)
+        for key in set(root_by_key) | set(root_by_key_shadow):
+            root = dict.get(root_by_key, key)
+            shadow = dict.get(root_by_key_shadow, key)
+            if type(root) is not ReferenceType or shadow is not root:
+                raise ValueError("controller_structural_effect_bridge_history_drift")
+            if root() is None:
+                cached = dict.get(cache, key)
+                cached_shadow = dict.get(cache_shadow, key)
+                if cached is not cached_shadow or (key in known_keys) is not (key in known_keys_shadow):
+                    raise ValueError("controller_structural_effect_bridge_history_drift")
+                dict.pop(cache, key, None)
+                dict.pop(cache_shadow, key, None)
+                known_keys.discard(key)
+                known_keys_shadow.discard(key)
+                dict.pop(root_by_key, key, None)
+                dict.pop(root_by_key_shadow, key, None)
+
+    def validate_authority_unlocked(
+        *, bridge: object, store: object, config: object, runtime: object
+    ) -> tuple[object, ...]:
+        if type(bridge) is not bridge_cls:
+            raise TypeError("controller_structural_effect_bridge_required")
+        current = dict.get(authorities, id(bridge))
+        sealed = dict.get(authority_shadow, id(bridge))
+        if (
+            type(current) is not tuple
+            or sealed is not current
+            or len(current) != 8
+            or current[0]() is not bridge
+            or current[2] is not store
+            or current[3] is not config
+            or current[4] is not runtime
+            or current[6] != bridge_key(
+                claim=bridge.claim,
+                projection=bridge.projection,
+                target_context=bridge.target_context,
+                store=store,
+                config=config,
+                runtime=runtime,
+            )
+            or current[1] != exact_values(bridge)
+        ):
+            raise ValueError("controller_structural_effect_bridge_authority_required")
+        validate_shape(bridge)
+        return current
+
+    helper_pins = tuple(
+        (
+            function,
+            object.__getattribute__(function, "__code__"),
+            object.__getattribute__(function, "__defaults__"),
+            object.__getattribute__(function, "__kwdefaults__"),
+            object.__getattribute__(function, "__globals__"),
+            object.__getattribute__(function, "__closure__"),
+            tuple(
+                cell.cell_contents
+                for cell in (object.__getattribute__(function, "__closure__") or ())
+            ),
+        )
+        for function in (
+            source_reader,
+            projection_reader,
+            target_context_reader,
+            step_dependency_checker,
+            target_context_dependency_checker,
+            dependency_checker,
+            canonical_sha256,
+            bridge_key,
+            derive_values,
+            prune_dead_state_unlocked,
+            validate_authority_unlocked,
+        )
+    )
+
+    def validate_bridge_dependencies() -> None:
+        dependency_checker()
+        step_dependency_checker()
+        target_context_dependency_checker()
+        for (
+            function,
+            code,
+            defaults,
+            kwdefaults,
+            globals_state,
+            closure,
+            closure_contents,
+        ) in helper_pins:
+            current_closure = object.__getattribute__(function, "__closure__")
+            if (
+                object.__getattribute__(function, "__code__") is not code
+                or (
+                    function is not dependency_checker
+                    and object.__getattribute__(function, "__defaults__") is not defaults
+                )
+                or object.__getattribute__(function, "__kwdefaults__") is not kwdefaults
+                or object.__getattribute__(function, "__globals__") is not globals_state
+                or current_closure is not closure
+                or len(current_closure or ()) != len(closure_contents)
+                or any(
+                    cell.cell_contents is not issued
+                    for cell, issued in zip(current_closure or (), closure_contents)
+                )
+            ):
+                raise ValueError("controller_structural_effect_bridge_dependency_drift")
+
+    def prepare_controller_structural_effect_bridge(
+        *,
+        claim: _ControllerStepClaim,
+        projection: _ControllerSourceOutcomeProjection,
+        target_context: _ControllerTargetContext | None,
+        store: EvidenceStore,
+        config: HarnessExecutionConfig,
+        runtime: HarnessRuntimeBinding,
+    ) -> _ControllerStructuralEffectBridge:
+        validate_bridge_dependencies()
+        if (
+            type(store) is not store_cls
+            or type(config) is not config_cls
+            or type(runtime) is not runtime_cls
+        ):
+            raise TypeError("controller_structural_effect_bridge_dependencies_required")
+        values, key = derive_values(
+            claim=claim,
+            projection=projection,
+            target_context=target_context,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+        with bridge_lock:
+            prune_dead_state_unlocked()
+            cached = dict.get(cache, key)
+            cached_shadow = dict.get(cache_shadow, key)
+            if cached is not cached_shadow:
+                raise ValueError("controller_structural_effect_bridge_history_drift")
+            if cached is not None:
+                result = cached()
+                if result is None:
+                    raise ValueError("controller_structural_effect_bridge_remint_forbidden")
+                validate_authority_unlocked(
+                    bridge=result, store=store, config=config, runtime=runtime
+                )
+                if exact_values(result) != values:
+                    raise ValueError("controller_structural_effect_bridge_history_drift")
+                return result
+            if (key in known_keys) is not (key in known_keys_shadow):
+                raise ValueError("controller_structural_effect_bridge_history_drift")
+            if key in known_keys:
+                raise ValueError("controller_structural_effect_bridge_remint_forbidden")
+            bridge = object.__new__(bridge_cls)
+            for name, value in zip(value_names, values):
+                object.__setattr__(bridge, name, value)
+            validate_shape(bridge)
+            bridge_weak = ref(bridge)
+            root_weak = ref(object.__getattribute__(claim, "execution"))
+            record = (
+                bridge_weak,
+                exact_values(bridge),
+                store,
+                config,
+                runtime,
+                root_weak,
+                key,
+                object.__getattribute__(claim, "step_key"),
+            )
+            dict.__setitem__(authorities, id(bridge), record)
+            dict.__setitem__(authority_shadow, id(bridge), record)
+            dict.__setitem__(cache, key, bridge_weak)
+            dict.__setitem__(cache_shadow, key, bridge_weak)
+            known_keys.add(key)
+            known_keys_shadow.add(key)
+            dict.__setitem__(root_by_key, key, root_weak)
+            dict.__setitem__(root_by_key_shadow, key, root_weak)
+            return bridge
+
+    def require_controller_structural_effect_bridge(
+        *,
+        bridge: _ControllerStructuralEffectBridge,
+        store: EvidenceStore,
+        config: HarnessExecutionConfig,
+        runtime: HarnessRuntimeBinding,
+    ) -> _ControllerStructuralEffectBridge:
+        validate_bridge_dependencies()
+        if (
+            type(store) is not store_cls
+            or type(config) is not config_cls
+            or type(runtime) is not runtime_cls
+        ):
+            raise TypeError("controller_structural_effect_bridge_dependencies_required")
+        with bridge_lock:
+            prune_dead_state_unlocked()
+            validate_authority_unlocked(
+                bridge=bridge, store=store, config=config, runtime=runtime
+            )
+        values, key = derive_values(
+            claim=bridge.claim,
+            projection=bridge.projection,
+            target_context=bridge.target_context,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+        if key != bridge_key(
+            claim=bridge.claim,
+            projection=bridge.projection,
+            target_context=bridge.target_context,
+            store=store,
+            config=config,
+            runtime=runtime,
+        ) or exact_values(bridge) != values:
+            raise ValueError("controller_structural_effect_bridge_authority_drift")
+        return bridge
+
+    prepare_controller_structural_effect_bridge.__name__ = (
+        "_prepare_controller_structural_effect_bridge"
+    )
+    prepare_controller_structural_effect_bridge.__qualname__ = (
+        "_prepare_controller_structural_effect_bridge"
+    )
+    require_controller_structural_effect_bridge.__name__ = (
+        "_require_controller_structural_effect_bridge"
+    )
+    require_controller_structural_effect_bridge.__qualname__ = (
+        "_require_controller_structural_effect_bridge"
+    )
+    validate_bridge_dependencies.__name__ = (
+        "_validate_controller_structural_effect_bridge_dependencies"
+    )
+    validate_bridge_dependencies.__qualname__ = (
+        "_validate_controller_structural_effect_bridge_dependencies"
+    )
+    return (
+        validate_bridge_dependencies,
+        prepare_controller_structural_effect_bridge,
+        require_controller_structural_effect_bridge,
+    )
+
+(
+    _validate_controller_structural_effect_bridge_dependencies,
+    _prepare_controller_structural_effect_bridge,
+    _require_controller_structural_effect_bridge,
+) = _build_controller_structural_effect_bridge_accessors(
+    bridge_cls=_ControllerStructuralEffectBridge,
+    claim_cls=_ControllerStepClaim,
+    projection_cls=_ControllerSourceOutcomeProjection,
+    target_context_cls=_ControllerTargetContext,
+    execution_cls=HarnessExecution,
+    action_cls=ControllerAction,
+    store_cls=EvidenceStore,
+    config_cls=HarnessExecutionConfig,
+    runtime_cls=HarnessRuntimeBinding,
+    source_reader=_require_controller_step_source,
+    projection_reader=_require_controller_source_outcome_projection,
+    target_context_reader=_require_controller_target_context,
+    step_dependency_checker=_validate_controller_step_history_dependencies,
+    target_context_dependency_checker=_validate_controller_target_context_dependencies,
+    dependency_checker=_ISSUED_RUNTIME_GATE_DEPENDENCY_CHECKER,
+    canonical_sha256=_canonical_sha256,
+)
+del _build_controller_structural_effect_bridge_accessors
+
+
+@dataclass(frozen=True, slots=True, weakref_slot=True, repr=False, init=False)
+class HarnessTransitionReceipt:
+    """First authenticated controller transition; no public mint authority."""
+
+    stage: str
+    execution_identity_sha256: str
+    step_index: int
+    controller_decision_sha256: str
+    effect_sha256: str
+    before_state_sha256: str
+    after_state_sha256: str
+    before_ledger_sha256: str
+    after_ledger_sha256: str
+    previous_transition_sha256: str | None
+    before_progress_sha256: str
+    after_progress_sha256: str
+    operational_progress: bool
+    transition_sha256: str
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        raise TypeError("harness_transition_factory_required")
+
+    def __repr__(self) -> str:
+        return "HarnessTransitionReceipt(<redacted>)"
+
+    def __copy__(self) -> object:
+        raise TypeError("harness_transition_not_serializable")
+
+    def __deepcopy__(self, memo: object) -> object:
+        raise TypeError("harness_transition_not_serializable")
+
+    def __reduce__(self) -> object:
+        raise TypeError("harness_transition_not_serializable")
+
+    def __reduce_ex__(self, protocol: int) -> object:
+        raise TypeError("harness_transition_not_serializable")
+
+    def _payload(self) -> dict[str, Any]:
+        return {
+            "schema_version": SCHEMA_VERSION,
+            **{name: getattr(self, name) for name in self.__dataclass_fields__
+               if name != "transition_sha256"},
+        }
+
+    def _validate_payload(self) -> None:
+        if (
+            self.stage != "harness_transition" or type(self.step_index) is not int
+            or self.step_index != 1 or self.previous_transition_sha256 is not None
+            or self.operational_progress is not True
+            or self.before_state_sha256 != self.after_state_sha256
+            or self.before_progress_sha256 != self.after_progress_sha256
+        ):
+            raise ValueError("invalid_initial_harness_transition")
+        for name in self.__dataclass_fields__:
+            if name.endswith("sha256") and name != "previous_transition_sha256":
+                _require_hash(getattr(self, name), "invalid_harness_transition_hash")
+        if self.transition_sha256 != _canonical_sha256(self._payload()):
+            raise ValueError("harness_transition_hash_mismatch")
+
+    def to_dict(self) -> dict[str, Any]:
+        self._validate_payload()
+        return {**self._payload(), "transition_sha256": self.transition_sha256}
+
+
+def _build_initial_controller_transition_accessors(
+    *, bridge_reader: FunctionType, projection_reader: FunctionType,
+    execution_validator: FunctionType, execution_authority_reader: FunctionType,
+    successor_issuer: FunctionType, effect_binder: FunctionType,
+    step_completer: FunctionType, step_failure: FunctionType,
+    status_reader: FunctionType, dependency_checker: FunctionType,
+    transition_cls: type, effect_cls: type, effect_token: object,
+    effect_validator: FunctionType, canonical_sha256: FunctionType,
+):
+    """Consume one exact initial dense permit and preserve its source lineage."""
+
+    transition_lock = Lock()
+    records: dict[tuple[object, ...], tuple[object, ...]] = {}
+    records_shadow: dict[tuple[object, ...], tuple[object, ...]] = {}
+    roots: dict[tuple[object, ...], ReferenceType[object]] = {}
+    roots_shadow: dict[tuple[object, ...], ReferenceType[object]] = {}
+    bridge_fields = tuple(name for name in _ControllerStructuralEffectBridge.__slots__ if name != "__weakref__")
+    effect_fields = tuple(effect_cls.__dataclass_fields__)
+    transition_fields = tuple(transition_cls.__dataclass_fields__)
+
+    def values(value: object, fields: tuple[str, ...]) -> tuple[object, ...]:
+        return tuple(object.__getattribute__(value, name) for name in fields)
+
+    def require_values(value: object, fields: tuple[str, ...], issued: tuple[object, ...]) -> None:
+        current = values(value, fields)
+        if any(
+            actual is not expected if type(expected) is tuple or not isinstance(expected, (str, int, bool, type(None)))
+            else actual != expected
+            for actual, expected in zip(current, issued)
+        ):
+            raise ValueError("controller_initial_transition_nested_identity_drift")
+
+    def prune_unlocked() -> None:
+        for key, root in tuple(roots.items()):
+            if roots_shadow.get(key) is not root:
+                raise ValueError("controller_initial_transition_history_drift")
+            record = records.get(key)
+            if record is not records_shadow.get(key):
+                raise ValueError("controller_initial_transition_history_drift")
+            if record is not None and record[8] is not None and record[8]() is None:
+                records.pop(key, None)
+                records_shadow.pop(key, None)
+                record = None
+            if root() is None:
+                records.pop(key, None)
+                records_shadow.pop(key, None)
+                roots.pop(key, None)
+                roots_shadow.pop(key, None)
+
+    def read_record(key: tuple[object, ...]) -> tuple[object, ...]:
+        with transition_lock:
+            prune_unlocked()
+            record = records.get(key)
+            if record is None or record is not records_shadow.get(key):
+                raise ValueError("controller_initial_transition_authority_required")
+            return record
+
+    def replace_record(key: tuple[object, ...], record: tuple[object, ...]) -> None:
+        with transition_lock:
+            records[key] = record
+            records_shadow[key] = record
+
+    def validate_record(record: tuple[object, ...], *, store, config, runtime) -> None:
+        bridge, effect, transition = record[:3]
+        if record[3] is not store or record[4] is not config or record[5] is not runtime:
+            raise ValueError("controller_initial_transition_dependency_identity_mismatch")
+        require_values(bridge, bridge_fields, record[6])
+        claim = bridge.claim
+        if (
+            claim.execution is not record[9][0]
+            or claim.decision is not record[9][1]
+            or claim.selected_action is not record[9][2]
+            or claim.step_key is not record[9][3]
+        ):
+            raise ValueError("controller_initial_transition_claim_identity_drift")
+        projection_reader(projection=bridge.projection, store=store, config=config, runtime=runtime)
+        effect_validator(receipt=effect)
+        require_values(effect, effect_fields, record[7])
+        if transition is not None:
+            transition._validate_payload()
+            require_values(transition, transition_fields, record[10])
+
+    def require_effect(*, claim, effect, store, config, runtime) -> None:
+        validate_dependencies()
+        if type(effect) is not effect_cls:
+            raise ValueError("controller_step_effect_authority_not_ready")
+        record = read_record(claim.step_key)
+        if record[0].claim is not claim or record[1] is not effect:
+            raise ValueError("controller_step_effect_authority_required")
+        validate_record(record, store=store, config=config, runtime=runtime)
+
+    def require_transition(*, claim, transition, store, config, runtime) -> None:
+        validate_dependencies()
+        record = read_record(claim.step_key)
+        if type(transition) is not transition_cls or record[0].claim is not claim or record[2] is not transition:
+            raise ValueError("controller_step_transition_authority_required")
+        validate_record(record, store=store, config=config, runtime=runtime)
+
+    def progress_fingerprint(state: HarnessState) -> str:
+        return canonical_sha256({
+            "schema_version": SCHEMA_VERSION,
+            "obligations": [{
+                "obligation_key": entry.obligation_key,
+                "stage": entry.observation_stage,
+                "candidate_evidence_ids": list(entry.candidate_evidence_ids),
+                "verified_evidence_ids": list(entry.verified_evidence_ids),
+                "verifier_context_evidence_ids": [],
+            } for entry in state.belief.evidence_map],
+        })
+
+    def advance_initial_controller_step(*, bridge, store, config, runtime) -> HarnessExecution:
+        validate_dependencies()
+        bridge_reader(bridge=bridge, store=store, config=config, runtime=runtime)
+        claim = bridge.claim
+        before, decision, action = claim.execution, claim.decision, claim.selected_action
+        if (
+            before.step_index != 0 or before.source_kind not in {"fact", "compare"}
+            or action.kind != "retrieve_dense" or action is not decision.selected_action
+            or action.obligation_key != before.ledger.obligation_keys[0]
+            or bridge.source_receipt_kind != "lane_search"
+            or bridge.outcome not in {"applied", "empty", "provider_error", "contract_error"}
+            or bridge.target_context is not None
+        ):
+            raise ValueError("controller_initial_dense_step_required")
+        key = claim.step_key
+        with transition_lock:
+            prune_unlocked()
+            if key in roots:
+                raise ValueError("controller_initial_step_already_consumed")
+            root = ref(before)
+            roots[key] = root
+            roots_shadow[key] = root
+        try:
+            payload = {
+                "stage": "action_effect", "execution_sha256": before.execution_identity_sha256,
+                "step_index": decision.decision_ordinal,
+                "controller_decision_sha256": decision.decision_sha256,
+                "action_kind": action.kind, "action_sha256": action.action_sha256,
+                "obligation_key": action.obligation_key, "target_evidence_id": None,
+                "before_state_sha256": before.state.state_sha256, "source_kind": before.source_kind,
+                "source_receipt_kind": bridge.source_receipt_kind,
+                "source_receipt_sha256": bridge.source_receipt_sha256, "outcome": bridge.outcome,
+                "ordered_evidence_ids": bridge.ordered_evidence_ids,
+                "parent_context_receipt_sha256s": bridge.parent_context_receipt_sha256s,
+                "bridge_context_receipt_sha256s": bridge.bridge_context_receipt_sha256s,
+                "absence_confirmation_sha256": bridge.absence_confirmation_sha256,
+                "call_performed": bridge.call_performed,
+            }
+            effect = effect_cls._create(payload=payload, _token=effect_token)
+            record = (
+                bridge, effect, None, store, config, runtime,
+                values(bridge, bridge_fields), values(effect, effect_fields), None,
+                (before, decision, action, key), None,
+            )
+            replace_record(key, record)
+            effect_binder(claim=claim, effect=effect, store=store, config=config, runtime=runtime)
+            ledger = object.__new__(ExecutionLedger)
+            for name in ExecutionLedger.__dataclass_fields__:
+                object.__setattr__(ledger, name, getattr(before.ledger, name))
+            object.__setattr__(ledger, "revision", 1)
+            object.__setattr__(ledger, "previous_ledger_sha256", before.ledger.ledger_sha256)
+            object.__setattr__(ledger, "round_indexes", (1,) + before.ledger.round_indexes[1:])
+            object.__setattr__(ledger, "consumed_action_sha256s", (action.action_sha256,))
+            object.__setattr__(ledger, "consumed_lane_keys", ((action.obligation_key, 1, "dense"),))
+            object.__setattr__(ledger, "nonterminal_action_count", 1)
+            object.__setattr__(ledger, "ledger_sha256", canonical_sha256(ledger._payload()))
+            ledger._validate_payload()
+            fingerprint = progress_fingerprint(before.state)
+            transition = object.__new__(transition_cls)
+            transition_payload = {
+                "stage": "harness_transition", "execution_identity_sha256": before.execution_identity_sha256,
+                "step_index": 1, "controller_decision_sha256": decision.decision_sha256,
+                "effect_sha256": effect.effect_sha256,
+                "before_state_sha256": before.state.state_sha256, "after_state_sha256": before.state.state_sha256,
+                "before_ledger_sha256": before.ledger.ledger_sha256, "after_ledger_sha256": ledger.ledger_sha256,
+                "previous_transition_sha256": None,
+                "before_progress_sha256": fingerprint, "after_progress_sha256": fingerprint,
+                "operational_progress": True,
+            }
+            for name, value in transition_payload.items():
+                object.__setattr__(transition, name, value)
+            object.__setattr__(transition, "transition_sha256", canonical_sha256(transition._payload()))
+            transition._validate_payload()
+            record = record[:2] + (transition,) + record[3:10] + (values(transition, transition_fields),)
+            replace_record(key, record)
+            successor = successor_issuer(before=before, ledger=ledger, transition=transition)
+            record = record[:8] + (ref(successor),) + record[9:]
+            replace_record(key, record)
+            validate_record(record, store=store, config=config, runtime=runtime)
+            step_completer(claim=claim, transition=transition, store=store, config=config, runtime=runtime)
+            return successor
+        except Exception:
+            with transition_lock:
+                records.pop(key, None)
+                records_shadow.pop(key, None)
+            try:
+                step_failure(claim=claim)
+            except (TypeError, ValueError):
+                pass
+            raise
+
+    def require_controller_initial_transition(*, execution, store, config, runtime):
+        validate_dependencies()
+        if type(execution) is not HarnessExecution or execution.step_index != 1:
+            raise ValueError("controller_initial_transition_successor_required")
+        authority = execution_authority_reader(execution)
+        transition = authority[8]
+        before = authority[11]
+        if authority[5] is not store or authority[6] is not config or authority[7] is not runtime:
+            raise ValueError("controller_initial_transition_dependency_identity_mismatch")
+        execution_validator(execution=before, store=store, config=config, runtime=runtime)
+        with transition_lock:
+            prune_unlocked()
+            matching = tuple(record for record in records.values() if record[8] is not None and record[8]() is execution)
+        if len(matching) != 1:
+            raise ValueError("controller_initial_transition_authority_required")
+        record = matching[0]
+        if record[2] is not transition or record[9][0] is not before:
+            raise ValueError("controller_initial_transition_authority_drift")
+        validate_record(record, store=store, config=config, runtime=runtime)
+        execution._validate_payload()
+        if (
+            authority[1] != canonical_sha256(execution.to_dict())
+            or execution.state is not before.state or execution.ledger is not authority[4]
+            or any(issued is not actual for issued, actual in zip(authority[9], (
+                execution.ledger.obligation_keys, execution.ledger.round_indexes,
+                execution.ledger.consumed_action_sha256s, execution.ledger.consumed_lane_keys,
+                execution.ledger.unavailable_action_sha256s, execution.ledger.no_progress_streaks,
+            )))
+            or status_reader(execution=before, decision=record[9][1], store=store, config=config, runtime=runtime) != "transitioned"
+        ):
+            raise ValueError("controller_initial_transition_successor_drift")
+        return record[1], transition
+
+    helper_pins = tuple(
+        (function, function.__code__, function.__defaults__, function.__kwdefaults__,
+         function.__globals__, function.__closure__,
+         tuple(cell.cell_contents for cell in (function.__closure__ or ())))
+        for function in (
+            values, require_values, prune_unlocked, read_record, replace_record,
+            validate_record, progress_fingerprint, bridge_reader, projection_reader,
+            execution_validator, execution_authority_reader, step_failure, status_reader,
+            effect_validator, canonical_sha256,
+        )
+    )
+
+    def validate_dependencies() -> None:
+        dependency_checker()
+        for function, code, defaults, kwdefaults, namespace, closure, contents in helper_pins:
+            if (
+                function.__code__ is not code or function.__defaults__ is not defaults
+                or function.__kwdefaults__ is not kwdefaults or function.__globals__ is not namespace
+                or function.__closure__ is not closure
+                or any(cell.cell_contents is not issued for cell, issued in zip(closure or (), contents))
+            ):
+                raise ValueError("controller_initial_transition_dependency_drift")
+
+    return (advance_initial_controller_step, require_controller_initial_transition,
+            require_effect, require_transition, validate_dependencies)
+
+
+(
+    _advance_initial_controller_step,
+    _require_controller_initial_transition,
+    _initial_controller_effect_authority_reader,
+    _initial_controller_transition_authority_reader,
+    _validate_controller_initial_transition_dependencies,
+) = _build_initial_controller_transition_accessors(
+    bridge_reader=_require_controller_structural_effect_bridge,
+    projection_reader=_require_controller_source_outcome_projection,
+    execution_validator=validate_harness_execution,
+    execution_authority_reader=_require_harness_execution_authority,
+    successor_issuer=_register_harness_execution_successor,
+    effect_binder=_bind_controller_step_effect,
+    step_completer=_complete_controller_step,
+    step_failure=_fail_controller_step,
+    status_reader=_controller_step_status,
+    dependency_checker=_ISSUED_RUNTIME_GATE_DEPENDENCY_CHECKER,
+    transition_cls=HarnessTransitionReceipt,
+    effect_cls=_ACTION_EFFECTS_MODULE.ActionEffectReceipt,
+    effect_token=_ACTION_EFFECTS_MODULE._ACTION_EFFECT_RECEIPT_TOKEN,
+    effect_validator=_ACTION_EFFECTS_MODULE.validate_action_effect_receipt,
+    canonical_sha256=_canonical_sha256,
+)
+_seal_harness_execution_successor_issuer(_advance_initial_controller_step.__code__)
+_seal_controller_step_completion_authorities(
+    effect_reader=_initial_controller_effect_authority_reader,
+    transition_reader=_initial_controller_transition_authority_reader,
+)
+del _build_initial_controller_transition_accessors
+del _seal_harness_execution_successor_issuer, _seal_controller_step_completion_authorities
 
 
 (
@@ -19138,6 +20235,7 @@ _RUNTIME_GATE_FUNCTION_PINS = tuple(
         ("_source_controller_step", _source_controller_step),
         ("_fail_controller_step", _fail_controller_step),
         ("_controller_step_status", _controller_step_status),
+        ("_require_controller_step_source", _require_controller_step_source),
         ("_bind_controller_step_effect", _bind_controller_step_effect),
         ("_complete_controller_step", _complete_controller_step),
         (
@@ -19152,6 +20250,24 @@ _RUNTIME_GATE_FUNCTION_PINS = tuple(
             "_require_controller_target_context",
             _require_controller_target_context,
         ),
+        (
+            "_validate_controller_structural_effect_bridge_dependencies",
+            _validate_controller_structural_effect_bridge_dependencies,
+        ),
+        (
+            "_prepare_controller_structural_effect_bridge",
+            _prepare_controller_structural_effect_bridge,
+        ),
+        (
+            "_require_controller_structural_effect_bridge",
+            _require_controller_structural_effect_bridge,
+        ),
+        ("_register_harness_execution_successor", _register_harness_execution_successor),
+        ("_advance_initial_controller_step", _advance_initial_controller_step),
+        ("_require_controller_initial_transition", _require_controller_initial_transition),
+        ("_initial_controller_effect_authority_reader", _initial_controller_effect_authority_reader),
+        ("_initial_controller_transition_authority_reader", _initial_controller_transition_authority_reader),
+        ("_validate_controller_initial_transition_dependencies", _validate_controller_initial_transition_dependencies),
     )
 )
 _ISSUED_RUNTIME_GATE_FUNCTION_PINS = _RUNTIME_GATE_FUNCTION_PINS
@@ -19251,6 +20367,7 @@ _RUNTIME_GATE_OBJECT_PINS = (
     ),
     ("Candidate", Candidate, type),
     ("HarnessExecution", HarnessExecution, type),
+    ("HarnessTransitionReceipt", HarnessTransitionReceipt, type),
     ("ControllerDecisionReceipt", ControllerDecisionReceipt, type),
     (
         "_ControllerSourceOwnerAuthority",
@@ -19269,6 +20386,11 @@ _RUNTIME_GATE_OBJECT_PINS = (
     ),
     ("_ControllerStepClaim", _ControllerStepClaim, type),
     ("_ControllerTargetContext", _ControllerTargetContext, type),
+    (
+        "_ControllerStructuralEffectBridge",
+        _ControllerStructuralEffectBridge,
+        type,
+    ),
     ("SearchResult", SearchResult, type),
     ("ResolvedScope", ResolvedScope, type),
     ("Lock", Lock, type(Lock)),
@@ -19989,6 +21111,27 @@ _RUNTIME_GATE_CLASS_PINS = (
             "__reduce__",
             "__reduce_ex__",
         ),
+    ),
+    _runtime_gate_class_pin(
+        _ControllerStructuralEffectBridge,
+        (
+            "__init__",
+            "__setattr__",
+            "__delattr__",
+            "__repr__",
+            "__copy__",
+            "__deepcopy__",
+            "__reduce__",
+            "__reduce_ex__",
+        ),
+    ),
+    _runtime_gate_class_pin(
+        HarnessTransitionReceipt,
+        ("__init__", "__repr__", "__copy__", "__deepcopy__", "__reduce__", "__reduce_ex__", "_payload", "_validate_payload", "to_dict"),
+    ),
+    _runtime_gate_class_pin(
+        _ACTION_EFFECTS_MODULE.ActionEffectReceipt,
+        ("__init__", "_create", "_payload_dict", "to_dict"),
     ),
 )
 _ISSUED_RUNTIME_GATE_CLASS_PINS = _RUNTIME_GATE_CLASS_PINS

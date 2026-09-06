@@ -1,67 +1,34 @@
-flowchart LR
-  GOLD["동결 평가 자산<br/>refined98 + golden/qrels"]
+flowchart TB
+  INPUT["동일 refined98 · frozen golden/qrels<br/>평가 입력만 사용 · runtime gold 주입 금지"]
+  B0["CONTROL: KURE page-v1 + local Qwen<br/>9,331 chunks · Mac-equivalent provisional<br/>재현·rollback 기준선 보존"]
+  RESEARCH["GPT retrieval · EvoHarness · HB/DH 연구<br/>더 나은 구조라는 가설 · 아직 우승 아님"]
 
-  subgraph CONTROL["CONTROL · 재현 가능한 기준선"]
-    B1["page-v1<br/>9,331 chunks"]
-    B2["KURE-v1 Dense retrieval<br/>top-10 → context-5"]
-    B3["local Qwen generation<br/>Mac-equivalent provisional"]
-    B1 --> B2 --> B3
+  subgraph BUILD["CHALLENGER · feat/total-integration · EH2.6.c4.1"]
+    SEARCH["검색 골격 / E0<br/>EvidenceStore parent·child · KURE dense · Kiwi BM25<br/>owner obligation → exact-once lane → same-round RRF"]
+    RECEIPTS["근거별 검증 도구<br/>parent·table/figure context · ID-less rerank<br/>semantic/absence receipt · bounded follow-up projection"]
+    PERMIT["실행 허가와 원본 연결<br/>immutable config/runtime · initial execution/decision<br/>exact source-owner → claim → sourced receipt"]
+    BRIDGE["구조 재료 준비 / c4.0<br/>bounded target context → structural bridge<br/>직접 effect/전이를 발급하는 권한은 없음"]
+    FIRST["이번 연결 / c4.1<br/>최초 dense → live effect → ledger 1 → transition → successor<br/>성공·empty·오류 기록 / 이전·다음 실행 모두 유효"]
+    STATE["의미 상태는 그대로<br/>검색만으로 verified 승격 없음<br/>action·dense lane 1회 소비 / 추가 모델 호출 0"]
+    SEARCH --> RECEIPTS --> PERMIT --> BRIDGE --> FIRST --> STATE
   end
 
-  API["별도 API arm<br/>embedding/generation 비교용<br/>local control을 대체하지 않음"]
-
-  subgraph HYP["CHALLENGER 가설의 출처"]
-    R1["GPT retrieval research"]
-    R2["EvoHarness research"]
-    R3["HB · DH 팀 실험"]
-  end
-
-  subgraph BUILD["현재 feat/total-integration · EH2.6.c4.0.d"]
-    C1["EvidenceStore<br/>page parent + child"]
-    C2["KURE child + Kiwi BM25<br/>독립 retrieval lane"]
-    C3["QueryPlan · Belief/Progress<br/>config/runtime authority"]
-    C4["owner-issued obligation<br/>dense·lexical exact-once receipt"]
-    C5["same-round RRF<br/>FusionReceipt stage 4"]
-    C6["state-free E0 control<br/>fact·compare canonical order"]
-    C7["zero-dispatch integrity gates<br/>API · model · Langfuse = 0"]
-    C8["b5 focused gate PASS<br/>lexical-only rescue · fact empty<br/>pre-call zero-dispatch · error diagnostic"]
-    C9["E1 follow-up safe projection<br/>verified→candidate · doc-matched slots<br/>metadata fail-closed · retrieval 0"]
-    C10["semantic verification receipt<br/>source-derived target · exact one-call<br/>typed support · zero-call unavailable"]
-    C11["parent/bridge source receipt<br/>context-only parent · actual table/figure<br/>bounded seed · empty attempt · root-lifetime replay guard"]
-    C12["ID-less rerank + derived semantic<br/>global role order · owner budget<br/>auxiliary parent unindexed · route one-shot"]
-    C13["bounded three-reason absence<br/>zero-provider proof matrix · no promotion<br/>follow-up root-lifetime exact-once"]
-    C14["closed ActionEffectReceipt value<br/>19-field canonical schema · full closed matrix<br/>public mint/authority absent"]
-    C15["effect non-authority gate<br/>repr/copy/pickle/subclass nonleakage<br/>7 source validators clone·mixed reject · provider replay 0"]
-    C16["initial execution aggregate<br/>exact root authority · zero consumption<br/>stable identity/snapshot split · concurrency/GC gate"]
-    C17["initial controller decision permit<br/>revision 0 fact/compare · all-unsearched<br/>selected-first · EH2.5/effect nonpromotion"]
-    C18["exact source-owner authority<br/>state-creation sealed · exact root inheritance<br/>equal-hash/retroactive attach/legacy follow-up reject"]
-    C19["typed source/outcome resolver<br/>exact decision·owner·receipt graph<br/>closed outcome/evidence/context projection · zero dispatch"]
-    C20["one-step temporal authority<br/>claim-authorized prepare→source<br/>shared lane epoch/claim fence · failed tombstone"]
-    C21["per-target context accumulator<br/>bounded target exact-one parent/table/figure<br/>complete batch identity/order · root-lifetime guard"]
-    C1 --> C2 --> C3 --> C4 --> C5 --> C6 --> C7 --> C8 --> C9 --> C10 --> C11 --> C12 --> C13 --> C14 --> C15 --> C16 --> C17 --> C18 --> C19 --> C20 --> C21
-  end
-
-  GAP["미완성<br/>c4.0.e structural-effect bridge<br/>c4.1 → d2.x cross-state → reducer → specialist → generation → E2E"]
-  SELECT["동일 golden A/B<br/>아직 미실행"]
-  LOCAL["채택 시 local-first 전달<br/>feat/local-qwen-mini131-eval"]
-
-  GOLD --> CONTROL
-  GOLD --> API
-  R1 --> C1
-  R2 --> C1
-  R3 --> C1
-  C21 --> GAP --> SELECT
-  CONTROL --> SELECT
-  SELECT -. "winner 미선정" .-> LOCAL
+  GAP["아직 미완성<br/>d2.x 다음 decision → c4.2 reducer → bounded controller<br/>specialist → generation → 실제 E2E"]
+  SELECT["같은 golden으로 component / assembled A/B<br/>품질·효율·안전성 gate · 아직 미실행/미선정"]
+  LOCAL["승인된 우승 구성만 local branch에 전달<br/>generator는 local/API 교체형"]
+  INPUT --> B0
+  RESEARCH --> SEARCH
+  STATE --> GAP --> SELECT
+  B0 --> SELECT
+  SELECT -. "실측·사람 리뷰 후" .-> LOCAL
 
   classDef green fill:#e8f2ea,stroke:#8eb49a,color:#1f2933,stroke-width:1.5px
   classDef blue fill:#e8f0f7,stroke:#8fb4cf,color:#1f2933,stroke-width:1.5px
   classDef amber fill:#fff4dc,stroke:#d8aa53,color:#1f2933,stroke-width:1.5px
   classDef red fill:#fde9e6,stroke:#d98e84,color:#1f2933,stroke-width:1.5px
   classDef gray fill:#eef1ed,stroke:#aab5ad,color:#1f2933,stroke-width:1.5px
-  class B1,B2,B3 green
-  class C1,C2,C3,C4,C5,C6,C7,C8,C9,C10,C11,C12,C13,C14,C15,C16,C17,C18,C19,C20,C21 blue
-  class GOLD gray
-  class R1,R2,R3,API amber
+  class B0 green
+  class SEARCH,RECEIPTS,PERMIT,BRIDGE,FIRST,STATE blue
+  class INPUT gray
+  class RESEARCH,SELECT,LOCAL amber
   class GAP red
-  class SELECT,LOCAL amber

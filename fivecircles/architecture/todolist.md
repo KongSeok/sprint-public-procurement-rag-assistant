@@ -1,5 +1,7 @@
 # MidProjectRAG Task List
 
+- [x] **TEST-ENV-20260906** 프로젝트 `.venv` 의존성 동기화·pip check 및 ML lock32 일치. 기존 실패 영역153/153·전체1498/1498 PASS(오류/실패/skip0). 실행 명령·오류 기록 정정.
+
 ## 현재 실행 큐 — 검색 비교 우선 (2026-09-05 승인)
 
 목적: baseline을 immutable control로 두고 동일 Mini131의 검색 품질·효율을 측정해 개선 축을 선택한다.
@@ -19,8 +21,8 @@
 
 - 순서 세부: EXP-SELECT.2.a의 최소 설정 schema 정의는 EH4.7b.1 전에 한다.
   승인 qrels·사전 threshold를 포함한 정식 freeze는 b.2 smoke 후, EXP-SELECT.3.a 실행 전에 완료한다.
-- `EH2.6.c4.0.e`는 **기술 READY / 우선순위 대기**다. 외부 차단이나 완료로 바꾸지 않는다.
-  사람 검수 등 외부 의존성 때문에 비교만 대기할 때 안전한 기존 READY leaf로 릴레이할 수 있다.
+- `EH2.6.c4.0`과 `EH2.6.c4.1`은 구현·검증 **DONE**이다. 최초 dense의 effect/ledger1 전이가 연결됐다.
+  다음은 `EH2.6.d2.x`를 작은 ledger-aware decision 단위로 나누어 진행한다. 실제 E2E는 아직 미완성이다.
 - 1~3의 코드/연결 smoke는 전체 EH2.G/EH3.G를 기다리지 않는 승인된 retrieval-only 예외다.
   공식 비교는 EVAL.4.c의 해당 지표 qrel 승인·EXP-SELECT.2.a 동결 후에만 실행한다.
 - qrels/검수 lineage 단일 원천=EH2.EVAL.4, resolver/채점/기록=EH4.7, 비교 설정/선택=EXP-SELECT.
@@ -287,7 +289,7 @@ runtime은 local profile 기본·LLM provider 교체형으로 유지하며 새 �
           통과했고 실제 API/model/Langfuse 호출은 0이다.
     - [ ] **EH2.6.c4** exact controller decision-bound `ActionEffectReceipt` mint, monotonic one-obligation reducer와
       hash-chained transition/no-progress를 구현한다.
-      - [ ] **EH2.6.c4.0** `[PARTIAL / PRIORITY_WAIT]` opaque source-owner authority, ordered exact
+      - [x] **EH2.6.c4.0** `[DONE]` opaque source-owner authority, ordered exact
         effect/outcome transition history, per-target parent/bridge issuer와 정식 structural-effect bridge를 추가한다.
         - [x] **EH2.6.c4.0.a** exact `BoundFact|BoundCompare|BoundFollowup`와 coverage/outcome/registry/policy를
           state 생성 시 private authority로 보존하고 `HarnessExecution`이 public payload 변경 없이 상속한다.
@@ -306,11 +308,19 @@ runtime은 local profile 기본·LLM provider 교체형으로 유지하며 새 �
           기존 rerank batch prerequisite의 canonical tuple identity/order를 보존하는 private accumulator를 구현했다.
           missing/duplicate/wrong-role/cross-root/clone·order drift와 live-root remint를 차단했고 focused13·인접175·
           전체1372·safety883·독립 APPROVE를 통과했다. 외부 API/model/Langfuse/provider/clock 호출은 0이다.
-        - [ ] **EH2.6.c4.0.e** `[TECH_READY / PRIORITY_WAIT]` closure-private structural-effect bridge와 clone/mixed/out-of-order/retroactive/
-          duplicate/GC 공격 gate를 통과한다. public mint와 provider/clock/effect 실행은 0으로 유지한다.
-      - [ ] **EH2.6.c4.1** initial decision permit의 selected action 하나만 exact source receipt/effect로 mint하고
+        - [x] **EH2.6.c4.0.e** `controller-structural-effect-bridge.md` 계약대로 exact sourced claim과 bounded
+          target context를 closure-private 구조 재료로 결합했다. immutable/non-serializable/redacted bridge,
+          same-object idempotence·root-lifetime remint tombstone, clone/mixed/out-of-order/retroactive/duplicate/
+          GC/dependency gate를 focused7·관련50으로 검증했다. 최초1438건 환경 실패는 `.venv` 재실행으로
+          해결했고 전체1498/1498 PASS를 확인했다. bridge 자체는 non-authorizing이며 추가 외부 호출은 0이다.
+      - [x] **EH2.6.c4.1** initial decision permit의 selected action 하나만 exact source receipt/effect로 mint하고
         ledger claim·advance 및 transition authority를 구현한다.
+        - [x] **EH2.6.c4.1.a** revision0 fact/compare selected dense의 source-derived live effect와 history 결합.
+        - [x] **EH2.6.c4.1.b** same-state ledger revision1·transition·successor를 발급하고 predecessor authority를 유지.
+        - [x] **EH2.6.c4.1.c** success/empty/error·중복/동시·변조·중간 실패를 신규13/인접91·전체1511 PASS로 검증. 독립 APPROVE.
+          계약: `specs/controller-initial-transition.md`; 원장: `../work/2026-09-06-controller-initial-transition-relay.md`.
       - [ ] **EH2.6.c4.2** `[BLOCKED_BY_EH2.6.d2.x]` transition-aware full action matrix를 reducer에 연결한다.
+        - [ ] 실제 verifier-context ID fingerprint와 successor GC 후 passive registry 정리 회귀를 포함한다.
     - [ ] **EH2.6.c5** verified/contradicted/confirmed-missing·raw bool/ID 공격 focused gate를 통과한다.
   - [ ] **EH2.6.d** bounded E1 controller와 replay를 구현한다.
     - [x] **EH2.6.d1** lane/action/capability/round 소비 스키마와 exact initial state/empty last-transition을
@@ -333,7 +343,7 @@ runtime은 local profile 기본·LLM provider 교체형으로 유지하며 새 �
         - [x] **EH2.6.d2.i.2** repeat·32-thread single winner, GC tombstone, clone/nested tuple·action replacement,
           mixed graph·drift·serialization과 provider/clock 0회를 닫는다.
         - [x] **EH2.6.d2.i.3** 관련·전체·safety·독립 리뷰·flow/HTML·선택 push를 완료하되 parent d2는 열어 둔다.
-      - [ ] **EH2.6.d2.x** `[BLOCKED_BY_EH2.6.c4.0+c4.1]` exact transition/effect outcome과 source-owner
+      - [ ] **EH2.6.d2.x** `[READY / NEXT_RELAY]` exact transition/effect outcome과 source-owner
         authority로 consumed action/lane, fuse/context/capability eligibility와 cross-state chain을 완성한다.
       - [ ] **EH2.6.d2.d** d2.i+d2.x를 합친 full decision matrix와 c4 permit 연동을 회귀·리뷰한다.
     - [ ] **EH2.6.d3** start/step/run과 terminal `HarnessRunResult`를 구현한다.
