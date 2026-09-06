@@ -48,7 +48,7 @@
 <body>
 <main>
   <h1>Local RAG Baseline → Evidence-Harness Challenger 평가 진행 보고서</h1>
-  <p class="sub">2026-09-06 · 작업대 feat/total-integration · EH2.6.c4.1 · 최종 통합 대상 feat/local-qwen-mini131-eval</p>
+  <p class="sub">2026-09-06 · 작업대 feat/total-integration · EH2.6.d2.x.a · 최종 통합 대상 feat/local-qwen-mini131-eval</p>
 
   <section class="purpose">
     <strong>목적 및 고정 방침</strong>
@@ -60,7 +60,7 @@
 
   <div class="status-grid">
     <div class="card green"><div class="label">CONTROL</div><div class="value">Local B0 측정됨</div><p>Mac-equivalent provisional. 재현·rollback 기준으로 유지.</p></div>
-    <div class="card blue"><div class="label">CHALLENGER</div><div class="value">첫 검색 전이 연결</div><p>EH2.6.c4.1까지. 다음 decision·reducer·실제 E2E는 미완성.</p></div>
+    <div class="card blue"><div class="label">CHALLENGER</div><div class="value">다음 행동 선택 연결</div><p>첫 dense 전이 → ordinal2 lexical/기권 선택. 두 번째 실행·E2E는 미완성.</p></div>
     <div class="card amber"><div class="label">SELECTION</div><div class="value">Winner 미선정</div><p>동일 골든셋 paired A/B와 gate/Pareto 판정 전.</p></div>
   </div>
 
@@ -70,7 +70,7 @@
     <tbody>
       <tr><td>주 비교 통제군 B0</td><td>KURE page-v1 + fixed local Qwen</td><td class="done">측정 완료·provisional</td><td>local-first retrieval 비교의 authoritative control</td></tr>
       <tr><td>별도 API arm</td><td>OpenAI small/nano + Streamlit</td><td>호환 경로</td><td>과거 API-first 구현. local control을 대체하지 않음</td></tr>
-      <tr><td>현재 개발 대상</td><td>feat/total-integration의 Evidence-Harness</td><td class="done">EH2.6.c4.1</td><td>최초 dense → live effect → ledger1 → transition → successor 연결. 검색만으로 verified 승격 없음. 다음 decision·state-changing reducer·생성 E2E 미완성</td></tr>
+      <tr><td>현재 개발 대상</td><td>feat/total-integration의 Evidence-Harness</td><td class="done">EH2.6.d2.x.a</td><td>첫 dense 전이 후 같은 항목 lexical/진단 lexical/기권 선택. ordinal2와 이전 transition 연결. 두 번째 dispatch·후속 reducer·생성 E2E 미완성</td></tr>
       <tr><td>최종 전달 대상</td><td>feat/local-qwen-mini131-eval</td><td class="todo">병합·선택 전</td><td>local-first, generator는 local/API 교체형</td></tr>
       <tr><td>채택 구조</td><td>B0 대 assembled challenger</td><td class="todo">미선정</td><td>같은 golden의 실측 결과로만 결정</td></tr>
     </tbody>
@@ -96,7 +96,9 @@
       <tr><td>EH2.6.c4.0.e</td><td class="num">8</td><td class="done">DONE</td><td>MATCHED — closure-private structural-effect bridge와 adversarial authority gate</td></tr>
       <tr><td>EH2.6.c4.1</td><td class="num">8</td><td class="done">DONE</td><td>최초 dense effect/ledger1/transition·predecessor 보존. 신규13·전체1511 PASS</td></tr>
       <tr><td>EH2.6.c4.0</td><td class="num">8</td><td class="done">DONE</td><td>a·b·c·d·e 구조 준비 연결 완료</td></tr>
-      <tr><td>EH2.6.d2.x</td><td class="num">8</td><td class="todo">NEXT</td><td>GAP — 최초 successor 다음 ledger-aware decision</td></tr>
+      <tr><td>EH2.6.d2.x.a</td><td class="num">8</td><td class="done">DONE</td><td>ordinal2 lexical/diagnostic/기권 선택. 신규11·전체1522 PASS</td></tr>
+      <tr><td>EH2.6.c4.2.a</td><td class="num">8</td><td class="todo">NEXT</td><td>선택된 lexical 실제 dispatch와 revision2 전이 연결</td></tr>
+      <tr><td>EH2.6.d2.x</td><td class="num">8</td><td>PARTIAL</td><td>후속 fusion/context matrix는 revision2 뒤 확장</td></tr>
       <tr><td>EH2.6.d2</td><td class="num">8</td><td>PARTIAL</td><td>initial slice 완료, cross-state/full matrix 미완성</td></tr>
       <tr><td>EH2.6.c4</td><td class="num">7</td><td>PARTIAL</td><td>c4.0→c4.1→d2.x→c4.2 순서</td></tr>
       <tr><td>EH2.EVAL.4</td><td class="num">5</td><td class="todo">WAIT</td><td>GAP — 사람 승인·private qrels 선행</td></tr>
@@ -205,7 +207,8 @@
       <tr><td class="done">DONE</td><td>per-target context accumulator</td><td>semantic obligation bounded target의 parent/table/figure exact-one, complete batch identity/order, root-lifetime remint·변조 차단</td><td>EH2.6.c4.0.e</td></tr>
       <tr><td class="done">DONE</td><td>structural-effect bridge</td><td>sourced claim과 exact target context에서 closure-private 구조 재료를 도출하고 immutable/non-serializable/redacted 및 same-object·root remint·clone/mixed/order/GC gate를 통과</td><td>EH2.6.c4.1</td></tr>
       <tr><td class="done">DONE</td><td>최초 dense 전이</td><td>live effect·ledger1·transition·successor. 동일 state와 원본 provenance 유지</td><td>d2.x</td></tr>
-      <tr><td class="todo">NOT DONE</td><td>후속 state/terminal</td><td>cross-state decision, state-changing reducer, bounded controller 미완성</td><td>d2.x→c4.2→d3</td></tr>
+      <tr><td class="done">DONE</td><td>첫 successor 다음 결정</td><td>같은 항목 lexical/진단, contract-error·budget 기권. reason·정확한 chain 봉인</td><td>c4.2.a</td></tr>
+      <tr><td class="todo">NOT DONE</td><td>후속 state/terminal</td><td>두 번째 실행, 후속 matrix·state-changing reducer·bounded controller 미완성</td><td>c4.2.a→d2.x.b→후속 c4.2</td></tr>
       <tr><td class="todo">NOT DONE</td><td>specialist E2E</td><td>analytics/list/table/figure controller 밖</td><td>EH3</td></tr>
       <tr><td class="todo">NOT DONE</td><td>generation/evaluator</td><td>adapter/CLI/layer evaluator 미완성</td><td>EH4</td></tr>
       <tr><td class="todo">NOT DONE</td><td>same-golden selection</td><td>freeze receipt·paired A/B·winner 없음</td><td>EXP-SELECT.2~5</td></tr>
@@ -214,7 +217,7 @@
 
   <h2>다음 실행 순서</h2>
   <ol class="steps">
-    <li>다음 d2.x에서 ledger-aware decision을 연결하고, c4.2 full reducer로 이어간다.</li>
+    <li>c4.2.a lexical dispatch/revision2 → d2.x.b outcome/fusion eligibility → 후속 reducer 순으로 연결한다.</li>
     <li>EH3의 catalog/analytics/list/table/figure를 같은 Evidence contract에 연결한다.</li>
     <li>EH4의 reranker, local/API generator adapter, CLI와 계층별 evaluator를 완성한다.</li>
     <li>공통 hash·budget·metric threshold를 동결하고 B0→R1→R2→R3→H1→V1 paired ablation을 실행한다.</li>
@@ -222,6 +225,7 @@
   </ol>
 
   <h2>Validation</h2>
+  <p>최신 d2.x.a: 신규11 포함 인접79 PASS, 독립 APPROVE/신규11 재실행 PASS. 전체 1,522/1,522 PASS(186.315초, 오류·실패·skip0, exit0). 조회는 ledger를 소비하지 않고 추가 provider/model/clock 호출은 없다. 새 policy revision은 initial_and_first_dense_successor_v1이며, 초기 동작·signature는 같고 새 action/decision SHA는 변경된다.</p>
   <p>c4.1 신규13 + bridge7 + history30 = 50 PASS, 인접41 PASS. 독립 리뷰 APPROVE와 신규13 재실행 PASS. 프로젝트 .venv 전체 회귀는 1,511/1,511 PASS, 오류·실패·skip 0, 174.977초, exit 0. 이전 1,498 PASS에 신규13이 더해졌다. 이는 구현 무결성 결과이며 검색 품질 향상 수치가 아니다.</p>
   <p>중간 발급 실패→failed 소비, barrier 동시성, ledger tuple·원본 provenance 변조, 전후 hash 연결을 검증했다. API·모델·Langfuse 호출 0회. current/target PNG와 desktop/mobile 보고서 검증 결과는 Cycle18 원장에 기록한다. 후속 reducer에서는 실제 verifier-context fingerprint와 successor GC 정리도 검증한다.</p>
   <footer>권위: requirements/decisions.md D-024 → requirements/current.md §1.1 → assembly-on-research-and-exp.md → bidfit-evidence-harness-v1-rc0.md. Langfuse는 실제 E2E 측정 수단이며 검색 성능 구성요소가 아니다.</footer>

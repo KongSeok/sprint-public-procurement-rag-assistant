@@ -21,22 +21,29 @@
 
 - doc-contract-writer: §16.10 dense error/contract error·action order와 현재 DTO policy/ordinal/authority를 감사한다.
 - source-derived outcome·budget 경계·정확한 public policy 변경 범위는 구현 전에 `controller-next-decision.md`로 고정한다.
-- 상태: IN_PROGRESS. 임의 outcome mapping으로 구현하지 않는다.
+- `controller-next-decision.md`로 매핑·budget 우선·round1 lexical·새 policy hash를 고정했다. 독립 계약 감사 완료.
+- 상태: COMPLETED.
 
 ## 4. Implementation
 
 - one-go + batch-sequential-runner. d2.x.a→후속 matrix leaf 순차. 수정 예정=execution_contracts/계약/독립 테스트.
-- 상태: TODO.
+- 상태: COMPLETED. 신규 action plan·reason authority와 policy revision, 독립 tests11을 구현했다.
 
 ## 5. Validation + Report
 
 - test-runner + mermaid-flow-report. 신규 focused→initial decision/transition 회귀→영향 기반 넓은 gate.
 - ordinal2·previous transition·dense 재선택 금지·success/empty/error·budget·clone/drift·추가 호출0 검증.
-- 보고서 current/target·PNG/HTML·Chrome desktop/mobile 확인. 상태: TODO.
+- 신규11 포함 인접79 PASS(21.052초), 독립 APPROVE/신규11 PASS.
+- 전체1522/1522 PASS(186.315초, errors/failures/skips0, exit0). 최초1511에11 추가.
+- current mmdc PNG와 target 유지·HTML·Chrome desktop/mobile PASS(images2/tables8/pageerror0/외부요청0).
+- screenshot=`../test/playwright-screenshots/controller-next-decision-2026-09-06.png`. 상태: PASS.
 
 ## 6. Repair Loop
 
-- RED/독립 리뷰 결과 기반 scoped repair. 상태: TODO.
+- fixture max_rounds=2 오선택을 기존 pin1로 교정했다. production contract는 유지했다.
+- 고정된 Cycle18 source로 순수 RED9/errors25(`cross_state_not_ready`,6.047초)를 분리 확인했다.
+- 독립 리뷰에 따라 reason/tuple, budget2 경계, 비소비·양방향 chain/mixed-root 검증을 추가해 신규11이 됐다.
+- refs: `../test/errorlogs/backend/2026-09-06-controller-next-decision-red.md`. 상태: COMPLETED.
 
 ## 7. Push / Publication
 
@@ -44,7 +51,8 @@
 
 ## 8. Closeout Report
 
-- target vs current·점수표 갱신, full d2.x/Controller 완료로 과장하지 않음. 상태: TODO.
+- d2.x.a MATCHED8; c4.2.a NEXT8; d2.x.b 후속7. 전체 d2.x/Controller는 PARTIAL. 상태: COMPLETED.
+- 감사 결과 d2.x 전체→c4.2 전체 순환 대신 실제 successor 한 단계씩 연결한다. lexical은 원 dense receipt의 exact obligation 재사용.
 
 ## 9. Relay Shot
 
@@ -53,4 +61,4 @@
 
 ## 10. Final Ledger
 
-- Intake/Selection=COMPLETED; Doc=IN_PROGRESS; Implementation/Validation/Repair/Push/Report/Relay=TODO.
+- Intake/Selection/Doc/Implementation/Repair/Report=COMPLETED; Validation=PASS; Push/Relay=TODO.

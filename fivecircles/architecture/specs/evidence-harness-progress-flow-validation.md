@@ -1,7 +1,7 @@
 # Local RAG Baseline → Evidence-Harness Challenger 평가 진행 보고서
 
 
-기준: 2026-09-06 · 현재 작업대 `feat/total-integration` · EH2.6.c4.1 검증 완료 시점
+기준: 2026-09-06 · 현재 작업대 `feat/total-integration` · EH2.6.d2.x.a 전체 검증 완료 시점
 최종 통합 대상: `feat/local-qwen-mini131-eval`
 
 > **고정된 목적:** 기존 local KURE page-v1 RAG baseline은 최종 구조가 아니라 비교를 위한 control이다. GPT retrieval 연구,
@@ -20,12 +20,12 @@
 | --- | --- | --- | --- |
 | 주 비교 통제군 B0 | KURE page-v1 + local Qwen 계열 | Mac-equivalent 측정 완료·provisional | local-first retrieval 비교의 authoritative control. 계속 보존한다. |
 | 별도 API arm | `text-embedding-3-small` + `gpt-5-nano` + Streamlit | 사용자-facing 호환 경로 | API-first는 과거 구현 순서이며 local control을 대체하지 않는다. |
-| 현재 개발 대상 | `feat/total-integration`의 Evidence-Harness challenger | EH2.6.c4.1까지 구현 | 최초 dense의 source→live effect→ledger1→transition→successor 연결. 의미 state는 그대로이며 다음 decision·state-changing reducer·생성 E2E는 미완성이다. |
+| 현재 개발 대상 | `feat/total-integration`의 Evidence-Harness challenger | EH2.6.d2.x.a까지 구현 | 최초 dense 전이 후 ordinal2의 lexical/diagnostic/기권 선택 연결. 실제 두 번째 dispatch·후속 reducer·생성 E2E는 미완성이다. |
 | 최종 전달 대상 | `feat/local-qwen-mini131-eval` | 병합·선택 전 | 같은 Evidence Pack 뒤에서 local/API generator를 갈아 끼운다. |
 | 최종 선택 | baseline 대 assembled challenger | **미실행·미선정** | 동일 골든셋 A/B와 gate/Pareto 판정 뒤 결정한다. |
 
 따라서 **현재 비교할 때 쓰는 것은 local baseline**, **현재 만드는 것은 challenger**, **나중에 기본으로 쓸 것은
-아직 미정**이다. EH2.6.c4.1 작업은 실제 API를 실행한 것이 아니라
+아직 미정**이다. EH2.6.d2.x.a 작업은 실제 API를 실행한 것이 아니라
 API/OpenAI/model/Langfuse/golden/VLM/provider/clock 호출 0회의 synthetic/offline temporal authority 검증 단계다.
 
 ### 현재 relay 판정
@@ -48,7 +48,9 @@ API/OpenAI/model/Langfuse/golden/VLM/provider/clock 호출 0회의 synthetic/off
 | EH2.6.c4.0.e | 8 | DONE | MATCHED — sourced claim + bounded target context 구조 bridge, clone/mixed/order/GC gate |
 | EH2.6.c4.0 | 8 | DONE | a·b·c·d·e 구조 준비 연결 완료 |
 | EH2.6.c4.1 | 8 | DONE | 최초 dense effect/transition·predecessor 보존. 전체1511 PASS·독립 APPROVE |
-| EH2.6.d2.x | 8 | NEXT | GAP — 최초 successor 다음의 ledger-aware decision matrix |
+| EH2.6.d2.x.a | 8 | DONE | ordinal2 lexical/diagnostic/contract-error·budget 기권, closed reason·policy revision |
+| EH2.6.c4.2.a | 8 | NEXT | GAP — 선택된 lexical을 실제 dispatch하고 revision2로 연결 |
+| EH2.6.d2.x | 8 | PARTIAL | 첫 successor decision만 완료, 후속 fusion/context matrix는 revision2 발급 뒤 확장 |
 | EH2.6.d2 | 8 | PARTIAL | initial slice 완료, cross-state slice와 full matrix 미완성 |
 | EH2.6.c4 | 7 | PARTIAL | c4.0→c4.1→d2.x→c4.2 순서로 진행 |
 | EH2.EVAL.4 | 5 | WAIT | GAP — 사람 승인·private qrels 선행 필요 |
@@ -164,7 +166,8 @@ Mini131 결과와 unit/full regression은 출발점·안전성 증거지만 새 
 | DONE | per-target context accumulator | semantic obligation의 bounded target에서 parent/table/figure receipt exact-one 선택, complete parent/bridge tuple identity·canonical order 보존, root-lifetime remint·변조 차단 | c4.0.e structural bridge |
 | DONE | structural-effect bridge | sourced claim + exact target context에서 구조 재료를 도출; immutable/non-serializable/redacted, same-object·root remint·clone/mixed/order/GC gate | EH2.6.c4.1 effect/transition |
 | DONE | 최초 dense 전이 | live effect·ledger1·transition·successor, 동일 state 유지, predecessor와 원본 receipt 재검증 | d2.x 다음 decision |
-| NOT DONE | 후속 상태 전이·종료 | cross-state decision, state-changing reducer, bounded controller 미완성 | d2.x→c4.2→d3~d4 |
+| DONE | 첫 successor 다음 결정 | same-obligation lexical, provider-error 진단, contract-error·budget 기권; ordinal2 chain과 비소비 조회 | c4.2.a 실제 lexical |
+| NOT DONE | 후속 상태 전이·종료 | revision2 이후 matrix, state-changing reducer, bounded controller 미완성 | c4.2.a→d2.x.b→후속 c4.2→d3~d4 |
 | NOT DONE | 전문 lane E2E | analytics/list/table/figure가 controller 밖 | EH3.1~EH3.G |
 | NOT DONE | 생성·평가 조립 | reranker/generator/CLI/layer evaluator 미완성 | EH4.1~EH4.G |
 | NOT DONE | 공정 비교 동결 | 공통 freeze receipt와 threshold 미동결 | EXP-SELECT.2 |
@@ -173,7 +176,7 @@ Mini131 결과와 unit/full regression은 출발점·안전성 증거지만 새 
 
 ## 다음 실행 순서
 
-1. EH2.6.c4.1 납품 검증 후 d2.x ledger-aware decision → c4.2 full reducer 순으로 완성한다.
+1. c4.2.a lexical dispatch/revision2 → d2.x.b outcome/fusion eligibility → 후속 c4.2 reducer 순으로 연결한다.
 2. EH3에서 catalog/analytics/list/table/figure specialist를 같은 evidence contract에 연결한다.
 3. EH4에서 identity/reranker, local/API generator adapter, CLI와 계층별 evaluator를 완성한다.
 4. baseline·local control·challenger의 corpus/gold/qrels/judge/budget/hash와 metric threshold를 동결한다.
@@ -182,6 +185,12 @@ Mini131 결과와 unit/full regression은 출발점·안전성 증거지만 새 
 7. gate/Pareto 판정과 사람 리뷰 뒤에만 local branch 기본 profile을 전환한다. baseline은 rollback용으로 남긴다.
 
 ## 검증 상태
+
+- d2.x.a 신규11 포함 인접79 PASS(21.052초), 독립 APPROVE/신규11 재실행 PASS. 전체1522/1522 PASS(186.315초, 오류/실패/skip0, exit0).
+- 새 policy revision=`initial_and_first_dense_successor_v1`; initial signature/행동 유지, action/decision SHA는 새 정책으로 변경된다.
+- 후속 dispatch에서 진단 lexical의 fusion 금지와 exact dense receipt의 obligation 재사용을 유지해야 한다.
+
+### 선행 c4.1 검증
 
 - c4.1 신규13+bridge7+history30=50 PASS, aggregate/decision/source 인접41 PASS. 독립 리뷰 APPROVE(신규13 재실행 PASS).
 - 발급 중간 예외→failed 소비, barrier 동시성, transition 연결 hash, ledger tuple·원본 provenance 변조를 검증했다.

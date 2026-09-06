@@ -1021,3 +1021,11 @@ This file summarizes recent updates so other agents can continue without re‑di
 - current/target PNG·Chrome desktop/mobile 보고서 PASS. refs: `2026-09-06-controller-initial-transition-relay.md`.
 ### Next
 - d2.x ledger-aware decision을 다음 릴레이로 선택. c4.2·controller/E2E·동일 골든셋 품질 비교는 미완성.
+
+## Addendum (2026-09-06) - EH2.6.d2.x.a 다음 행동 선택
+### Backend
+- exact dense 전이 후 ordinal2 lexical/진단/기권 선택. budget 우선·closed reason 봉인·초기 행동 유지, 정책 hash revision 명시.
+### Tests
+- 신규11·인접79·전체1522 PASS(186.315초, 오류/실패/skip0), 독립 APPROVE·Chrome desktop/mobile PASS. 모델0.
+### Next
+- c4.2.a 실제 lexical/전이2 → d2.x.b 후속 자격 순으로 분할. refs: `2026-09-06-controller-next-decision-relay.md`.

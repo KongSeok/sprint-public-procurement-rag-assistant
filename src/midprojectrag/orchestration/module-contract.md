@@ -326,6 +326,21 @@ fuse/context. An untried unavailable capability remains selectable once so c4 ca
 effect; only its ledger-recorded stable action is removed later. D2.i does not mint effects, claim/consume a permit,
 advance a ledger, reduce state, call a provider/clock, or expose start/step/run.
 
+D2.x.a extends the existing public decision signature to the exact revision-one initial dense successor.
+It first revalidates the execution and C4.1 effect/transition lineage. A consumed action budget selects only
+untargeted abstain with `action_budget_exhausted`; otherwise dense contract failure selects only abstain with
+`contract_error`. Applied/empty dense outcomes allow the same obligation's untouched lexical action followed
+by abstain, selecting lexical with `first_eligible_nonterminal`. Dense provider failure uses that same two-action
+shape with `dense_provider_error_diagnostic`; the lexical action is diagnostic and cannot authorize fusion or
+another obligation. A round-one lexical action does not start a new retrieval round. Closed action specs and
+reason are derived internally, sealed in the existing snapshot authority, and recomputed by its live validator.
+The decision ordinal is two and its previous-transition hash comes from the exact successor. Initial behavior
+and public signatures stay unchanged, but policy revision `initial_and_first_dense_successor_v1` explicitly
+changes new-process action/decision hashes; action hashes remain stable across snapshots within one execution.
+No historical receipt or baseline/index/golden artifact is rewritten. This slice performs no dispatch or clock
+call, has no deadline verdict, and does not mint a terminal result. Revision two, later obligations, fusion/context,
+follow-up, and the full cross-state matrix remain outside the slice. See `controller-next-decision.md`.
+
 C4.0 is implemented as five ordered leaves: source-owner authority, typed source/outcome resolution, one-step
 claim/history, per-target context issuance with a canonical batch accumulator, and a closure-private structural
 effect bridge plus adversarial gate. The source-owner leaf captures the exact `BoundFact|BoundCompare|BoundFollowup`

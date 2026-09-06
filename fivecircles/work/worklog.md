@@ -138,3 +138,9 @@
   - Evidence: 신규13, 인접합91, 전체1511 PASS(174.977초), 독립 APPROVE; Chrome desktop/mobile 정적 보고서 PASS.
   - Scope: synthetic/offline; 실제 API/model/Langfuse/golden 호출0. default local/API profile·resources 불변.
   - Reference: 2026-09-06-controller-initial-transition-relay.md. 다음 d2.x 새 폼은 선택 push 뒤 시작한다.
+
+- [2026-09-06 14:43] Stage=Implementation/Test/Review (Cycle19)
+  - Summary: exact dense successor에서 ordinal2 lexical/진단/기권 decision 발급. budget 우선·비소비 조회·정책 revision 고정.
+  - Evidence: 신규11·인접79·전체1522 PASS(186.315초), 독립 APPROVE; Chrome desktop/mobile 보고서 PASS.
+  - Boundary: 실제 두 번째 실행·terminal result는 없음. API/model/clock0, baseline/index/golden 불변.
+  - Next: c4.2.a lexical 실행/전이2 뒤 d2.x.b를 연결해 전체 매트릭스와 reducer의 순환 선행을 풀어간다.

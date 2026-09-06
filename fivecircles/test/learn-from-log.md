@@ -444,3 +444,11 @@ Reference:
 - source hash와 RuntimeRequest schema가 각각 맞아도 질문/이력/범위가 다른 요청일 수 있다. 원래 lane projection과 직접 비교한다.
 - 기술 후보84를 공식분모로 승격하지 않는다. 기존 검수 이력, 자동 답변 judge, qrel 사람 승인은 다른 기록이다.
 - refs: `errorlogs/backend/2026-09-06-readiness-source-binding.md`.
+
+### Controller 다음 단계 테스트와 선택 staging (2026-09-06)
+
+- fixture 옵션은 production config의 pinned scalar부터 확인한다. 이번 max_rounds 기본값은1이며2가 아니다.
+- 병렬 구현 중 RED는 이전 커밋의 고정 source에서 확인하고, 작성 중인 tree의 인자 누락을 납품 결함으로 세지 않는다.
+- context 없는 일부 diff만 staging하면 누락한 앞쪽 hunk 때문에 문서 자식 항목 위치가 달라질 수 있다.
+  semantic marker 범위로 index를 구성하고 staged diff에서 실제 부모/자식 위치까지 확인한다.
+- refs: `errorlogs/backend/2026-09-06-controller-next-decision-red.md`, `../work/2026-09-06-controller-initial-transition-relay.md`.

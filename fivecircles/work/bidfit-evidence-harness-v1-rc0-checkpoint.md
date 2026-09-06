@@ -12,8 +12,9 @@ actual receipt: private/evaluation/retrieval-smoke-v1-20260906-002, SHA ef161286
 .4.c 위치 의미 승인과 .2.a.2 정식 freeze는 별도 잔여다.
 c4.0.e structural-effect bridge는 2026-09-06 focused7·인접50 PASS로 완료했고 parent c4.0/d2는 PARTIAL 유지.
 Cycle18 c4.1 최초 dense effect/ledger1/transition까지 구현·검증 완료: 신규13·인접합91·전체1511 PASS, 독립 APPROVE.
-다음 Controller leaf는 d2.x ledger-aware decision이다. Cycle E d4b6d1a / F 6617514 push 완료다.
-현재 폼: `2026-09-06-controller-initial-transition-relay.md`. 아래 완료 원장의 '다음'은 당시 이력이며 현재 큐가 우선한다.
+Cycle19 d2.x.a ordinal2 lexical/진단/기권 decision 완료: 신규11·인접79·전체1522 PASS, 독립 APPROVE.
+다음 Controller leaf는 c4.2.a lexical 실제 실행/전이2다. Cycle18 925f4ab / closeout7e1d5a4 push 완료.
+현재 폼: `2026-09-06-controller-next-decision-relay.md`. 아래 완료 원장의 '다음'은 당시 이력이며 현재 큐가 우선한다.
 
 ## 중단/애매함 발생 시
 

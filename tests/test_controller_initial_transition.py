@@ -40,7 +40,7 @@ class ControllerInitialTransitionTests(unittest.TestCase):
         self.root = Path(temporary.name)
         self.case_number = 0
 
-    def _case(self, *, compare=False, mode="valid"):
+    def _case(self, *, compare=False, mode="valid", max_actions=24, max_rounds=1):
         self.case_number += 1
         store = _store()
         dense_log = self.root / f"dense-{self.case_number}.log"
@@ -57,7 +57,10 @@ class ControllerInitialTransitionTests(unittest.TestCase):
             ),
             verifier=_NeverVerifier(), reranker=_NeverReranker(), clock=_never_clock,
         )
-        config = create_harness_execution_config(mode="e1_bounded")
+        config = create_harness_execution_config(
+            mode="e1_bounded", max_nonterminal_actions=max_actions,
+            max_retrieval_rounds_per_obligation=max_rounds,
+        )
         env = dict(store=store, config=config, runtime=runtime)
         if compare:
             bound, _registry = _compare_bound(store)
@@ -280,12 +283,13 @@ class ControllerInitialTransitionTests(unittest.TestCase):
         effect, _transition = contracts._require_controller_initial_transition(execution=after, **env)
         self.assertEqual(effect.step_index, 1)
 
-    def test_second_decision_is_not_opened_by_initial_transition(self):
+    def test_initial_transition_does_not_dispatch_a_second_action(self):
         case = self._case()
         after = self._advance(case)
-        with self.assertRaises(ValueError):
-            decide_controller_action(execution=after, **case["env"])
+        self._read(case, after)
+        self.assertEqual(after.step_index, 1)
         self.assertEqual(_calls(case["dense_log"]), ("dense",))
+        self.assertEqual(_calls(case["lexical_log"]), ())
 
     def test_mint_boundary_is_private(self):
         self.assertFalse(hasattr(orchestration, "advance_initial_controller_step"))

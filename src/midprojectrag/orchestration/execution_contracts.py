@@ -3618,10 +3618,15 @@ _CONTROLLER_DECISION_POLICY_SHA256 = _canonical_sha256(
         "schema_version": SCHEMA_VERSION,
         "policy_id": HARNESS_EXECUTION_POLICY_ID,
         "closed_action_kinds": list(_CONTROLLER_ACTION_KINDS),
-        "d2_slice": "revision_zero_fact_compare_unsearched",
+        "policy_revision": "initial_and_first_dense_successor_v1",
+        "d2_slice": "revision_zero_and_one_fact_compare",
         "order": "obligation_major_dense_lexical_then_abstain",
         "selection": "first_allowed",
-        "cross_state": "blocked_until_c4_source_outcome_authority",
+        "cross_state": "exact_initial_dense_transition_only",
+        "next_decision_priority": [
+            "action_budget_exhausted", "contract_error",
+            "dense_provider_error_diagnostic", "same_obligation_lexical",
+        ],
     }
 )
 
@@ -3761,7 +3766,7 @@ def _controller_allowed_actions_sha256(
 
 
 class ControllerDecisionReceipt:
-    """Exact live d2 decision permit; d2.i supports revision zero only."""
+    """Exact live decision for an initial state or its first dense successor."""
 
     __slots__ = (
         "stage",
@@ -3828,6 +3833,7 @@ class ControllerDecisionReceipt:
         *,
         execution: HarnessExecution,
         allowed_actions: tuple[ControllerAction, ...],
+        reason_code: str,
         _token: object,
     ) -> ControllerDecisionReceipt:
         if cls is not ControllerDecisionReceipt or _token is not _CONTROLLER_DECISION_TOKEN:
@@ -3850,7 +3856,7 @@ class ControllerDecisionReceipt:
                 _controller_allowed_actions_sha256(allowed_actions),
             ),
             ("selected_action", allowed_actions[0]),
-            ("reason_code", "first_eligible_nonterminal"),
+            ("reason_code", reason_code),
         ):
             object.__setattr__(result, name, value)
         object.__setattr__(result, "decision_sha256", "0" * 64)
@@ -3926,8 +3932,26 @@ class ControllerDecisionReceipt:
             self.allowed_actions
         ):
             raise ValueError("controller_allowed_actions_hash_mismatch")
-        if self.reason_code != "first_eligible_nonterminal":
+        if self.reason_code not in {
+            "first_eligible_nonterminal", "dense_provider_error_diagnostic",
+            "contract_error", "action_budget_exhausted",
+        }:
             raise ValueError("invalid_controller_decision_reason")
+        if self.reason_code in {"contract_error", "action_budget_exhausted"}:
+            if (
+                self.ledger_revision != 1 or len(self.allowed_actions) != 1
+                or self.selected_action.kind != "abstain"
+            ):
+                raise ValueError("invalid_terminal_controller_decision_reason")
+        elif self.reason_code == "dense_provider_error_diagnostic":
+            if (
+                self.ledger_revision != 1 or len(self.allowed_actions) != 2
+                or self.selected_action.kind != "retrieve_lexical"
+                or self.allowed_actions[1].kind != "abstain"
+            ):
+                raise ValueError("invalid_diagnostic_controller_decision_reason")
+        elif self.selected_action.kind in _CONTROLLER_TERMINAL_KINDS:
+            raise ValueError("invalid_nonterminal_controller_decision_reason")
         if self.decision_sha256 != _canonical_sha256(self._payload()):
             raise ValueError("controller_decision_hash_mismatch")
 
@@ -3978,6 +4002,49 @@ def _d2_initial_action_specs(
     return tuple(specs)
 
 
+def _d2_controller_action_plan(
+    *, execution: HarnessExecution, store: EvidenceStore,
+    config: HarnessExecutionConfig, runtime: HarnessRuntimeBinding,
+) -> tuple[tuple[tuple[str, str | None, str | None], ...], str]:
+    """Derive the supported snapshot's actions and reason from live provenance."""
+
+    if execution.step_index == 0:
+        return _d2_initial_action_specs(execution), "first_eligible_nonterminal"
+    if execution.step_index != 1:
+        raise ValueError("controller_decision_cross_state_not_ready")
+    effect, transition = _require_controller_initial_transition(
+        execution=execution, store=store, config=config, runtime=runtime,
+    )
+    ledger = execution.ledger
+    obligation_key = ledger.obligation_keys[0]
+    if (
+        execution.source_kind not in {"fact", "compare"}
+        or effect.action_kind != "retrieve_dense"
+        or effect.obligation_key != obligation_key
+        or effect.source_receipt_kind != "lane_search"
+        or effect.effect_sha256 != transition.effect_sha256
+        or transition.transition_sha256 != execution.last_transition_sha256
+        or ledger.revision != 1 or ledger.nonterminal_action_count != 1
+        or ledger.consumed_action_sha256s != (effect.action_sha256,)
+        or ledger.consumed_lane_keys != ((obligation_key, 1, "dense"),)
+        or ledger.round_indexes != (1,) + (0,) * (len(ledger.obligation_keys) - 1)
+        or ledger.unavailable_action_sha256s or any(ledger.no_progress_streaks)
+        or any(entry.observation_stage != "unsearched" for entry in execution.state.belief.evidence_map)
+    ):
+        raise ValueError("controller_decision_initial_transition_required")
+    abstain = (("abstain", None, None),)
+    if ledger.nonterminal_action_count >= config.max_nonterminal_actions:
+        return abstain, "action_budget_exhausted"
+    if effect.outcome == "contract_error":
+        return abstain, "contract_error"
+    lexical = (("retrieve_lexical", obligation_key, None),) + abstain
+    if effect.outcome == "provider_error":
+        return lexical, "dense_provider_error_diagnostic"
+    if effect.outcome in {"applied", "empty"}:
+        return lexical, "first_eligible_nonterminal"
+    raise ValueError("controller_decision_initial_outcome_not_ready")
+
+
 def _build_controller_decision_authority_accessors(
     action_cls: type,
     decision_cls: type,
@@ -4013,6 +4080,7 @@ def _build_controller_decision_authority_accessors(
         config: HarnessExecutionConfig,
         runtime: HarnessRuntimeBinding,
         specs: tuple[tuple[str, str | None, str | None], ...],
+        reason_code: str,
     ) -> ControllerDecisionReceipt:
         key = (
             execution.execution_identity_sha256,
@@ -4032,6 +4100,7 @@ def _build_controller_decision_authority_accessors(
                     or current[2] is not config
                     or current[3] is not runtime
                     or current[4] != specs
+                    or current[6] != reason_code
                 ):
                     raise ValueError("controller_decision_root_identity_mismatch")
                 issued = current[5]()
@@ -4052,6 +4121,7 @@ def _build_controller_decision_authority_accessors(
             decision = decision_cls._create(
                 execution=execution,
                 allowed_actions=actions,
+                reason_code=reason_code,
                 _token=_CONTROLLER_DECISION_TOKEN,
             )
             decision_identity = id(decision)
@@ -4072,6 +4142,7 @@ def _build_controller_decision_authority_accessors(
                 tuple(actions),
                 decision.selected_action,
                 specs,
+                reason_code,
             )
             authorities[decision_identity] = authority
             authority_shadow[decision_identity] = authority
@@ -4086,6 +4157,7 @@ def _build_controller_decision_authority_accessors(
                 runtime,
                 specs,
                 decision_weak,
+                reason_code,
             )
             histories[key] = history
             history_shadow[key] = history
@@ -4111,7 +4183,10 @@ def _build_controller_decision_authority_accessors(
             history = histories.get(key)
             if history is None or history is not history_shadow.get(key):
                 raise ValueError("controller_decision_history_authority_drift")
-            if history[0]() is not current[2] or history[5]() is not receipt:
+            if (
+                history[0]() is not current[2] or history[5]() is not receipt
+                or history[6] != current[10]
+            ):
                 raise ValueError("controller_decision_history_authority_drift")
             return current
 
@@ -4139,6 +4214,7 @@ def _build_controller_decision_public_api(
     runtime_cls: type,
     execution_validator: Any,
     action_specs: Any,
+    action_plan: Any,
     authority_issuer: Any,
     authority_reader: Any,
     canonical_sha256: Any,
@@ -4178,6 +4254,7 @@ def _build_controller_decision_public_api(
         for function in (
             execution_validator,
             action_specs,
+            action_plan,
             authority_issuer,
             authority_reader,
             canonical_sha256,
@@ -4229,6 +4306,7 @@ def _build_controller_decision_public_api(
             ("HarnessRuntimeBinding", runtime_cls),
             ("validate_harness_execution", execution_validator),
             ("_d2_initial_action_specs", action_specs),
+            ("_d2_controller_action_plan", action_plan),
             ("_issue_controller_decision_authority", authority_issuer),
             ("_require_controller_decision_permit", authority_reader),
             ("_canonical_sha256", canonical_sha256),
@@ -4275,7 +4353,7 @@ def _build_controller_decision_public_api(
         config: HarnessExecutionConfig,
         runtime: HarnessRuntimeBinding,
     ) -> ControllerDecisionReceipt:
-        """Issue one exact revision-zero decision without executing its action."""
+        """Issue the supported snapshot's exact decision without dispatching work."""
 
         validate_dependencies()
         if type(execution) is not execution_cls:
@@ -4292,13 +4370,16 @@ def _build_controller_decision_public_api(
             config=config,
             runtime=runtime,
         )
-        specs = action_specs(execution)
+        specs, reason_code = action_plan(
+            execution=execution, store=store, config=config, runtime=runtime,
+        )
         receipt = authority_issuer(
             execution=execution,
             store=store,
             config=config,
             runtime=runtime,
             specs=specs,
+            reason_code=reason_code,
         )
         validate_controller_decision_receipt(
             receipt=receipt,
@@ -4352,9 +4433,13 @@ def _build_controller_decision_public_api(
             or authority[8] is not receipt.selected_action
         ):
             raise ValueError("controller_decision_nested_identity_drift")
-        expected_specs = action_specs(execution)
+        expected_specs, expected_reason = action_plan(
+            execution=execution, store=store, config=config, runtime=runtime,
+        )
         if authority[9] != expected_specs:
             raise ValueError("controller_decision_action_specs_drift")
+        if authority[10] != expected_reason or receipt.reason_code != expected_reason:
+            raise ValueError("controller_decision_reason_drift")
         actual_specs = tuple(
             (
                 action.kind,
@@ -4405,6 +4490,7 @@ def _build_controller_decision_public_api(
     runtime_cls=HarnessRuntimeBinding,
     execution_validator=validate_harness_execution,
     action_specs=_d2_initial_action_specs,
+    action_plan=_d2_controller_action_plan,
     authority_issuer=_issue_controller_decision_authority,
     authority_reader=_require_controller_decision_permit,
     canonical_sha256=_canonical_sha256,
@@ -20263,6 +20349,8 @@ _RUNTIME_GATE_FUNCTION_PINS = tuple(
             _require_controller_structural_effect_bridge,
         ),
         ("_register_harness_execution_successor", _register_harness_execution_successor),
+        ("_d2_initial_action_specs", _d2_initial_action_specs),
+        ("_d2_controller_action_plan", _d2_controller_action_plan),
         ("_advance_initial_controller_step", _advance_initial_controller_step),
         ("_require_controller_initial_transition", _require_controller_initial_transition),
         ("_initial_controller_effect_authority_reader", _initial_controller_effect_authority_reader),

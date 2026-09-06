@@ -10,7 +10,8 @@
   c4.0.a `c0455f8`, typed source/outcome c4.0.b `ab5a223`까지 origin push 완료. EH2.6.a~d1,
   revision-0 `d2.i`, c4.0.a~c와 c4.0.d per-target context accumulator PASS.
   d2는 PARTIAL이다. c4.0 구조 bridge와 c4.1 최초 dense effect/ledger1/transition은 완료했다.
-  다음은 d2.x ledger-aware decision이다. Cycle18: `2026-09-06-controller-initial-transition-relay.md`.
+  d2.x.a ordinal2 lexical/진단/기권 선택도 완료했다. 다음은 c4.2.a lexical 실제 실행/전이2다.
+  현재 폼: `2026-09-06-controller-next-decision-relay.md`.
 - 완료: runtime DTO/empty scope/typed predicate/scorer/replay. focused 47, 전체 852 PASS, skip 0. 앱 연결은 아직.
 - 실물: 저장 답변/source-case hash 129/129, facts117/no-facts12, API/생성 호출0, 최종 replay-03 별도 private 보관.
 - 실물 경로: private/evidence-harness/v1-rc0-20260903-01. parents9331/compat children9496/structured62382; KURE/MPS 9496 + Kiwi tokens2065474. source unchanged/generation0.
@@ -20,7 +21,7 @@
 - 계약: `../architecture/specs/bidfit-evidence-harness-v1-rc0.md` §16.10의 d2/c4.0 구간과
   `../architecture/todolist.md` EH2.6.c4/d만 우선 읽기.
 - TODO: `../architecture/todolist.md` EH-RC0. 상세/원문은 애매할 때만 checkpoint/resume 문서에서 찾기.
-- 최신 테스트: c4.1 신규13·인접합91·전체1511/1511 PASS(174.977초, 오류/실패/skip0), 독립 APPROVE.
+- 최신 테스트: d2.x.a 신규11·인접79·전체1522/1522 PASS(186.315초, 오류/실패/skip0), 독립 APPROVE.
   current/target PNG·Chrome desktop/mobile 보고서 PASS. 아래 수치는 선행 c4.0.e 이력이다.
 - 테스트: EH2.6.c4.0.e focused7/7, c4.0.c/d/e 인접50/50 PASS. 2026-09-06 11:53 프로젝트 `.venv`
   전체1498/1498 PASS(오류/실패/skip0), safety941파일·`git diff --check` PASS. 최초 Miniconda 실행의
@@ -30,5 +31,5 @@
   wrong-role/cross-root/clone·order drift, helper drift와 live-root GC remint를 fail-closed하고 dead root는
   executable callback 없이 다음 접근에서 수거한다.
   API/OpenAI/model/Langfuse/golden/VLM/provider/clock 외부 호출은 0회다. c4.1 first dense effect/advance는 연결됐고,
-  d2.x cross-state permit, c4.2 state-changing reducer와 d3 run은 아직 부재한다.
+  첫 successor permit은 연결됐지만 revision2 이후 matrix, c4.2 state-changing reducer와 d3 run은 아직 부재한다.
 - 종료 조건: 명시적 중단/실제 blocker/승인 범위 완료. 한두 단위 끝났다는 이유로 중단하지 않음.
