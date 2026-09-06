@@ -39,7 +39,7 @@
 - full: 1511/1511 PASS, 174.977초, 오류/실패/skip0, exit0. `.venv` 이전1498에서 신규13 증가.
 - report: mmdc current/target PNG 재생성, current 직접 시각 확인; Chrome/Playwright 1440×1000·390×844 PASS.
 - images2·tables8·legend5·pageerror0·외부요청0. screenshot: `../test/playwright-screenshots/controller-initial-transition-2026-09-06.png`.
-- `git diff --check`와 safety946 files PASS(최종 파일 추가 후 재검사). 상태: PASS.
+- `git diff --check`와 safety947 files PASS. staged-only 임시 트리 핵심68 PASS(10.195초, exit0). 상태: PASS.
 
 ## 6. Repair Loop
 
@@ -51,7 +51,10 @@
 
 - 직전 c4.0.e 및 환경 수리의 미커밋 변경은 소유권을 diff로 대조해 선택 staging한다.
 - unrelated dirty 파일 통째 staging 금지. 새 브랜치·force push·resources 공개 없음.
-- 상태: TODO. commit/remote 결과는 실제 성공 후 기록한다.
+- 구현 commit=`925f4ab`; `origin/feat/total-integration` push 성공(`b8e4e48..925f4ab`). 상태: COMPLETED.
+- 이전 c4.0.e+이번 c4.1과 환경 수리만 선택 반영했다. 공유 TODO는 semantic subtree 단위로 index를 대조했다.
+- 선택 staging 중 context 없는 patch가 TODO 하위 항목을 다른 부모 밑에 놓은 문제를 commit 전 발견·교정했다.
+  공개 문서·합성 코드만23파일; resources/개인설정/별도 visual/API 작업은 제외했다.
 
 ## 8. Closeout Report
 
@@ -62,9 +65,9 @@
 ## 9. Relay Shot
 
 - 스킬: 릴레이샷. 다음 후보=d2.x cross-state eligibility; 테스트·push 후 TODO를 다시 읽고 새 form을 시작한다.
-- 상태: TODO. 시작하지 않은 다음 작업을 진행 완료로 표기하지 않는다.
+- 결정: CONTINUE_WITH_NEXT_FORM. `2026-09-06-controller-next-decision-relay.md` Cycle19 계약 감사를 실제 시작했다.
 
 ## 10. Final Ledger
 
-- Doc/Implementation/Repair/Report=COMPLETED; Validation=PASS; Push/Relay=TODO.
+- Doc/Implementation/Repair/Report/Push=COMPLETED; Validation=PASS; Relay=CONTINUE_WITH_NEXT_FORM.
 - 전체 목표는 PARTIAL이며 최초 transition 성공을 검색 품질 향상으로 주장하지 않는다.
