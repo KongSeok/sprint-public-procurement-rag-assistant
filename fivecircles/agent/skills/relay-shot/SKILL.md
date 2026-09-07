@@ -5,6 +5,36 @@ description: 릴레이샷, relay-shot, relay shot, 원샷딜 마지막 릴레이
 
 # 릴레이샷
 
+## First step: resolve execution mode
+
+Invoking relay-shot defaults to `philosopher-coder`: Astra Design, Sol Ultra
+implementation, and fresh Astra Critic at the collaboration review gates.
+Before selecting a task or starting implementation, record the resolved mode
+in the active flow form. For philosopher-coder, read the collaboration entrypoint
+and relay-cycle reference below. Editing or explaining this skill does not itself start a relay.
+
+Use `solo` only when the user explicitly requests it for this run, for example
+"단독으로 릴레이샷" or "solo relay-shot". Record that request with the mode.
+An old form's implicit solo default is not an explicit user choice. Preserve an
+explicit solo choice within the same run until the user changes it.
+Carry the resolved mode into each next batch, one-shot form, and timed-relay
+handoff; a deadline does not reset the mode. Separate one-shot/one-go requests
+outside this relay keep their own selection rules.
+
+Resolve the local `agent/skills/collaboration/SKILL.md` under the verified
+fivecircles operating root (repository root for a standalone fivecircles repo,
+`fivecircles/` inside a host project); otherwise use the installed sibling skill.
+Its `references/relay-cycle.md` owns collaborative role routing, closeout order,
+and re-entry. The ordinary lifecycle below applies to explicitly selected solo.
+Higher-priority instructions, project authority, required validation, and user
+scope still win. If philosopher-coder is selected and its dependency, model or delegation capability is
+unavailable, report BLOCKED and request direction; do not silently fall back to
+solo or substitute a model. Mode selection does not expand execution permissions.
+
+The same main coordinator returns to DESIGN after closeout. Opening direction
+assessment produces a DIRECTIVE, not a candidate PASS. Fresh candidate approval
+is a later, separate gate. Do not recursively invoke another relay/root.
+
 This is the default time-unlimited relay skill for one-shot delivery.
 
 Use it at the end of the one-shot delivery flow after closeout report handling
@@ -29,22 +59,6 @@ Use this skill when the user says or implies:
 - 시간제한 없는 릴레이
 - 원샷딜 마지막 릴레이
 - 테스트/푸시 끝나고 남은 TODO 계속
-
-## Philosopher / Coder relay mode
-
-Apply this section only when the user or active flow form selected
-`philosopher-coder`; standalone/solo behavior is unchanged.
-Resolve `fivecircles/agent/skills/collaboration/SKILL.md` from the verified
-project root first, otherwise use the installed sibling collaboration skill.
-Read that entrypoint and its `references/relay-cycle.md` before this phase.
-That reference owns collaborative role routing, closeout order, and re-entry;
-the ordinary lifecycle below applies outside this mode. Higher-priority
-instructions, project authority, required validation, and user scope still win.
-If the dependency is unavailable, report the gap; do not silently run solo.
-
-The same main coordinator returns to DESIGN after closeout. Opening direction
-assessment produces a DIRECTIVE, not a candidate PASS. Fresh candidate approval
-is a later, separate gate. Do not recursively invoke another relay/root.
 
 ## Core Rule
 
@@ -152,6 +166,7 @@ should have a useful value or an explicit `SKIPPED_WITH_REASON`.
 
 ```md
 0. Scope Intake
+- 실행 모드: philosopher-coder (기본) / solo (명시적 사용자 요청 근거):
 - 협업 선택 시: philosopher-coder / run_id / batch_id / 실제 역할 agent/model/effort:
 - 요청 범위:
 - 브랜치:

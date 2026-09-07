@@ -5,6 +5,14 @@ description: 스케줄릴레이샷, schedule-relay-shot, schedule relay shot, ti
 
 # 스케줄릴레이샷
 
+When entered from relay-shot, preserve the mode already resolved in its flow form.
+If the user invokes relay-shot with a deadline, resolve relay-shot's default or
+explicit solo choice first even when dispatch reaches this skill directly.
+The deadline changes the stop condition, not Philosopher/Coder versus explicit solo.
+In collaboration mode, follow collaboration/references/relay-cycle.md for the
+single-main lifecycle; check this skill's deadline before any further dispatch.
+Direct timed-relay requests keep their existing mode-selection behavior.
+
 This is the time-limited relay skill for the end of a work cycle.
 
 The base one-shot relay is not time-limited and lives in `$one-shot-delivery-orchestrator`.
