@@ -3632,14 +3632,29 @@ _CONTROLLER_DECISION_POLICY_SHA256 = _canonical_sha256(
         "schema_version": SCHEMA_VERSION,
         "policy_id": HARNESS_EXECUTION_POLICY_ID,
         "closed_action_kinds": list(_CONTROLLER_ACTION_KINDS),
-        "policy_revision": "initial_and_first_dense_successor_v1",
-        "d2_slice": "revision_zero_and_one_fact_compare",
-        "order": "obligation_major_dense_lexical_then_abstain",
+        "policy_revision": "initial_dense_and_lexical_successor_v2",
+        "d2_slice": "revision_zero_one_two_first_obligation_fact_compare",
+        "decision_ordinals": {
+            "revision_zero": 1,
+            "revision_one": 2,
+            "revision_two": 3,
+        },
+        "order": (
+            "revision_zero_obligation_major_dense_lexical_then_abstain;"
+            "revision_one_same_obligation_lexical_then_abstain;"
+            "revision_two_same_obligation_fuse_then_abstain"
+        ),
         "selection": "first_allowed",
-        "cross_state": "exact_initial_dense_transition_only",
+        "cross_state": "exact_initial_dense_then_lexical_transition_chain_only",
         "next_decision_priority": [
-            "action_budget_exhausted", "contract_error",
-            "dense_provider_error_diagnostic", "same_obligation_lexical",
+            "revision_one:action_budget_exhausted",
+            "revision_one:contract_error",
+            "revision_one:dense_provider_error_diagnostic",
+            "revision_one:same_obligation_lexical",
+            "revision_two:action_budget_exhausted",
+            "revision_two:contract_error",
+            "revision_two:provider_error",
+            "revision_two:same_obligation_fuse",
         ],
     }
 )
@@ -3780,7 +3795,7 @@ def _controller_allowed_actions_sha256(
 
 
 class ControllerDecisionReceipt:
-    """Exact live decision for an initial state or its first dense successor."""
+    """Exact live decision through the first dense and lexical successors."""
 
     __slots__ = (
         "stage",
@@ -3948,22 +3963,39 @@ class ControllerDecisionReceipt:
             raise ValueError("controller_allowed_actions_hash_mismatch")
         if self.reason_code not in {
             "first_eligible_nonterminal", "dense_provider_error_diagnostic",
-            "contract_error", "action_budget_exhausted",
+            "provider_error", "contract_error", "action_budget_exhausted",
         }:
             raise ValueError("invalid_controller_decision_reason")
         if self.reason_code in {"contract_error", "action_budget_exhausted"}:
             if (
-                self.ledger_revision != 1 or len(self.allowed_actions) != 1
+                self.ledger_revision not in {1, 2}
+                or self.decision_ordinal != self.ledger_revision + 1
+                or len(self.allowed_actions) != 1
                 or self.selected_action.kind != "abstain"
             ):
                 raise ValueError("invalid_terminal_controller_decision_reason")
+        elif self.reason_code == "provider_error":
+            if (
+                self.ledger_revision != 2 or self.decision_ordinal != 3
+                or len(self.allowed_actions) != 1
+                or self.selected_action.kind != "abstain"
+            ):
+                raise ValueError("invalid_provider_error_controller_decision_reason")
         elif self.reason_code == "dense_provider_error_diagnostic":
             if (
-                self.ledger_revision != 1 or len(self.allowed_actions) != 2
+                self.ledger_revision != 1 or self.decision_ordinal != 2
+                or len(self.allowed_actions) != 2
                 or self.selected_action.kind != "retrieve_lexical"
                 or self.allowed_actions[1].kind != "abstain"
             ):
                 raise ValueError("invalid_diagnostic_controller_decision_reason")
+        elif self.ledger_revision == 2:
+            if (
+                self.decision_ordinal != 3 or len(self.allowed_actions) != 2
+                or self.selected_action.kind != "fuse"
+                or self.allowed_actions[1].kind != "abstain"
+            ):
+                raise ValueError("invalid_post_lexical_controller_decision_reason")
         elif self.selected_action.kind in _CONTROLLER_TERMINAL_KINDS:
             raise ValueError("invalid_nonterminal_controller_decision_reason")
         if self.decision_sha256 != _canonical_sha256(self._payload()):
@@ -4024,39 +4056,125 @@ def _d2_controller_action_plan(
 
     if execution.step_index == 0:
         return _d2_initial_action_specs(execution), "first_eligible_nonterminal"
-    if execution.step_index != 1:
+    if execution.step_index == 1:
+        effect, transition = _require_controller_initial_transition(
+            execution=execution, store=store, config=config, runtime=runtime,
+        )
+        ledger = execution.ledger
+        obligation_key = ledger.obligation_keys[0]
+        if (
+            execution.source_kind not in {"fact", "compare"}
+            or effect.action_kind != "retrieve_dense"
+            or effect.obligation_key != obligation_key
+            or effect.source_receipt_kind != "lane_search"
+            or effect.effect_sha256 != transition.effect_sha256
+            or transition.transition_sha256 != execution.last_transition_sha256
+            or ledger.revision != 1 or ledger.nonterminal_action_count != 1
+            or ledger.consumed_action_sha256s != (effect.action_sha256,)
+            or ledger.consumed_lane_keys != ((obligation_key, 1, "dense"),)
+            or ledger.round_indexes != (1,) + (0,) * (len(ledger.obligation_keys) - 1)
+            or ledger.unavailable_action_sha256s or any(ledger.no_progress_streaks)
+            or any(
+                entry.observation_stage != "unsearched"
+                for entry in execution.state.belief.evidence_map
+            )
+        ):
+            raise ValueError("controller_decision_initial_transition_required")
+        abstain = (("abstain", None, None),)
+        if ledger.nonterminal_action_count >= config.max_nonterminal_actions:
+            return abstain, "action_budget_exhausted"
+        if effect.outcome == "contract_error":
+            return abstain, "contract_error"
+        lexical = (("retrieve_lexical", obligation_key, None),) + abstain
+        if effect.outcome == "provider_error":
+            return lexical, "dense_provider_error_diagnostic"
+        if effect.outcome in {"applied", "empty"}:
+            return lexical, "first_eligible_nonterminal"
+        raise ValueError("controller_decision_initial_outcome_not_ready")
+    if execution.step_index != 2:
         raise ValueError("controller_decision_cross_state_not_ready")
-    effect, transition = _require_controller_initial_transition(
+
+    lexical_effect, lexical_transition = _require_controller_lexical_transition(
         execution=execution, store=store, config=config, runtime=runtime,
     )
+    execution_authority = _require_harness_execution_authority(execution)
+    predecessor = execution_authority[11]
+    dense_effect, dense_transition = _require_controller_initial_transition(
+        execution=predecessor, store=store, config=config, runtime=runtime,
+    )
+    predecessor_authority = _require_harness_execution_authority(predecessor)
     ledger = execution.ledger
     obligation_key = ledger.obligation_keys[0]
     if (
         execution.source_kind not in {"fact", "compare"}
-        or effect.action_kind != "retrieve_dense"
-        or effect.obligation_key != obligation_key
-        or effect.source_receipt_kind != "lane_search"
-        or effect.effect_sha256 != transition.effect_sha256
-        or transition.transition_sha256 != execution.last_transition_sha256
-        or ledger.revision != 1 or ledger.nonterminal_action_count != 1
-        or ledger.consumed_action_sha256s != (effect.action_sha256,)
-        or ledger.consumed_lane_keys != ((obligation_key, 1, "dense"),)
-        or ledger.round_indexes != (1,) + (0,) * (len(ledger.obligation_keys) - 1)
-        or ledger.unavailable_action_sha256s or any(ledger.no_progress_streaks)
-        or any(entry.observation_stage != "unsearched" for entry in execution.state.belief.evidence_map)
+        or predecessor.step_index != 1
+        or predecessor.execution_identity_sha256
+        != execution.execution_identity_sha256
+        or predecessor.initial_state is not execution.initial_state
+        or predecessor.state is not execution.state
+        or execution_authority[8] is not lexical_transition
+        or predecessor_authority[8] is not dense_transition
+        or execution_authority[12] is not predecessor_authority[12]
+        or predecessor_authority[11] is not predecessor_authority[12]
+        or dense_effect.action_kind != "retrieve_dense"
+        or lexical_effect.action_kind != "retrieve_lexical"
+        or dense_effect.obligation_key != obligation_key
+        or lexical_effect.obligation_key != obligation_key
+        or dense_effect.source_kind != execution.source_kind
+        or lexical_effect.source_kind != execution.source_kind
+        or dense_effect.source_receipt_kind != "lane_search"
+        or lexical_effect.source_receipt_kind != "lane_search"
+        or dense_effect.effect_sha256 != dense_transition.effect_sha256
+        or lexical_effect.effect_sha256 != lexical_transition.effect_sha256
+        or dense_transition.transition_sha256
+        != predecessor.last_transition_sha256
+        or lexical_transition.previous_transition_sha256
+        != dense_transition.transition_sha256
+        or lexical_transition.transition_sha256
+        != execution.last_transition_sha256
+        or dense_transition.after_ledger_sha256
+        != predecessor.ledger.ledger_sha256
+        or lexical_transition.before_ledger_sha256
+        != predecessor.ledger.ledger_sha256
+        or lexical_transition.after_ledger_sha256 != ledger.ledger_sha256
+        or ledger.revision != 2
+        or ledger.previous_ledger_sha256 != predecessor.ledger.ledger_sha256
+        or ledger.nonterminal_action_count != 2
+        or ledger.consumed_action_sha256s
+        != (dense_effect.action_sha256, lexical_effect.action_sha256)
+        or ledger.consumed_lane_keys
+        != (
+            (obligation_key, 1, "dense"),
+            (obligation_key, 1, "lexical"),
+        )
+        or ledger.round_indexes
+        != (1,) + (0,) * (len(ledger.obligation_keys) - 1)
+        or ledger.unavailable_action_sha256s
+        or any(ledger.no_progress_streaks)
+        or any(
+            entry.observation_stage != "unsearched"
+            for entry in execution.state.belief.evidence_map
+        )
     ):
-        raise ValueError("controller_decision_initial_transition_required")
+        raise ValueError("controller_decision_lexical_transition_required")
+    outcomes = (dense_effect.outcome, lexical_effect.outcome)
+    if any(
+        outcome not in {"applied", "empty", "provider_error", "contract_error"}
+        for outcome in outcomes
+    ):
+        raise ValueError("controller_decision_lexical_outcome_not_ready")
     abstain = (("abstain", None, None),)
     if ledger.nonterminal_action_count >= config.max_nonterminal_actions:
         return abstain, "action_budget_exhausted"
-    if effect.outcome == "contract_error":
+    if "contract_error" in outcomes:
         return abstain, "contract_error"
-    lexical = (("retrieve_lexical", obligation_key, None),) + abstain
-    if effect.outcome == "provider_error":
-        return lexical, "dense_provider_error_diagnostic"
-    if effect.outcome in {"applied", "empty"}:
-        return lexical, "first_eligible_nonterminal"
-    raise ValueError("controller_decision_initial_outcome_not_ready")
+    if "provider_error" in outcomes:
+        return abstain, "provider_error"
+    if all(outcome in {"applied", "empty"} for outcome in outcomes):
+        return (("fuse", obligation_key, None),) + abstain, (
+            "first_eligible_nonterminal"
+        )
+    raise ValueError("controller_decision_lexical_outcome_not_ready")
 
 
 def _build_controller_decision_authority_accessors(

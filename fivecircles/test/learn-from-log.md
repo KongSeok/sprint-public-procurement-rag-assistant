@@ -459,3 +459,10 @@ Reference:
 - authority seal이 closure를 바꾸는 경우 모든 seal 적용 뒤 dependency fingerprint를 고정한다. 검증 자체를 약화하지 않는다.
 - 재개 초안 RED와 격리한 기존 HEAD PASS를 분리하고, 후보 고정 뒤 격리/전체 증거와 fresh review를 결속한다.
 - refs: errorlogs/backend/2026-09-07-controller-lexical-resume-import.md.
+
+### 협업 계약의 설치 bytes와 검수 결속 (2026-09-07)
+
+- UTF-8/LF/EOF를 먼저 고정하고 설치된 bytes로 contract_id를 확인한 뒤 Coder에게 보낸다. 개행만 달라도 기존 ID를 재사용하지 않는다.
+- 내용 동일성이 확인된 경우에도 Design의 완전한 갱신 DIRECTIVE를 남긴다. hash guard를 생략하지 않는다.
+- 의도된 새 행동 TDD RED와 기존 기능 회귀를 구분하고 최종 후보·원시 테스트·fresh REVIEW를 결속한다.
+- refs: errorlogs/backend/2026-09-07-collaboration-contract-eof.md, 2026-09-07-controller-post-lexical-red.md.

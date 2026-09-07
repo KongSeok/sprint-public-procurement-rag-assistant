@@ -1,0 +1,130 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.d2.x.b.1",
+  "message_id": "post-lexical-directive-2",
+  "in_reply_to": "post-lexical-directive-1",
+  "sender": "PHILOSOPHER",
+  "kind": "DIRECTIVE",
+  "body": {
+    "mode": "DESIGN",
+    "contract_id": "sha256:a94c4e18105b63e71d93164ef7976c82bf0a2809adb2b06877e8691f67baa4ed",
+    "objective": "Extend existing decision issuance/validation to exact revision2 fact/compare first-obligation history, selecting ordinal3 fuse or sanitized abstain without execution.",
+    "authority_assessment": {
+      "status": "WITHIN_EXISTING_AUTHORITY",
+      "needs_new_authority": false,
+      "reason": "Approved continuing relay and existing d2.x.b TODO authorize source-derived post-lexical eligibility. This bounds that work to decision-only on the already supported first obligation. Main must install the proposed contract verbatim and add b.1 under existing TODO before Coder dispatch."
+    },
+    "contract_proposal": {
+      "target": "fivecircles/architecture/specs/controller-next-decision.md",
+      "draft": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/fivecircles/architecture/specs/controller-next-decision.md",
+      "sha256": "a94c4e18105b63e71d93164ef7976c82bf0a2809adb2b06877e8691f67baa4ed",
+      "rationale": "Append a separately labelled revision2 section to the existing next-decision contract; retain all historical revision0/1 text. No new specification tree or parallel authority."
+    },
+    "direction_assessment": {
+      "target": "Close the next upstream controller edge: authenticated lexical revision2 -> source-derived ordinal3 fusion/error eligibility -> later bounded fusion execution. Same-golden challenger selection remains a separate future measurement.",
+      "current": "c4.2.a is integrated at 57df8e428ac4df5b6096451874f39b68fa28f49a with exact revision2 readback retaining predecessor/root and both source chains. _d2_controller_action_plan still rejects step_index 2. Existing DTO reasons restrict terminal shapes to revision1; the lexical test still expects ordinal3 rejection.",
+      "gap": "Add one revision2 action-plan branch and its reason/shape/policy bindings to the existing issuer/validator. No new execution owner or general state machine is required.",
+      "selection_reason": "d2.x.b is the current NEXT candidate; b.1 supplies a testable permit prerequisite for fusion without entering deferred sibling lifetime, reducer or terminal work.",
+      "score": {
+        "upstream_weight": 3,
+        "connection_value": 2,
+        "safety_value": 2,
+        "validation_value": 1,
+        "risk_penalty": -1,
+        "connection_score": 7
+      },
+      "alternatives": "First-obligation fusion execution waits on b.1; later compare obligations wait on full sibling lifetime; evaluation waits on separate frozen/human-reviewed inputs.",
+      "prior_review": "fivecircles/work/collaboration/eh-relay-20260907/messages/EH2.6.c4.2.a/003-lexical-review-1.json",
+      "review_reuse": "Apply prior PASS as bounded baseline evidence, not approval of this new candidate. Do not repeat the prior product review."
+    },
+    "selected_task_ref": {
+      "path": "fivecircles/architecture/todolist.md",
+      "parent_task": "EH2.6.d2.x.b",
+      "task_id": "EH2.6.d2.x.b.1",
+      "status": "Proposed bounded child for main to record before dispatch",
+      "label": "revision2 first-obligation source outcomes -> ordinal3 fuse/abstain decision"
+    },
+    "scope": {
+      "repository": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
+      "branch": "feat/total-integration",
+      "allowed_files": [
+        "src/midprojectrag/orchestration/execution_contracts.py",
+        "tests/test_controller_post_lexical_decision.py",
+        "tests/test_controller_lexical_transition.py"
+      ],
+      "ownership": "Selected existing code/test paths are clean at design inspection; new test path belongs to this batch. Recheck before writes. Main owns specification/TODO/module-contract alignment, state, records, reports and integration. Preserve unrelated dirty visual/metadata/application/config changes.",
+      "prohibited_actions": [
+        "No repository edits outside allowed_files, including module-contract, without updated DIRECTIVE.",
+        "No fusion execution, new source resolver branch for fusion dispatch, claim/completion expansion, revision3 transition, semantic reducer, terminal result or public start/step/run.",
+        "No later compare obligations, sibling tuple issuance/retention framework, follow-up, context/rerank/verify eligibility or deadline checks.",
+        "No baseline/corpus/gold/evaluation/config/runtime dependency changes; no real model/API/provider/Langfuse/VLM/clock/private-data activity.",
+        "No weakening authority validation or replacing existing machinery with a parallel framework.",
+        "No stage/commit/push/reset/stash/delete, state/log edits or nested delegation by Coder."
+      ]
+    },
+    "acceptance_criteria": [
+      "Existing public signature and revision0/1 behavior remain; revision2 exact first-obligation fact/compare is supported; later snapshots and follow-up remain unsupported.",
+      "Validate full live execution plus lexical transition2 and dense transition1 from the exact retained immediate predecessor before deriving eligibility. Both source-derived outcomes remain authoritative; count/hash/serialized fields alone cannot grant eligibility.",
+      "Priority after validation: count >= max_actions -> abstain/action_budget_exhausted; either exact outcome contract_error -> abstain/contract_error; either provider_error -> abstain/provider_error; both individually applied|empty -> fuse(first obligation), abstain / first_eligible_nonterminal. Reject unsupported or invalid history.",
+      "Both-empty and lexical-only rescue pairs may select fuse but gain no semantic readiness. Dense provider_error plus lexical success stays provider_error abstain. Dense provider_error plus lexical contract_error uses contract_error without erasing dense lineage. Budget2 blocks fuse; budget3 permits it.",
+      "New provider_error reason is fixed, sanitized, revision2/ordinal3 abstain-only. Existing diagnostic reason remains revision1 lexical-selected. Revision2 normal closed action shape is exactly first-obligation fuse then untargeted abstain; no consumed lane or sibling action is exposed.",
+      "Ordinal3 binds transition2, exact snapshot/state/ledger and stable execution root. State/ledger/count/transitions/source receipts and earlier decisions remain unchanged and valid. Issuance/validation cause zero additional synthetic lane/fusion/provider/clock calls and no claim consumption.",
+      "Repeated/barrier-concurrent same snapshot issuance returns same decision object; GC prevents remint while snapshot remains live; clone/mixed inputs and source/effect/ledger/transition/reason/action tuple drift fail closed.",
+      "Policy payload explicitly records revision0/1/2 coverage and priority. Fresh-process action/decision hashes may change; config/baseline hashes and historical evidence do not. Reuse existing action-plan, decision authority and readback, with pinned dependencies.",
+      "Update only the obsolete third-decision rejection in the lexical diagnostic test to assert ordinal3 provider_error abstain and preserved dense error/no dispatch; preserve the rest of its regression coverage.",
+      "Focused, adjacent and full synthetic regressions pass on the frozen candidate; meaningful skipped/blocked/failed tests are reported, never silently waived. Fresh candidate review is required before integration."
+    ],
+    "required_tests": [
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest tests.test_controller_post_lexical_decision",
+        "purpose": "New fact/compare matrix, priority budget2/3, round1, both-empty/diagnostic, ordinal/lineage/immutability, no dispatch, concurrency/GC, clone/mixed/drift and safe projection."
+      },
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest tests.test_controller_next_decision tests.test_controller_lexical_transition tests.test_controller_initial_transition tests.test_controller_decision_receipt tests.test_controller_step_history tests.test_controller_source_outcome_resolver tests.test_execution_contracts",
+        "purpose": "Adjacent decision/transition/history authority regression; include existing source/structural suites if impacted."
+      },
+      {
+        "command": "PATH=\"$PWD/.venv/bin:$PATH\" PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest discover -s tests -t . -p 'test*.py'",
+        "purpose": "Shared module full regression at final candidate boundary; main may run this after Coder focused handoff. Record actual count/exit/skips; do not require old total1534."
+      },
+      {
+        "command": "git diff --check -- src/midprojectrag/orchestration/execution_contracts.py tests/test_controller_lexical_transition.py",
+        "purpose": "Owned tracked diff check; include new test file contents in candidate and review packet."
+      }
+    ],
+    "constraints": [
+      "Install and hash-check full proposed existing contract before dispatch; document its revision2 appendix as current scope and preserve historical d2.x.a text. This is Design authorization, not a candidate PASS.",
+      "Use confirmed project .venv Python3.12 with explicit root and synthetic test fixtures. New behavior may first yield expected RED on baseline; distinguish this from unexpected regressions.",
+      "Read current one-go/batch-sequential-runner/test-runner and relevant learn-from-log instructions; main fulfills file logging and report duties.",
+      "Prior review applies only to its three candidate files and module-contract hash d111840d3a33d1b04371a36cfd84fd0a163c0e141683d2be79c099244f1e70e1. Main revalidates integration targets and excludes unrelated dirt.",
+      "Preserve recorded prior HEAD advance 34f80c5428ba41982933394df0bb12c5ac06bd94 -> 892c9f0842f3183c544970d703de93d4b282b24a as four collaboration/relay skill documents only; prior product/contract hashes were unchanged during review. New batch base is 57df8e428ac4df5b6096451874f39b68fa28f49a.",
+      "Carry every prior next-batch boundary: both exact lane outcomes, dense diagnostic error preservation, no count/serialization authority, deferred full compare sibling lifetime, synthetic/offline only, immutable baseline/corpus/evaluation/runtime, no quality superiority claim.",
+      "Do not expose retrieval sibling actions or reissue canonical compare tuple. The retained first obligation suffices; sibling lifetime is not a blocker for b.1.",
+      "Existing authority readback already recursively validates predecessor. Access that exact predecessor through established execution authority; do not accept one from callers or search serialized hashes for it.",
+      "Use updated collaboration risk triggers: mandatory boundary review always applies; 3-5 intermediate risk -> fresh quick, >=6 -> deep, security/evaluation/data/private-transfer or multi-layer contracts -> deep regardless. 3 leaves/30min prompts reassessment only. Final new candidate requires fresh review; no duplicate prior-candidate review.",
+      "Main owns required flow/report, module-contract alignment, safety, isolated/staged-candidate gate, closeout/logall and authorized commit/push. Contract or behavior-affecting documentation is included in fresh candidate review.",
+      "Return complete IMPLEMENTATION_REPORT bound to post-lexical-directive-2, contract_id and actual candidate/test hashes. Freeze candidate at REVIEW_READY; report unresolved questions. If new files/authority/requirements are needed, ask with evidence before dependent changes.",
+      "Parent d2.x.b/d2.x/controller remain PARTIAL; after validated integration reconsider first-obligation fuse execution as a separate next Design."
+    ],
+    "source_refs": [
+      "fivecircles/agent/authority.md",
+      "fivecircles/requirements/current.md §1.1 and §8",
+      "fivecircles/requirements/decisions.md D-024",
+      "fivecircles/architecture/specs/bidfit-evidence-harness-v1-rc0.md §16.10",
+      "fivecircles/architecture/specs/controller-next-decision.md",
+      "fivecircles/architecture/specs/controller-lexical-transition.md",
+      "fivecircles/architecture/todolist.md EH2.6.d2.x.b",
+      "fivecircles/architecture/specs/evidence-harness-progress-flow-validation.md",
+      "fivecircles/work/collaboration/eh-relay-20260907/messages/EH2.6.c4.2.a/003-lexical-review-1.json",
+      "fivecircles/agent/skills/collaboration/SKILL.md",
+      "fivecircles/agent/skills/collaboration/references/messages.md",
+      "fivecircles/agent/skills/collaboration/references/relay-cycle.md",
+      "src/midprojectrag/orchestration/execution_contracts.py:4016",
+      "src/midprojectrag/orchestration/execution_contracts.py:19584",
+      "tests/test_controller_next_decision.py",
+      "tests/test_controller_lexical_transition.py"
+    ],
+    "resolution": null
+  }
+}

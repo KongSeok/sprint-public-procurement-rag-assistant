@@ -1047,3 +1047,13 @@ This file summarizes recent updates so other agents can continue without re‑di
 ### Relay
 - run=eh-relay-20260907 / batch=EH2.6.c4.2.a. 통합 전 로그올; 실제 SHA는 사후 영수증에 기록.
 - 다음=d2.x.b 후속 자격. 앱 모델/API/골든셋 실행0; 전체 Controller/E2E는 미완성.
+
+## Addendum (2026-09-07) - EH2.6.d2.x.b.1 후속 선택
+### Backend
+- revision2의 exact dense/lexical 결과에서 ordinal3 fuse/기권 선택. budget·계약·provider 오류 우선; 추가 실행 없음.
+### Tests
+- 집중11·관련105·격리132·전체1545 PASS, 실패/오류/skip0. fresh Astra deep REVIEW PASS.
+- 기대 TDD RED 해결, 설치 EOF hash 불일치는 dispatch 전 완전한 directive2로 해결.
+### Relay
+- run=eh-relay-20260907. 로그올 후 선택 통합; 실제 SHA는 사후 receipt. 다음=첫 obligation fuse 실행 Design.
+- 부모 Controller/E2E는 PARTIAL. 이 배치는 실모델/API/골든셋 품질 실행0; 별도 평가 작업과 분리.

@@ -129,3 +129,11 @@ Per batch:
 - Verified: lexical12·집중36·관련98·격리134·전체1534 PASS, fresh Astra APPROVE.
 - Boundary: state/semantic fingerprint는 그대로이며 fusion/terminal/public Controller는 후속이다. 실모델/API 실행0.
 - Next: 검수 제약을 적용한 d2.x.b. 증거와 통합 영수증은 work/collaboration/eh-relay-20260907/ 참조.
+
+## 2026-09-07 — EH2.6.d2.x.b.1 ordinal3 선택
+
+- Intent: 두 실제 source outcome을 결속해 첫 obligation 후속 fuse 자격을 열되 실행은 분리한다.
+- Change: revision2 선택 분기·closed provider_error reason·정책 hash, 이전 decision/전이 수명 보존.
+- Verified: focused11/adjacent105/isolated132/full1545 PASS, fresh Astra APPROVE.
+- Boundary: no new provider dispatch, no semantic/terminal promotion. 다음 fuse 실행은 새 계약/검증 필요.
+- Evidence: work/collaboration/eh-relay-20260907/messages/EH2.6.d2.x.b.1/.

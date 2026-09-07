@@ -3,7 +3,7 @@ flowchart TB
   B0["CONTROL: KURE page-v1 + local Qwen<br/>9,331 chunks · Mac-equivalent provisional<br/>재현·rollback 기준선 보존"]
   RESEARCH["GPT retrieval · EvoHarness · HB/DH 연구<br/>더 나은 구조라는 가설 · 아직 우승 아님"]
 
-  subgraph BUILD["CHALLENGER · feat/total-integration · EH2.6.c4.2.a"]
+  subgraph BUILD["CHALLENGER · feat/total-integration · EH2.6.d2.x.b.1"]
     SEARCH["검색 골격 / E0<br/>EvidenceStore parent·child · KURE dense · Kiwi BM25<br/>owner obligation → exact-once lane → same-round RRF"]
     RECEIPTS["근거별 검증 도구<br/>parent·table/figure context · ID-less rerank<br/>semantic/absence receipt · bounded follow-up projection"]
     PERMIT["실행 허가와 원본 연결<br/>immutable config/runtime · initial execution/decision<br/>exact source-owner → claim → sourced receipt"]
@@ -12,15 +12,16 @@ flowchart TB
     STATE["의미 상태는 그대로<br/>검색만으로 verified 승격 없음<br/>action·dense lane 1회 소비 / 추가 모델 호출 0"]
     NEXT["두 번째 행동 선택 / d2.x.a<br/>정상·empty → 같은 항목 lexical<br/>provider 오류 → 진단 lexical / 계약 오류·예산 소진 → abstain<br/>ordinal2 · 정확한 이전 transition 연결 · 아직 실제 호출 아님"]
     LEXICAL["두 번째 실제 실행 / c4.2.a<br/>같은 obligation → lexical 1회 → source-derived effect<br/>ledger2 · transition2 · root/직전 상태와 두 원본 근거 보존<br/>의미 상태 유지 · 오류 진단을 정답으로 승격하지 않음"]
-    SEARCH --> RECEIPTS --> PERMIT --> BRIDGE --> FIRST --> STATE --> NEXT --> LEXICAL
+    POST["세 번째 행동 선택 / d2.x.b.1<br/>exact dense·lexical 결과 → budget·contract·provider 오류면 기권<br/>정상·empty pair → 첫 obligation fuse 선택<br/>ordinal3 · 실제 fusion/의미 승격은 아직 아님"]
+    SEARCH --> RECEIPTS --> PERMIT --> BRIDGE --> FIRST --> STATE --> NEXT --> LEXICAL --> POST
   end
 
-  GAP["아직 미완성<br/>revision2 이후 fusion/context 자격·reducer<br/>bounded controller → specialist → generation → 실제 E2E"]
+  GAP["아직 미완성<br/>선택된 fuse 실제 실행·후속 context 자격·reducer<br/>bounded controller → specialist → generation → 실제 E2E"]
   SELECT["같은 golden으로 component / assembled A/B<br/>품질·효율·안전성 gate · 아직 미실행/미선정"]
   LOCAL["승인된 우승 구성만 local branch에 전달<br/>generator는 local/API 교체형"]
   INPUT --> B0
   RESEARCH --> SEARCH
-  LEXICAL --> GAP --> SELECT
+  POST --> GAP --> SELECT
   B0 --> SELECT
   SELECT -. "실측·사람 리뷰 후" .-> LOCAL
 
@@ -30,7 +31,7 @@ flowchart TB
   classDef red fill:#fde9e6,stroke:#d98e84,color:#1f2933,stroke-width:1.5px
   classDef gray fill:#eef1ed,stroke:#aab5ad,color:#1f2933,stroke-width:1.5px
   class B0 green
-  class SEARCH,RECEIPTS,PERMIT,BRIDGE,FIRST,STATE,NEXT,LEXICAL blue
+  class SEARCH,RECEIPTS,PERMIT,BRIDGE,FIRST,STATE,NEXT,LEXICAL,POST blue
   class INPUT gray
   class RESEARCH,SELECT,LOCAL amber
   class GAP red

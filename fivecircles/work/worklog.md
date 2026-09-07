@@ -159,3 +159,9 @@
   - Evidence: 집중36·관련98·격리134·전체1534 PASS, fresh REVIEW PASS.
   - Boundary: 앱 API/model/Langfuse0, baseline/corpus/gold/resources 불변. 스킬-only 동시 커밋은 분리 확인.
   - Closeout: 2026-09-06-controller-lexical-transition-relay.md. 선택 통합 후 d2.x.b Design.
+
+- [2026-09-07 13:26] Stage=Implementation/Test/Review (Cycle21 / EH2.6.d2.x.b.1)
+  - Method: Astra Design → Sol Ultra → fresh Astra deep JSON REVIEW.
+  - Result: ordinal3 fuse/기권 선택. 집중11·관련105·격리132·전체1545 PASS, 후보0bf15494·증거0b905e12 결속.
+  - Boundary: fusion 실제 실행·semantic 승격·전체 E2E는 후속. baseline/corpus/gold/resources/runtime 불변.
+  - Closeout: 2026-09-07-controller-post-lexical-decision-relay.md. 선택 통합 후 첫 fuse Design; 별도 retrieval 비교와 파일/자원 경계 조정.

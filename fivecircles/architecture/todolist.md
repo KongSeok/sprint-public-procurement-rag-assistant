@@ -349,7 +349,8 @@ runtime은 local profile 기본·LLM provider 교체형으로 유지하며 새 �
         authority로 consumed action/lane, fuse/context/capability eligibility와 cross-state chain을 완성한다.
         - [x] **EH2.6.d2.x.a** 최초 dense successor의 lexical/diagnostic/contract-error·budget 기권 decision, ordinal2·chain·정책 hash revision. 신규11·인접79·전체1522 PASS/독립 APPROVE.
           계약: `specs/controller-next-decision.md`; Cycle19=`../work/2026-09-06-controller-next-decision-relay.md`.
-        - [ ] **EH2.6.d2.x.b** `[NEXT_DESIGN / C4.2.a_PASS]` revision2의 두 source-derived outcome에서 후속 자격을 확장한다. 선택 통합 뒤 bounded 설계; dense 오류 보존, 다른 compare obligation 전 sibling 수명 확인.
+        - [ ] **EH2.6.d2.x.b** `[PARTIAL / B.1_PASS]` revision2 첫 obligation의 ordinal3 fuse/기권 선택 완료. 실제 fuse와 후속 자격은 다음 수직 배치; dense 오류 보존, 다른 compare obligation 전 sibling 수명 확인.
+          - [x] **EH2.6.d2.x.b.1** `[COMPLETED 2026-09-07]` revision2 두 source→ordinal3 fuse/기권 선택. budget→contract→provider→정상; 집중11·관련105·격리132·전체1545 PASS, fresh Astra PASS. 실제 fuse 실행 제외.
       - [ ] **EH2.6.d2.d** d2.i+d2.x를 합친 full decision matrix와 c4 permit 연동을 회귀·리뷰한다.
     - [ ] **EH2.6.d3** start/step/run과 terminal `HarnessRunResult`를 구현한다.
     - [ ] **EH2.6.d4** action/round/deadline/post-deadline/no-progress/capability 종료를 호출 수까지 검증한다.

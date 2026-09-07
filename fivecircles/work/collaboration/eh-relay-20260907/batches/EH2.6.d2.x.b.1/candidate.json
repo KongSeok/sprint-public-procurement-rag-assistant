@@ -1,0 +1,51 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.d2.x.b.1",
+  "directive_id": "post-lexical-directive-2",
+  "contract_id": "sha256:a94c4e18105b63e71d93164ef7976c82bf0a2809adb2b06877e8691f67baa4ed",
+  "repository": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
+  "branch": "feat/total-integration",
+  "base_head": "57df8e428ac4df5b6096451874f39b68fa28f49a",
+  "candidate_id": "sha256:0bf15494c562e632a378b6eeffe7e905a3d86bb5db7b246299f8060bb27364f5",
+  "candidate_id_derivation": "SHA-256 of exact post-lexical-owned-files.sha256 bytes",
+  "files": [
+    {
+      "path": "src/midprojectrag/orchestration/execution_contracts.py",
+      "sha256": "cc104cdc36492c27fd7af1d9cc6e453b9edf005f6f9bf8588ca5353a2335407a"
+    },
+    {
+      "path": "tests/test_controller_post_lexical_decision.py",
+      "sha256": "0bb28a7aefdffee61f1f572a7f2a10ac4d75acf09d967388c5a530620284b10c"
+    },
+    {
+      "path": "tests/test_controller_lexical_transition.py",
+      "sha256": "51a287e5764a86e52e83451630b5c05a98674c37e350c47b2fc48911e963370c"
+    }
+  ],
+  "additional_review_files": [
+    {
+      "path": "src/midprojectrag/orchestration/module-contract.md",
+      "sha256": "4f2b6487a78d317463fdf68f67b94dc17f59b2c989f843bb3e5e693e421de059"
+    },
+    {
+      "path": "fivecircles/architecture/specs/controller-next-decision.md",
+      "sha256": "a94c4e18105b63e71d93164ef7976c82bf0a2809adb2b06877e8691f67baa4ed"
+    }
+  ],
+  "artifacts": {
+    "hash_manifest": "/private/tmp/eh-relay-20260907.GNy8vE/post-lexical-owned-files.sha256",
+    "snapshot_tar": {
+      "path": "/private/tmp/eh-relay-20260907.GNy8vE/post-lexical-owned.tar",
+      "sha256": "9e9ff8af05e7ccd3a618495d29632407e8aaca94ea54ff26ef44ab633fe06826"
+    },
+    "tracked_diff": {
+      "path": "/private/tmp/eh-relay-20260907.GNy8vE/post-lexical-tracked.diff",
+      "sha256": "38ea3db76068547ff2b9ede70d00bcbf9e0c91e30668be0e1a356c20e5ee0e45"
+    },
+    "untracked_diff": {
+      "path": "/private/tmp/eh-relay-20260907.GNy8vE/post-lexical-new-test.diff",
+      "sha256": "fb77b38259cdfd974f0b62749809a73c20cd79a9198c0fdd62c4caf75a56bc34"
+    }
+  }
+}

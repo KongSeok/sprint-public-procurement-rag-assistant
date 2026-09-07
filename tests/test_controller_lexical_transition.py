@@ -149,8 +149,18 @@ class ControllerLexicalTransitionTests(unittest.TestCase):
         self.assertEqual(dense.outcome, "provider_error")
         self.assertEqual(lexical.outcome, "applied")
         self.assertIs(after.state, case["first"].state)
-        with self.assertRaises(ValueError):
-            decide_controller_action(execution=after, **case["env"])
+        decision = decide_controller_action(execution=after, **case["env"])
+        self.assertEqual((decision.decision_ordinal, decision.ledger_revision), (3, 2))
+        self.assertEqual(decision.reason_code, "provider_error")
+        self.assertEqual(
+            tuple(action.kind for action in decision.allowed_actions),
+            ("abstain",),
+        )
+        self.assertIsNone(decision.selected_action.obligation_key)
+        validate_controller_decision_receipt(
+            receipt=decision, execution=after, **case["env"],
+        )
+        self.assertEqual(dense.outcome, "provider_error")
         self.assertEqual(_calls(case["lexical_log"]), ("lexical",))
 
     def test_contract_error_and_exhausted_budget_do_not_dispatch_lexical(self):

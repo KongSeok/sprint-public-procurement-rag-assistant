@@ -1,0 +1,45 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.c4.2.a",
+  "status": "CLOSED",
+  "commit_sha": "57df8e428ac4df5b6096451874f39b68fa28f49a",
+  "parent_sha": "892c9f0842f3183c544970d703de93d4b282b24a",
+  "branch": "feat/total-integration",
+  "remote": "origin",
+  "remote_url": "https://github.com/KongSeok/sprint-public-procurement-rag-assistant.git",
+  "push": {
+    "command": "git push origin HEAD:refs/heads/feat/total-integration",
+    "exit_code": 0,
+    "remote_verified_sha": "57df8e428ac4df5b6096451874f39b68fa28f49a",
+    "verified_at": "2026-09-07T03:34:33Z"
+  },
+  "review_message_id": "lexical-review-1",
+  "candidate_id": "sha256:2289691dfd6915cd5247479b5b0cabceeb2cb1da5f567bf137ba159fed9f989a",
+  "contract_id": "sha256:7633a1455a025b31982efc7a63cc8557e1da8b39f6513ae0dfa823fc60da209e",
+  "test_evidence_id": "sha256:218ac4d539917b103c4485bb913445d168c1867489adf7eb8a14ec906e0481ce",
+  "committed_file_count": 24,
+  "closeout_ref": "../../2026-09-06-controller-lexical-transition-relay.md",
+  "validation": {
+    "focused": 36,
+    "adjacent": 98,
+    "isolated_candidate": 134,
+    "full": 1534,
+    "full_failures": 0,
+    "full_errors": 0,
+    "full_skipped": 0,
+    "full_exit_code": 0,
+    "safety_scanned": 988,
+    "report_browser": "PASS desktop/mobile; images2, tables8, page_errors0, external_requests0"
+  },
+  "worktree": {
+    "status": "existing unrelated dirty changes preserved",
+    "status_entry_count": 216,
+    "index_empty": true,
+    "resources_tracked": false
+  },
+  "continuation": "CONTINUE_WITH_NEXT_FORM",
+  "next_batch_id": "EH2.6.d2.x.b.1",
+  "next_design_agent": "/root/lexical_design",
+  "note": "Post-integration local receipt. Not included in its own commit; may be included with the next scoped batch."
+}

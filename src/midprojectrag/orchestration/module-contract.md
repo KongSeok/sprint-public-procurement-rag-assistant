@@ -341,6 +341,18 @@ No historical receipt or baseline/index/golden artifact is rewritten. This slice
 call, has no deadline verdict, and does not mint a terminal result. Revision two, later obligations, fusion/context,
 follow-up, and the full cross-state matrix remain outside the slice. See `controller-next-decision.md`.
 
+D2.x.b.1 adds ordinal-three decisions for the exact revision-two first-obligation fact/compare execution.
+It reuses the live execution authority, lexical transition reader and retained immediate predecessor's dense
+reader. After validating both source-derived chains, priority is exhausted action budget, either contract error,
+either provider error, then first-obligation fuse followed by untargeted abstain. Applied/empty pairs, including
+both-empty, may select fuse without semantic promotion. A dense provider error remains an abstention even
+after successful diagnostic lexical execution. The new sanitized provider_error reason is revision-two,
+ordinal-three, abstain-only; the earlier diagnostic reason stays revision-one lexical-selected. Issuance and
+readback preserve all existing decisions, state, ledgers and source chains and make no lane/fusion/provider/clock
+calls or claim consumption. Public signatures stay unchanged; the policy hash explicitly versions supported
+snapshots. Fusion execution, revision-three transition, later obligations, context/reducer and terminal issuance
+remain separate slices. See the labelled d2.x.b.1 section of controller-next-decision.md.
+
 C4.0 is implemented as five ordered leaves: source-owner authority, typed source/outcome resolution, one-step
 claim/history, per-target context issuance with a canonical batch accumulator, and a closure-private structural
 effect bridge plus adversarial gate. The source-owner leaf captures the exact `BoundFact|BoundCompare|BoundFollowup`

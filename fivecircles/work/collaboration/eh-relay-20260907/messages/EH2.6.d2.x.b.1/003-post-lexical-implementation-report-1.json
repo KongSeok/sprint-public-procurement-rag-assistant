@@ -1,0 +1,137 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.d2.x.b.1",
+  "message_id": "post-lexical-implementation-report-1",
+  "in_reply_to": "post-lexical-directive-2",
+  "sender": "CODER",
+  "kind": "IMPLEMENTATION_REPORT",
+  "body": {
+    "status": "REVIEW_READY",
+    "directive_id": "post-lexical-directive-2",
+    "contract_id": "sha256:a94c4e18105b63e71d93164ef7976c82bf0a2809adb2b06877e8691f67baa4ed",
+    "candidate_id": "sha256:0bf15494c562e632a378b6eeffe7e905a3d86bb5db7b246299f8060bb27364f5",
+    "test_evidence_id": "sha256:0b905e12be93d4fea487a2ae2d5cefddd958e67f846f5225d81092d438bacaf1",
+    "changed_files": [
+      "src/midprojectrag/orchestration/execution_contracts.py",
+      "tests/test_controller_post_lexical_decision.py",
+      "tests/test_controller_lexical_transition.py"
+    ],
+    "implementation_summary": [
+      "Extended the existing decision policy payload from exact revisions 0/1 through exact revision 2 while preserving the public decide/validate signatures and existing revision-0/1 branches.",
+      "Added one revision-2 action-plan branch that authenticates the live lexical transition, reads its exact retained revision-1 predecessor through existing execution authority, authenticates the predecessor dense transition, and requires the exact first-obligation root, state, ledger, transition, action and source-effect chain before eligibility.",
+      "Applied the closed post-lexical priority only after full validation: budget exhaustion, either-lane contract error, either-lane provider error, then first-obligation fuse plus untargeted abstain for applied/empty pairs.",
+      "Closed ControllerDecisionReceipt reason shapes so provider_error is sanitized revision-2/ordinal-3 abstain-only, existing dense_provider_error_diagnostic remains revision-1 lexical-selected, and revision-2 normal decisions are exactly fuse then abstain.",
+      "Added synthetic fact/compare coverage for all applied/empty pairs, both-empty and lexical rescue, provider/contract priority, budgets 2/3, round 1, exact lineage, prior-decision validity, zero additional dispatch, repeated/concurrent identity, GC remint rejection, clone/mixed and source/effect/ledger/transition/reason/action drift."
+    ],
+    "tests": [
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest tests.test_controller_post_lexical_decision",
+        "workdir": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
+        "exit_code": 0,
+        "candidate_id": "sha256:0bf15494c562e632a378b6eeffe7e905a3d86bb5db7b246299f8060bb27364f5",
+        "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/post-lexical-focused-final.log",
+        "artifact_sha256": "0e49ee67659d54e984c460cbced98ec4c8bd305a909cea98fc32b1a33534c58e",
+        "result": "11 tests passed in 105.314s; failures=0, errors=0, skips=0."
+      },
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest tests.test_controller_next_decision tests.test_controller_lexical_transition tests.test_controller_initial_transition tests.test_controller_decision_receipt tests.test_controller_step_history tests.test_controller_source_outcome_resolver tests.test_execution_contracts",
+        "workdir": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
+        "exit_code": 0,
+        "candidate_id": "sha256:0bf15494c562e632a378b6eeffe7e905a3d86bb5db7b246299f8060bb27364f5",
+        "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/post-lexical-adjacent.log",
+        "artifact_sha256": "d62332a23e8af9571dd83f459be76af606993a554237ddd389ce3377bbcf392f",
+        "result": "105 tests passed in 83.978s; failures=0, errors=0, skips=0."
+      },
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src /Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/bin/python3 -m unittest tests.test_controller_post_lexical_decision tests.test_controller_next_decision tests.test_controller_lexical_transition tests.test_controller_initial_transition tests.test_controller_decision_receipt tests.test_controller_step_history tests.test_controller_source_outcome_resolver tests.test_execution_contracts tests.test_controller_source_authority tests.test_controller_structural_effect_bridge",
+        "workdir": "/private/tmp/eh-post-lexical-isolated.t4nwhm",
+        "executor": "MAIN_COORDINATOR",
+        "exit_code": 0,
+        "candidate_id": "sha256:0bf15494c562e632a378b6eeffe7e905a3d86bb5db7b246299f8060bb27364f5",
+        "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/post-lexical-isolated-main.log",
+        "artifact_sha256": "59fbe7de7648970da2fc31cce031a139f5a82176268753a06c56ebd0b490a48a",
+        "result_manifest": "/private/tmp/eh-relay-20260907.GNy8vE/post-lexical-isolated-result.json",
+        "result_manifest_sha256": "932502143d3804e5e88944e16a7b29b1fdd6c94cac1fd976d85d87471926ba3a",
+        "result": "132 tests passed in 192.425s against base 57df8e428ac4df5b6096451874f39b68fa28f49a plus the exact three owned files, module contract and authority contract; failures=0, errors=0, skips=0; all five files unchanged."
+      },
+      {
+        "command": "PATH=\"$PWD/.venv/bin:$PATH\" PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest discover -s tests -t . -p 'test*.py'",
+        "workdir": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
+        "executor": "MAIN_COORDINATOR",
+        "exit_code": 0,
+        "candidate_id": "sha256:0bf15494c562e632a378b6eeffe7e905a3d86bb5db7b246299f8060bb27364f5",
+        "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/post-lexical-full-main.log",
+        "artifact_sha256": "af198173a6dec1c30ce79c383649c3e90a32f099c3c8e655f37a820cee234f0a",
+        "result_manifest": "/private/tmp/eh-relay-20260907.GNy8vE/post-lexical-full-result.json",
+        "result_manifest_sha256": "fd71ce165f47828cf125e4afb54382541f1e71e4aafddcadb1768f09204274f3",
+        "result": "1545 tests passed in 359.145s; failures=0, errors=0, skips=0; all five recorded file fingerprints unchanged."
+      },
+      {
+        "command": "git diff --check -- src/midprojectrag/orchestration/execution_contracts.py tests/test_controller_lexical_transition.py",
+        "workdir": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
+        "exit_code": 0,
+        "candidate_id": "sha256:0bf15494c562e632a378b6eeffe7e905a3d86bb5db7b246299f8060bb27364f5",
+        "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/post-lexical-diff-check.log",
+        "artifact_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "result": "No whitespace or conflict-marker diagnostics."
+      },
+      {
+        "command": "git diff --no-index --check -- /dev/null tests/test_controller_post_lexical_decision.py",
+        "workdir": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
+        "exit_code": 1,
+        "expected_exit_code": 1,
+        "candidate_id": "sha256:0bf15494c562e632a378b6eeffe7e905a3d86bb5db7b246299f8060bb27364f5",
+        "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/post-lexical-new-test-check.log",
+        "artifact_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "result": "No diagnostics; exit 1 is the expected no-index difference status for the new test file."
+      }
+    ],
+    "development_evidence": [
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest tests.test_controller_post_lexical_decision",
+        "candidate_stage": "pre-implementation behavioral RED",
+        "exit_code": 1,
+        "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/post-lexical-focused-red.log",
+        "artifact_sha256": "052ddf9eea4dde64063d0b3737b58a0f8a0cfc47cc7db00f7603722c3e0d3ccd",
+        "result": "The initial fact and compare subtests both failed at the pre-existing controller_decision_cross_state_not_ready boundary; no unrelated failure."
+      }
+    ],
+    "candidate_manifest": {
+      "path": "/private/tmp/eh-relay-20260907.GNy8vE/post-lexical-candidate.json",
+      "sha256": "6b2404ba70ce55e1c757f4dc701b4df77441920534c434de324cd95301092db5",
+      "owned_files_manifest": "/private/tmp/eh-relay-20260907.GNy8vE/post-lexical-owned-files.sha256",
+      "owned_files_manifest_sha256": "0bf15494c562e632a378b6eeffe7e905a3d86bb5db7b246299f8060bb27364f5",
+      "snapshot_tar": "/private/tmp/eh-relay-20260907.GNy8vE/post-lexical-owned.tar",
+      "snapshot_tar_sha256": "9e9ff8af05e7ccd3a618495d29632407e8aaca94ea54ff26ef44ab633fe06826",
+      "tracked_diff": "/private/tmp/eh-relay-20260907.GNy8vE/post-lexical-tracked.diff",
+      "tracked_diff_sha256": "38ea3db76068547ff2b9ede70d00bcbf9e0c91e30668be0e1a356c20e5ee0e45",
+      "new_test_diff": "/private/tmp/eh-relay-20260907.GNy8vE/post-lexical-new-test.diff",
+      "new_test_diff_sha256": "fb77b38259cdfd974f0b62749809a73c20cd79a9198c0fdd62c4caf75a56bc34"
+    },
+    "additional_review_files": [
+      {
+        "path": "src/midprojectrag/orchestration/module-contract.md",
+        "sha256": "4f2b6487a78d317463fdf68f67b94dc17f59b2c989f843bb3e5e693e421de059"
+      },
+      {
+        "path": "fivecircles/architecture/specs/controller-next-decision.md",
+        "sha256": "a94c4e18105b63e71d93164ef7976c82bf0a2809adb2b06877e8691f67baa4ed"
+      }
+    ],
+    "test_evidence_manifest": {
+      "path": "/private/tmp/eh-relay-20260907.GNy8vE/post-lexical-final-test-evidence.sha256",
+      "sha256": "0b905e12be93d4fea487a2ae2d5cefddd958e67f846f5225d81092d438bacaf1",
+      "entry_count": 11
+    },
+    "deviations": [
+      "No contract, scope, public API, provider, model, VLM, Langfuse, clock, private-data, baseline, evaluation, configuration, Git or integration deviation was taken.",
+      "The first focused run was an intentional behavioral RED against the unchanged implementation and failed only at the exact unsupported revision-2 decision boundary; the final focused, adjacent, isolated and full gates all passed.",
+      "Per the DIRECTIVE, the main coordinator ran the isolated candidate and full regression after the three owned files were frozen; both result manifests confirm the three owned files and two additional review documents remained unchanged."
+    ],
+    "unresolved_questions": [],
+    "proposed_next_steps": [
+      "Dispatch the frozen five-file review packet, this report and exact candidate/test manifests to a fresh deep Philosopher/Critic; do not integrate unless its bound REVIEW is PASS."
+    ]
+  }
+}

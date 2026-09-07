@@ -1,6 +1,6 @@
 {
   "run_id": "eh-relay-20260907",
-  "batch_id": "EH2.6.c4.2.a",
+  "batch_id": "EH2.6.d2.x.b.1",
   "phase": "READY_TO_INTEGRATE",
   "lifecycle_substage": "closeout",
   "roles": {
@@ -15,31 +15,53 @@
       "effort": "ultra"
     },
     "critic": {
-      "agent_id": "/root/lexical_critic_1",
+      "agent_id": "/root/post_lexical_critic_1",
       "model": "gpt-6-astra",
       "effort": "inherited; no override"
     }
   },
-  "active_directive_id": "lexical-directive-1",
-  "candidate_id": "sha256:2289691dfd6915cd5247479b5b0cabceeb2cb1da5f567bf137ba159fed9f989a",
-  "contract_id": "sha256:7633a1455a025b31982efc7a63cc8557e1da8b39f6513ae0dfa823fc60da209e",
-  "test_evidence_id": "sha256:218ac4d539917b103c4485bb913445d168c1867489adf7eb8a14ec906e0481ce",
+  "active_directive_id": "post-lexical-directive-2",
+  "candidate_id": "sha256:0bf15494c562e632a378b6eeffe7e905a3d86bb5db7b246299f8060bb27364f5",
+  "contract_id": "sha256:a94c4e18105b63e71d93164ef7976c82bf0a2809adb2b06877e8691f67baa4ed",
+  "test_evidence_id": "sha256:0b905e12be93d4fea487a2ae2d5cefddd958e67f846f5225d81092d438bacaf1",
   "waiting_for": null,
-  "last_pass_candidate_id": "sha256:2289691dfd6915cd5247479b5b0cabceeb2cb1da5f567bf137ba159fed9f989a",
-  "resume_point": "final report browser/safety and selective integration, then next Design",
-  "closeout_ref": "../../2026-09-06-controller-lexical-transition-relay.md",
-  "integration_receipt_ref": "integration-EH2.6.c4.2.a.json",
+  "last_pass_candidate_id": "sha256:0bf15494c562e632a378b6eeffe7e905a3d86bb5db7b246299f8060bb27364f5",
+  "resume_point": "final browser/safety and selective integration, then next Design",
+  "closeout_ref": "../../2026-09-07-controller-post-lexical-decision-relay.md",
+  "integration_receipt_ref": "integration-EH2.6.d2.x.b.1.json",
   "report_fingerprint": {
-    "candidate_id": "sha256:2289691dfd6915cd5247479b5b0cabceeb2cb1da5f567bf137ba159fed9f989a",
-    "contract_id": "sha256:7633a1455a025b31982efc7a63cc8557e1da8b39f6513ae0dfa823fc60da209e",
-    "test_evidence_id": "sha256:218ac4d539917b103c4485bb913445d168c1867489adf7eb8a14ec906e0481ce",
-    "full_run_files_ref": "full-run-fingerprint.json"
+    "candidate_id": "sha256:0bf15494c562e632a378b6eeffe7e905a3d86bb5db7b246299f8060bb27364f5",
+    "contract_id": "sha256:a94c4e18105b63e71d93164ef7976c82bf0a2809adb2b06877e8691f67baa4ed",
+    "test_evidence_id": "sha256:0b905e12be93d4fea487a2ae2d5cefddd958e67f846f5225d81092d438bacaf1",
+    "full_run_files_ref": "batches/EH2.6.d2.x.b.1/full-result.json"
   },
-  "continuation": null,
-  "review_message_id": "lexical-review-1",
+  "continuation": "CONTINUE_WITH_NEXT_FORM",
+  "review_message_id": "post-lexical-review-1",
   "intervening_commit": {
     "sha": "892c9f0842f3183c544970d703de93d4b282b24a",
     "scope": "four collaboration/relay skill documents only; product/test/contract hashes unchanged",
     "effect": "risk trigger/depth split and default collaboration; current deep review and single-main closeout already satisfy both versions"
+  },
+  "previous_batch": {
+    "batch_id": "EH2.6.c4.2.a",
+    "commit_sha": "57df8e428ac4df5b6096451874f39b68fa28f49a",
+    "receipt_ref": "integration-EH2.6.c4.2.a.json",
+    "closed_state_ref": "closed-EH2.6.c4.2.a.json"
+  },
+  "superseded_directive": {
+    "message_id": "post-lexical-directive-1",
+    "dispatched": false,
+    "reason": "EOF newline byte normalization changed contract hash only; complete replacement by Design"
+  },
+  "candidate_ref": "batches/EH2.6.d2.x.b.1/candidate.json",
+  "review_gate": {
+    "depth": "deep",
+    "basis": [
+      "new closed public decision reason and contract",
+      "manual product/test delta exceeds 500 lines",
+      "source-derived history integrity boundary",
+      "final candidate review required"
+    ],
+    "code_changes_during_review": "prohibited"
   }
 }

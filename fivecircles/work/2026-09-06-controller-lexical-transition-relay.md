@@ -85,3 +85,11 @@
 - Flow diagram verification: GAP/PARTIAL. c4.2.a 연결은 완료, 후속 reducer/controller/terminal/생성 E2E 및 실제 골든셋 비교는 미완료.
 - 최종 문서 gate: safety988 PASS, scoped diff --check PASS, Chrome1440×1000/390×844에서 images2·tables8·page errors0·external requests0 PASS.
 - 통합 전 확인: HEAD892c9f0과 origin/feat/total-integration 동기(0/0), index 비어 있음. 최종 후보 code/contract5개 hash 유지.
+
+## 통합 완료·다음 재진입 — 2026-09-07 12:34 KST
+
+- Commit/push: 57df8e428ac4df5b6096451874f39b68fa28f49a, origin/feat/total-integration. 원격 직접 조회 일치, index empty.
+- 검토된24개 파일만 포함; 혼합 로그/TODO는 HEAD+이번 배치 부분만 stage했다. resources와 다른 수정은 보존/제외.
+- 실제 영수증: collaboration/eh-relay-20260907/integration-EH2.6.c4.2.a.json. 사후 기록이므로 자기 SHA용 추가 커밋하지 않는다.
+- 최종 상태: Doc/Implementation/Validation/Repair/Report/Logall/Push=COMPLETED. Flow=GAP/PARTIAL(전체 목표 미완성).
+- Relay=CONTINUE_WITH_NEXT_FORM. /root/lexical_design에게 EH2.6.d2.x.b.1 bounded Design을 실제 전달했다. 아직 구현 시작은 아니다.

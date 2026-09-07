@@ -1,0 +1,45 @@
+{
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.c4.2.a",
+  "phase": "CLOSED",
+  "lifecycle_substage": "reentry",
+  "roles": {
+    "design": {
+      "agent_id": "/root/lexical_design",
+      "model": "gpt-6-astra",
+      "effort": "inherited; no override"
+    },
+    "coder": {
+      "agent_id": "/root/lexical_coder",
+      "model": "gpt-5.6-sol",
+      "effort": "ultra"
+    },
+    "critic": {
+      "agent_id": "/root/lexical_critic_1",
+      "model": "gpt-6-astra",
+      "effort": "inherited; no override"
+    }
+  },
+  "active_directive_id": "lexical-directive-1",
+  "candidate_id": "sha256:2289691dfd6915cd5247479b5b0cabceeb2cb1da5f567bf137ba159fed9f989a",
+  "contract_id": "sha256:7633a1455a025b31982efc7a63cc8557e1da8b39f6513ae0dfa823fc60da209e",
+  "test_evidence_id": "sha256:218ac4d539917b103c4485bb913445d168c1867489adf7eb8a14ec906e0481ce",
+  "waiting_for": null,
+  "last_pass_candidate_id": "sha256:2289691dfd6915cd5247479b5b0cabceeb2cb1da5f567bf137ba159fed9f989a",
+  "resume_point": "final report browser/safety and selective integration, then next Design",
+  "closeout_ref": "../../2026-09-06-controller-lexical-transition-relay.md",
+  "integration_receipt_ref": "integration-EH2.6.c4.2.a.json",
+  "report_fingerprint": {
+    "candidate_id": "sha256:2289691dfd6915cd5247479b5b0cabceeb2cb1da5f567bf137ba159fed9f989a",
+    "contract_id": "sha256:7633a1455a025b31982efc7a63cc8557e1da8b39f6513ae0dfa823fc60da209e",
+    "test_evidence_id": "sha256:218ac4d539917b103c4485bb913445d168c1867489adf7eb8a14ec906e0481ce",
+    "full_run_files_ref": "full-run-fingerprint.json"
+  },
+  "continuation": "CONTINUE_WITH_NEXT_FORM",
+  "review_message_id": "lexical-review-1",
+  "intervening_commit": {
+    "sha": "892c9f0842f3183c544970d703de93d4b282b24a",
+    "scope": "four collaboration/relay skill documents only; product/test/contract hashes unchanged",
+    "effect": "risk trigger/depth split and default collaboration; current deep review and single-main closeout already satisfy both versions"
+  }
+}
