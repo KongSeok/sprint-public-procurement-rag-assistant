@@ -1,0 +1,41 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.c4.2.a",
+  "directive_id": "lexical-directive-1",
+  "contract_id": "sha256:7633a1455a025b31982efc7a63cc8557e1da8b39f6513ae0dfa823fc60da209e",
+  "repository": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
+  "branch": "feat/total-integration",
+  "base_head": "34f80c5428ba41982933394df0bb12c5ac06bd94",
+  "candidate_id": "sha256:2289691dfd6915cd5247479b5b0cabceeb2cb1da5f567bf137ba159fed9f989a",
+  "candidate_id_derivation": "SHA-256 of candidate-owned-files.sha256 exact bytes",
+  "files": [
+    {
+      "path": "src/midprojectrag/orchestration/execution_contracts.py",
+      "sha256": "688bf55c06c24a141b235aa13f9678a1b6445e30208b4f089ed31328769d028f"
+    },
+    {
+      "path": "tests/test_controller_initial_transition.py",
+      "sha256": "144c52b8d85075b1ccbce043ed6eb7004bce30c4145bd311da5437ce8239b655"
+    },
+    {
+      "path": "tests/test_controller_lexical_transition.py",
+      "sha256": "f726d2d1f640c5f8b3580759d99dde4414a82c0710fe8e178b0eba108f4be485"
+    }
+  ],
+  "artifacts": {
+    "hash_manifest": "/private/tmp/eh-relay-20260907.GNy8vE/candidate-owned-files.sha256",
+    "snapshot_tar": {
+      "path": "/private/tmp/eh-relay-20260907.GNy8vE/candidate-owned-files.tar",
+      "sha256": "608bf9d5a1f2f20b7d490b3df761186008c2a5b2a06a30d73592255735aeb638"
+    },
+    "tracked_diff": {
+      "path": "/private/tmp/eh-relay-20260907.GNy8vE/candidate-tracked.diff",
+      "sha256": "693b4073bc97b7950d1a1f6515f5dee186371f4cefc6724a0f6b66213ca8994c"
+    },
+    "untracked_diff": {
+      "path": "/private/tmp/eh-relay-20260907.GNy8vE/candidate-lexical.diff",
+      "sha256": "f22f27f26fd6a33e4c5453c9e6bf4fed4cba69a5e2e67a3eb104a8381326e483"
+    }
+  }
+}

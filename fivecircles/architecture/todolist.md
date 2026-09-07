@@ -22,7 +22,7 @@
 - 순서 세부: EXP-SELECT.2.a의 최소 설정 schema 정의는 EH4.7b.1 전에 한다.
   승인 qrels·사전 threshold를 포함한 정식 freeze는 b.2 smoke 후, EXP-SELECT.3.a 실행 전에 완료한다.
 - c4.0·c4.1·d2.x.a 구현·검증 **DONE**: 최초 dense 전이와 ordinal2 다음 행동 선택까지 연결됐다.
-  다음은 c4.2.a lexical 실제 실행/전이2 → d2.x.b 후속 자격 행렬이다. 전체 Controller/E2E는 미완성이다.
+  c4.2.a lexical 실제 실행/전이2와 독립 검수 완료. 다음은 d2.x.b 후속 자격이며 전체 Controller/E2E는 미완성이다.
 - 1~3의 코드/연결 smoke는 전체 EH2.G/EH3.G를 기다리지 않는 승인된 retrieval-only 예외다.
   공식 비교는 EVAL.4.c의 해당 지표 qrel 승인·EXP-SELECT.2.a 동결 후에만 실행한다.
 - qrels/검수 lineage 단일 원천=EH2.EVAL.4, resolver/채점/기록=EH4.7, 비교 설정/선택=EXP-SELECT.
@@ -320,7 +320,7 @@ runtime은 local profile 기본·LLM provider 교체형으로 유지하며 새 �
         - [x] **EH2.6.c4.1.c** success/empty/error·중복/동시·변조·중간 실패를 신규13/인접91·전체1511 PASS로 검증. 독립 APPROVE.
           계약: `specs/controller-initial-transition.md`; 원장: `../work/2026-09-06-controller-initial-transition-relay.md`.
       - [ ] **EH2.6.c4.2** `[VERTICAL_SLICES]` 실제 발급 가능한 successor부터 d2.x와 교대로 full action matrix/reducer를 연결한다.
-        - [ ] **EH2.6.c4.2.a** `[READY / NEXT_RELAY]` ordinal2 lexical permit→exact dense obligation 재사용→실행/effect/ledger revision2.
+        - [x] **EH2.6.c4.2.a** `[COMPLETED 2026-09-07]` ordinal2 lexical→exact dense obligation 실행/effect/ledger2/전이2. 집중36·관련98·격리134·전체1534 PASS, fresh Astra PASS.
         - [ ] **EH2.6.c4.2.b** 후속 fusion/semantic state-changing reducer와 terminal action을 d2.x.b 이후 연결한다.
         - [ ] 실제 verifier-context ID fingerprint와 successor GC 후 passive registry 정리 회귀를 포함한다.
     - [ ] **EH2.6.c5** verified/contradicted/confirmed-missing·raw bool/ID 공격 focused gate를 통과한다.
@@ -349,7 +349,7 @@ runtime은 local profile 기본·LLM provider 교체형으로 유지하며 새 �
         authority로 consumed action/lane, fuse/context/capability eligibility와 cross-state chain을 완성한다.
         - [x] **EH2.6.d2.x.a** 최초 dense successor의 lexical/diagnostic/contract-error·budget 기권 decision, ordinal2·chain·정책 hash revision. 신규11·인접79·전체1522 PASS/독립 APPROVE.
           계약: `specs/controller-next-decision.md`; Cycle19=`../work/2026-09-06-controller-next-decision-relay.md`.
-        - [ ] **EH2.6.d2.x.b** `[AFTER_C4.2.a]` 후속 lane/fusion/context/capability의 exact-history 자격 행렬을 실제 발급 가능한 successor 범위부터 확장한다.
+        - [ ] **EH2.6.d2.x.b** `[NEXT_DESIGN / C4.2.a_PASS]` revision2의 두 source-derived outcome에서 후속 자격을 확장한다. 선택 통합 뒤 bounded 설계; dense 오류 보존, 다른 compare obligation 전 sibling 수명 확인.
       - [ ] **EH2.6.d2.d** d2.i+d2.x를 합친 full decision matrix와 c4 permit 연동을 회귀·리뷰한다.
     - [ ] **EH2.6.d3** start/step/run과 terminal `HarnessRunResult`를 구현한다.
     - [ ] **EH2.6.d4** action/round/deadline/post-deadline/no-progress/capability 종료를 호출 수까지 검증한다.

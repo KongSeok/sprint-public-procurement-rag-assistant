@@ -40,7 +40,7 @@ class ControllerInitialTransitionTests(unittest.TestCase):
         self.root = Path(temporary.name)
         self.case_number = 0
 
-    def _case(self, *, compare=False, mode="valid", max_actions=24, max_rounds=1):
+    def _case(self, *, compare=False, mode="valid", lexical_mode="valid", max_actions=24, max_rounds=1):
         self.case_number += 1
         store = _store()
         dense_log = self.root / f"dense-{self.case_number}.log"
@@ -53,7 +53,7 @@ class ControllerInitialTransitionTests(unittest.TestCase):
                 _SyntheticLane(lane="dense", bundle_sha256=store.bundle_sha256,
                                candidate_specs=specs, call_log_path=str(dense_log), mode=mode),
                 _SyntheticLane(lane="lexical", bundle_sha256=store.bundle_sha256,
-                               candidate_specs=specs, call_log_path=str(lexical_log)),
+                               candidate_specs=specs, call_log_path=str(lexical_log), mode=lexical_mode),
             ),
             verifier=_NeverVerifier(), reranker=_NeverReranker(), clock=_never_clock,
         )

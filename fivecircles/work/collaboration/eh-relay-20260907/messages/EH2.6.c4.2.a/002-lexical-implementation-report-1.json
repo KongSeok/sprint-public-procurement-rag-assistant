@@ -1,0 +1,105 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.c4.2.a",
+  "message_id": "lexical-implementation-report-1",
+  "in_reply_to": "lexical-directive-1",
+  "sender": "CODER",
+  "kind": "IMPLEMENTATION_REPORT",
+  "body": {
+    "status": "REVIEW_READY",
+    "directive_id": "lexical-directive-1",
+    "contract_id": "sha256:7633a1455a025b31982efc7a63cc8557e1da8b39f6513ae0dfa823fc60da209e",
+    "candidate_id": "sha256:2289691dfd6915cd5247479b5b0cabceeb2cb1da5f567bf137ba159fed9f989a",
+    "test_evidence_id": "sha256:218ac4d539917b103c4485bb913445d168c1867489adf7eb8a14ec906e0481ce",
+    "changed_files": [
+      "src/midprojectrag/orchestration/execution_contracts.py",
+      "tests/test_controller_initial_transition.py",
+      "tests/test_controller_lexical_transition.py"
+    ],
+    "implementation_summary": [
+      "Bound the private ordinal-2 lexical executor and revision-2 reader to the existing exact execution, decision, claim, source, bridge, lane and obligation authorities.",
+      "Generalized the authenticated one-lane transition path to revisions 1 and 2 while preserving the stable root and an exact immediate-predecessor authority reference.",
+      "Sealed the actual shared lane successor mint caller and finalized all transition dependency pins only after the existing successor and completion authority closures were sealed.",
+      "Added synthetic acceptance coverage for lineage, outcome matrices, zero-dispatch rejection, revision lifetime, concurrency, post-dispatch failure, drift and private API containment."
+    ],
+    "tests": [
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -c 'import midprojectrag.orchestration.execution_contracts'",
+        "exit_code": 0,
+        "candidate_id": "sha256:2289691dfd6915cd5247479b5b0cabceeb2cb1da5f567bf137ba159fed9f989a",
+        "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/import-final-coder.log",
+        "artifact_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "result": "Import succeeded with no output."
+      },
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest tests.test_controller_lexical_transition tests.test_controller_initial_transition tests.test_controller_next_decision",
+        "exit_code": 0,
+        "candidate_id": "sha256:2289691dfd6915cd5247479b5b0cabceeb2cb1da5f567bf137ba159fed9f989a",
+        "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/focused-final-coder.log",
+        "artifact_sha256": "42f6a014b9880194105b845af0c28cb8874168582d081f1c324ca1bd19d8f3b6",
+        "result": "36 tests passed in 83.577s; failures=0, errors=0, skips=0."
+      },
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest tests.test_execution_contracts tests.test_controller_decision_receipt tests.test_controller_source_authority tests.test_controller_source_outcome_resolver tests.test_controller_step_history tests.test_controller_target_context_accumulator tests.test_controller_structural_effect_bridge",
+        "exit_code": 0,
+        "candidate_id": "sha256:2289691dfd6915cd5247479b5b0cabceeb2cb1da5f567bf137ba159fed9f989a",
+        "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/adjacent-final-coder.log",
+        "artifact_sha256": "d7df39b161c2c48dd45cb2f4cea54548b039f146d7e1d0572abc591efc9b7627",
+        "result": "98 tests passed in 18.108s; failures=0, errors=0, skips=0."
+      },
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src /Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/bin/python -m unittest tests.test_controller_lexical_transition tests.test_controller_initial_transition tests.test_controller_next_decision tests.test_execution_contracts tests.test_controller_decision_receipt tests.test_controller_source_authority tests.test_controller_source_outcome_resolver tests.test_controller_step_history tests.test_controller_target_context_accumulator tests.test_controller_structural_effect_bridge",
+        "workdir": "/private/tmp/eh-relay-20260907.GNy8vE/committed-tree",
+        "executor": "MAIN_COORDINATOR",
+        "exit_code": 0,
+        "candidate_id": "sha256:2289691dfd6915cd5247479b5b0cabceeb2cb1da5f567bf137ba159fed9f989a",
+        "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/isolated-candidate.log",
+        "artifact_sha256": "cbc998425ee7e7fdcd58c32d130eac2059f012563d0cdc6e6713b62a80f29036",
+        "result": "134 tests passed in 101.553s against git archive HEAD 34f80c5 plus the exact candidate files and main-owned module contract; failures=0, errors=0, skips=0."
+      },
+      {
+        "command": "PATH=\"$PWD/.venv/bin:$PATH\" PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python -m unittest discover -s tests -t . -p 'test*.py'",
+        "executor": "MAIN_COORDINATOR",
+        "exit_code": 0,
+        "candidate_id": "sha256:2289691dfd6915cd5247479b5b0cabceeb2cb1da5f567bf137ba159fed9f989a",
+        "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/full-regression.log",
+        "artifact_sha256": "50552c6cf8484f7559c7d6646f31858d6f1b91a6e4dd7637f95292be8874a954",
+        "candidate_fingerprint_artifact": "/private/tmp/eh-relay-20260907.GNy8vE/main-full-start.json",
+        "candidate_fingerprint_sha256": "0c89f84b383d310315e8d11caf8493b03d5945284de8667843cdc549003cf7b9",
+        "result": "1534 tests passed in 279.294s; failures=0, errors=0, skips=0. Main verified all five recorded fingerprints unchanged after the run."
+      },
+      {
+        "command": "git diff --check -- src/midprojectrag/orchestration/execution_contracts.py tests/test_controller_initial_transition.py",
+        "exit_code": 0,
+        "candidate_id": "sha256:2289691dfd6915cd5247479b5b0cabceeb2cb1da5f567bf137ba159fed9f989a",
+        "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/diff-check-tracked-coder.log",
+        "artifact_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "result": "No whitespace or conflict-marker diagnostics."
+      },
+      {
+        "command": "git diff --no-index --check -- /dev/null tests/test_controller_lexical_transition.py",
+        "exit_code": 1,
+        "expected_exit_code": 1,
+        "candidate_id": "sha256:2289691dfd6915cd5247479b5b0cabceeb2cb1da5f567bf137ba159fed9f989a",
+        "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/diff-check-untracked-coder.log",
+        "artifact_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "result": "No diagnostics; exit 1 is the expected no-index difference status for a new file."
+      }
+    ],
+    "candidate_manifest": {
+      "path": "/private/tmp/eh-relay-20260907.GNy8vE/candidate-manifest.json",
+      "sha256": "66fdff0a951d5a692229c93708ae82d6ae33eccccf1f88dfb216325098506d37"
+    },
+    "test_evidence_manifest": "/private/tmp/eh-relay-20260907.GNy8vE/final-test-evidence.sha256",
+    "deviations": [
+      "No contract, scope, public API, runtime dependency, provider, model, clock, corpus, Git or integration deviation was taken.",
+      "The first post-import focused run exposed that transition helper pins had been snapshotted before three existing post-factory authority seals. The repair retained those pins and finalized the complete pin set once after all seals; the focused, adjacent, isolated and full gates then passed.",
+      "Per the DIRECTIVE, the main coordinator ran the isolated candidate and full regression after the owned candidate was frozen; the exact candidate fingerprints remained unchanged."
+    ],
+    "unresolved_questions": [],
+    "proposed_next_steps": [
+      "Dispatch the frozen five-file review packet, this report and the exact evidence manifests to a fresh deep Philosopher/Critic; do not integrate unless its bound REVIEW is PASS."
+    ]
+  }
+}

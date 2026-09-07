@@ -1036,3 +1036,14 @@ This file summarizes recent updates so other agents can continue without re‑di
 - 제품·기존 변경 제외, 현재 브랜치의 지정 파일만 커밋/푸시. refs: `2026-09-07-collaboration-skill-sync.md`.
 ### Tests
 - 후보 스킬23·JSON6·참조19 통과, 한글명3 예외 유지. 독립 Astra의 세 프로젝트 경로/변경 보존 검수 PASS.
+
+## Addendum (2026-09-07) - EH2.6.c4.2.a lexical 전이
+### Backend
+- 같은 항목 lexical1회 실행과 effect/ledger2/transition2 연결. 이전 근거·dense 오류 보존.
+- 범위·검수: work/review/review-controller-lexical-transition-2026-09-07.md.
+### Tests
+- 집중36·관련98·격리134·전체1534 PASS, 오류/실패/skip0. fresh Astra PASS.
+- 재개 wiring·pin 순서 수리: test/errorlogs/backend/2026-09-07-controller-lexical-resume-import.md.
+### Relay
+- run=eh-relay-20260907 / batch=EH2.6.c4.2.a. 통합 전 로그올; 실제 SHA는 사후 영수증에 기록.
+- 다음=d2.x.b 후속 자격. 앱 모델/API/골든셋 실행0; 전체 Controller/E2E는 미완성.

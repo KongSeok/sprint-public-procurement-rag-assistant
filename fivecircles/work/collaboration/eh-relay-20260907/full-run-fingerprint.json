@@ -1,0 +1,25 @@
+{
+  "files": [
+    {
+      "path": "src/midprojectrag/orchestration/execution_contracts.py",
+      "sha256": "688bf55c06c24a141b235aa13f9678a1b6445e30208b4f089ed31328769d028f"
+    },
+    {
+      "path": "tests/test_controller_initial_transition.py",
+      "sha256": "144c52b8d85075b1ccbce043ed6eb7004bce30c4145bd311da5437ce8239b655"
+    },
+    {
+      "path": "tests/test_controller_lexical_transition.py",
+      "sha256": "f726d2d1f640c5f8b3580759d99dde4414a82c0710fe8e178b0eba108f4be485"
+    },
+    {
+      "path": "src/midprojectrag/orchestration/module-contract.md",
+      "sha256": "d111840d3a33d1b04371a36cfd84fd0a163c0e141683d2be79c099244f1e70e1"
+    },
+    {
+      "path": "fivecircles/architecture/specs/controller-lexical-transition.md",
+      "sha256": "7633a1455a025b31982efc7a63cc8557e1da8b39f6513ae0dfa823fc60da209e"
+    }
+  ],
+  "recorded_at": "2026-09-07T03:06:24.690Z"
+}

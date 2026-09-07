@@ -452,3 +452,10 @@ Reference:
 - context 없는 일부 diff만 staging하면 누락한 앞쪽 hunk 때문에 문서 자식 항목 위치가 달라질 수 있다.
   semantic marker 범위로 index를 구성하고 staged diff에서 실제 부모/자식 위치까지 확인한다.
 - refs: `errorlogs/backend/2026-09-06-controller-next-decision-red.md`, `../work/2026-09-06-controller-initial-transition-relay.md`.
+
+### Controller authority seal과 dependency pin 순서 (2026-09-07)
+
+- factory 인자·호출·반환 binding을 함께 확인한다. signature만 바꾼 미완성 초안은 import부터 실패할 수 있다.
+- authority seal이 closure를 바꾸는 경우 모든 seal 적용 뒤 dependency fingerprint를 고정한다. 검증 자체를 약화하지 않는다.
+- 재개 초안 RED와 격리한 기존 HEAD PASS를 분리하고, 후보 고정 뒤 격리/전체 증거와 fresh review를 결속한다.
+- refs: errorlogs/backend/2026-09-07-controller-lexical-resume-import.md.

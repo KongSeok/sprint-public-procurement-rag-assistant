@@ -152,3 +152,10 @@
 - Method: CUSTOM, 스킬 형식·JSON·참조·경로/미러 검사 및 scoped diff 검수 후 현재 브랜치에 커밋/푸시.
 - Rollback: 이번 커밋의 지정 스킬 변경만 역적용. 기존 작업 트리 전체 reset/삭제 금지.
 - Evidence: `fivecircles/work/2026-09-07-collaboration-skill-sync.md`.
+
+- [2026-09-07 12:27] Stage=Implementation/Test/Review (Cycle20 / EH2.6.c4.2.a)
+  - Method: Philosopher Design → Sol Ultra → fresh Astra deep review; run=eh-relay-20260907.
+  - Summary: lexical ordinal2 실행과 revision2 연결. 최초 root/직전 predecessor·기존 source를 보존한다.
+  - Evidence: 집중36·관련98·격리134·전체1534 PASS, fresh REVIEW PASS.
+  - Boundary: 앱 API/model/Langfuse0, baseline/corpus/gold/resources 불변. 스킬-only 동시 커밋은 분리 확인.
+  - Closeout: 2026-09-06-controller-lexical-transition-relay.md. 선택 통합 후 d2.x.b Design.

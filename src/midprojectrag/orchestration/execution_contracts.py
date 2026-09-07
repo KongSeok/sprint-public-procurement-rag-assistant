@@ -3064,7 +3064,7 @@ def _build_harness_execution_authority_accessors(
                 history[0]() is not current[2]
                 or history[4] is not current[10]
                 or history[5]() is not (
-                    execution if current[8] is None else current[11]
+                    execution if current[8] is None else current[12]
                 )
             ):
                 raise ValueError("harness_execution_history_authority_drift")
@@ -3081,14 +3081,22 @@ def _build_harness_execution_authority_accessors(
         ):
             raise ValueError("harness_execution_successor_issuer_required")
         before_authority = require(before)
-        if before.step_index != 0 or before_authority[8] is not None:
-            raise ValueError("harness_execution_initial_successor_required")
+        if (
+            before.step_index not in {0, 1}
+            or (before_authority[8] is None) != (before.step_index == 0)
+            or ledger.revision != before.step_index + 1
+            or ledger.previous_ledger_sha256 != before.ledger.ledger_sha256
+            or transition.step_index != ledger.revision
+            or transition.previous_transition_sha256 != before.last_transition_sha256
+        ):
+            raise ValueError("harness_execution_lane_successor_required")
+        initial_root = before if before.step_index == 0 else before_authority[12]
         execution = object.__new__(execution_cls)
         for name in execution_cls.__slots__:
             if name != "__weakref__":
                 object.__setattr__(execution, name, getattr(before, name))
         object.__setattr__(execution, "ledger", ledger)
-        object.__setattr__(execution, "step_index", 1)
+        object.__setattr__(execution, "step_index", before.step_index + 1)
         object.__setattr__(execution, "last_transition_sha256", transition.transition_sha256)
         object.__setattr__(execution, "execution_snapshot_sha256", canonical_sha256(execution._payload()))
         execution._validate_payload()
@@ -3102,7 +3110,7 @@ def _build_harness_execution_authority_accessors(
             before_authority[5], before_authority[6], before_authority[7], transition,
             (ledger.obligation_keys, ledger.round_indexes, ledger.consumed_action_sha256s,
              ledger.consumed_lane_keys, ledger.unavailable_action_sha256s, ledger.no_progress_streaks),
-            before_authority[10], before,
+            before_authority[10], before, initial_root,
         )
         with authority_lock:
             authorities[identity] = authority
@@ -3401,10 +3409,16 @@ def _build_harness_execution_public_api(
             raise ValueError("harness_execution_identity_mismatch")
         if authority[1] != canonical_sha256(execution.to_dict()):
             raise ValueError("harness_execution_runtime_authority_drift")
-        if execution.step_index != 0:
+        if execution.step_index == 1:
             _require_controller_initial_transition(
                 execution=execution, store=store, config=config, runtime=runtime
             )
+        elif execution.step_index == 2:
+            _require_controller_lexical_transition(
+                execution=execution, store=store, config=config, runtime=runtime
+            )
+        elif execution.step_index != 0:
+            raise ValueError("harness_execution_transition_not_ready")
 
     issue_harness_execution.__name__ = "issue_harness_execution"
     issue_harness_execution.__qualname__ = "issue_harness_execution"
@@ -19251,7 +19265,7 @@ del _build_controller_structural_effect_bridge_accessors
 
 @dataclass(frozen=True, slots=True, weakref_slot=True, repr=False, init=False)
 class HarnessTransitionReceipt:
-    """First authenticated controller transition; no public mint authority."""
+    """Bounded dense/lexical transition; no public mint authority."""
 
     stage: str
     execution_identity_sha256: str
@@ -19296,12 +19310,15 @@ class HarnessTransitionReceipt:
     def _validate_payload(self) -> None:
         if (
             self.stage != "harness_transition" or type(self.step_index) is not int
-            or self.step_index != 1 or self.previous_transition_sha256 is not None
+            or self.step_index not in {1, 2}
+            or (self.step_index == 1 and self.previous_transition_sha256 is not None)
             or self.operational_progress is not True
             or self.before_state_sha256 != self.after_state_sha256
             or self.before_progress_sha256 != self.after_progress_sha256
         ):
             raise ValueError("invalid_initial_harness_transition")
+        if self.step_index == 2:
+            _require_hash(self.previous_transition_sha256, "invalid_previous_harness_transition")
         for name in self.__dataclass_fields__:
             if name.endswith("sha256") and name != "previous_transition_sha256":
                 _require_hash(getattr(self, name), "invalid_harness_transition_hash")
@@ -19321,8 +19338,12 @@ def _build_initial_controller_transition_accessors(
     status_reader: FunctionType, dependency_checker: FunctionType,
     transition_cls: type, effect_cls: type, effect_token: object,
     effect_validator: FunctionType, canonical_sha256: FunctionType,
+    decision_validator: FunctionType, claim_issuer: FunctionType,
+    source_preparer: FunctionType, source_binder: FunctionType,
+    bridge_issuer: FunctionType, lane_executor: FunctionType,
+    lane_authority_reader: FunctionType, obligation_validator: FunctionType,
 ):
-    """Consume one exact initial dense permit and preserve its source lineage."""
+    """Preserve one root's first two lane effects and their exact source lineage."""
 
     transition_lock = Lock()
     records: dict[tuple[object, ...], tuple[object, ...]] = {}
@@ -19426,17 +19447,25 @@ def _build_initial_controller_transition_accessors(
     def advance_initial_controller_step(*, bridge, store, config, runtime) -> HarnessExecution:
         validate_dependencies()
         bridge_reader(bridge=bridge, store=store, config=config, runtime=runtime)
+        if bridge.claim.execution.step_index != 0 or bridge.action_kind != "retrieve_dense":
+            raise ValueError("controller_initial_dense_step_required")
+        return advance_lane_step(bridge=bridge, store=store, config=config, runtime=runtime)
+
+    def advance_lane_step(*, bridge, store, config, runtime) -> HarnessExecution:
+        validate_dependencies()
+        bridge_reader(bridge=bridge, store=store, config=config, runtime=runtime)
         claim = bridge.claim
         before, decision, action = claim.execution, claim.decision, claim.selected_action
+        expected_lane = "dense" if before.step_index == 0 else "lexical"
         if (
-            before.step_index != 0 or before.source_kind not in {"fact", "compare"}
-            or action.kind != "retrieve_dense" or action is not decision.selected_action
+            before.step_index not in {0, 1} or before.source_kind not in {"fact", "compare"}
+            or action.kind != f"retrieve_{expected_lane}" or action is not decision.selected_action
             or action.obligation_key != before.ledger.obligation_keys[0]
             or bridge.source_receipt_kind != "lane_search"
             or bridge.outcome not in {"applied", "empty", "provider_error", "contract_error"}
             or bridge.target_context is not None
         ):
-            raise ValueError("controller_initial_dense_step_required")
+            raise ValueError("controller_bounded_lane_step_required")
         key = claim.step_key
         with transition_lock:
             prune_unlocked()
@@ -19472,23 +19501,24 @@ def _build_initial_controller_transition_accessors(
             ledger = object.__new__(ExecutionLedger)
             for name in ExecutionLedger.__dataclass_fields__:
                 object.__setattr__(ledger, name, getattr(before.ledger, name))
-            object.__setattr__(ledger, "revision", 1)
+            next_revision = before.step_index + 1
+            object.__setattr__(ledger, "revision", next_revision)
             object.__setattr__(ledger, "previous_ledger_sha256", before.ledger.ledger_sha256)
             object.__setattr__(ledger, "round_indexes", (1,) + before.ledger.round_indexes[1:])
-            object.__setattr__(ledger, "consumed_action_sha256s", (action.action_sha256,))
-            object.__setattr__(ledger, "consumed_lane_keys", ((action.obligation_key, 1, "dense"),))
-            object.__setattr__(ledger, "nonterminal_action_count", 1)
+            object.__setattr__(ledger, "consumed_action_sha256s", before.ledger.consumed_action_sha256s + (action.action_sha256,))
+            object.__setattr__(ledger, "consumed_lane_keys", before.ledger.consumed_lane_keys + ((action.obligation_key, 1, expected_lane),))
+            object.__setattr__(ledger, "nonterminal_action_count", before.ledger.nonterminal_action_count + 1)
             object.__setattr__(ledger, "ledger_sha256", canonical_sha256(ledger._payload()))
             ledger._validate_payload()
             fingerprint = progress_fingerprint(before.state)
             transition = object.__new__(transition_cls)
             transition_payload = {
                 "stage": "harness_transition", "execution_identity_sha256": before.execution_identity_sha256,
-                "step_index": 1, "controller_decision_sha256": decision.decision_sha256,
+                "step_index": next_revision, "controller_decision_sha256": decision.decision_sha256,
                 "effect_sha256": effect.effect_sha256,
                 "before_state_sha256": before.state.state_sha256, "after_state_sha256": before.state.state_sha256,
                 "before_ledger_sha256": before.ledger.ledger_sha256, "after_ledger_sha256": ledger.ledger_sha256,
-                "previous_transition_sha256": None,
+                "previous_transition_sha256": before.last_transition_sha256,
                 "before_progress_sha256": fingerprint, "after_progress_sha256": fingerprint,
                 "operational_progress": True,
             }
@@ -19514,9 +19544,9 @@ def _build_initial_controller_transition_accessors(
                 pass
             raise
 
-    def require_controller_initial_transition(*, execution, store, config, runtime):
+    def require_successor_record(*, execution, store, config, runtime, revision):
         validate_dependencies()
-        if type(execution) is not HarnessExecution or execution.step_index != 1:
+        if type(execution) is not HarnessExecution or execution.step_index != revision:
             raise ValueError("controller_initial_transition_successor_required")
         authority = execution_authority_reader(execution)
         transition = authority[8]
@@ -19530,7 +19560,11 @@ def _build_initial_controller_transition_accessors(
         if len(matching) != 1:
             raise ValueError("controller_initial_transition_authority_required")
         record = matching[0]
-        if record[2] is not transition or record[9][0] is not before:
+        if (
+            record[2] is not transition or record[9][0] is not before
+            or before.step_index + 1 != revision
+            or transition.previous_transition_sha256 != before.last_transition_sha256
+        ):
             raise ValueError("controller_initial_transition_authority_drift")
         validate_record(record, store=store, config=config, runtime=runtime)
         execution._validate_payload()
@@ -19545,23 +19579,66 @@ def _build_initial_controller_transition_accessors(
             or status_reader(execution=before, decision=record[9][1], store=store, config=config, runtime=runtime) != "transitioned"
         ):
             raise ValueError("controller_initial_transition_successor_drift")
-        return record[1], transition
+        return record
 
-    helper_pins = tuple(
-        (function, function.__code__, function.__defaults__, function.__kwdefaults__,
-         function.__globals__, function.__closure__,
-         tuple(cell.cell_contents for cell in (function.__closure__ or ())))
-        for function in (
-            values, require_values, prune_unlocked, read_record, replace_record,
-            validate_record, progress_fingerprint, bridge_reader, projection_reader,
-            execution_validator, execution_authority_reader, step_failure, status_reader,
-            effect_validator, canonical_sha256,
+    def require_controller_initial_transition(*, execution, store, config, runtime):
+        record = require_successor_record(
+            execution=execution, store=store, config=config, runtime=runtime, revision=1,
         )
-    )
+        return record[1], record[2]
+
+    def require_controller_lexical_transition(*, execution, store, config, runtime):
+        record = require_successor_record(
+            execution=execution, store=store, config=config, runtime=runtime, revision=2,
+        )
+        return record[1], record[2]
+
+    def execute_controller_lexical_step(*, execution, decision, store, config, runtime):
+        validate_dependencies()
+        execution_validator(execution=execution, store=store, config=config, runtime=runtime)
+        decision_validator(receipt=decision, execution=execution, store=store, config=config, runtime=runtime)
+        if (
+            execution.step_index != 1 or decision.decision_ordinal != 2
+            or decision.selected_action.kind != "retrieve_lexical"
+            or decision.selected_action.obligation_key != execution.ledger.obligation_keys[0]
+            or execution.ledger.nonterminal_action_count >= config.max_nonterminal_actions
+        ):
+            raise ValueError("controller_lexical_step_permit_required")
+        previous = require_successor_record(
+            execution=execution, store=store, config=config, runtime=runtime, revision=1,
+        )
+        dense_receipt = previous[0].projection.source_receipt
+        obligation = object.__getattribute__(lane_authority_reader(dense_receipt), "obligation")
+        obligation_validator(obligation=obligation, store=store, config=config, runtime=runtime)
+        if (
+            previous[1].action_kind != "retrieve_dense"
+            or previous[1].outcome not in {"applied", "empty", "provider_error"}
+            or obligation.obligation_key != decision.selected_action.obligation_key
+            or obligation.round_index != 1
+        ):
+            raise ValueError("controller_lexical_step_source_required")
+        claim = claim_issuer(execution=execution, decision=decision, store=store, config=config, runtime=runtime)
+        try:
+            receipt = lane_executor(obligation=obligation, lane="lexical", store=store, config=config, runtime=runtime)
+            projection = source_preparer(claim=claim, source_receipt=receipt, store=store, config=config, runtime=runtime)
+            source_binder(claim=claim, projection=projection, store=store, config=config, runtime=runtime)
+            bridge = bridge_issuer(claim=claim, projection=projection, target_context=None, store=store, config=config, runtime=runtime)
+            return advance_lane_step(bridge=bridge, store=store, config=config, runtime=runtime)
+        except BaseException:
+            try:
+                step_failure(claim=claim)
+            except (TypeError, ValueError):
+                pass
+            raise
+
+    helper_pins: tuple[tuple[object, ...], ...] | None = None
 
     def validate_dependencies() -> None:
+        pins = helper_pins
+        if type(pins) is not tuple:
+            raise ValueError("controller_initial_transition_dependencies_not_sealed")
         dependency_checker()
-        for function, code, defaults, kwdefaults, namespace, closure, contents in helper_pins:
+        for function, code, defaults, kwdefaults, namespace, closure, contents in pins:
             if (
                 function.__code__ is not code or function.__defaults__ is not defaults
                 or function.__kwdefaults__ is not kwdefaults or function.__globals__ is not namespace
@@ -19570,16 +19647,52 @@ def _build_initial_controller_transition_accessors(
             ):
                 raise ValueError("controller_initial_transition_dependency_drift")
 
-    return (advance_initial_controller_step, require_controller_initial_transition,
-            require_effect, require_transition, validate_dependencies)
+    def seal_dependencies() -> None:
+        nonlocal helper_pins
+        if helper_pins is not None:
+            raise ValueError("controller_initial_transition_dependencies_already_sealed")
+        helper_pins = tuple(
+            (function, function.__code__, function.__defaults__, function.__kwdefaults__,
+             function.__globals__, function.__closure__,
+             tuple(cell.cell_contents for cell in (function.__closure__ or ())))
+            for function in (
+                values, require_values, prune_unlocked, read_record, replace_record,
+                validate_record, progress_fingerprint, advance_initial_controller_step,
+                advance_lane_step, require_successor_record,
+                require_controller_initial_transition,
+                require_controller_lexical_transition, execute_controller_lexical_step,
+                bridge_reader, projection_reader, execution_validator,
+                execution_authority_reader, successor_issuer, effect_binder,
+                step_completer, step_failure, status_reader, effect_validator,
+                canonical_sha256, decision_validator, claim_issuer, source_preparer,
+                source_binder, bridge_issuer, lane_executor, lane_authority_reader,
+                obligation_validator,
+            )
+        )
+
+    return (
+        advance_initial_controller_step,
+        require_controller_initial_transition,
+        execute_controller_lexical_step,
+        require_controller_lexical_transition,
+        require_effect,
+        require_transition,
+        validate_dependencies,
+        advance_lane_step.__code__,
+        seal_dependencies,
+    )
 
 
 (
     _advance_initial_controller_step,
     _require_controller_initial_transition,
+    _execute_controller_lexical_step,
+    _require_controller_lexical_transition,
     _initial_controller_effect_authority_reader,
     _initial_controller_transition_authority_reader,
     _validate_controller_initial_transition_dependencies,
+    _controller_lane_successor_issuer_code,
+    _seal_controller_initial_transition_dependencies,
 ) = _build_initial_controller_transition_accessors(
     bridge_reader=_require_controller_structural_effect_bridge,
     projection_reader=_require_controller_source_outcome_projection,
@@ -19596,13 +19709,24 @@ def _build_initial_controller_transition_accessors(
     effect_token=_ACTION_EFFECTS_MODULE._ACTION_EFFECT_RECEIPT_TOKEN,
     effect_validator=_ACTION_EFFECTS_MODULE.validate_action_effect_receipt,
     canonical_sha256=_canonical_sha256,
+    decision_validator=validate_controller_decision_receipt,
+    claim_issuer=_claim_controller_step,
+    source_preparer=_prepare_controller_step_source,
+    source_binder=_source_controller_step,
+    bridge_issuer=_prepare_controller_structural_effect_bridge,
+    lane_executor=execute_retrieval_lane,
+    lane_authority_reader=_read_lane_search_receipt_authority,
+    obligation_validator=validate_retrieval_obligation,
 )
-_seal_harness_execution_successor_issuer(_advance_initial_controller_step.__code__)
+_seal_harness_execution_successor_issuer(_controller_lane_successor_issuer_code)
 _seal_controller_step_completion_authorities(
     effect_reader=_initial_controller_effect_authority_reader,
     transition_reader=_initial_controller_transition_authority_reader,
 )
+_seal_controller_initial_transition_dependencies()
 del _build_initial_controller_transition_accessors
+del _controller_lane_successor_issuer_code
+del _seal_controller_initial_transition_dependencies
 del _seal_harness_execution_successor_issuer, _seal_controller_step_completion_authorities
 
 
@@ -20353,6 +20477,8 @@ _RUNTIME_GATE_FUNCTION_PINS = tuple(
         ("_d2_controller_action_plan", _d2_controller_action_plan),
         ("_advance_initial_controller_step", _advance_initial_controller_step),
         ("_require_controller_initial_transition", _require_controller_initial_transition),
+        ("_execute_controller_lexical_step", _execute_controller_lexical_step),
+        ("_require_controller_lexical_transition", _require_controller_lexical_transition),
         ("_initial_controller_effect_authority_reader", _initial_controller_effect_authority_reader),
         ("_initial_controller_transition_authority_reader", _initial_controller_transition_authority_reader),
         ("_validate_controller_initial_transition_dependencies", _validate_controller_initial_transition_dependencies),

@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.c4.2.a",
+  "message_id": "lexical-review-1",
+  "in_reply_to": "lexical-implementation-report-1",
+  "sender": "PHILOSOPHER",
+  "kind": "REVIEW",
+  "body": {
+    "verdict": "PASS",
+    "directive_id": "lexical-directive-1",
+    "contract_id": "sha256:7633a1455a025b31982efc7a63cc8557e1da8b39f6513ae0dfa823fc60da209e",
+    "candidate_id": "sha256:2289691dfd6915cd5247479b5b0cabceeb2cb1da5f567bf137ba159fed9f989a",
+    "test_evidence_id": "sha256:218ac4d539917b103c4485bb913445d168c1867489adf7eb8a14ec906e0481ce",
+    "reviewed_message_id": "lexical-implementation-report-1",
+    "direction_score": null,
+    "direction_rubric": null,
+    "direction_rationale": "This candidate closes the approved upstream gap between an authentic ordinal-two lexical decision and an authentic revision-two execution. It reuses the established claim, lane, projection, bridge and transition machinery, including the dense receipt's exact retained obligation. Generalizing the existing bounded lane transition avoids introducing a competing execution path. This provides a necessary input for the later outcome/fusion decision slice without claiming measured retrieval quality, changing the immutable control baseline, or prematurely implementing fusion, semantic promotion or terminal issuance. The module-contract append follows the unchanged lexical contract. The established single-drift integrity boundary is appropriate; coordinated replacement of arbitrary private implementation and validation roots remains outside this review.",
+    "findings": [],
+    "requested_task_changes": [],
+    "next_batch_constraints": [
+      "This PASS applies only to the three candidate files and reviewed module-contract.md content hash d111840d3a33d1b04371a36cfd84fd0a163c0e141683d2be79c099244f1e70e1 under the bound lexical contract and evidence. Revalidate integration targets and exclude unrelated dirty changes.",
+      "Record that HEAD advanced from candidate base 34f80c5428ba41982933394df0bb12c5ac06bd94 to 892c9f0842f3183c544970d703de93d4b282b24a during review. Independently inspected commit scope is limited to four collaboration/relay skill documents; candidate product, test and contract hashes remain unchanged.",
+      "The next design may select d2.x.b using both exact source-derived lane outcomes. Preserve a dense provider error despite successful diagnostic lexical execution, and do not infer fusion eligibility from ledger counts or serialized receipt fields.",
+      "Before expanding execution to other compare obligations, address the separately deferred full sibling-obligation lifetime contract. This is not required to complete the current first-obligation slice.",
+      "Continue synthetic/offline validation and preserve baseline, corpus, frozen evaluation assets and runtime dependencies. This PASS is implementation acceptance, not authorization for real-provider execution or evidence of challenger quality superiority."
+    ],
+    "reason": "Deep read-only inspection covered both complete saved diffs, related execution/decision validators, claim installation and completion, source preparation/binding, lane dispatch, transition issuance/readback, dependency sealing, private API exposure and the relevant authority/spec/debate context. execution_contracts.py:19596 validates the exact execution, ordinal-two selected decision, budget and dense lineage before claiming and dispatching; the claim history lock rejects duplicate/concurrent consumption before the lane call. It obtains the obligation from the initial dense source authority and never reissues the compare tuple. The shared advance path at 19454 appends one action/lane and links ledger/transition revision two while preserving exact state and semantic fingerprint. Successor authority at 3077 retains immediate predecessor separately from stable root; recursive predecessor and projection validation preserves and revalidates both source chains. Failure handling consumes the claim and exposes no returned partial successor, and the existing child-lane ledger additionally prevents repeated dispatch. New entrypoints and shared dependencies are pinned after required authority seals. The 12 lexical tests meaningfully cover success/compare provenance, dense applied/empty crossed with six lexical outcomes, diagnostic error preservation, zero-dispatch rejection, revision/source GC readback, concurrency, post-dispatch registration failure, drift and private API containment. Independently recomputed hashes match all three current candidate files, both complete diff artifacts, snapshot tar, candidate ID, evidence ID, every evidence-manifest entry, the lexical contract and module-contract append. The isolated-tree candidate files also match. Inspected raw logs confirm focused 36/83.577s, adjacent 98/18.108s, isolated candidate 134/101.553s and full regression 1534/279.294s, all OK; reported failures/errors/skips are zero and commands are bound to the fixed candidate. No independent test rerun was necessary after this evidence and code review; no real RAG/API/model/private-data/clock execution or repository writes were performed. No blocking findings or unresolved questions remain for this bounded candidate.",
+    "resume_conditions": []
+  }
+}

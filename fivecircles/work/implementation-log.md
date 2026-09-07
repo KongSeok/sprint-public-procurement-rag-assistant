@@ -120,3 +120,12 @@ Per batch:
   private artifact가 없는 통합 테스트 8개만 의도대로 skip했다.
 - Safety boundary: 문항·답변·근거·provider payload·판정 사유는 `evaluation/private/**`에만 두고,
   Git에는 content-free receipt·코드·합성 테스트·운영 문서만 포함한다.
+
+## 2026-09-07 — EH2.6.c4.2.a lexical 실행·전이2
+
+- Intent: ordinal2 결정에서 같은 exact dense obligation의 lexical 실행을 연결한다.
+- Change: private lexical executor/readback, shared bounded transition, stable root와 immediate predecessor 분리.
+- Repair: 미완성 factory wiring8개를 연결하고 authority seal 이후 dependency pin을 고정했다.
+- Verified: lexical12·집중36·관련98·격리134·전체1534 PASS, fresh Astra APPROVE.
+- Boundary: state/semantic fingerprint는 그대로이며 fusion/terminal/public Controller는 후속이다. 실모델/API 실행0.
+- Next: 검수 제약을 적용한 d2.x.b. 증거와 통합 영수증은 work/collaboration/eh-relay-20260907/ 참조.

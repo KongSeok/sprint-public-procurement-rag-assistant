@@ -1,5 +1,21 @@
 # Cycle20 — c4.2.a lexical 실행과 두 번째 전이
 
+## 2026-09-07 재개 / 협업 결속
+
+- run_id=`eh-relay-20260907`, batch_id=`EH2.6.c4.2.a`, mode=`philosopher-coder`.
+- 실제 root/branch 확인: MidProjectRAG / `feat/total-integration`, 재개 HEAD=`34f80c5`.
+- Design=`lexical_design` / gpt-6-astra / effort override 없음. Coder·fresh Critic은 실제 dispatch 후 기록한다.
+- 기존 implementation 초안과 테스트를 보존하고 이어받는다. 별도 visual/metadata/평가 변경은 이번 소유 범위가 아니다.
+- 시작 fingerprint는 기존 code와 다르므로 이전1522 PASS를 재사용하지 않는다. 현재 계약·흐름을 재감사한다.
+- 재개 집중검사: import 단계 TypeError(새 factory 의존성8개 미연결), exit1. 테스트 성공 건수 없음.
+- evidence=`/private/tmp/eh-relay-20260907.GNy8vE/baseline-focused.log`; 시작 소유파일 snapshot도 같은 디렉터리에 보존.
+- 원샷딜 순서: Design DIRECTIVE → Sol Ultra 구현/검증 → fresh Astra 검수 → 보고·로그올 → 선택 commit/push → 다음 Design.
+- 재개 당시 단계 DESIGN. c4.2.a 검증·통합 완료 전 후속 d2.x.b를 구현하지 않는다. 모델/API/실데이터 호출은 하지 않는다.
+- 11:46 KST: `lexical-directive-1` 검증/보관 뒤 `/root/lexical_coder`(gpt-5.6-sol, ultra, fork 없음)에 실제 WORK 전달.
+  계약 sha=`7633a1455a025b31982efc7a63cc8557e1da8b39f6513ae0dfa823fc60da209e`. 수정 소유는 product1/test2 파일뿐이다.
+  시작 비교 점수8, 기존 flow의 NEXT→lexical 실행/revision2 연결. opening DIRECTIVE이며 후보 PASS가 아니다.
+- 통합·보고·릴레이 결과는 수행 후 기록한다. 이전 아래 폼의 이력은 삭제하지 않는다.
+
 ## 0. Scope Intake
 
 - 사용자 릴레이 계속. actual root·feat/total-integration 유지, 시작853c7ee. resources/기존 dirty 보존.
@@ -26,17 +42,17 @@
 
 - one-go + batch-sequential-runner. execution_contracts/module-contract와 독립 tests를 분리 작성한다.
 - 신규 private lexical executor와 bounded lane transition/readback. baseline/public start-step-run API 확대 없음.
-- 상태: IN_PROGRESS.
+- 상태: COMPLETED.
 
 ## 5. Validation + Report
 
 - test-runner+mermaid-flow-report. dense1/lexical1, preflight0, success/empty/provider/contract, diagnostic 보존, budget 차단.
 - revision0/1/2 동시 유효, 두 source GC/clone/mixed/drift, 중간 실패와 동시 once; focused→인접→전체.
-- current/target PNG·HTML·Chrome desktop/mobile·safety·staged-only 검증. 상태: TODO.
+- current/target PNG·HTML·Chrome desktop/mobile QA PASS. 집중36·관련98·격리134·전체1534 PASS; 최종 safety/선택 통합 확인.
 
 ## 6. Repair Loop
 
-- 고정 HEAD RED와 코드/리뷰 결과를 구분하고 영향만 재검증한다. 상태: TODO.
+- 재개 미완성 초안 RED와 고정 HEAD24 PASS를 구분했다. wiring·pin 순서 수리 후 전체1534 PASS, fresh Critic PASS. 상태: COMPLETED.
 
 ## 7. Push / Publication
 
@@ -53,4 +69,19 @@
 
 ## 10. Final Ledger
 
-- Intake/Selection/Doc=COMPLETED; Implementation=IN_PROGRESS; Validation/Repair/Push/Report/Relay=TODO.
+- Intake/Selection/Doc/Implementation/Repair=COMPLETED. Validation=자동/독립 검수 PASS; Push=선택 통합 대기; Report=closeout 기록; Relay=통합 후 Design 대기.
+
+## 2026-09-07 closeout / 로그올 (통합 전)
+
+- run_id=eh-relay-20260907 / batch_id=EH2.6.c4.2.a. 제품 후보 입력이 아닌 마감 기록이다.
+- fresh Critic=/root/lexical_critic_1, gpt-6-astra, effort override 없음. lexical-review-1 PASS, 메인이 JSON/모든 결속 ID/필수 증거 확인.
+- 위험 관문: authority·평가 무결성 관련 경계와 배치 마감이므로 점수와 무관한 deep 검수. 별도 스킬-only HEAD892c9f0도 확인했다.
+- 제품 후보=sha256:2289691dfd6915cd5247479b5b0cabceeb2cb1da5f567bf137ba159fed9f989a; 계약=sha256:7633a1455a025b31982efc7a63cc8557e1da8b39f6513ae0dfa823fc60da209e; 테스트=sha256:218ac4d539917b103c4485bb913445d168c1867489adf7eb8a14ec906e0481ce.
+- 집중36(83.577초)·관련98(18.108초)·격리134(101.553초)·전체1534(279.294초) PASS, 전체 실패/오류/skip0.
+- 보고: evidence-harness-progress-flow-validation.md/html, current PNG 재생성; desktop/mobile QA PASS. 변경 없는 target PNG 재사용.
+- 로그올: update/worklog/implementation-log, 오류 RESOLVED+learn-from-log, TODO 및 human review/debate 반영. scoring 제외.
+- 통합: 아직 미실행. 같은 후보만 선택 stage/commit/push; resources·기존 별도 dirty 제외. 실제 결과는 collaboration/eh-relay-20260907/integration-EH2.6.c4.2.a.json에 사후 기록한다.
+- 다음 Design: d2.x.b 점수7. 정확한 두 source outcome을 사용하고 dense error 진단을 보존한다. compare sibling 확대 전 수명 계약 확인.
+- Flow diagram verification: GAP/PARTIAL. c4.2.a 연결은 완료, 후속 reducer/controller/terminal/생성 E2E 및 실제 골든셋 비교는 미완료.
+- 최종 문서 gate: safety988 PASS, scoped diff --check PASS, Chrome1440×1000/390×844에서 images2·tables8·page errors0·external requests0 PASS.
+- 통합 전 확인: HEAD892c9f0과 origin/feat/total-integration 동기(0/0), index 비어 있음. 최종 후보 code/contract5개 hash 유지.

@@ -1,0 +1,155 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.c4.2.a",
+  "message_id": "lexical-directive-1",
+  "in_reply_to": null,
+  "sender": "PHILOSOPHER",
+  "kind": "DIRECTIVE",
+  "body": {
+    "mode": "DESIGN",
+    "contract_id": "sha256:7633a1455a025b31982efc7a63cc8557e1da8b39f6513ae0dfa823fc60da209e",
+    "objective": "Complete the existing private revision1 ordinal2 lexical execution slice: consume the selected permit once, reuse the exact initial dense receipt's obligation, execute one lexical lane, and issue a fully authenticated revision2 successor with both transitions and source receipts preserved.",
+    "direction_assessment": {
+      "target": "Connect the current flow's NEXT node to lexical dispatch/effect/ledger revision2 as the next bounded step toward the Evidence-Harness challenger. Preserve the immutable local baseline and the distinction between implementation correctness and measured quality.",
+      "current": "The committed d2.x.a slice selects ordinal2 lexical or abstain. Existing unfinished edits attempt lexical dispatch and revision2, but module initialization is broken and authority wiring and acceptance tests remain incomplete. Cycle20 is implementation IN_PROGRESS.",
+      "gap": "The selected lexical action cannot currently execute through a complete, validated authority chain. Revision2 reader/export wiring, successor caller sealing, dependency pins, and concurrency/failure/provenance evidence require completion.",
+      "selection_reason": "This is the user-approved active batch and highest safe executable upstream gap. d2.x.b depends on an authentic revision2 successor; starting fusion eligibility now would broaden this batch.",
+      "score": {
+        "upstream_weight": 3,
+        "connection_value": 3,
+        "safety_value": 2,
+        "validation_value": 1,
+        "risk_penalty": -1,
+        "connection_score": 8,
+        "basis": "Cycle20 selection and evidence-harness-progress flow: NEXT -> lexical dispatch/revision2 -> later eligibility/reducer. This is task-selection scoring, not implementation approval or quality scoring."
+      }
+    },
+    "selected_task_ref": {
+      "path": "fivecircles/architecture/todolist.md",
+      "task_id": "EH2.6.c4.2.a",
+      "line": 328,
+      "form": "fivecircles/work/2026-09-06-controller-lexical-transition-relay.md",
+      "subtasks": [
+        "Exact preserved obligation and one lexical dispatch",
+        "Live effect, ledger revision2, transition2 and successor",
+        "Provenance, errors, concurrency, lifetime and regression verification"
+      ]
+    },
+    "scope": {
+      "repository": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
+      "branch": "feat/total-integration",
+      "allowed_files": [
+        "src/midprojectrag/orchestration/execution_contracts.py",
+        "tests/test_controller_lexical_transition.py",
+        "tests/test_controller_initial_transition.py"
+      ],
+      "ownership": "All three files already contain unfinished work. Adopt only their existing lexical-transition changes as this batch's starting candidate, preserving the main's saved baseline snapshot. The initial-transition fixture's lexical_mode extension is part of this scope. Preserve every unrelated tracked and untracked change. Main exclusively owns contracts, TODO, operating records, collaboration state, reports, selective integration and receipts.",
+      "prohibited_actions": [
+        "Do not edit files outside allowed_files without a complete updated DIRECTIVE.",
+        "Do not change requirements, contracts, policy semantics, baseline, index, corpus, frozen golden, qrels, evaluation configuration or runtime dependencies.",
+        "Do not add public start/step/run APIs, terminal HarnessRunResult issuance, third decisions, fusion eligibility/execution, semantic reducers, later compare obligations, follow-up execution or deadline measurement.",
+        "Do not call real providers, models, API services, Langfuse or runtime clocks; use synthetic lanes and never-call clock/verifier/reranker fixtures.",
+        "Do not read or reproduce private corpus, credentials or evaluation data.",
+        "Do not stage, commit, push, reset, stash, delete others' files, update collaboration state or start another relay/subagent."
+      ]
+    },
+    "existing_findings": [
+      {
+        "id": "LEX-1",
+        "evidence": "execution_contracts.py:19333 factory signature adds eight required dependencies, but its call at approximately 19667 omits them. Main reproduced import TypeError before tests could collect.",
+        "action": "Complete the bounded dependency injection and restore module import before behavioral validation. Treat this as existing broken implementation, not a newly observed behavioral TDD RED."
+      },
+      {
+        "id": "LEX-2",
+        "evidence": "The factory return/destructuring still exposes only the original five functions. execute_controller_lexical_step and require_controller_lexical_transition remain unbound while validate_harness_execution references the latter.",
+        "action": "Bind both requested private entrypoints and include their relevant dependency identities in the existing authority validation machinery."
+      },
+      {
+        "id": "LEX-3",
+        "evidence": "The successor issuer call moved into advance_lane_step, while _seal_harness_execution_successor_issuer still receives _advance_initial_controller_step.__code__.",
+        "action": "Align the sealed caller with the actual authorized mint path without weakening exact code/module-global caller checks or exposing a general successor issuer."
+      },
+      {
+        "id": "LEX-4",
+        "evidence": "New dependency parameters and shared advance/read helpers are absent from the existing helper_pins list. Existing initial-transition/runtime validation depends on identity pinning.",
+        "action": "Audit the new dependency and reader path for the existing single-drift fail-closed contract. Preserve the established threat-model boundary; do not expand into arbitrary coordinated code modification defenses."
+      },
+      {
+        "id": "LEX-5",
+        "evidence": "The existing lexical test file has five tests, covering basic success/compare/outcomes/diagnostic/budget but not the contract's duplicate/concurrent, intermediate failure, invalid input, multi-revision lifetime or source drift cases.",
+        "action": "Add the missing meaningful acceptance coverage using synthetic fixtures."
+      }
+    ],
+    "acceptance_criteria": [
+      "Module import and the original revision0/revision1 behavior remain valid. The initial reader accepts only revision1; the lexical reader accepts only revision2; both are private.",
+      "Exact revision1 fact/compare execution plus its exact ordinal2 selected lexical decision execute the first obligation at round1 once. Dense and lexical query/scope provenance agree through the preserved obligation. The compare obligation tuple is not reissued.",
+      "Cloned or mixed execution/decision/config/store/runtime, wrong permit, contract-error abstain and exhausted action budget are rejected before any lexical dispatch.",
+      "Revision2 preserves exact semantic state and stable initial execution identity. Ledger revision2 links revision1 and appends exactly one lexical action/lane consumption; count is 2, round stays 1 and no-progress state is unchanged.",
+      "Transition2 links the exact transition1 hash and seals before/after ledger, state, decision, effect and unchanged semantic fingerprint. The lexical effect preserves actual source-derived outcome, call_performed and ordered evidence.",
+      "Revision0, revision1 and revision2 remain independently valid while the successor graph is live. The stable root and immediate predecessor are distinct authority references, and both source receipts survive required GC/readback and are revalidated.",
+      "Exercise dense applied and empty followed by lexical applied/empty/provider_error/contract_error, including pre-call and post-call contract outcomes. Dense provider_error followed by successful diagnostic lexical retains the dense error and grants no fusion or semantic promotion.",
+      "Duplicate and barrier-concurrent execution produce at most one lexical dispatch and one authentic successor. Failure after dispatch consumes the claim as failed, returns no partial successor and does not enable retry.",
+      "Source/effect/transition/ledger drift and non-authorizing serialized representations fail closed. Existing synthetic runtime checks demonstrate no model/API/clock calls.",
+      "Required tests pass on the fixed candidate with recorded actual exit codes and counts. Candidate files and contract hash are frozen for fresh Critic review; REVIEW_READY is not PASS."
+    ],
+    "required_tests": [
+      {
+        "purpose": "Restore import; reproduce and then resolve the inherited collection blocker.",
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -c 'import midprojectrag.orchestration.execution_contracts'",
+        "existing_evidence": "/private/tmp/eh-relay-20260907.GNy8vE/baseline-focused.log"
+      },
+      {
+        "purpose": "Focused new lexical acceptance and prior initial/next-decision compatibility.",
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest tests.test_controller_lexical_transition tests.test_controller_initial_transition tests.test_controller_next_decision",
+        "expected": "All collected tests pass; invalid preflight cases have lexical call count zero."
+      },
+      {
+        "purpose": "Adjacent shared controller authority and execution regression.",
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest tests.test_execution_contracts tests.test_controller_decision_receipt tests.test_controller_source_authority tests.test_controller_source_outcome_resolver tests.test_controller_step_history tests.test_controller_target_context_accumulator tests.test_controller_structural_effect_bridge",
+        "expected": "All collected tests pass with no weakening of existing assertions."
+      },
+      {
+        "purpose": "Required shared-authority full regression on the same final candidate.",
+        "command": "PATH=\"$PWD/.venv/bin:$PATH\" PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest discover -s tests -t . -p 'test*.py'",
+        "expected": "Record actual count, failures/errors/skips and process exit. Preflight test-runner policies and synthetic/offline boundaries; report any blocked or unrelated failure honestly. Main may execute this gate after the focused handoff, but fresh PASS/integration requires its evidence."
+      },
+      {
+        "purpose": "Whitespace/error-marker check for the owned patch.",
+        "command": "git diff --check -- src/midprojectrag/orchestration/execution_contracts.py tests/test_controller_initial_transition.py",
+        "expected": "Exit 0; inspect the untracked lexical test separately in the candidate snapshot."
+      }
+    ],
+    "constraints": [
+      ".venv/bin/python3 was confirmed as Python 3.12.14. Run from the explicit repository root, never system Python.",
+      "Read applicable one-go, batch-sequential-runner, test-runner and relevant learn-from-log guidance before implementation/testing; main handles operating-record obligations.",
+      "The main's saved start-owned-files.tar and start-code.diff under /private/tmp/eh-relay-20260907.GNy8vE identify the inherited edit baseline. Recheck current hashes/status before editing to detect overlap.",
+      "Use the existing claim -> child source execution -> prepare projection -> source bind -> bridge -> transition epoch/identity protocol. The contract's phrase 'claim→prepare source→source→bridge' does not authorize preparing a projection before a source receipt exists.",
+      "Strong retention of the current obligation and predecessor/source graph is in scope. Keeping or reminting the full compare sibling obligation tuple is explicitly deferred.",
+      "Do not interpret historical counts 91 or 1522 as fixed required test totals. Use actual collection and preserve behavioral gates; the inherited import error can hide tests.",
+      "Authority changes require fresh deep Critic review under the collaboration skill. Main supplies candidate hashes, full diff, evidence, closeout flow/report, repository safety and selective staged-candidate validation.",
+      "If finishing requires another product/test file, changing the contract, weakening an existing boundary or acquiring external authority, return QUESTION with evidence and pause that dependent work. Do not silently broaden scope.",
+      "Return an IMPLEMENTATION_REPORT bound to lexical-directive-1 and the exact contract_id, with actual changed files, candidate hashes/ID, test commands/results/artifact references, deviations and unresolved questions. Stop candidate edits at REVIEW_READY."
+    ],
+    "source_refs": [
+      "fivecircles/agent/authority.md",
+      "fivecircles/requirements/current.md#11-기준선의-목적과-아키텍처-선택-원칙",
+      "fivecircles/requirements/decisions.md#d-024",
+      "fivecircles/architecture/specs/bidfit-evidence-harness-v1-rc0.md#1610",
+      "fivecircles/architecture/specs/controller-lexical-transition.md",
+      "fivecircles/architecture/specs/controller-next-decision.md",
+      "fivecircles/architecture/specs/controller-initial-transition.md",
+      "fivecircles/architecture/todolist.md:328",
+      "fivecircles/architecture/specs/evidence-harness-progress-flow-validation.md",
+      "fivecircles/architecture/specs/evidence-harness-progress-current-flow.mmd",
+      "fivecircles/architecture/specs/evidence-harness-progress-target-flow.mmd",
+      "fivecircles/work/2026-09-06-controller-lexical-transition-relay.md",
+      "fivecircles/agent/skills/collaboration/SKILL.md",
+      "fivecircles/agent/skills/collaboration/references/messages.md",
+      "fivecircles/agent/skills/collaboration/references/relay-cycle.md",
+      "fivecircles/agent/skills/doc-contract-writer/SKILL.md",
+      "fivecircles/test/testpolicy.md"
+    ],
+    "resolution": null
+  }
+}

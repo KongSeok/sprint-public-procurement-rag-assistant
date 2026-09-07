@@ -426,6 +426,17 @@ issuance consumes a failed claim and exposes no partial result. Public structura
 non-authorizing. This initial boundary makes no additional provider/model/clock call and does not enable a
 second decision, state-changing reducer, follow-up, terminal control, or non-lane context actions; those remain
 d2.x/c4.2 responsibilities. See `controller-initial-transition.md` for the focused acceptance contract.
+C4.2.a extends the private lane path only: `_execute_controller_lexical_step(execution, decision, store,
+config, runtime)` consumes the exact revision-one execution's ordinal-two selected lexical permit and reuses
+the first dense source receipt's exact obligation without reissuing the compare tuple. It dispatches the
+same obligation's round-one lexical lane once, preserves its source-derived effect, and appends ledger/transition
+revision two while leaving semantic state and no-progress streaks unchanged. The stable initial root and
+immediate predecessor remain distinct, and both source lineages are retained and revalidated. Initial readback
+stays revision-one-only; `_require_controller_lexical_transition` is revision-two-only. A diagnostic lexical
+success does not erase a dense provider error or authorize fusion. Preflight rejection dispatches nothing;
+post-dispatch failure consumes the claim without a retry or partial successor. Third decisions, fusion,
+semantic reducers, public start/step/run and model/clock calls remain outside this slice. This boundary follows
+`controller-lexical-transition.md`; its implementation acceptance is recorded separately in the Cycle20 ledger.
 An E1 compare seed must be all-unsearched; already hybrid-searched EH2.4 coverage cannot be
 relabeled as independent lane execution. Once all approved retrieval paths close with no
 candidates, controller-only `verify_slot` performs a zero-provider exhaustion check that may
