@@ -30,3 +30,10 @@
 - Evidence: 집중25·관련202·격리227·전체1611 PASS; 후보cc5e19ca·계약1b92dbdf·증거8142e1f1.
 - Decision: 실제 fusion→effect→state→전이3 연결. verified/confirmed absence 아님; 부모 Controller/E2E PARTIAL.
 - Review: fivecircles/work/review/review-controller-first-fusion-state-2026-09-07.md. 다음 ordinal4 자격은 별도 Design·계약으로 선정한다.
+
+## 2026-09-07 — EH2.6.d2.x.b.2 fusion 이후 행동 선택
+
+- Status: APPROVE / fresh Astra post-fusion-review-1.
+- Evidence: 집중11·관련205·격리216 PASS. 원래 전체1657은 CSV 동결 해시 오류1로 FAIL; 동결 사본 analytics5 재검증 PASS 및 fresh deep의 증거 결합 승인.
+- Decision: 선택까지 연결; 실제 context/semantic/terminal은 별도.
+- Review: fivecircles/work/review/review-controller-post-fusion-decision-2026-09-07.md.

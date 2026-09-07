@@ -1,0 +1,117 @@
+{
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.c4.2.b.2",
+  "phase": "CLOSED",
+  "lifecycle_substage": "reentry",
+  "roles": {
+    "design": {
+      "agent_id": "/root/lexical_design",
+      "model": "gpt-6-astra",
+      "effort": "inherited; no override"
+    },
+    "coder": {
+      "agent_id": "/root/lexical_coder",
+      "model": "gpt-5.6-sol",
+      "effort": "ultra"
+    },
+    "critic": {
+      "agent_id": "/root/first_fuse_state_critic_1",
+      "model": "gpt-6-astra",
+      "effort": "inherited; no override"
+    }
+  },
+  "active_directive_id": "first-fuse-state-directive-1",
+  "candidate_id": "sha256:cc5e19ca5b6a7ab1cc40fe5b62734df3e4a50a760a8274ea7590c1db53058e87",
+  "contract_id": "sha256:1b92dbdf8d116e3812a1e27181e431a9aef39f6e0c70996a70e59dadd3a4c3e8",
+  "test_evidence_id": "sha256:8142e1f1b406947e18d5a650d61229c0576adcad07674018b79949b8fdb45d28",
+  "review_message_id": "first-fuse-state-review-1",
+  "waiting_for": null,
+  "last_pass_candidate_id": "sha256:cc5e19ca5b6a7ab1cc40fe5b62734df3e4a50a760a8274ea7590c1db53058e87",
+  "resume_point": "Current batch integrated; next target/current Design dispatched",
+  "closeout_ref": "../../2026-09-07-controller-fusion-state-relay.md",
+  "integration_receipt_ref": "integration-EH2.6.c4.2.b.2.json",
+  "report_fingerprint": {
+    "candidate_id": "sha256:cc5e19ca5b6a7ab1cc40fe5b62734df3e4a50a760a8274ea7590c1db53058e87",
+    "contract_id": "sha256:1b92dbdf8d116e3812a1e27181e431a9aef39f6e0c70996a70e59dadd3a4c3e8",
+    "test_evidence_id": "sha256:8142e1f1b406947e18d5a650d61229c0576adcad07674018b79949b8fdb45d28",
+    "full_run_files_ref": "batches/EH2.6.c4.2.b.2/full-result.json"
+  },
+  "continuation": "CONTINUE_WITH_NEXT_FORM",
+  "previous_batch": {
+    "batch_id": "EH2.6.c4.2.b.1",
+    "commit_sha": "a37562a774ea72281950102416c0b71f3a00e6fa",
+    "receipt_ref": "integration-EH2.6.c4.2.b.1.json",
+    "closed_state_ref": "closed-EH2.6.c4.2.b.1.json"
+  },
+  "optional_coordination_notice": {
+    "status": "BLOCKED_PERMISSION",
+    "message_sent": false,
+    "reason": "Last cross-task commit/time notice rejected by auto-review for destination/data authorization; user clarification requested asynchronously. Earlier full-test completion notice was sent successfully.",
+    "effect_on_local_work": "none",
+    "retry": "do not retry without user approval or verified authority",
+    "additional_notice": {
+      "destination_thread_id": "01a07a34-4d6d-7a82-b355-822b0c8e941d",
+      "status": "BLOCKED_PERMISSION",
+      "message_sent": false,
+      "reason": "Auto-review rejected policy/GCP summary transfer because destination sharing authority was not confirmed; user approval asked in commentary. No retry.",
+      "effect_on_local_work": "none; independent Controller implementation and required validation continue"
+    }
+  },
+  "gcp_coordination": {
+    "user_authorization": "Assign migration to existing measurement task; continue Controller development here",
+    "request_delivered": true,
+    "recipient_acknowledgement": true,
+    "vm_actions_in_this_task": false,
+    "status": "Measurement owner reports old CPU partial run preserved/stopped, device-derived snapshot prepared and CUDA environment available; asset transfer/model CUDA smoke/full receipt not yet confirmed complete. No VM or model actions in this Controller task.",
+    "execution_source_ref": "../../2026-09-07-mini131-retrieval-comparison.md",
+    "report_origin": "separate measurement task, not independently reproduced here"
+  },
+  "dispatch": {
+    "directive_id": "first-fuse-state-directive-1",
+    "delivered": true,
+    "accepted": true,
+    "recorded_at": "2026-09-07T06:34:17Z"
+  },
+  "validation_checkpoint": {
+    "focused": {
+      "tests": 25,
+      "seconds": 779.422,
+      "exit_code": 0,
+      "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-state-focused-1.log",
+      "source": "native redirected output, process exit reported by Coder; no separately persisted start manifest"
+    },
+    "adjacent": {
+      "tests": 202,
+      "seconds": 230.049,
+      "exit_code": 0,
+      "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-state-adjacent-1.log",
+      "source": "native redirected output and start/end owned manifests, process exit reported by Coder"
+    },
+    "candidate_ref": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-state-candidate.json",
+    "full_started_at": "2026-09-07T07:44:12.265Z",
+    "isolated_started_at": "2026-09-07T07:44:15.209Z",
+    "final_result": "PASS; fresh independent product review and bounded publication review recorded"
+  },
+  "candidate_ref": "batches/EH2.6.c4.2.b.2/candidate.json",
+  "review_dispatch": {
+    "delivered": true,
+    "recorded_at": "2026-09-07T08:14:54.028Z",
+    "candidate_frozen": true
+  },
+  "publication_gate": {
+    "automated_status": "FAIL",
+    "exit_code": 1,
+    "diagnostic_ref": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-state-publication-audit.json",
+    "supplemental_directive_ref": "messages/EH2.6.c4.2.b.2/004-first-fuse-state-publication-directive-1.json",
+    "review_message_id": "first-fuse-state-publication-review-1",
+    "reviewer": {
+      "agent_id": "/root/first_fuse_state_publication_critic",
+      "model": "gpt-6-astra",
+      "effort": "inherited; no override"
+    },
+    "status": "CLEARED_BY_SPECIFIC_POLICY_REVIEW",
+    "final_selected_payload_scan_required": false,
+    "final_index_reconciliation": "COMPLETED",
+    "final_selected_payload_count": 40
+  }
+}

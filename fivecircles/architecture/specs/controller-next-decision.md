@@ -101,3 +101,91 @@ lexical은 새 obligations를 발급하지 않고 exact dense receipt가 보존�
   실제 provider/API/Langfuse/VLM/gold 실행과 품질 개선 주장은 없다.
 - 다음 후보는 첫 obligation의 선택된 fuse 실행 수직 단위이며 별도 설계가 필요하다.
   다른 compare obligation 실행 전에 full sibling-obligation lifetime 계약을 별도로 해결한다.
+
+## EH2.6.d2.x.b.2 — First post-fusion ordinal4 decision (2026-09-07)
+
+### Goal, supersession and inputs
+
+Extend the existing decide_controller_action(execution, store, config, runtime) only to the exact
+revision3 fact/compare first-obligation successor issued under c4.2.b.2. Earlier revision0/1/2
+behavior and public signatures remain unchanged. The prior next-decision sections and first-fusion
+contract's ordinal4 exclusion describe historical slices; this amendment selects ordinal4 decision
+only, not the execution of the selected action. Historical receipts and PASS records are unchanged.
+
+Require live execution/state validation and the exact first-fusion transition reader, then recover
+its retained revision2 lexical and revision1 dense predecessors and original source owner. Require
+the same stable root, first obligation, round1, store/config/runtime, query/scope and exact three-source
+chain. Reuse existing authority/readback helpers; caller hashes, ledger counts, structural DTOs and
+EH2.5 preview actions are not mint authority. Do not remint any retrieval or semantic obligation.
+
+The current first entry must exactly match the authenticated fusion effect: applied means candidate
+with the identical ordered nonempty candidate IDs; empty means provisional_missing with no candidates.
+Verified IDs remain empty. Preserve untouched sibling identities, effect provenance, open progress,
+coverage0.0, in_progress and false terminal gates. Require ledger3/count3, exact three consumed action
+hashes, the original two consumed lanes, round1 and zero no-progress/unavailable history. Reject
+unsupported, cloned, mixed, inconsistent or drifted histories before applying budget or normal reasons.
+No dense-error/diagnostic lexical graph can become a valid revision3 input.
+
+### Closed decision matrix
+
+| Validated condition, in order | allowed_actions, selected first | reason_code |
+| --- | --- | --- |
+| count3 >= max_nonterminal_actions | untargeted abstain only | action_budget_exhausted |
+| applied fusion and exact candidate entry | expand_parent(first obligation, first bounded seed), untargeted abstain | first_eligible_nonterminal |
+| empty fusion and exact provisional_missing entry | verify_slot(first obligation, no evidence target), untargeted abstain | first_eligible_nonterminal |
+
+For applied fusion, derive context quota from the exact retained owner plan and execution config:
+min(max_context_targets_per_obligation, owner final_evidence_budget, owner rerank_k, candidate_count).
+Use the existing owner budget semantics and require their positive bounded values. The bounded seed
+prefix is sorted(candidate IDs)[:quota], matching _context_seed_evidence_ids; select only its first
+ID. Sorting determines a context target, never changes the fusion/state candidate order. Derive this
+read-only from authenticated source ownership without issuing a SemanticVerificationObligation or
+context receipt. Reuse available pure owner-budget logic; do not introduce a parallel framework.
+Parent context is a store-backed prerequisite, not semantic support and not a model capability claim.
+
+For empty fusion, verify_slot is solely the existing zero-provider bounded exhaustion-check intent
+from technical section16.10. It does not issue an absence receipt, invoke a verifier, establish global
+absence, or change provisional_missing. max_retrieval_rounds_per_obligation remains pinned to 1;
+a value of 2 is rejected before dispatch, and this v1 slice does not retry. Missing semantic-verifier
+capability must not turn an
+empty result into confirmed absence, nor trigger provider work during decision issuance.
+
+No other target/action is exposed: no later parent seed, table/figure bridge, rerank, nonempty semantic
+verify, later compare obligation, repeated lane/fuse, stop, follow-up, deadline or general terminal
+matrix. These require subsequent exact dispatch/state contracts. Do not use actions.py EH2.5 preview
+to add unconditional rerank/verify actions.
+
+### Sealing and zero-side-effect behavior
+
+Seal ordinal4, current derived state/ledger/snapshot and exact transition3 SHA through the existing
+ControllerDecisionReceipt/action authority. Extend the existing closed payload reason-shape validator
+and live reason/action rederivation for revision3. action_budget_exhausted gains revision3 only;
+contract_error/provider_error/dense diagnostic retain their earlier revision restrictions.
+Revise the existing policy hash payload explicitly for revision0/1/2/3 and this matrix. New-process
+action/decision hashes may change; configuration/baseline/evaluation hashes and historical evidence
+do not. Preserve action identity within the process and every earlier decision's validity.
+
+Repeat/barrier-concurrent calls yield the same live decision object. GC does not permit remint while
+the snapshot remains live. Keep existing identity mirrors, dependency pins and drift rejection.
+Decision issuance/readback performs no provider, model, clock, retrieval, fusion, context, rerank,
+verifier or absence execution; no source/semantic/context receipt mint, claim consumption, state,
+ledger, no-progress, transition or capability-unavailable mutation. Existing source/predecessor
+readback remains non-dispatching. The ordinal4 permit is not an implemented fourth executor.
+
+### Acceptance and handoff
+
+Test real synthetic dense -> lexical -> fusion/state -> ordinal4 for fact and compare, all four
+applied/empty pairs and lexical rescue. Check budgets3/4, authentic round1 and rejection of round cap2
+before any dispatch, unavailable verifier
+without fabricated capability results, exact first seed under owner/config bounds, retained fusion
+candidate order and untouched siblings. Verify repeated/concurrent identity, GC tombstone, earlier
+decisions/source lifetime, and clone/mixed/state/effect/source/owner-budget/ledger/transition/reason/
+target/dependency drift rejection, including zero additional work and no partial decision on failure.
+Replace only obsolete ordinal4-unsupported assertions; keep unsupported later revisions rejected.
+
+Coder runs focused and affected adjacent synthetic tests; main gathers one final frozen-candidate
+isolated and full regression at the integration boundary. Require fresh deep review of decision,
+state/source ownership and downstream permit/readback boundaries. Reuse prior report sections only
+where fingerprint identity holds and explicitly show this contract delta. Keep Controller/E2E and
+parent c4.2.b/d2.x.b PARTIAL. No production performance claim, profiling, external execution,
+DIAG131/data/gold/config/dependency change or publication-scanner exception is authorized.

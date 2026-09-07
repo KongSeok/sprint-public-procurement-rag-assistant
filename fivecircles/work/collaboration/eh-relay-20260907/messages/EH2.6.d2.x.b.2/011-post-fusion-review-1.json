@@ -1,0 +1,65 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.d2.x.b.2",
+  "message_id": "post-fusion-review-1",
+  "in_reply_to": "post-fusion-implementation-report-1",
+  "sender": "PHILOSOPHER",
+  "kind": "REVIEW",
+  "body": {
+    "verdict": "PASS",
+    "directive_id": "post-fusion-directive-5",
+    "contract_id": "sha256:6d80a97e9261b359ad3d80fa05f986f19340c9b905b737c5714183511ba512a4",
+    "candidate_id": "sha256:8d3172b1ec96ce2d11a1892d41cd2a8d3dddc9aa83dc6c050df72b0f401fba24",
+    "test_evidence_id": "sha256:eaf054ab203e73671d84ba9f9b035bbcaf45027f12bb6c8c21a7e331c8366771",
+    "reviewed_message_id": "post-fusion-implementation-report-1",
+    "direction_score": null,
+    "direction_rubric": null,
+    "direction_rationale": "Deep review accepts the bounded product and explicitly accepts the v5 evidence composition with its limited runtime reconciliation. The implementation closes the real revision3-to-ordinal4 decision gap using retained source authority and existing decision machinery. It does not establish fourth-action execution, whole Controller completion or measured RAG improvement; a numerical direction score would add no evidence.",
+    "findings": [
+      {
+        "id": "PF-1",
+        "category": "missing_test",
+        "severity": "informational",
+        "evidence": "The native full invocation remains FAIL/exit1: 1657 tests, one frozen CSV binding error before analytics calculation, zero failures and skips. The inspected unchanged resolver assigns only corpus_analytics_baseline.CSV_PATH, retains hash/config/assertion checks and restores the locator in finally. Recovery2 records exactly the five existing module tests, three ordered events, exit0, zero errors/failures/skips and no postflight issues. The other four analytics tests use synthetic values or temporary files. All 41 evidence-manifest hashes verified.",
+        "action": "Accept COMPOSED_VALIDATION_PASS for this exact candidate and evidence only. Effective unique coverage is 1657, with four overlapping successes; never report 1662, a successful single native full invocation or a repaired canonical input."
+      },
+      {
+        "id": "PF-2",
+        "category": "missing_test",
+        "severity": "informational",
+        "evidence": "Historical main metadata-probe PYTHONPATH remains UNKNOWN. The inspected original launcher explicitly sets PYTHONPATH=src for the actual test child. Recorded current dual probes reproduce the respective 95/96 observations, identify only the same-version project egg-info duplicate and preserve exact third-party tuples and multiplicities. Current product and isolated source origins are correctly bound. Candidate/reference snapshots and listed full inputs are unchanged. These observations do not reconstruct historical imports, the inherited environment, dependency-file bytes, private filesystem inventory or a historical per-test ID list.",
+        "action": "Accept this bounded runtime reconciliation for the localized recovery: the failed test's unchanged readers/calculators use the same source functions and the exact configured frozen inputs, while isolated evidence excludes unrelated dirty product dependencies. Carry every historical limitation forward; do not generalize this acceptance to changed environments, dependencies, inputs or later candidates."
+      },
+      {
+        "id": "PF-3",
+        "category": "architecture",
+        "severity": "informational",
+        "evidence": "The accepted branch authenticates retained fusion, lexical, dense, original owner, derived state and ledger before applying budget priority. Budget3 selects abstain; applied fusion selects the first sorted bounded parent seed without reordering candidates; empty fusion selects obligation-only exhaustion-check intent. Public readback rederives the action and reason, and existing authority locking/tombstones preserve concurrent identity and prevent GC remint. No fourth executor or semantic/context/absence issuance is added.",
+        "action": "Keep the execution gap explicit. Before further implementation, separately specify ordinal4 source admission, complete context batches, exact ownership and once-only dispatch/state behavior. Empty intent must remain provisional until an independently authorized exhaustion execution supplies its required proof."
+      },
+      {
+        "id": "PF-4",
+        "category": "contract",
+        "severity": "informational",
+        "evidence": "The canonical input remains UNREPAIRED_FROZEN_HASH_MISMATCH. Recovery is process-local and leaves the default locator unchanged, so an unchanged unwrapped full invocation can encounter the same error again.",
+        "action": "Preserve this recurrence risk in closeout and subsequent validation planning. Any durable locator or data repair requires a separate bounded decision; this PASS authorizes neither such a change nor automatic recovery/full reruns."
+      }
+    ],
+    "requested_task_changes": [],
+    "next_batch_constraints": [
+      "Incorporate all 13 next_batch_constraints from first-fuse-state-review-1 at fivecircles/work/collaboration/eh-relay-20260907/messages/EH2.6.c4.2.b.2/003-first-fuse-state-review-1.json, SHA256 616886f94d9c71a968a7a662a3d3ad94b59afbddc92ceaff0fc348e3bf0fe945. Preserve their historical wording and prospective first-fusion state amendment. This reviewed directive adds only the explicitly selected ordinal4 decision permission.",
+      "Incorporate all nine next_batch_constraints from first-fuse-state-publication-review-1 at fivecircles/work/collaboration/eh-relay-20260907/messages/EH2.6.c4.2.b.2/005-first-fuse-state-publication-review-1.json. Its prior payload and exact-two-field exception provide no clearance for new bytes or findings.",
+      "Keep EH2.6.c4.2.b, EH2.6.d2.x.b, Controller and E2E PARTIAL. No fourth execution, revision4 successor, semantic/context/absence minting, claim consumption, state/progress/ledger mutation, later compare execution or whole Controller completion is approved.",
+      "Preserve exact predecessor/source-owner identity, source candidate order, sibling identity, open progress, coverage0.0, in_progress, false terminal gates, round1 and rejection of round-cap2 before dispatch. Specify complete canonical sibling-obligation lifetime before later compare execution.",
+      "Main may record the accepted composed gate only while retaining native_full_status=FAIL, native_full_exit_code=1 and canonical_input_status=UNREPAIRED_FROZEN_HASH_MISMATCH. Unique effective coverage remains1657. Preserve original v3 manifests, native failure, recovery1 discovery failure with zero required tests, intermediate unknown exit and every other failed/preflight diagnostic artifact.",
+      "Preserve the accepted runtime and input limitations explicitly. Current probes are not historical environment reconstruction; listed nonignored inputs are not a private whole-filesystem inventory. Changes affecting candidate, contract, required evidence, dependencies or evaluation inputs require renewed applicability assessment and review.",
+      "Complete actual report/browser validation, closeout/log records, safety review and final scoped Git/publication reconciliation separately. This product/composition PASS is not publication clearance, automated safety PASS, commit/push permission or acceptance of future closeout bytes.",
+      "Integrate only reviewed product and bound behavior-reference bytes with separately reconciled closeout records. Preserve unrelated dirty work; do not attribute shared-worktree changes or the full collection wholly to this batch. Keep resources and independently owned measurement changes excluded.",
+      "Continue the authorized local-first implementation path and preserve the authoritative control baseline and API compatibility boundary. Code regression PASS does not establish retrieval superiority; same-golden controlled comparison remains a separate required outcome.",
+      "No duplicated GCP/DIAG131 measurement, model/API/Langfuse/VLM execution, profiling, benchmark or baseline/corpus/gold/configuration change follows from this review. Carry canonical-locator recurrence and the actual context-execution gap into the next complete Design directive."
+    ],
+    "reason": "The product and composition/runtime reconciliation are both accepted after read-only deep inspection of actual code, callers, contracts, tests, helpers and recorded evidence. Owned3 and Refs3 hashes match the frozen packet; the first-fusion reference matches HEAD. Focused11/904.510s, adjacent205/647.583s and isolated216/1843.717s have actual exit0 evidence. The explicitly authorized recovery2 five-test PASS resolves the sole missing frozen-input calculation coverage for composition without erasing native full FAIL or changing canonical data. No blocking product or evidence-applicability defect was identified. Review performed no tests, models, APIs, profiling, edits or Git mutations.",
+    "resume_conditions": []
+  }
+}

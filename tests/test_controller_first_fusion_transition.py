@@ -344,12 +344,16 @@ class ControllerFirstFusionTransitionTests(unittest.TestCase):
                             contracts._require_controller_first_fusion_transition(
                                 execution=two, **case["env"]
                             )
-                        with self.assertRaisesRegex(
-                            ValueError, "controller_decision_cross_state_not_ready"
-                        ):
-                            decide_controller_action(
-                                execution=three, **case["env"]
-                            )
+                        fourth_decision = decide_controller_action(
+                            execution=three, **case["env"]
+                        )
+                        self.assertEqual(
+                            (
+                                fourth_decision.decision_ordinal,
+                                fourth_decision.selected_action.kind,
+                            ),
+                            (4, "expand_parent"),
+                        )
                         checked_private_surface = True
 
     def test_budget_and_error_derived_abstain_permits_dispatch_no_fusion(self):

@@ -1,0 +1,257 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.d2.x.b.2",
+  "message_id": "post-fusion-directive-3",
+  "in_reply_to": "post-fusion-contract-evidence-question-1",
+  "sender": "PHILOSOPHER",
+  "kind": "DIRECTIVE",
+  "body": {
+    "mode": "DESIGN",
+    "contract_id": "sha256:6d80a97e9261b359ad3d80fa05f986f19340c9b905b737c5714183511ba512a4",
+    "objective": "Connect the exact effect-derived first-fusion revision3 state to one bounded ordinal4 decision: budget abstain, first bounded parent-context target for applied fusion, or zero-provider exhaustion-check intent for empty fusion. Do not execute the selected action.",
+    "authority_assessment": {
+      "status": "WITHIN_EXISTING_AUTHORITY",
+      "needs_new_authority": false,
+      "reason": "Existing EH2.6.d2.x.b and technical section16.10 already require source-derived post-fusion eligibility, bounded context ordering and empty-obligation exhaustion intent. Completed c4.2.b.2 supplies its state prerequisite. This selects decision-only behavior, not a new experiment or full Controller expansion."
+    },
+    "direction_assessment": {
+      "target": "Authenticated retrieval/fusion/state -> bounded eligible next action -> later context and verification execution, while preserving the immutable baseline and separating implementation from measured quality.",
+      "current": "HEAD 8db05102b3c858b96f89ef62ee9a442bfe935951 contains first-fusion state reduction. Exact revision3 has candidate or provisional_missing, source-derived effect provenance, open progress and retained predecessors. The current decision planner and closed reason shapes support revision0/1/2 only.",
+      "gap": "The next decision rejects authentic revision3. EH2.5 candidate preview is not execution authority and adds rerank/verify without this controller's prerequisite history.",
+      "selection_reason": "Choose the first eligible action only. Existing parent context is store-backed; empty exhaustion intent is explicitly zero-provider. Neither needs later compare sibling lifetime, context receipt minting or semantic verification execution.",
+      "rubric": {
+        "upstream": "0..4",
+        "connection": "0..3",
+        "safety": "0..2",
+        "validation": "0..2",
+        "risk_penalty": "-3..0",
+        "formula": "sum of five components; selection heuristic, not performance evidence or agent scoring"
+      },
+      "candidates": [
+        {
+          "task": "EH2.6.d2.x.b.2",
+          "components": [
+            3,
+            3,
+            2,
+            2,
+            -2
+          ],
+          "score": 8,
+          "decision": "SELECT: closes the actual current decision gap with synthetic end-to-end prerequisite history."
+        },
+        {
+          "task": "EH2.6.c4.2.b remaining context dispatch",
+          "components": [
+            3,
+            3,
+            1,
+            1,
+            -3
+          ],
+          "score": 5,
+          "decision": "DEFER: selected ordinal4 permit and exact dispatch contract must precede execution."
+        },
+        {
+          "task": "EH2.6.d2.x.b later compare obligations",
+          "components": [
+            2,
+            1,
+            2,
+            1,
+            -2
+          ],
+          "score": 4,
+          "decision": "DEFER: complete canonical sibling-obligation lifetime remains unspecified for later execution."
+        },
+        {
+          "task": "EH2.6.d2.d full decision matrix",
+          "components": [
+            3,
+            2,
+            1,
+            1,
+            -3
+          ],
+          "score": 4,
+          "decision": "DEFER: spans still-unimplemented action and successor prerequisites."
+        }
+      ],
+      "prior_evidence": {
+        "integration_ref": "fivecircles/work/collaboration/eh-relay-20260907/integration-EH2.6.c4.2.b.2.json",
+        "candidate_id": "sha256:cc5e19ca5b6a7ab1cc40fe5b62734df3e4a50a760a8274ea7590c1db53058e87",
+        "test_evidence_id": "sha256:8142e1f1b406947e18d5a650d61229c0576adcad07674018b79949b8fdb45d28",
+        "reuse": "Reuse valid prior integration/product PASS and unchanged report sections. Explicitly show the new decision-contract delta. Prior tests do not approve the new candidate."
+      }
+    },
+    "selected_task_ref": {
+      "path": "fivecircles/architecture/todolist.md",
+      "parent_task": "EH2.6.d2.x.b",
+      "task_id": "EH2.6.d2.x.b.2",
+      "label": "First post-fusion ordinal4 source/state-derived decision",
+      "recording": "Main records this bounded child and relay form before WORK; parents remain PARTIAL."
+    },
+    "contract_proposal": {
+      "target": "fivecircles/architecture/specs/controller-next-decision.md",
+      "base_sha256": "1a43c93fcf9bf2ab85572d76e93896c3f795319b685a059e3bd23adc0f2fa7fb",
+      "operation": "Replace only the b.2 amendment's larger-round success assumption and matching acceptance sentence with pinned round1 and zero-dispatch round-cap2 rejection. Use the complete proposed file /private/tmp/eh-relay-20260907.GNy8vE/post-fusion-contract-v2.md; preserve all other contract text.",
+      "final_bytes": 14930,
+      "sha256": "6d80a97e9261b359ad3d80fa05f986f19340c9b905b737c5714183511ba512a4",
+      "format": "UTF-8, LF, exactly one final newline",
+      "installation_gate": "Main independently checks installed complete-file hash before dispatch. Hash or semantic disagreement requires correction before WORK.",
+      "main_owned_alignment": [
+        "Append a concise orchestration/module-contract.md reference identifying revision3 ordinal4 decision-only support and unchanged execution/state boundaries.",
+        "Update the existing d2.x.b TODO parent wording and add only the selected b.2 child.",
+        "Record the report contract delta without rewriting historical b.1/b.2 receipts or the first-fusion contract's historical acceptance."
+      ]
+    },
+    "scope": {
+      "repository": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
+      "branch": "feat/total-integration",
+      "base_commit": "8db05102b3c858b96f89ef62ee9a442bfe935951",
+      "allowed_files": [
+        "src/midprojectrag/orchestration/execution_contracts.py",
+        "tests/test_controller_post_fusion_decision.py",
+        "tests/test_controller_first_fusion_transition.py"
+      ],
+      "ownership": "One gpt-5.6-sol ultra Coder owns these product/test files after explicit intake. Main owns contracts/module-contract/TODO/form/state/report/log/safety/integration. Historical Coder identity is not a live worker; record actual dispatch identity. Preserve all unrelated dirty work.",
+      "prohibited_actions": [
+        "No other file edits without a complete updated DIRECTIVE; harness_state.py and actions.py remain unchanged.",
+        "No context, bridge, rerank, verifier, absence, terminal or fourth-step execution; no revision4 successor.",
+        "No state/reducer/progress/ledger changes, source or semantic obligation issuance, capability-unavailable recording or claim consumption during decision issuance.",
+        "No later compare obligation selection/execution, canonical tuple remint, follow-up, deadline or public start/step/run.",
+        "No EH2.5 preview promotion, caller target/outcome/hash authority or parallel controller framework.",
+        "No model/API/GCP/Langfuse/VLM/clock/private-data/gold/corpus/baseline/evaluation/config/dependency changes.",
+        "No profiling, benchmark, DIAG131 duplication, Git mutation or nested delegation."
+      ]
+    },
+    "acceptance_criteria": [
+      "Existing public decision signatures and revision0/1/2 behavior remain unchanged. Authentic c4.2.b.2 revision3 fact/compare issues ordinal4 bound to current derived state, ledger/snapshot and exact transition3.",
+      "Authenticate the complete retained fusion/lexical/dense chain and original owner using existing live readers. Counts and hashes are consistency checks only. Reject source/state/root/owner/dependency drift before applying budget or normal reasons.",
+      "Validated count3 at budget3 returns abstain-only with action_budget_exhausted. With budget4 or higher, applied returns exactly first bounded expand_parent then abstain; empty returns exactly obligation-only verify_slot then abstain. Both use first_eligible_nonterminal.",
+      "Derive positive bounded context quota from exact owner final/rerank budgets and config. Select the first ID in the sorted bounded seed prefix without changing exact fusion/state candidate order or minting semantic/context receipts.",
+      "Empty verify_slot means only zero-provider exhaustion-check intent from exact normal-empty lane/fusion history. It issues no absence and does not claim confirmed absence, verifier availability or answerability. max_retrieval_rounds_per_obligation stays pinned to 1; requesting 2 must fail with retrieval_rounds_not_pinned_to_one before dispatch. No configuration expansion or retry is allowed.",
+      "Preserve source provenance, all earlier decisions/states/executions, three source receipts, sibling identities, open progress, coverage0.0, in_progress, no-progress and false terminal gates.",
+      "Update closed payload shapes and live rederivation for revision3, including targeted parent versus obligation-only verify shape. Extend budget reason to revision3 without widening prior error/diagnostic reason restrictions.",
+      "Explicitly revise the existing decision policy payload. Preserve stable identity within the process; do not rewrite historical receipts or baseline/config hashes.",
+      "Repeated and barrier-concurrent issuance returns one live decision object; GC cannot remint while its snapshot remains live. Clone/mixed/reason/action/target/tuple/owner-budget/effect/source/transition/ledger drift fails closed.",
+      "Decision issuance and readback perform zero additional retrieval/fusion/context/rerank/verifier/absence/provider/model/clock work, mint no prerequisite receipts and consume no claim or action.",
+      "Update only obsolete ordinal4-unsupported assertions in the existing fusion test. Preserve previous temporal/concurrency/failure/budget/source/state regressions and rejection of unsupported later histories.",
+      "Final frozen product plus behavior-contract candidate passes required focused/adjacent and main isolated/full validation and fresh deep review. Do not claim quality improvement, whole Controller completion or prospective PASS."
+    ],
+    "required_tests": [
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest tests.test_controller_post_fusion_decision",
+        "purpose": "TDD for synthetic dense->lexical->fusion/state->ordinal4: fact/compare four lane pairs, rescue, budgets3/4, authentic round1 and zero-dispatch round-cap2 rejection, exact seed order/quota, unavailable verifier, history and zero-side-effect behavior."
+      },
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest tests.test_controller_first_fusion_transition tests.test_controller_first_fusion_state tests.test_controller_post_lexical_decision tests.test_controller_next_decision tests.test_controller_decision_receipt tests.test_controller_source_authority tests.test_controller_step_history tests.test_controller_initial_transition tests.test_controller_lexical_transition tests.test_controller_target_context_accumulator tests.test_harness_context tests.test_absence_confirmation tests.test_execution_contracts tests.test_retrieval_obligations",
+        "purpose": "Affected adjacent decision/source/state/context-order/exhaustion compatibility. During implementation select relevant subsets; gather final bound evidence without repeating full suites per internal leaf."
+      },
+      {
+        "command": "PATH=\"$PWD/.venv/bin:$PATH\" PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest discover -s tests -t . -p 'test*.py'",
+        "purpose": "Main runs once at the final frozen-candidate integration boundary. Record actual collection, exit, failures, errors and skips; prior1611 is not a fixed expected count."
+      },
+      {
+        "command": "Main isolated base-plus-owned-candidate validation using HEAD 8db05102b3c858b96f89ef62ee9a442bfe935951 and the focused/adjacent modules above",
+        "purpose": "Exclude dependence on unrelated dirty product changes. Bind exact candidate, behavior contracts and relevant input/runtime fingerprints; main resolves and records the actual command and isolated path."
+      },
+      {
+        "command": "git diff --check -- src/midprojectrag/orchestration/execution_contracts.py tests/test_controller_first_fusion_transition.py",
+        "purpose": "Check owned tracked edits and separately include the entire new untracked test in candidate manifest/review."
+      }
+    ],
+    "inherited_review_constraints": [
+      {
+        "source": "fivecircles/work/collaboration/eh-relay-20260907/messages/EH2.6.c4.2.b.2/003-first-fuse-state-review-1.json",
+        "sha256": "616886f94d9c71a968a7a662a3d3ad94b59afbddc92ceaff0fc348e3bf0fe945",
+        "json_pointer": "/body/next_batch_constraints",
+        "required_count": 13,
+        "application": "Incorporate all 13 constraints without alteration. Items1-9 are historical text; item10 prospectively supersedes only b.2 state/progress behavior. This new directive now explicitly selects ordinal4 decision only under the separate-Design condition; all execution, semantic, sibling, data and publication exclusions otherwise remain."
+      },
+      {
+        "source": "fivecircles/work/collaboration/eh-relay-20260907/messages/EH2.6.c4.2.b.2/005-first-fuse-state-publication-review-1.json",
+        "json_pointer": "/body/next_batch_constraints",
+        "required_count": 9,
+        "application": "Incorporate all nine publication constraints as historical binding restrictions. The exact-two-field exception and prior reviewed/final payload do not clear new findings, new bytes or future publication. Preserve native FAIL and original fields/events; do not duplicate the offending digest in prose."
+      }
+    ],
+    "constraints": [
+      "Read actual project collaboration/messages/relay-cycle, relevant implementation/test skills, authority and source contracts before work. Use the existing confirmed .venv Python3.12 and synthetic fixtures only.",
+      "Use existing fusion/state/source-owner and decision-authority machinery. Read-only owner-budget projection is not semantic-obligation issuance. Do not use actions.py preview to skip context prerequisites.",
+      "Do not create artificial errors/capability outcomes or a future context default merely to complete a matrix. Unsupported history remains rejected.",
+      "All parent tasks remain PARTIAL; this permit does not implement fourth execution. The next dispatcher must separately specify source admission, complete context batches and once-only behavior.",
+      "Fresh deep review is mandatory because decision authority spans live state/source and downstream permit contracts. No preimplementation PASS or duplicate review of unchanged prior product is needed.",
+      "Main preserves and records prior publication exception narrowly; future actual findings require their own applicable review. No scanner, security policy or immutable evidence change is authorized.",
+      "Final evidence reuse requires exact relevant candidate/contract/input/dependency/environment identity. Report only proven coverage and preserve native failures; added behavior cannot reuse old PASS as its verification.",
+      "Main handles one closeout/report/logall and authorized selective integration after final candidate checks. New candidate/evidence IDs do not yet exist.",
+      "If implementing these rules requires state-owner changes, semantic receipt minting, widening action shape, later sibling lifetime or a new authority framework, return QUESTION/NEEDS_GUIDANCE before expansion.",
+      "Return a complete IMPLEMENTATION_REPORT bound to post-fusion-directive-3 with actual candidate/evidence/files/commands/exits/deviations/questions. Freeze at REVIEW_READY."
+    ],
+    "source_refs": [
+      "fivecircles/agent/authority.md",
+      "fivecircles/requirements/current.md sections1.1 and8",
+      "fivecircles/requirements/decisions.md D-024",
+      "fivecircles/architecture/todolist.md EH2.6.c4.2.b, EH2.6.d2.x.b and EH2.6.d2.d",
+      "fivecircles/architecture/specs/bidfit-evidence-harness-v1-rc0.md section16.10 action-order/context-quota/exhaustion/reducer rules",
+      "fivecircles/architecture/specs/controller-next-decision.md",
+      "fivecircles/architecture/specs/controller-first-fusion-transition.md b.2 amendment",
+      "src/midprojectrag/orchestration/module-contract.md",
+      "src/midprojectrag/orchestration/execution_contracts.py:_d2_controller_action_plan",
+      "src/midprojectrag/orchestration/execution_contracts.py:_require_controller_source_owner",
+      "src/midprojectrag/orchestration/execution_contracts.py:_context_seed_evidence_ids",
+      "src/midprojectrag/orchestration/execution_contracts.py:issue_retrieval_absence_confirmation",
+      "src/midprojectrag/orchestration/harness_state.py:_build_controller_first_fusion_state_accessors",
+      "tests/test_controller_first_fusion_transition.py",
+      "tests/test_controller_first_fusion_state.py",
+      "tests/test_controller_post_lexical_decision.py",
+      "fivecircles/architecture/specs/evidence-harness-progress-flow-validation.md",
+      "fivecircles/architecture/specs/evidence-harness-progress-current-flow.mmd",
+      "fivecircles/architecture/specs/evidence-harness-progress-target-flow.mmd",
+      "fivecircles/work/collaboration/eh-relay-20260907/messages/EH2.6.c4.2.b.2/001-first-fuse-state-directive-1.json",
+      "fivecircles/work/collaboration/eh-relay-20260907/messages/EH2.6.c4.2.b.2/003-first-fuse-state-review-1.json",
+      "fivecircles/work/collaboration/eh-relay-20260907/messages/EH2.6.c4.2.b.2/005-first-fuse-state-publication-review-1.json",
+      "fivecircles/test/testpolicy.md"
+    ],
+    "resolution": {
+      "question_id": "post-fusion-contract-evidence-question-1",
+      "decision": "ACCEPT",
+      "reason": "Evidence-only clarification: include both changed behavior references (controller-next-decision.md and orchestration/module-contract.md) plus the unchanged first-fusion prerequisite contract in all final start/end snapshots, collector and isolated/full evidence. The actual next-decision hash matches active contract_id; first-fusion contract matches baseline8db. No product scope, authority contract bytes, required test modules or candidate_id derivation changes. No tests or candidate have been accepted by this decision."
+    },
+    "evidence_scope_clarification": {
+      "classification": "EVIDENCE_ONLY",
+      "product_files": [
+        "src/midprojectrag/orchestration/execution_contracts.py",
+        "tests/test_controller_post_fusion_decision.py",
+        "tests/test_controller_first_fusion_transition.py"
+      ],
+      "behavior_reference_files": [
+        {
+          "path": "fivecircles/architecture/specs/controller-next-decision.md",
+          "role": "changed active behavior contract",
+          "sha256": "6d80a97e9261b359ad3d80fa05f986f19340c9b905b737c5714183511ba512a4"
+        },
+        {
+          "path": "src/midprojectrag/orchestration/module-contract.md",
+          "role": "changed module behavior alignment",
+          "sha256": "953703f50cc9e84c11b939cd0020a24bb2c1ffc619c1c98f32a5022cb3070012"
+        },
+        {
+          "path": "fivecircles/architecture/specs/controller-first-fusion-transition.md",
+          "role": "unchanged first-fusion prerequisite; no edit permission",
+          "sha256": "1b92dbdf8d116e3812a1e27181e431a9aef39f6e0c70996a70e59dadd3a4c3e8",
+          "must_match_base_commit": "8db05102b3c858b96f89ef62ee9a442bfe935951"
+        }
+      ],
+      "requirements": [
+        "Final Coder focused/adjacent, main full/isolated helpers and evidence collector must agree on exactly three product files plus these three behavior references in start/end fingerprints: six files total.",
+        "Preserve existing candidate_id derivation from the three product files. Bind all three behavior references separately in evidence; do not silently redefine product candidate identity.",
+        "Active contract_id remains the exact unchanged next-decision hash. Confirm all listed behavior-reference hashes at both boundaries; unexpected drift blocks evidence sealing and requires reconciliation.",
+        "Isolated validation uses baseline8db05102b3c858b96f89ef62ee9a442bfe935951 plus the three product files and three references. The first-fusion reference must remain byte-identical to baseline; no edit authority is added.",
+        "Required focused/adjacent module scope and final isolated/full gates remain unchanged. Main owns helper/collector coordination; this directive grants Coder no additional file ownership.",
+        "Use actual final commands, exits and artifacts after execution. This clarification is neither product/contract modification nor a REVIEW PASS."
+      ]
+    }
+  }
+}

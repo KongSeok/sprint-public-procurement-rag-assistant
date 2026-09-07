@@ -1084,3 +1084,11 @@ This file summarizes recent updates so other agents can continue without re‑di
 ### Relay
 - refs: work/2026-09-07-controller-fusion-state-relay.md. 로그올 후 선택 통합, 다음은 ordinal4 자격 Design.
 - Controller/E2E PARTIAL. API/실모델 실행0, 별도 DIAG131 실측과 분리.
+
+## Addendum (2026-09-07) - EH2.6.d2.x.b.2 fusion 이후 선택
+### Backend
+- exact fusion/state에서 ordinal4 parent·empty 확인 의도·기권 선택. 실제 실행은 후속이다.
+### Tests
+- 집중11·관련205·격리216 PASS. 전체1657 오류1은 analytics5 재검증 후 결합 승인; 원래 FAIL 보존.
+### Relay
+- Cycle24 로그올 후 선택 통합, 다음 실제 context 연결 Design. Controller/E2E는 PARTIAL.

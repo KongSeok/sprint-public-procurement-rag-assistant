@@ -177,3 +177,8 @@
   - Result: 첫 effect-bound state 연결; 집중25(779.422초)·관련202(230.049초)·격리227(944.217초)·전체1611(1161.717초) PASS, 실패/오류/skip0, exit0. 후보cc5e19ca·계약1b92dbdf·증거8142e1f1.
   - Boundary: candidate/잠정 결측까지만; ordinal4/context/verify/terminal/생성 E2E 제외.
   - Closeout: 2026-09-07-controller-fusion-state-relay.md. 선택 통합 뒤 다음 Design 실제 dispatch.
+
+- [2026-09-07 21:41:07] Stage=Implementation/Test/Review/Logall (Cycle24 / EH2.6.d2.x.b.2)
+  - Result: ordinal4 결정 연결. 집중11·관련205·격리216 PASS. 원래 전체1657은 CSV 동결 해시 오류1로 FAIL; 동결 사본 analytics5 재검증 PASS 및 fresh deep의 증거 결합 승인.
+  - Boundary: 실제 context/verify/absence/terminal/생성은 후속.
+  - Evidence: work/2026-09-07-controller-post-fusion-decision-relay.md.

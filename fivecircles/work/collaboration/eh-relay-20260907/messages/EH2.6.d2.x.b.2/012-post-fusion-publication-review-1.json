@@ -1,0 +1,56 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.d2.x.b.2",
+  "message_id": "post-fusion-publication-review-1",
+  "in_reply_to": "post-fusion-implementation-report-1",
+  "sender": "PHILOSOPHER",
+  "kind": "REVIEW",
+  "body": {
+    "verdict": "PASS",
+    "directive_id": "post-fusion-directive-5",
+    "contract_id": "sha256:6d80a97e9261b359ad3d80fa05f986f19340c9b905b737c5714183511ba512a4",
+    "candidate_id": "sha256:8d3172b1ec96ce2d11a1892d41cd2a8d3dddc9aa83dc6c050df72b0f401fba24",
+    "test_evidence_id": "sha256:eaf054ab203e73671d84ba9f9b035bbcaf45027f12bb6c8c21a7e331c8366771",
+    "reviewed_message_id": "post-fusion-implementation-report-1",
+    "direction_score": null,
+    "direction_rubric": null,
+    "direction_rationale": "Publication-only approval of the exact supplied payload under existing security policy. This neither repeats product review nor converts native safety FAIL into PASS. Prospective closeout bytes remain subject to the exact reconciliation conditions below.",
+    "findings": [
+      {
+        "id": "PF-PUB-1",
+        "category": "contract",
+        "severity": "informational",
+        "evidence": "Independently verified proposed manifest SHA256 61dd24d15900a14b67ac9acf7001cdb79d8b988c96389e2e45c32481a290cbe8, all 46 file hashes and an exact 46-file payload inventory with no extra paths. Reconstructed shared logs are HEAD plus owned appendices; the TODO difference is confined to the specified Controller item. Read substantive publication records, report text, diagram source, evidence metadata and synthetic fixture material. Independent application of the scanner's content patterns found zero PII and secret detections in the payload. No restricted artifact, recoverable corpus/gold text, credential or access-granting identifier was identified.",
+        "action": "Retain the exact reconstructed payload. Local input locators and integrity hashes are references, not included private files or access grants; do not package their referenced restricted contents."
+      },
+      {
+        "id": "PF-PUB-2",
+        "category": "contract",
+        "severity": "informational",
+        "evidence": "Current worktree content-pattern inspection independently reproduced exactly the two historical detections: c4.2.b.2 candidate.json at /artifacts/untracked_diff/sha256, line 56, and its 002 implementation report at /body/candidate_manifest/new_test_diff_sha256, line 152. Both complete values are valid 64-hex strings, identical to HEAD and equal to the independently recomputed synthetic first-fusion-state test diff hash. Each detected substring lies wholly inside that digest. Existing security sections 1 and 4 permit reviewed necessary non-personal hashes in both HEAD and worktree; section 6 prohibitions remain applicable.",
+        "action": "Apply the existing exception only to these unchanged exact fields. Their integrity-binding role is necessary and non-personal. Preserve them without reproducing the digest or matched substring in new prose. This is no general hash allowance."
+      },
+      {
+        "id": "PF-PUB-3",
+        "category": "contract",
+        "severity": "informational",
+        "evidence": "Audit SHA256 a22e5154a6850201bd126115b95b35a89889a281dbe4521ef4f3ff1dcf676126 preserves the actual native safety FAIL/exit1 and historical enumeration of 1111 files. Current scanner bytes match its recorded SHA256. Scanner and security files have existing worktree differences from HEAD, inspected here and excluded from this payload; the content patterns and applicable necessary-value exception are unchanged. Actual report QA records render/browser exit0, two images, eight tables and zero page errors/external requests. Existing current PNG and report screenshot were viewed; the target PNG equals HEAD.",
+        "action": "Record native automated safety FAIL/exit1 separately from this policy adjudication. Do not include excluded scanner/security edits or describe independent content inspection as native safety PASS."
+      }
+    ],
+    "requested_task_changes": [],
+    "next_batch_constraints": [
+      "Preserve all ten next_batch_constraints of post-fusion-review-1 at messages/EH2.6.d2.x.b.2/011-post-fusion-review-1.json, SHA256 c73701c8c00b14615659c41d2caa4badf32ef11e473a4a605aa3676a11320e32, including its incorporated historical constraints.",
+      "This approval binds the exact 46-file manifest and audit identified above. Prospective scope is solely post-fusion-publication-request.json, SHA256 8e5319829cbbc8be2a4bb3afc0032f74e1a644c3e99b22eb60bde2e37c749ce3: add messages/EH2.6.d2.x.b.2/012-post-fusion-publication-review-1.json and batches/EH2.6.d2.x.b.2/publication-clearance.json under the current collaboration run.",
+      "The only prospective mutable files are current run state.json; fivecircles/work/2026-09-07-controller-post-fusion-decision-relay.md; fivecircles/test/errorlogs/backend/2026-09-07-controller-post-fusion-decision.md; fivecircles/architecture/specs/evidence-harness-progress-flow-validation.md and .html; and fivecircles/test/playwright-screenshots/controller-post-fusion-decision-2026-09-07.png. Changes may record only the actual returned review, native FAIL, bounded publication adjudication and their references.",
+      "Future bytes are not reviewed or preapproved. Main must validate this returned JSON, inspect every actual closeout addition/update and resulting image, reconcile the final exact paths/hashes, check final actual detections and confirm unchanged product/contract/required-evidence bindings before recording final publication clearance.",
+      "Keep native_full_status=FAIL, native_full_exit_code=1, canonical_input_status=UNREPAIRED_FROZEN_HASH_MISMATCH and effective unique coverage1657. Preserve accepted composition and historical runtime limitations; do not claim1662 tests, a successful single native full invocation or repaired canonical input.",
+      "Keep Controller/E2E and parent items PARTIAL, ordinal4 selected but unexecuted, and assembled comparison/winner selection incomplete. Report QA is not RAG E2E or retrieval-quality evidence.",
+      "Any unexpected path, wider edit, new detection, restricted content, access-granting identifier, unexplained coverage gap or changed product/behavior contract/required evidence blocks publication and requires renewed bounded review. Do not substitute whole dirty-worktree files for reconstructed shared files.",
+      "Keep resources, private data and independently owned measurement changes excluded. This review grants no Git mutation, commit, push, external sharing, model/API/VM/profiling execution or next-batch authority."
+    ],
+    "reason": "No blocking publication defect was identified in the exact current payload. Existing policy permits the independently verified two necessary non-personal synthetic hash fields, while native safety remains FAIL/exit1. Branch and HEAD match the request; candidate derivation and all six product/reference hashes remain bound, and all 46 payload hashes still match. Final closeout applicability is conditional on the explicitly enumerated reconciliation, not presumed approval of future bytes. Review was read-only: no files, Git state, tests, models, APIs or policy were changed or executed.",
+    "resume_conditions": []
+  }
+}

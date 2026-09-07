@@ -1,0 +1,81 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.d2.x.b.2",
+  "candidate_id": "sha256:8d3172b1ec96ce2d11a1892d41cd2a8d3dddc9aa83dc6c050df72b0f401fba24",
+  "contract_id": "sha256:6d80a97e9261b359ad3d80fa05f986f19340c9b905b737c5714183511ba512a4",
+  "directive_id": "post-fusion-directive-5",
+  "implementation_directive_id": "post-fusion-directive-3",
+  "recorded_at": "2026-09-07T12:17:47.827Z",
+  "native_full_status": "FAIL",
+  "native_full_exit_code": 1,
+  "recovery_status": "PASS",
+  "composed_regression_gate": "PENDING_FRESH_DEEP_REVIEW",
+  "canonical_input_status": "UNREPAIRED_FROZEN_HASH_MISMATCH",
+  "unique_effective_suite_size": 1657,
+  "overlap_note": "Recovery runs all 5 existing analytics tests, including 4 that already passed in the original full run. Do not sum to 1662 or claim a single native full PASS.",
+  "results": {
+    "focused": {
+      "result": "post-fusion-focused-final-1-result.json",
+      "status": "PASS",
+      "test_count": 11,
+      "exit_code": 0,
+      "summary": "\nRan 11 tests in 904.510s\n\nOK",
+      "implementation_directive_id": "post-fusion-directive-3"
+    },
+    "adjacent": {
+      "result": "post-fusion-adjacent-final-1-result.json",
+      "status": "PASS",
+      "test_count": 205,
+      "exit_code": 0,
+      "summary": "\nRan 205 tests in 647.583s\n\nOK",
+      "implementation_directive_id": "post-fusion-directive-3"
+    },
+    "full": {
+      "result": "post-fusion-full-result.json",
+      "status": "FAIL",
+      "test_count": 1657,
+      "exit_code": 1,
+      "summary": "\nRan 1657 tests in 1672.755s\n\nFAILED (errors=1)"
+    },
+    "isolated": {
+      "result": "post-fusion-isolated-result.json",
+      "status": "PASS",
+      "test_count": 216,
+      "exit_code": 0,
+      "summary": "\nRan 216 tests in 1843.717s\n\nOK"
+    }
+  },
+  "recovery": {
+    "result": "post-fusion-recovery-2-result.json",
+    "tests": 5,
+    "exit_code": 0,
+    "summary": "\nRan 5 tests in 0.073s\n\nOK"
+  },
+  "prior_recovery": {
+    "result": "post-fusion-recovery-result.json",
+    "actual_tests": 0,
+    "status": "DISCOVERY_FAILED",
+    "exit_code": 1
+  },
+  "impact_assessment": {
+    "changed_product_files": [
+      "src/midprojectrag/orchestration/execution_contracts.py",
+      "tests/test_controller_post_fusion_decision.py",
+      "tests/test_controller_first_fusion_transition.py"
+    ],
+    "behavior_references": [
+      "fivecircles/architecture/specs/controller-next-decision.md",
+      "src/midprojectrag/orchestration/module-contract.md",
+      "fivecircles/architecture/specs/controller-first-fusion-transition.md"
+    ],
+    "recovery_change": "Only process-local corpus_analytics_baseline.CSV_PATH selects exact originally configured frozen CSV bytes; unchanged pinned resolver is launched through the v5-pinned -c/runpy program. Product/test/config/gold/assertion/skip bytes unchanged.",
+    "native_error_scope": "Exactly one native full error: frozen_refined98_snapshot at _verify_hash before analytics calculation; no native failures or skips. Exact original listed full input inventory revalidated during recovery.",
+    "coverage_limitation": "Original full dot log does not contain a per-test ID inventory. Source/test/config inventory is unchanged; recovery records exactly all 5 existing module test IDs. This supports a proposed composed gate, not a reconstructed historical ID list or additional cases.",
+    "input_scope": "Original listed nonignored source/test/config/script/packaging inventory only; not the entire filesystem. Recovery additionally checks all 5 frozen analytics inputs and preserves canonical mismatch.",
+    "runtime_limitation": "Current observations exactly reproduce recorded runtime values; historical inherited PYTHONPATH/import origins/dependency file bytes were not captured and are not reconstructed. Fresh deep review must judge composition admissibility.",
+    "historical_main_probe_pythonpath": "UNKNOWN",
+    "current_dual_probe_audit_ref": "post-fusion-recovery-2-input-manifest.json",
+    "review_requirement": "Fresh deep Critic must independently accept or reject limited-evidence runtime reconciliation, impact scope and composition. This manifest itself grants no PASS or integration permission."
+  }
+}

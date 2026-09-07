@@ -1,0 +1,45 @@
+{
+  "schema_version": "1.0",
+  "batch_id": "EH2.6.d2.x.b.2",
+  "recorded_at": "2026-09-07T12:08:09.767Z",
+  "status": "FAILURES_PRESERVED_NOT_TEST_PASSES",
+  "events": [
+    {
+      "kind": "capture_preflight",
+      "tool_chunk": "cde804",
+      "exit_code": 1,
+      "error": "focused runtime mismatch",
+      "tests_started": false,
+      "reason": "Original metadata probes use different PYTHONPATH contexts; original main inherited value remains UNKNOWN."
+    },
+    {
+      "kind": "diagnostic_probe",
+      "exit_code": 1,
+      "error": "AttributeError on unchecked None import spec",
+      "tests_started": false,
+      "repair": "Read-only guarded find_spec query now returns origin=null when PYTHONPATH is absent."
+    },
+    {
+      "kind": "capture_preflight",
+      "tool_chunk": "465285",
+      "exit_code": 1,
+      "error": "project metadata origins differ",
+      "tests_started": false,
+      "reason": "Main expected relative egg-info location; observed exact absolute location. Capture expectation corrected; no environment/package changes."
+    },
+    {
+      "kind": "native_recovery_launcher",
+      "tool_chunk": "19590c",
+      "exit_code": 1,
+      "tests_started": false,
+      "error": "ModuleNotFoundError: tests; resolver discovery_errors",
+      "result_ref": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-recovery-result.json",
+      "result_sha256": "fe6a7e7f2e3327c576b494063ce55581bbfe137465e4529d0e5ed73ba71d219b"
+    }
+  ],
+  "runtime_clarification": {
+    "path": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-runtime-probe-interpretation.json",
+    "sha256": "a4598eb634f0c85813ceaf69d7565559033a8b85220c3d035930f4eb3eabafd2"
+  },
+  "claim": "Current dual probes reproduce original 95/96 observations exactly, with only one same-version project metadata entry extra. Historical inherited environment/import-origin/dependency bytes remain unrecorded; fresh deep review must judge composition."
+}

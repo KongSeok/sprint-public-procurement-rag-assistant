@@ -120,3 +120,12 @@
 - native safety 재확인: 1060경로 열거, FAIL/exit1 유지. 정확한 두 기존 해시 필드 외 탐지 없음. 이전1056경로 실행 결과와 분리한다.
 - fresh 공개 검수 payload38개와 실제 closeout metadata를 대조했다. 최종 index의 정확한 내용·목록 검사를 통과한 뒤에만 commit/push한다.
 - Intake/Selection/Contract/Implementation/Validation/Review/Logall/Report=COMPLETED. Push=선택 통합 대기, Relay=통합 뒤 다음 Design.
+
+## 통합 완료·다음 Design — 2026-09-07 17:55 KST
+
+- Commit/push: 8db05102b3c858b96f89ef62ee9a442bfe935951, origin/feat/total-integration. 실제 원격 SHA 및 커밋 40파일 hash/목록 일치, index empty, resources 추적0.
+- 실제 영수증: collaboration/eh-relay-20260907/integration-EH2.6.c4.2.b.2.json. 다른 작업자의 dirty 파일과 공용 로그 변경은 미포함·보존.
+- 공개 검사: native FAIL/exit1은 유지한다. 지정된 합성 diff 해시 2필드에 대한 별도 정책 검수와 최종 40파일 검증을 완료했으며, 자동 검사 PASS가 아니다.
+- 읽기 전용 사전 hash 재확인의 PNG 출력 buffer 부족(ENOBUFS)은 32 MiB 지정 후 해결했다. 제품·후보 변경이나 테스트 실패가 아니다.
+- Intake/Contract/Implementation/Validation/Review/Logall/Report/Push=COMPLETED. Controller/E2E는 GAP/PARTIAL.
+- Relay=CONTINUE_WITH_NEXT_FORM. Astra Design에 전체 13개 제품 검수 제약과 별도 공개 검수 제약을 실제 전달했다. 다음 TODO 선정 응답 대기이며 Coder 시작으로 기록하지 않는다.

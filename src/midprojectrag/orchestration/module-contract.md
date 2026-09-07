@@ -597,3 +597,7 @@ It fixes four distinctions: a normal empty dense lane can be rescued by a valid 
 an all-empty fact E0 is retrieval-complete but carries no semantic-ready state; pre-call contract
 rejection performs no provider side effect and produces no lexical/fusion child; and lexical work
 after a dense provider error is diagnostic only and never authorizes fusion.
+
+## EH2.6.d2.x.b.2 — first post-fusion decision
+
+EH2.6.d2.x.b.2 selects only the exact first-fusion revision3 ordinal4 decision described in controller-next-decision.md. Applied fusion selects the first sorted bounded parent seed without changing source candidate order; normal-empty fusion selects zero-provider exhaustion-check intent; budget exhaustion selects abstain. This issues no context/semantic/absence receipt, executes no fourth action and changes no state. Existing b.2 provenance, predecessor and sibling boundaries remain unchanged.

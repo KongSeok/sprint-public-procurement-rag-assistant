@@ -1,0 +1,225 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.d2.x.b.2",
+  "message_id": "post-fusion-implementation-report-1",
+  "in_reply_to": "post-fusion-directive-5",
+  "sender": "CODER",
+  "kind": "IMPLEMENTATION_REPORT",
+  "body": {
+    "status": "REVIEW_READY",
+    "directive_id": "post-fusion-directive-5",
+    "implementation_directive_id": "post-fusion-directive-3",
+    "contract_id": "sha256:6d80a97e9261b359ad3d80fa05f986f19340c9b905b737c5714183511ba512a4",
+    "candidate_id": "sha256:8d3172b1ec96ce2d11a1892d41cd2a8d3dddc9aa83dc6c050df72b0f401fba24",
+    "test_evidence_id": "sha256:eaf054ab203e73671d84ba9f9b035bbcaf45027f12bb6c8c21a7e331c8366771",
+    "changed_files": [
+      "src/midprojectrag/orchestration/execution_contracts.py",
+      "tests/test_controller_post_fusion_decision.py",
+      "tests/test_controller_first_fusion_transition.py"
+    ],
+    "implementation_summary": [
+      "Extended the existing controller decision policy and closed receipt shapes to exact revision3 -> ordinal4 while preserving public signatures and revision0/1/2 behavior.",
+      "Added a post-fusion decision branch that authenticates the retained dense, lexical, fusion, state, source-owner, execution, ledger and transition chain before applying any normal reason or budget outcome.",
+      "At validated count3/budget3 the branch emits abstain-only action_budget_exhausted. With remaining budget, applied fusion selects the first sorted bounded parent-context seed then abstains; normal-empty fusion emits obligation-only zero-provider verify_slot intent then abstains. It does not execute either selected action.",
+      "Kept max_retrieval_rounds_per_obligation pinned to 1 and covered attempted cap2 rejection before dispatch. Decision issuance/readback mints no semantic/context/absence receipts, consumes no claim, performs no provider/model/clock work and preserves state/action histories.",
+      "Added synthetic fact/compare lane-pair, budget, quota/order, round-cap, zero-side-effect, stable identity, concurrency, GC tombstone, clone/mixed/later-history and source/state/owner/effect/transition/ledger/reason/action/target/tuple drift coverage; changed only the obsolete revision3 rejection assertion in the existing fusion transition test."
+    ],
+    "tests": [
+      {
+        "name": "focused final",
+        "command": "PATH=\"/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/bin:$PATH\" PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src /Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/bin/python3 -m unittest tests.test_controller_post_fusion_decision",
+        "workdir": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
+        "executor": "CODER",
+        "exit_code": 0,
+        "signal": null,
+        "candidate_id": "sha256:8d3172b1ec96ce2d11a1892d41cd2a8d3dddc9aa83dc6c050df72b0f401fba24",
+        "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-focused-final-1.native.log",
+        "artifact_sha256": "bcbd499d0f909efd079f2c126988247512fee1e0c573ba5b40d4ef91f9c2f0b0",
+        "result_manifest": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-focused-final-1-result.json",
+        "result_manifest_sha256": "403d5cff17448eb3d292ade2f00afae75cb3315ee2305f08e0c0f9d5189fb653",
+        "result": "11 tests in 904.510s; OK; failures=0, errors=0, skips=0; Owned3+Refs3 and runtime unchanged."
+      },
+      {
+        "name": "adjacent final",
+        "command": "PATH=\"/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/bin:$PATH\" PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src /Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/bin/python3 -m unittest tests.test_controller_first_fusion_transition tests.test_controller_first_fusion_state tests.test_controller_post_lexical_decision tests.test_controller_next_decision tests.test_controller_decision_receipt tests.test_controller_source_authority tests.test_controller_step_history tests.test_controller_initial_transition tests.test_controller_lexical_transition tests.test_controller_target_context_accumulator tests.test_harness_context tests.test_absence_confirmation tests.test_execution_contracts tests.test_retrieval_obligations",
+        "workdir": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
+        "executor": "CODER",
+        "exit_code": 0,
+        "signal": null,
+        "candidate_id": "sha256:8d3172b1ec96ce2d11a1892d41cd2a8d3dddc9aa83dc6c050df72b0f401fba24",
+        "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-adjacent-final-1.native.log",
+        "artifact_sha256": "3956d0d4b7ccd8daf3a10db6f8089cc90117f88be5b4ebb34f3b7aed352dd447",
+        "result_manifest": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-adjacent-final-1-result.json",
+        "result_manifest_sha256": "0b93893fc382f231e45fe649db376211917e951e28a3d17a957c98a1c16bc9ad",
+        "result": "205 tests in 647.583s; OK; failures=0, errors=0, skips=0; Owned3+Refs3 and runtime unchanged."
+      },
+      {
+        "name": "isolated base-plus-candidate",
+        "command": "PATH=\"/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/bin:$PATH\" PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src /Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/bin/python3 -m unittest tests.test_controller_post_fusion_decision tests.test_controller_first_fusion_transition tests.test_controller_first_fusion_state tests.test_controller_post_lexical_decision tests.test_controller_next_decision tests.test_controller_decision_receipt tests.test_controller_source_authority tests.test_controller_step_history tests.test_controller_initial_transition tests.test_controller_lexical_transition tests.test_controller_target_context_accumulator tests.test_harness_context tests.test_absence_confirmation tests.test_execution_contracts tests.test_retrieval_obligations",
+        "workdir": "/private/tmp/eh-post-fusion-isolated.L5d8i8",
+        "executor": "MAIN_COORDINATOR",
+        "exit_code": 0,
+        "signal": null,
+        "candidate_id": "sha256:8d3172b1ec96ce2d11a1892d41cd2a8d3dddc9aa83dc6c050df72b0f401fba24",
+        "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-isolated-main.log",
+        "artifact_sha256": "037cbf6b574ccbced8fece3e5b207c738ac8c01d0d4b898e6a2b668cc967e7c8",
+        "result_manifest": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-isolated-result.json",
+        "result_manifest_sha256": "28b045517d48d6306c3630308ed816ee11bc8587932b573a856f67752cf54f22",
+        "result": "216 tests in 1843.717s; OK; failures=0, errors=0, skips=0; base8db plus exact Owned3+Refs3, listed inputs and runtime unchanged."
+      },
+      {
+        "name": "native full regression",
+        "command": "PATH=\"/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/bin:$PATH\" PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src /Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/bin/python3 -m unittest discover -s tests -t . -p 'test*.py'",
+        "workdir": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
+        "executor": "MAIN_COORDINATOR",
+        "exit_code": 1,
+        "signal": null,
+        "candidate_id": "sha256:8d3172b1ec96ce2d11a1892d41cd2a8d3dddc9aa83dc6c050df72b0f401fba24",
+        "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-full-main.log",
+        "artifact_sha256": "e420a617e901eb22787344b5fbf1d7d2d586a999cb644a4b28ef0e5f83dc433d",
+        "result_manifest": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-full-result.json",
+        "result_manifest_sha256": "0200fb56b61d16777c582ef013e19da5c86d65a48cd2e63d56907b528a3654dc",
+        "result": "1657 tests in 1672.755s; FAILED(errors=1), failures=0, skips=0. Sole error was the frozen refined98 CSV hash check before analytics computation. Native full status remains FAIL and exit1."
+      },
+      {
+        "name": "v5 frozen analytics recovery attempt2",
+        "command": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/bin/python3 -c <exact post-fusion-directive-5 launcher_program_utf8, one argv element, SHA256 b825f68c0cf219561f80f5b928b674ec85d2c82796360d9b7d9c29a7bd2f0e62>",
+        "command_record": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-recovery-2-result.json#/argv",
+        "workdir": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
+        "executor": "MAIN_COORDINATOR",
+        "exit_code": 0,
+        "signal": null,
+        "candidate_id": "sha256:8d3172b1ec96ce2d11a1892d41cd2a8d3dddc9aa83dc6c050df72b0f401fba24",
+        "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-recovery-2-native.log",
+        "artifact_sha256": "82ed3a37d0882a17d20b5c0992451598a9f1facd25c57f8a3c8ecf2c99674c4b",
+        "result_manifest": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-recovery-2-result.json",
+        "result_manifest_sha256": "194b83c99383ed8ca60b15233f92fd62d69525f26f08ac76147bafa91fab6da6",
+        "result": "Exactly the five existing corpus analytics module tests ran in 0.073s; OK; errors=0, failures=0, skips=0, expected_failures=0, unexpected_successes=0, discovery_errors=0; child/helper exit0 and postflight issues=[]. The resolver changed only process-local CSV_PATH and restored it."
+      },
+      {
+        "name": "tracked diff hygiene",
+        "command": "git diff --check -- src/midprojectrag/orchestration/execution_contracts.py tests/test_controller_first_fusion_transition.py",
+        "workdir": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
+        "executor": "MAIN_COORDINATOR",
+        "exit_code": 0,
+        "candidate_id": "sha256:8d3172b1ec96ce2d11a1892d41cd2a8d3dddc9aa83dc6c050df72b0f401fba24",
+        "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-composed-diff-check-result.json",
+        "artifact_sha256": "574f638a92270575e6e9b7db0ba927dbd7454f95e5cd8adbd7a1875fafc03fc3",
+        "result": "No diagnostics."
+      },
+      {
+        "name": "new untracked test hygiene",
+        "command": "git diff --no-index --check -- /dev/null tests/test_controller_post_fusion_decision.py",
+        "workdir": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
+        "executor": "MAIN_COORDINATOR",
+        "exit_code": 1,
+        "expected_exit_code": 1,
+        "candidate_id": "sha256:8d3172b1ec96ce2d11a1892d41cd2a8d3dddc9aa83dc6c050df72b0f401fba24",
+        "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-composed-diff-check-result.json",
+        "artifact_sha256": "574f638a92270575e6e9b7db0ba927dbd7454f95e5cd8adbd7a1875fafc03fc3",
+        "result": "No diagnostics; exit1 is the expected no-index difference status for a new file."
+      }
+    ],
+    "development_evidence": [
+      {
+        "stage": "pre-implementation behavioral RED",
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest tests.test_controller_post_fusion_decision.ControllerPostFusionDecisionTests.test_applied_fusion_selects_first_bounded_parent_seed",
+        "exit_code": 1,
+        "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-focused-red-1.native.log",
+        "artifact_sha256": "2d223dbf6b7d29de4adbdc92d247b6d49409df0483c8a635a992b340d6e10324",
+        "result": "1 test in 19.217s, errors=1 at the pre-existing controller_decision_cross_state_not_ready boundary; expected TDD RED, not a baseline regression."
+      },
+      {
+        "stage": "first minimal repair observation",
+        "command": "same single-test target as the behavioral RED",
+        "exit_code": null,
+        "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-focused-repair-1.native.log",
+        "artifact_sha256": "48194fc22f8ef6030e1ef24a4b6eea9e3640d9aba8530ef7a2e10c35d152298f",
+        "result": "Native output says 1 test in 38.009s and OK, but the yielded tool session ID/actual process exit was not recovered. Exit remains unknown and this run is not final PASS evidence."
+      },
+      {
+        "stage": "compare implementation repair failure",
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest <six recorded post-fusion matrix/concurrency/GC/clone/drift methods; exact full argv retained in fivecircles/test/errorlogs/backend/2026-09-07-controller-post-fusion-decision.md>",
+        "exit_code": 1,
+        "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-focused-repair-3.native.log",
+        "artifact_sha256": "794f23d55ba1ee192c1d75e1acf9468ccb9f3a1a9a7b3bb5b039d9a0f430e575",
+        "result": "6 methods in 642.812s, FAILED(errors=5): all four compare lane subcases plus compare concurrency rejected. The scoped repair removed a newly introduced direct equality requirement between the derived effective-plan hash and source.planning base-plan SHA while retaining the two authenticated plan/query layers."
+      },
+      {
+        "stage": "analytics recovery attempt1 launcher failure",
+        "command": "PATH=\"/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/bin:$PATH\" PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src /Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/bin/python3 /private/tmp/eh-relay-20260907.GNy8vE/run-post-fusion-frozen-analytics-check.py --scope analytics",
+        "exit_code": 1,
+        "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-recovery-native.log",
+        "artifact_sha256": "fbcea2944e679b127f7f23d275accf39b500ed0519309f1b3fb8be5501253a1a",
+        "result_manifest": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-recovery-result.json",
+        "result_manifest_sha256": "fe6a7e7f2e3327c576b494063ce55581bbfe137465e4529d0e5ed73ba71d219b",
+        "result": "Absolute helper execution made /private/tmp sys.path[0]; tests package discovery failed with _FailedTest.tests. Zero required analytics tests ran. This launcher failure is preserved and not counted as analytics validation."
+      }
+    ],
+    "candidate_manifest": {
+      "path": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-candidate.json",
+      "sha256": "e235713c7b8cd14f85041f6d0ff8d1a73c8f9dfa862b38eedd769805a5dcd6d3",
+      "owned_files_manifest": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-owned-files.sha256",
+      "owned_files_manifest_sha256": "8d3172b1ec96ce2d11a1892d41cd2a8d3dddc9aa83dc6c050df72b0f401fba24",
+      "snapshot_tar": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-owned.tar",
+      "snapshot_tar_sha256": "3b2b17519ec5a6fcf0fdd91882ebbb6715c75e3c18640f65dab9fe0eec5dbbc3",
+      "tracked_diff": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-main-tracked.diff",
+      "tracked_diff_sha256": "7a403bc39a188915fb157db20f8fffc9d0ee5195e233ee01d09630ee6a4c1783",
+      "new_test_diff": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-new-test.diff",
+      "new_test_diff_sha256": "5895f864ce59c3cdaeb6f25686499b38f5687298416dfbb66b46c712e52eb1d3"
+    },
+    "additional_review_files": [
+      {
+        "path": "fivecircles/architecture/specs/controller-next-decision.md",
+        "sha256": "6d80a97e9261b359ad3d80fa05f986f19340c9b905b737c5714183511ba512a4"
+      },
+      {
+        "path": "src/midprojectrag/orchestration/module-contract.md",
+        "sha256": "953703f50cc9e84c11b939cd0020a24bb2c1ffc619c1c98f32a5022cb3070012"
+      },
+      {
+        "path": "fivecircles/architecture/specs/controller-first-fusion-transition.md",
+        "sha256": "1b92dbdf8d116e3812a1e27181e431a9aef39f6e0c70996a70e59dadd3a4c3e8",
+        "baseline_match": "8db05102b3c858b96f89ef62ee9a442bfe935951"
+      }
+    ],
+    "test_evidence_manifest": {
+      "path": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-final-test-evidence.sha256",
+      "sha256": "eaf054ab203e73671d84ba9f9b035bbcaf45027f12bb6c8c21a7e331c8366771",
+      "entry_count": 41
+    },
+    "validation_composition": {
+      "assessment": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-composition-assessment.json",
+      "assessment_sha256": "cb68995b04f8f197a2a62c8bea80ced87a5a44a63614c8ff4c74d7095ea5092c",
+      "native_full_status": "FAIL",
+      "native_full_exit_code": 1,
+      "recovery_status": "PASS",
+      "composed_regression_gate": "PENDING_FRESH_DEEP_REVIEW",
+      "canonical_input_status": "UNREPAIRED_FROZEN_HASH_MISMATCH",
+      "unique_effective_suite_size": 1657,
+      "overlap": "The recovery reran all five existing analytics tests, four of which overlap native-full successes. Do not add counts to claim 1662 and do not claim a single native full PASS.",
+      "runtime_limit": "Historical main metadata-probe PYTHONPATH is UNKNOWN. Current dual probes reproduce the recorded 95/96 observations and locate only one same-version midprojectrag source egg-info delta, but they do not reconstruct the historical inherited environment, historical import origins or dependency-file bytes. The original unittest child did explicitly use PYTHONPATH=src.",
+      "input_limit": "The original full manifest covers its listed nonignored code/test/config/script/packaging paths, not the entire filesystem or private inputs. Recovery separately bound all five frozen analytics inputs and retained the canonical mismatch.",
+      "review_ready_meaning": "REVIEW_READY means the frozen candidate and required actual evidence are available for review. It is not a PASS, COMPOSED_VALIDATION_PASS, integration permission or repaired-canonical claim."
+    },
+    "deviations": [
+      "The original directive-3 implementation/focused/adjacent provenance is preserved. Directives4/5 authorized evidence recovery only; no product candidate, behavior contract, test, config, gold, corpus, dependency or assertion bytes changed after freeze.",
+      "The native full run remains FAIL/exit1 with one pre-computation CSV binding error. The v5 process-local resolver selected the exact configured frozen CSV bytes for all five analytics tests; it did not repair or overwrite the canonical CSV and cannot be described as a resolved-input full run.",
+      "Recovery attempt1 failed before required test execution because of launcher import context. Its result remains immutable. Attempt2 changed only the authorized -c/runpy invocation, preserved the pinned resolver and recorded the three required events.",
+      "The implementation history includes the expected behavioral RED, an intermediate native OK whose actual exit is unknown, and a separate five-error compare repair run. Final focused/adjacent/isolated evidence supersedes none of those historical facts.",
+      "Evidence setup also preserved prior preflight/diagnostic failures. Runtime reconciliation is limited: historical metadata-probe PYTHONPATH remains UNKNOWN, and current reproduction is not proof of the complete historical environment.",
+      "No model, API, GCP, Langfuse, VLM, DIAG131, benchmark, profiling, private-input publication, action execution, next batch, Git mutation or integration action was taken by the Coder."
+    ],
+    "unresolved_questions": [],
+    "pending_review_determinations": [
+      "A fresh deep Critic must accept or reject the impact-based native-full-plus-analytics5 composition, including the limited historical runtime evidence, before composed_regression_gate may change from PENDING_FRESH_DEEP_REVIEW.",
+      "Fresh review must also assess the product/contract candidate; no prior review or this report grants PASS."
+    ],
+    "proposed_next_steps": [
+      "Dispatch this exact report, candidate manifest, 41-artifact test evidence manifest and composition assessment to a fresh deep Philosopher/Critic bound to directive5, candidate8d317..., contract6d80... and test evidence eaf054....",
+      "If and only if the bound fresh REVIEW accepts both product behavior and evidence composition may main record COMPOSED_VALIDATION_PASS and consider authorized selective integration. Preserve native_full_status=FAIL and canonical_input_status=UNREPAIRED_FROZEN_HASH_MISMATCH in every later record.",
+      "If the Critic rejects identity, coverage or runtime sufficiency, remain NEEDS_GUIDANCE and request a complete follow-up directive; do not automatically run a resolved full suite, skip a test or alter the frozen candidate."
+    ]
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.c4.2.b.2",
+  "status": "CLOSED",
+  "commit_sha": "8db05102b3c858b96f89ef62ee9a442bfe935951",
+  "parent_sha": "a37562a774ea72281950102416c0b71f3a00e6fa",
+  "branch": "feat/total-integration",
+  "remote": "origin",
+  "remote_url": "https://github.com/KongSeok/sprint-public-procurement-rag-assistant.git",
+  "push": {
+    "command": "git push origin HEAD:refs/heads/feat/total-integration",
+    "exit_code": 0,
+    "tool_output_chunk": "9f54d3",
+    "remote_verified_sha": "8db05102b3c858b96f89ef62ee9a442bfe935951",
+    "verified_at": "2026-09-07T08:55:37.580Z"
+  },
+  "review_message_id": "first-fuse-state-review-1",
+  "candidate_id": "sha256:cc5e19ca5b6a7ab1cc40fe5b62734df3e4a50a760a8274ea7590c1db53058e87",
+  "contract_id": "sha256:1b92dbdf8d116e3812a1e27181e431a9aef39f6e0c70996a70e59dadd3a4c3e8",
+  "test_evidence_id": "sha256:8142e1f1b406947e18d5a650d61229c0576adcad07674018b79949b8fdb45d28",
+  "committed_file_count": 40,
+  "committed_manifest_sha256": "639786e4849bb8f9cd9bf7b085ac59bce09e01ed5f62419da030873b48526863",
+  "validation": {
+    "focused": 25,
+    "adjacent": 202,
+    "isolated_candidate": 227,
+    "full_worktree": 1611,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "exit_code": 0,
+    "full_count_scope": "Shared worktree includes independently owned tests; not batch-owned delta.",
+    "focused_limit": "No separately persisted focused-start manifest; final isolated/full evidence binds the frozen candidate.",
+    "report_browser": {
+      "status": "PASS",
+      "command": "NODE_PATH=/Users/pio/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules MIDPROJECTRAG_REPORT_CHROMIUM='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' /usr/local/bin/node scripts/check_harness_progress_report.cjs fivecircles/architecture/specs/evidence-harness-progress-flow-validation.html fivecircles/test/playwright-screenshots/controller-first-fusion-state-2026-09-07.png EH2.6.c4.2.b.2",
+      "exit_code": 0,
+      "milestone": "EH2.6.c4.2.b.2",
+      "images": [
+        {
+          "width": 1350,
+          "height": 6496
+        },
+        {
+          "width": 1568,
+          "height": 1656
+        }
+      ],
+      "tables": 8,
+      "desktop": "1440x1000",
+      "mobile": "390x844",
+      "page_errors": 0,
+      "external_requests": 0,
+      "capture": "Actual completed exec session37080 tool-returned stdout/exit0; not a separately redirected raw log",
+      "main_visual_inspection": "Current diagram and final full-page screenshot inspected; target unchanged/reused"
+    }
+  },
+  "publication": {
+    "automated_status": "FAIL",
+    "automated_exit_code": 1,
+    "native_enumerated_files": 1060,
+    "policy_status": "CLEARED_BY_SPECIFIC_POLICY_REVIEW",
+    "review_message_id": "first-fuse-state-publication-review-1",
+    "clearance_ref": "batches/EH2.6.c4.2.b.2/publication-clearance.json",
+    "final_index_reconciliation": "COMPLETED",
+    "final_selected_payload_count": 40,
+    "content_scan": "Exactly two previously reviewed immutable synthetic diff digest fields; no additional PII or secret-pattern findings.",
+    "scope_note": "The earlier pre-index clearance and final-gates artifact correctly record their then-pending index gate. The later stage helper and independent precommit index check completed it; neither is native safety PASS."
+  },
+  "worktree": {
+    "status": "Unrelated dirty work preserved",
+    "status_entry_count": 242,
+    "index_empty": true,
+    "resources_tracked": false
+  },
+  "operational_diagnostic": {
+    "code": "ENOBUFS",
+    "stage": "Read-only precommit identity recheck",
+    "cause": "Default Node child-process output buffer was smaller than the report PNG.",
+    "resolution": "Retried with explicit 32 MiB maxBuffer; all 40 staged contents matched and whitespace/resources checks passed.",
+    "mutation": false,
+    "product_regression": false
+  },
+  "continuation": "CONTINUE_WITH_NEXT_FORM",
+  "next_selection": "Astra Design assesses post-fusion next eligibility against current TODO/flow; exact next child is not preselected by main.",
+  "note": "This is a post-commit receipt, not part of its own commit. No self-SHA-only commit loop. DIAG131/GCP remain independently owned."
+}

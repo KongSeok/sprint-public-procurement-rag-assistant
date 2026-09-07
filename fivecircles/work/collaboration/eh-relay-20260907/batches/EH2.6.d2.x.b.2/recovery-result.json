@@ -1,0 +1,2716 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.d2.x.b.2",
+  "directive_id": "post-fusion-directive-5",
+  "implementation_directive_id": "post-fusion-directive-3",
+  "candidate_id": "sha256:8d3172b1ec96ce2d11a1892d41cd2a8d3dddc9aa83dc6c050df72b0f401fba24",
+  "contract_id": "sha256:6d80a97e9261b359ad3d80fa05f986f19340c9b905b737c5714183511ba512a4",
+  "base": "8db05102b3c858b96f89ef62ee9a442bfe935951",
+  "branch": "feat/total-integration",
+  "cwd": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
+  "command": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/bin/python3 -c \"import importlib.util,json,runpy,sys\\nfrom pathlib import Path\\nroot=Path(\\\"/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG\\\")\\nresolver=\\\"/private/tmp/eh-relay-20260907.GNy8vE/run-post-fusion-frozen-analytics-check.py\\\"\\nif Path.cwd().resolve()!=root or not sys.path or sys.path[0]!=\\\"\\\":\\n    raise RuntimeError(\\\"exact_cwd_minus_c_import_context_required\\\")\\ntests_spec=importlib.util.find_spec(\\\"tests\\\")\\nproduct_spec=importlib.util.find_spec(\\\"midprojectrag\\\")\\norigins={\\\"tests\\\":None if tests_spec is None else tests_spec.origin,\\\"midprojectrag\\\":None if product_spec is None else product_spec.origin}\\nif origins[\\\"tests\\\"] is None or Path(origins[\\\"tests\\\"]).resolve()!=root/\\\"tests/__init__.py\\\":\\n    raise RuntimeError(\\\"exact_tests_package_origin_required\\\")\\nif origins[\\\"midprojectrag\\\"] is None or Path(origins[\\\"midprojectrag\\\"]).resolve()!=root/\\\"src/midprojectrag/__init__.py\\\":\\n    raise RuntimeError(\\\"exact_product_package_origin_required\\\")\\nsys.argv=[resolver,\\\"--scope\\\",\\\"analytics\\\"]\\nprint(json.dumps({\\\"event\\\":\\\"frozen_analytics_launcher_context\\\",\\\"cwd\\\":str(Path.cwd().resolve()),\\\"executable\\\":sys.executable,\\\"sys_path\\\":list(sys.path),\\\"import_origins\\\":origins,\\\"resolver_path\\\":resolver,\\\"argv\\\":list(sys.argv)},sort_keys=True),flush=True)\\nrunpy.run_path(resolver,run_name=\\\"__main__\\\")\\n\"",
+  "environment_allowlist": {
+    "HOME": "/Users/pio",
+    "TMPDIR": "/var/folders/jj/y8tv7y716zv3g1lx0zdjp5nc0000gn/T/",
+    "LANG": "C.UTF-8",
+    "LC_ALL": "C.UTF-8",
+    "LC_CTYPE": "C.UTF-8",
+    "PATH": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Library/Apple/usr/bin:/Applications/quarto/bin:/Users/pio/.codex/tmp/arg0/codex-arg0tHAIH8:/Users/pio/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/override:/opt/homebrew/Caskroom/miniconda/base/bin:/opt/homebrew/Caskroom/miniconda/base/condabin:/Users/pio/.antigravity-ide/antigravity-ide/bin:/Users/pio/.antigravity/antigravity/bin:/Users/pio/.opencode/bin:/opt/homebrew/opt/postgresql@16/bin:/Users/pio/.local/bin:/Users/pio/Library/Java/JavaVirtualMachines/temurin-21.0.9/Contents/Home/bin:/Users/pio/.npm-global/bin:/Users/pio/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/fallback:/Applications/ChatGPT.app/Contents/Resources",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTHONPATH": "src"
+  },
+  "environment_note": "Recovery passes only these necessary nonsecret runtime variables; no env file/key/provider/skip override loaded. Original native process environment was not fully captured; only proven listed runtime/input identity is claimed.",
+  "files": [
+    {
+      "path": "src/midprojectrag/orchestration/execution_contracts.py",
+      "sha256": "a9fd7b218bd37cedc8588005dd455fce837e72b078c11d94231bdb85865e1654"
+    },
+    {
+      "path": "tests/test_controller_post_fusion_decision.py",
+      "sha256": "15b689574bb2c0fdc12fa1ff95047020273793eb3e6b61456403218155f026c6"
+    },
+    {
+      "path": "tests/test_controller_first_fusion_transition.py",
+      "sha256": "135645c1c8514a8ea65b456c0fa098ec7cd7d27107c9d28916abda8d95fcbe4a"
+    },
+    {
+      "path": "fivecircles/architecture/specs/controller-next-decision.md",
+      "sha256": "6d80a97e9261b359ad3d80fa05f986f19340c9b905b737c5714183511ba512a4"
+    },
+    {
+      "path": "src/midprojectrag/orchestration/module-contract.md",
+      "sha256": "953703f50cc9e84c11b939cd0020a24bb2c1ffc619c1c98f32a5022cb3070012"
+    },
+    {
+      "path": "fivecircles/architecture/specs/controller-first-fusion-transition.md",
+      "sha256": "1b92dbdf8d116e3812a1e27181e431a9aef39f6e0c70996a70e59dadd3a4c3e8"
+    }
+  ],
+  "runtime": {
+    "executable": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/bin/python3",
+    "version": "3.12.14 (main, Aug 25 2026, 13:50:33) [Clang 22.1.3 ]",
+    "machine": "arm64",
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "distributions": [
+      [
+        "Jinja2",
+        "3.1.6"
+      ],
+      [
+        "MarkupSafe",
+        "3.0.3"
+      ],
+      [
+        "PyYAML",
+        "6.0.3"
+      ],
+      [
+        "altair",
+        "6.2.2"
+      ],
+      [
+        "annotated-types",
+        "0.8.0"
+      ],
+      [
+        "anyio",
+        "4.14.2"
+      ],
+      [
+        "attrs",
+        "26.1.0"
+      ],
+      [
+        "backoff",
+        "2.2.1"
+      ],
+      [
+        "blinker",
+        "1.9.0"
+      ],
+      [
+        "certifi",
+        "2026.7.22"
+      ],
+      [
+        "cffi",
+        "2.1.1"
+      ],
+      [
+        "charset-normalizer",
+        "3.5.1"
+      ],
+      [
+        "click",
+        "8.4.2"
+      ],
+      [
+        "cloudpickle",
+        "3.1.2"
+      ],
+      [
+        "cryptography",
+        "50.0.0"
+      ],
+      [
+        "filelock",
+        "3.32.4"
+      ],
+      [
+        "fsspec",
+        "2026.7.0"
+      ],
+      [
+        "googleapis-common-protos",
+        "1.75.1"
+      ],
+      [
+        "h11",
+        "0.16.0"
+      ],
+      [
+        "hf-xet",
+        "1.6.0"
+      ],
+      [
+        "httpcore",
+        "1.0.9"
+      ],
+      [
+        "httpcore2",
+        "2.12.0"
+      ],
+      [
+        "httptools",
+        "0.8.0"
+      ],
+      [
+        "httpx",
+        "0.28.1"
+      ],
+      [
+        "httpx2",
+        "2.12.0"
+      ],
+      [
+        "huggingface_hub",
+        "0.36.2"
+      ],
+      [
+        "idna",
+        "3.19"
+      ],
+      [
+        "itsdangerous",
+        "2.2.0"
+      ],
+      [
+        "jiter",
+        "0.16.0"
+      ],
+      [
+        "joblib",
+        "1.6.0"
+      ],
+      [
+        "jsonschema",
+        "4.26.0"
+      ],
+      [
+        "jsonschema-specifications",
+        "2025.9.1"
+      ],
+      [
+        "kiwipiepy",
+        "0.23.2"
+      ],
+      [
+        "kiwipiepy_model",
+        "0.23.0"
+      ],
+      [
+        "langfuse",
+        "4.14.5"
+      ],
+      [
+        "lxml",
+        "6.1.2"
+      ],
+      [
+        "midprojectrag",
+        "0.1.0"
+      ],
+      [
+        "midprojectrag",
+        "0.1.0"
+      ],
+      [
+        "mpmath",
+        "1.3.0"
+      ],
+      [
+        "narwhals",
+        "2.25.0"
+      ],
+      [
+        "networkx",
+        "3.6.1"
+      ],
+      [
+        "numpy",
+        "2.5.2"
+      ],
+      [
+        "olefile",
+        "0.47"
+      ],
+      [
+        "openai",
+        "3.3.1"
+      ],
+      [
+        "opentelemetry-api",
+        "1.44.0"
+      ],
+      [
+        "opentelemetry-exporter-otlp-proto-common",
+        "1.44.0"
+      ],
+      [
+        "opentelemetry-exporter-otlp-proto-http",
+        "1.44.0"
+      ],
+      [
+        "opentelemetry-proto",
+        "1.44.0"
+      ],
+      [
+        "opentelemetry-sdk",
+        "1.44.0"
+      ],
+      [
+        "opentelemetry-semantic-conventions",
+        "0.65b0"
+      ],
+      [
+        "packaging",
+        "26.3"
+      ],
+      [
+        "pandas",
+        "3.0.5"
+      ],
+      [
+        "pdfminer.six",
+        "20260107"
+      ],
+      [
+        "pdfplumber",
+        "0.11.10"
+      ],
+      [
+        "pillow",
+        "12.3.0"
+      ],
+      [
+        "pip",
+        "25.0.1"
+      ],
+      [
+        "protobuf",
+        "7.36.0"
+      ],
+      [
+        "pyarrow",
+        "25.0.1"
+      ],
+      [
+        "pycparser",
+        "3.0"
+      ],
+      [
+        "pydantic",
+        "2.13.4"
+      ],
+      [
+        "pydantic_core",
+        "2.46.4"
+      ],
+      [
+        "pydeck",
+        "0.9.3"
+      ],
+      [
+        "pyhwp",
+        "0.1b15"
+      ],
+      [
+        "pypdf",
+        "6.16.2"
+      ],
+      [
+        "pypdfium2",
+        "5.13.0"
+      ],
+      [
+        "python-dateutil",
+        "2.9.0.post0"
+      ],
+      [
+        "python-dotenv",
+        "1.2.3"
+      ],
+      [
+        "python-multipart",
+        "0.0.32"
+      ],
+      [
+        "referencing",
+        "0.37.0"
+      ],
+      [
+        "regex",
+        "2026.7.19"
+      ],
+      [
+        "requests",
+        "2.34.2"
+      ],
+      [
+        "rpds-py",
+        "2026.6.3"
+      ],
+      [
+        "safetensors",
+        "0.8.0"
+      ],
+      [
+        "scikit-learn",
+        "1.9.0"
+      ],
+      [
+        "scipy",
+        "1.18.1"
+      ],
+      [
+        "sentence-transformers",
+        "5.7.0"
+      ],
+      [
+        "setuptools",
+        "84.0.0"
+      ],
+      [
+        "six",
+        "1.17.0"
+      ],
+      [
+        "sniffio",
+        "1.3.1"
+      ],
+      [
+        "starlette",
+        "1.6.0"
+      ],
+      [
+        "streamlit",
+        "1.62.0"
+      ],
+      [
+        "sympy",
+        "1.14.0"
+      ],
+      [
+        "threadpoolctl",
+        "3.6.0"
+      ],
+      [
+        "tiktoken",
+        "0.13.0"
+      ],
+      [
+        "tokenizers",
+        "0.22.2"
+      ],
+      [
+        "toml",
+        "0.10.2"
+      ],
+      [
+        "torch",
+        "2.13.0"
+      ],
+      [
+        "tqdm",
+        "4.70.0"
+      ],
+      [
+        "transformers",
+        "4.57.6"
+      ],
+      [
+        "truststore",
+        "0.10.4"
+      ],
+      [
+        "typing-inspection",
+        "0.4.4"
+      ],
+      [
+        "typing_extensions",
+        "4.16.0"
+      ],
+      [
+        "urllib3",
+        "2.7.0"
+      ],
+      [
+        "uvicorn",
+        "0.52.4"
+      ],
+      [
+        "websockets",
+        "16.1.1"
+      ],
+      [
+        "wrapt",
+        "2.3.0"
+      ]
+    ]
+  },
+  "instrumentation": {
+    "path": "/private/tmp/eh-relay-20260907.GNy8vE/run-post-fusion-recovery-2.cjs",
+    "sha256": "e94607f791d02b266938da9c77bd672e5603a1a598d5172620e4e6880ee64bd6"
+  },
+  "resolver": {
+    "path": "/private/tmp/eh-relay-20260907.GNy8vE/run-post-fusion-frozen-analytics-check.py",
+    "sha256": "9cd31699b714ec0c207c1cd063a3d8352a539751d7536ae8efa0d559ad7847db"
+  },
+  "directive": {
+    "path": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/fivecircles/work/collaboration/eh-relay-20260907/messages/EH2.6.d2.x.b.2/009-post-fusion-directive-5.json",
+    "sha256": "ce2b1dde644e1ec1e5b536c21c038c05f87f02b5120f48df95c1c8d824c1d4a3"
+  },
+  "input_manifest": {
+    "path": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-recovery-2-input-manifest.json",
+    "sha256": "426c0ff57957169626208db95efa6cdc108aa7b1c889bc79987c56e69c80eac8"
+  },
+  "recorded_at": "2026-09-07T12:17:37.866Z",
+  "argv": [
+    "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/bin/python3",
+    "-c",
+    "import importlib.util,json,runpy,sys\nfrom pathlib import Path\nroot=Path(\"/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG\")\nresolver=\"/private/tmp/eh-relay-20260907.GNy8vE/run-post-fusion-frozen-analytics-check.py\"\nif Path.cwd().resolve()!=root or not sys.path or sys.path[0]!=\"\":\n    raise RuntimeError(\"exact_cwd_minus_c_import_context_required\")\ntests_spec=importlib.util.find_spec(\"tests\")\nproduct_spec=importlib.util.find_spec(\"midprojectrag\")\norigins={\"tests\":None if tests_spec is None else tests_spec.origin,\"midprojectrag\":None if product_spec is None else product_spec.origin}\nif origins[\"tests\"] is None or Path(origins[\"tests\"]).resolve()!=root/\"tests/__init__.py\":\n    raise RuntimeError(\"exact_tests_package_origin_required\")\nif origins[\"midprojectrag\"] is None or Path(origins[\"midprojectrag\"]).resolve()!=root/\"src/midprojectrag/__init__.py\":\n    raise RuntimeError(\"exact_product_package_origin_required\")\nsys.argv=[resolver,\"--scope\",\"analytics\"]\nprint(json.dumps({\"event\":\"frozen_analytics_launcher_context\",\"cwd\":str(Path.cwd().resolve()),\"executable\":sys.executable,\"sys_path\":list(sys.path),\"import_origins\":origins,\"resolver_path\":resolver,\"argv\":list(sys.argv)},sort_keys=True),flush=True)\nrunpy.run_path(resolver,run_name=\"__main__\")\n"
+  ],
+  "launcher_program_utf8": "import importlib.util,json,runpy,sys\nfrom pathlib import Path\nroot=Path(\"/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG\")\nresolver=\"/private/tmp/eh-relay-20260907.GNy8vE/run-post-fusion-frozen-analytics-check.py\"\nif Path.cwd().resolve()!=root or not sys.path or sys.path[0]!=\"\":\n    raise RuntimeError(\"exact_cwd_minus_c_import_context_required\")\ntests_spec=importlib.util.find_spec(\"tests\")\nproduct_spec=importlib.util.find_spec(\"midprojectrag\")\norigins={\"tests\":None if tests_spec is None else tests_spec.origin,\"midprojectrag\":None if product_spec is None else product_spec.origin}\nif origins[\"tests\"] is None or Path(origins[\"tests\"]).resolve()!=root/\"tests/__init__.py\":\n    raise RuntimeError(\"exact_tests_package_origin_required\")\nif origins[\"midprojectrag\"] is None or Path(origins[\"midprojectrag\"]).resolve()!=root/\"src/midprojectrag/__init__.py\":\n    raise RuntimeError(\"exact_product_package_origin_required\")\nsys.argv=[resolver,\"--scope\",\"analytics\"]\nprint(json.dumps({\"event\":\"frozen_analytics_launcher_context\",\"cwd\":str(Path.cwd().resolve()),\"executable\":sys.executable,\"sys_path\":list(sys.path),\"import_origins\":origins,\"resolver_path\":resolver,\"argv\":list(sys.argv)},sort_keys=True),flush=True)\nrunpy.run_path(resolver,run_name=\"__main__\")\n",
+  "launcher_program_sha256": "b825f68c0cf219561f80f5b928b674ec85d2c82796360d9b7d9c29a7bd2f0e62",
+  "prior_attempt": {
+    "path": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-recovery-result.json",
+    "sha256": "fe6a7e7f2e3327c576b494063ce55581bbfe137465e4529d0e5ed73ba71d219b"
+  },
+  "finished_at": "2026-09-07T12:17:38.383Z",
+  "elapsed_seconds": 0.51,
+  "exit_code": 0,
+  "signal": null,
+  "spawn_error": null,
+  "recovery_status": "PASS",
+  "native_full_status": "FAIL",
+  "native_full_exit_code": 1,
+  "composed_regression_gate": "PENDING_REVIEW",
+  "canonical_input_status": "UNREPAIRED_FROZEN_HASH_MISMATCH",
+  "test_count": 5,
+  "unittest_summary": "\nRan 5 tests in 0.073s\n\nOK",
+  "start_artifact": {
+    "path": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-recovery-2-start.json",
+    "sha256": "e79a92e8fa1ea69bc741184cb474bfa9a34e6b1c628e67dce17a076180d5d8d0"
+  },
+  "artifacts": {
+    "stdout": {
+      "path": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-recovery-2-stdout.log",
+      "sha256": "bc598a5ea0be6441914d92f1424ec443db67db5479b18033dea97623deba5568"
+    },
+    "stderr": {
+      "path": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-recovery-2-stderr.log",
+      "sha256": "8029f7b8ae709c143d7adff91906d4a6fc2f43ff99cd7b1c95f540ceb08549cc"
+    },
+    "native": {
+      "path": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-recovery-2-native.log",
+      "sha256": "82ed3a37d0882a17d20b5c0992451598a9f1facd25c57f8a3c8ecf2c99674c4b"
+    }
+  },
+  "events": [
+    {
+      "argv": [
+        "/private/tmp/eh-relay-20260907.GNy8vE/run-post-fusion-frozen-analytics-check.py",
+        "--scope",
+        "analytics"
+      ],
+      "cwd": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
+      "event": "frozen_analytics_launcher_context",
+      "executable": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/bin/python3",
+      "import_origins": {
+        "midprojectrag": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/src/midprojectrag/__init__.py",
+        "tests": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/tests/__init__.py"
+      },
+      "resolver_path": "/private/tmp/eh-relay-20260907.GNy8vE/run-post-fusion-frozen-analytics-check.py",
+      "sys_path": [
+        "",
+        "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/src",
+        "/Users/pio/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python312.zip",
+        "/Users/pio/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12",
+        "/Users/pio/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/lib-dynload",
+        "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/lib/python3.12/site-packages"
+      ]
+    },
+    {
+      "discovery_errors": [],
+      "event": "frozen_analytics_resolver_start",
+      "identities": {
+        "canonical": "7c5a9b76e96383a669790b41056ae8e45d0464192a083709afa06c14a48c9fe0",
+        "config": "87671e60056a883ba73b23b36c94c7adf8cd19c96d8816d2377ef1aa648607a7",
+        "loader": "81b910623fad575de701278082d703e2389d655a906f75def5581a0705950244",
+        "test": "de76f2ce65e0ab96a585610b7f616cf44860252f1f8e65a03a4880a4ff6950bc"
+      },
+      "inputs": {
+        "cases": {
+          "path": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/golden-set-final/corpus-analytics-qa.jsonl",
+          "sha256": "e2324fea2cac26520ba371183675f933ab997b0ff5d54c796a608f6f44c37c2f"
+        },
+        "categories": {
+          "path": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/golden-set-final/project-category-v1.jsonl",
+          "sha256": "968f8f9baf3449bce1985464ae1b800b73a5f70d3713b0172cb8736e0dbaecca"
+        },
+        "manifest": {
+          "path": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/resources/data_refined/private/manifest.extracted.jsonl",
+          "sha256": "6c91d30a4c01b12f1aae8924c88a2e5055446c841f5eabfbf687546fdc1fe1cb"
+        },
+        "refined_csv": {
+          "path": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/resources/data_refined/share/2026-08-31/MidProjectRAG_refined98_catalog_csv/refined_data_list.csv",
+          "sha256": "cef0a27602976af468206ad2fa855027cb6f686fc877a52ce8fb191c57cd7e5b"
+        },
+        "targets": {
+          "path": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/golden-set-final/corpus-analytics-target-sets.json",
+          "sha256": "a6eaf98780c3efc314f3998a116c42960a5c518f5df1306bd72cc2c61587bf4e"
+        }
+      },
+      "original_path": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/resources/data_refined/refined_data_list.csv",
+      "patched_symbols": [
+        "midprojectrag.corpus_analytics_baseline.CSV_PATH"
+      ],
+      "scope": "analytics",
+      "selected_path": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/resources/data_refined/share/2026-08-31/MidProjectRAG_refined98_catalog_csv/refined_data_list.csv",
+      "test_count": 5,
+      "test_ids": [
+        "tests.evaluation.test_corpus_analytics_baseline.CorpusAnalyticsBaselineTests.test_comparison_applies_semantic_numeric_tolerances",
+        "tests.evaluation.test_corpus_analytics_baseline.CorpusAnalyticsBaselineTests.test_comparison_rejects_extra_or_missing_fields_and_list_items",
+        "tests.evaluation.test_corpus_analytics_baseline.CorpusAnalyticsBaselineTests.test_frozen_refined98_snapshot_recomputes_all_gold_fields",
+        "tests.evaluation.test_corpus_analytics_baseline.CorpusAnalyticsBaselineTests.test_linear_quantile_uses_frozen_n_minus_one_interpolation",
+        "tests.evaluation.test_corpus_analytics_baseline.CorpusAnalyticsBaselineTests.test_private_jsonl_is_mode_0600_and_canonical"
+      ]
+    },
+    {
+      "errors": 0,
+      "event": "frozen_analytics_resolver_result",
+      "expected_failures": 0,
+      "failures": 0,
+      "identities_after": {
+        "canonical": "7c5a9b76e96383a669790b41056ae8e45d0464192a083709afa06c14a48c9fe0",
+        "config": "87671e60056a883ba73b23b36c94c7adf8cd19c96d8816d2377ef1aa648607a7",
+        "loader": "81b910623fad575de701278082d703e2389d655a906f75def5581a0705950244",
+        "test": "de76f2ce65e0ab96a585610b7f616cf44860252f1f8e65a03a4880a4ff6950bc"
+      },
+      "inputs_after": {
+        "cases": {
+          "path": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/golden-set-final/corpus-analytics-qa.jsonl",
+          "sha256": "e2324fea2cac26520ba371183675f933ab997b0ff5d54c796a608f6f44c37c2f"
+        },
+        "categories": {
+          "path": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/golden-set-final/project-category-v1.jsonl",
+          "sha256": "968f8f9baf3449bce1985464ae1b800b73a5f70d3713b0172cb8736e0dbaecca"
+        },
+        "manifest": {
+          "path": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/resources/data_refined/private/manifest.extracted.jsonl",
+          "sha256": "6c91d30a4c01b12f1aae8924c88a2e5055446c841f5eabfbf687546fdc1fe1cb"
+        },
+        "refined_csv": {
+          "path": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/resources/data_refined/share/2026-08-31/MidProjectRAG_refined98_catalog_csv/refined_data_list.csv",
+          "sha256": "cef0a27602976af468206ad2fa855027cb6f686fc877a52ce8fb191c57cd7e5b"
+        },
+        "targets": {
+          "path": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/golden-set-final/corpus-analytics-target-sets.json",
+          "sha256": "a6eaf98780c3efc314f3998a116c42960a5c518f5df1306bd72cc2c61587bf4e"
+        }
+      },
+      "inputs_unchanged": true,
+      "scope": "analytics",
+      "skipped": 0,
+      "tests_run": 5,
+      "unexpected_successes": 0
+    }
+  ],
+  "postflight_issues": [],
+  "files_after": [
+    {
+      "path": "src/midprojectrag/orchestration/execution_contracts.py",
+      "sha256": "a9fd7b218bd37cedc8588005dd455fce837e72b078c11d94231bdb85865e1654"
+    },
+    {
+      "path": "tests/test_controller_post_fusion_decision.py",
+      "sha256": "15b689574bb2c0fdc12fa1ff95047020273793eb3e6b61456403218155f026c6"
+    },
+    {
+      "path": "tests/test_controller_first_fusion_transition.py",
+      "sha256": "135645c1c8514a8ea65b456c0fa098ec7cd7d27107c9d28916abda8d95fcbe4a"
+    },
+    {
+      "path": "fivecircles/architecture/specs/controller-next-decision.md",
+      "sha256": "6d80a97e9261b359ad3d80fa05f986f19340c9b905b737c5714183511ba512a4"
+    },
+    {
+      "path": "src/midprojectrag/orchestration/module-contract.md",
+      "sha256": "953703f50cc9e84c11b939cd0020a24bb2c1ffc619c1c98f32a5022cb3070012"
+    },
+    {
+      "path": "fivecircles/architecture/specs/controller-first-fusion-transition.md",
+      "sha256": "1b92dbdf8d116e3812a1e27181e431a9aef39f6e0c70996a70e59dadd3a4c3e8"
+    }
+  ],
+  "runtime_after": {
+    "executable": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/bin/python3",
+    "version": "3.12.14 (main, Aug 25 2026, 13:50:33) [Clang 22.1.3 ]",
+    "machine": "arm64",
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "distributions": [
+      [
+        "Jinja2",
+        "3.1.6"
+      ],
+      [
+        "MarkupSafe",
+        "3.0.3"
+      ],
+      [
+        "PyYAML",
+        "6.0.3"
+      ],
+      [
+        "altair",
+        "6.2.2"
+      ],
+      [
+        "annotated-types",
+        "0.8.0"
+      ],
+      [
+        "anyio",
+        "4.14.2"
+      ],
+      [
+        "attrs",
+        "26.1.0"
+      ],
+      [
+        "backoff",
+        "2.2.1"
+      ],
+      [
+        "blinker",
+        "1.9.0"
+      ],
+      [
+        "certifi",
+        "2026.7.22"
+      ],
+      [
+        "cffi",
+        "2.1.1"
+      ],
+      [
+        "charset-normalizer",
+        "3.5.1"
+      ],
+      [
+        "click",
+        "8.4.2"
+      ],
+      [
+        "cloudpickle",
+        "3.1.2"
+      ],
+      [
+        "cryptography",
+        "50.0.0"
+      ],
+      [
+        "filelock",
+        "3.32.4"
+      ],
+      [
+        "fsspec",
+        "2026.7.0"
+      ],
+      [
+        "googleapis-common-protos",
+        "1.75.1"
+      ],
+      [
+        "h11",
+        "0.16.0"
+      ],
+      [
+        "hf-xet",
+        "1.6.0"
+      ],
+      [
+        "httpcore",
+        "1.0.9"
+      ],
+      [
+        "httpcore2",
+        "2.12.0"
+      ],
+      [
+        "httptools",
+        "0.8.0"
+      ],
+      [
+        "httpx",
+        "0.28.1"
+      ],
+      [
+        "httpx2",
+        "2.12.0"
+      ],
+      [
+        "huggingface_hub",
+        "0.36.2"
+      ],
+      [
+        "idna",
+        "3.19"
+      ],
+      [
+        "itsdangerous",
+        "2.2.0"
+      ],
+      [
+        "jiter",
+        "0.16.0"
+      ],
+      [
+        "joblib",
+        "1.6.0"
+      ],
+      [
+        "jsonschema",
+        "4.26.0"
+      ],
+      [
+        "jsonschema-specifications",
+        "2025.9.1"
+      ],
+      [
+        "kiwipiepy",
+        "0.23.2"
+      ],
+      [
+        "kiwipiepy_model",
+        "0.23.0"
+      ],
+      [
+        "langfuse",
+        "4.14.5"
+      ],
+      [
+        "lxml",
+        "6.1.2"
+      ],
+      [
+        "midprojectrag",
+        "0.1.0"
+      ],
+      [
+        "midprojectrag",
+        "0.1.0"
+      ],
+      [
+        "mpmath",
+        "1.3.0"
+      ],
+      [
+        "narwhals",
+        "2.25.0"
+      ],
+      [
+        "networkx",
+        "3.6.1"
+      ],
+      [
+        "numpy",
+        "2.5.2"
+      ],
+      [
+        "olefile",
+        "0.47"
+      ],
+      [
+        "openai",
+        "3.3.1"
+      ],
+      [
+        "opentelemetry-api",
+        "1.44.0"
+      ],
+      [
+        "opentelemetry-exporter-otlp-proto-common",
+        "1.44.0"
+      ],
+      [
+        "opentelemetry-exporter-otlp-proto-http",
+        "1.44.0"
+      ],
+      [
+        "opentelemetry-proto",
+        "1.44.0"
+      ],
+      [
+        "opentelemetry-sdk",
+        "1.44.0"
+      ],
+      [
+        "opentelemetry-semantic-conventions",
+        "0.65b0"
+      ],
+      [
+        "packaging",
+        "26.3"
+      ],
+      [
+        "pandas",
+        "3.0.5"
+      ],
+      [
+        "pdfminer.six",
+        "20260107"
+      ],
+      [
+        "pdfplumber",
+        "0.11.10"
+      ],
+      [
+        "pillow",
+        "12.3.0"
+      ],
+      [
+        "pip",
+        "25.0.1"
+      ],
+      [
+        "protobuf",
+        "7.36.0"
+      ],
+      [
+        "pyarrow",
+        "25.0.1"
+      ],
+      [
+        "pycparser",
+        "3.0"
+      ],
+      [
+        "pydantic",
+        "2.13.4"
+      ],
+      [
+        "pydantic_core",
+        "2.46.4"
+      ],
+      [
+        "pydeck",
+        "0.9.3"
+      ],
+      [
+        "pyhwp",
+        "0.1b15"
+      ],
+      [
+        "pypdf",
+        "6.16.2"
+      ],
+      [
+        "pypdfium2",
+        "5.13.0"
+      ],
+      [
+        "python-dateutil",
+        "2.9.0.post0"
+      ],
+      [
+        "python-dotenv",
+        "1.2.3"
+      ],
+      [
+        "python-multipart",
+        "0.0.32"
+      ],
+      [
+        "referencing",
+        "0.37.0"
+      ],
+      [
+        "regex",
+        "2026.7.19"
+      ],
+      [
+        "requests",
+        "2.34.2"
+      ],
+      [
+        "rpds-py",
+        "2026.6.3"
+      ],
+      [
+        "safetensors",
+        "0.8.0"
+      ],
+      [
+        "scikit-learn",
+        "1.9.0"
+      ],
+      [
+        "scipy",
+        "1.18.1"
+      ],
+      [
+        "sentence-transformers",
+        "5.7.0"
+      ],
+      [
+        "setuptools",
+        "84.0.0"
+      ],
+      [
+        "six",
+        "1.17.0"
+      ],
+      [
+        "sniffio",
+        "1.3.1"
+      ],
+      [
+        "starlette",
+        "1.6.0"
+      ],
+      [
+        "streamlit",
+        "1.62.0"
+      ],
+      [
+        "sympy",
+        "1.14.0"
+      ],
+      [
+        "threadpoolctl",
+        "3.6.0"
+      ],
+      [
+        "tiktoken",
+        "0.13.0"
+      ],
+      [
+        "tokenizers",
+        "0.22.2"
+      ],
+      [
+        "toml",
+        "0.10.2"
+      ],
+      [
+        "torch",
+        "2.13.0"
+      ],
+      [
+        "tqdm",
+        "4.70.0"
+      ],
+      [
+        "transformers",
+        "4.57.6"
+      ],
+      [
+        "truststore",
+        "0.10.4"
+      ],
+      [
+        "typing-inspection",
+        "0.4.4"
+      ],
+      [
+        "typing_extensions",
+        "4.16.0"
+      ],
+      [
+        "urllib3",
+        "2.7.0"
+      ],
+      [
+        "uvicorn",
+        "0.52.4"
+      ],
+      [
+        "websockets",
+        "16.1.1"
+      ],
+      [
+        "wrapt",
+        "2.3.0"
+      ]
+    ]
+  },
+  "frozen_analytics_inputs_after": {
+    "cases": {
+      "path": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/golden-set-final/corpus-analytics-qa.jsonl",
+      "sha256": "e2324fea2cac26520ba371183675f933ab997b0ff5d54c796a608f6f44c37c2f"
+    },
+    "targets": {
+      "path": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/golden-set-final/corpus-analytics-target-sets.json",
+      "sha256": "a6eaf98780c3efc314f3998a116c42960a5c518f5df1306bd72cc2c61587bf4e"
+    },
+    "categories": {
+      "path": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/golden-set-final/project-category-v1.jsonl",
+      "sha256": "968f8f9baf3449bce1985464ae1b800b73a5f70d3713b0172cb8736e0dbaecca"
+    },
+    "refined_csv": {
+      "path": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/resources/data_refined/share/2026-08-31/MidProjectRAG_refined98_catalog_csv/refined_data_list.csv",
+      "sha256": "cef0a27602976af468206ad2fa855027cb6f686fc877a52ce8fb191c57cd7e5b"
+    },
+    "manifest": {
+      "path": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/resources/data_refined/private/manifest.extracted.jsonl",
+      "sha256": "6c91d30a4c01b12f1aae8924c88a2e5055446c841f5eabfbf687546fdc1fe1cb"
+    }
+  },
+  "listed_full_inputs_unchanged": true,
+  "runtime_probe_audit_before": {
+    "historical_main_probe_pythonpath": "UNKNOWN",
+    "historical_actual_unittest_child_pythonpath": "src (explicit in preserved launcher and command)",
+    "current_probe_command": "import json,sys,platform,importlib.metadata as m; print(json.dumps({\"executable\":sys.executable,\"version\":sys.version,\"machine\":platform.machine(),\"platform\":platform.platform(),\"distributions\":sorted([(d.metadata.get(\"Name\", \"\"),d.version) for d in m.distributions()])}))",
+    "current_origin_command": "import json,importlib.util as u,importlib.metadata as m; s=u.find_spec(\"midprojectrag\"); print(json.dumps({\"origin\":None if s is None else s.origin,\"project_metadata\":sorted([{\"name\":d.metadata.get(\"Name\", \"\"),\"version\":d.version,\"location\":str(d._path)} for d in m.distributions() if d.metadata.get(\"Name\", \"\")==\"midprojectrag\"],key=lambda x:x[\"location\"])}))",
+    "current_probe_cwd": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
+    "current_source_probe_pythonpath": "src",
+    "current_no_source_probe_pythonpath": "explicitly absent for this current probe only",
+    "isolated_current_origin_cwd": "/private/tmp/eh-post-fusion-isolated.L5d8i8",
+    "source": {
+      "executable": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/bin/python3",
+      "version": "3.12.14 (main, Aug 25 2026, 13:50:33) [Clang 22.1.3 ]",
+      "machine": "arm64",
+      "platform": "macOS-26.6.2-arm64-arm-64bit",
+      "distributions": [
+        [
+          "Jinja2",
+          "3.1.6"
+        ],
+        [
+          "MarkupSafe",
+          "3.0.3"
+        ],
+        [
+          "PyYAML",
+          "6.0.3"
+        ],
+        [
+          "altair",
+          "6.2.2"
+        ],
+        [
+          "annotated-types",
+          "0.8.0"
+        ],
+        [
+          "anyio",
+          "4.14.2"
+        ],
+        [
+          "attrs",
+          "26.1.0"
+        ],
+        [
+          "backoff",
+          "2.2.1"
+        ],
+        [
+          "blinker",
+          "1.9.0"
+        ],
+        [
+          "certifi",
+          "2026.7.22"
+        ],
+        [
+          "cffi",
+          "2.1.1"
+        ],
+        [
+          "charset-normalizer",
+          "3.5.1"
+        ],
+        [
+          "click",
+          "8.4.2"
+        ],
+        [
+          "cloudpickle",
+          "3.1.2"
+        ],
+        [
+          "cryptography",
+          "50.0.0"
+        ],
+        [
+          "filelock",
+          "3.32.4"
+        ],
+        [
+          "fsspec",
+          "2026.7.0"
+        ],
+        [
+          "googleapis-common-protos",
+          "1.75.1"
+        ],
+        [
+          "h11",
+          "0.16.0"
+        ],
+        [
+          "hf-xet",
+          "1.6.0"
+        ],
+        [
+          "httpcore",
+          "1.0.9"
+        ],
+        [
+          "httpcore2",
+          "2.12.0"
+        ],
+        [
+          "httptools",
+          "0.8.0"
+        ],
+        [
+          "httpx",
+          "0.28.1"
+        ],
+        [
+          "httpx2",
+          "2.12.0"
+        ],
+        [
+          "huggingface_hub",
+          "0.36.2"
+        ],
+        [
+          "idna",
+          "3.19"
+        ],
+        [
+          "itsdangerous",
+          "2.2.0"
+        ],
+        [
+          "jiter",
+          "0.16.0"
+        ],
+        [
+          "joblib",
+          "1.6.0"
+        ],
+        [
+          "jsonschema",
+          "4.26.0"
+        ],
+        [
+          "jsonschema-specifications",
+          "2025.9.1"
+        ],
+        [
+          "kiwipiepy",
+          "0.23.2"
+        ],
+        [
+          "kiwipiepy_model",
+          "0.23.0"
+        ],
+        [
+          "langfuse",
+          "4.14.5"
+        ],
+        [
+          "lxml",
+          "6.1.2"
+        ],
+        [
+          "midprojectrag",
+          "0.1.0"
+        ],
+        [
+          "midprojectrag",
+          "0.1.0"
+        ],
+        [
+          "mpmath",
+          "1.3.0"
+        ],
+        [
+          "narwhals",
+          "2.25.0"
+        ],
+        [
+          "networkx",
+          "3.6.1"
+        ],
+        [
+          "numpy",
+          "2.5.2"
+        ],
+        [
+          "olefile",
+          "0.47"
+        ],
+        [
+          "openai",
+          "3.3.1"
+        ],
+        [
+          "opentelemetry-api",
+          "1.44.0"
+        ],
+        [
+          "opentelemetry-exporter-otlp-proto-common",
+          "1.44.0"
+        ],
+        [
+          "opentelemetry-exporter-otlp-proto-http",
+          "1.44.0"
+        ],
+        [
+          "opentelemetry-proto",
+          "1.44.0"
+        ],
+        [
+          "opentelemetry-sdk",
+          "1.44.0"
+        ],
+        [
+          "opentelemetry-semantic-conventions",
+          "0.65b0"
+        ],
+        [
+          "packaging",
+          "26.3"
+        ],
+        [
+          "pandas",
+          "3.0.5"
+        ],
+        [
+          "pdfminer.six",
+          "20260107"
+        ],
+        [
+          "pdfplumber",
+          "0.11.10"
+        ],
+        [
+          "pillow",
+          "12.3.0"
+        ],
+        [
+          "pip",
+          "25.0.1"
+        ],
+        [
+          "protobuf",
+          "7.36.0"
+        ],
+        [
+          "pyarrow",
+          "25.0.1"
+        ],
+        [
+          "pycparser",
+          "3.0"
+        ],
+        [
+          "pydantic",
+          "2.13.4"
+        ],
+        [
+          "pydantic_core",
+          "2.46.4"
+        ],
+        [
+          "pydeck",
+          "0.9.3"
+        ],
+        [
+          "pyhwp",
+          "0.1b15"
+        ],
+        [
+          "pypdf",
+          "6.16.2"
+        ],
+        [
+          "pypdfium2",
+          "5.13.0"
+        ],
+        [
+          "python-dateutil",
+          "2.9.0.post0"
+        ],
+        [
+          "python-dotenv",
+          "1.2.3"
+        ],
+        [
+          "python-multipart",
+          "0.0.32"
+        ],
+        [
+          "referencing",
+          "0.37.0"
+        ],
+        [
+          "regex",
+          "2026.7.19"
+        ],
+        [
+          "requests",
+          "2.34.2"
+        ],
+        [
+          "rpds-py",
+          "2026.6.3"
+        ],
+        [
+          "safetensors",
+          "0.8.0"
+        ],
+        [
+          "scikit-learn",
+          "1.9.0"
+        ],
+        [
+          "scipy",
+          "1.18.1"
+        ],
+        [
+          "sentence-transformers",
+          "5.7.0"
+        ],
+        [
+          "setuptools",
+          "84.0.0"
+        ],
+        [
+          "six",
+          "1.17.0"
+        ],
+        [
+          "sniffio",
+          "1.3.1"
+        ],
+        [
+          "starlette",
+          "1.6.0"
+        ],
+        [
+          "streamlit",
+          "1.62.0"
+        ],
+        [
+          "sympy",
+          "1.14.0"
+        ],
+        [
+          "threadpoolctl",
+          "3.6.0"
+        ],
+        [
+          "tiktoken",
+          "0.13.0"
+        ],
+        [
+          "tokenizers",
+          "0.22.2"
+        ],
+        [
+          "toml",
+          "0.10.2"
+        ],
+        [
+          "torch",
+          "2.13.0"
+        ],
+        [
+          "tqdm",
+          "4.70.0"
+        ],
+        [
+          "transformers",
+          "4.57.6"
+        ],
+        [
+          "truststore",
+          "0.10.4"
+        ],
+        [
+          "typing-inspection",
+          "0.4.4"
+        ],
+        [
+          "typing_extensions",
+          "4.16.0"
+        ],
+        [
+          "urllib3",
+          "2.7.0"
+        ],
+        [
+          "uvicorn",
+          "0.52.4"
+        ],
+        [
+          "websockets",
+          "16.1.1"
+        ],
+        [
+          "wrapt",
+          "2.3.0"
+        ]
+      ]
+    },
+    "without_source": {
+      "executable": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/bin/python3",
+      "version": "3.12.14 (main, Aug 25 2026, 13:50:33) [Clang 22.1.3 ]",
+      "machine": "arm64",
+      "platform": "macOS-26.6.2-arm64-arm-64bit",
+      "distributions": [
+        [
+          "Jinja2",
+          "3.1.6"
+        ],
+        [
+          "MarkupSafe",
+          "3.0.3"
+        ],
+        [
+          "PyYAML",
+          "6.0.3"
+        ],
+        [
+          "altair",
+          "6.2.2"
+        ],
+        [
+          "annotated-types",
+          "0.8.0"
+        ],
+        [
+          "anyio",
+          "4.14.2"
+        ],
+        [
+          "attrs",
+          "26.1.0"
+        ],
+        [
+          "backoff",
+          "2.2.1"
+        ],
+        [
+          "blinker",
+          "1.9.0"
+        ],
+        [
+          "certifi",
+          "2026.7.22"
+        ],
+        [
+          "cffi",
+          "2.1.1"
+        ],
+        [
+          "charset-normalizer",
+          "3.5.1"
+        ],
+        [
+          "click",
+          "8.4.2"
+        ],
+        [
+          "cloudpickle",
+          "3.1.2"
+        ],
+        [
+          "cryptography",
+          "50.0.0"
+        ],
+        [
+          "filelock",
+          "3.32.4"
+        ],
+        [
+          "fsspec",
+          "2026.7.0"
+        ],
+        [
+          "googleapis-common-protos",
+          "1.75.1"
+        ],
+        [
+          "h11",
+          "0.16.0"
+        ],
+        [
+          "hf-xet",
+          "1.6.0"
+        ],
+        [
+          "httpcore",
+          "1.0.9"
+        ],
+        [
+          "httpcore2",
+          "2.12.0"
+        ],
+        [
+          "httptools",
+          "0.8.0"
+        ],
+        [
+          "httpx",
+          "0.28.1"
+        ],
+        [
+          "httpx2",
+          "2.12.0"
+        ],
+        [
+          "huggingface_hub",
+          "0.36.2"
+        ],
+        [
+          "idna",
+          "3.19"
+        ],
+        [
+          "itsdangerous",
+          "2.2.0"
+        ],
+        [
+          "jiter",
+          "0.16.0"
+        ],
+        [
+          "joblib",
+          "1.6.0"
+        ],
+        [
+          "jsonschema",
+          "4.26.0"
+        ],
+        [
+          "jsonschema-specifications",
+          "2025.9.1"
+        ],
+        [
+          "kiwipiepy",
+          "0.23.2"
+        ],
+        [
+          "kiwipiepy_model",
+          "0.23.0"
+        ],
+        [
+          "langfuse",
+          "4.14.5"
+        ],
+        [
+          "lxml",
+          "6.1.2"
+        ],
+        [
+          "midprojectrag",
+          "0.1.0"
+        ],
+        [
+          "mpmath",
+          "1.3.0"
+        ],
+        [
+          "narwhals",
+          "2.25.0"
+        ],
+        [
+          "networkx",
+          "3.6.1"
+        ],
+        [
+          "numpy",
+          "2.5.2"
+        ],
+        [
+          "olefile",
+          "0.47"
+        ],
+        [
+          "openai",
+          "3.3.1"
+        ],
+        [
+          "opentelemetry-api",
+          "1.44.0"
+        ],
+        [
+          "opentelemetry-exporter-otlp-proto-common",
+          "1.44.0"
+        ],
+        [
+          "opentelemetry-exporter-otlp-proto-http",
+          "1.44.0"
+        ],
+        [
+          "opentelemetry-proto",
+          "1.44.0"
+        ],
+        [
+          "opentelemetry-sdk",
+          "1.44.0"
+        ],
+        [
+          "opentelemetry-semantic-conventions",
+          "0.65b0"
+        ],
+        [
+          "packaging",
+          "26.3"
+        ],
+        [
+          "pandas",
+          "3.0.5"
+        ],
+        [
+          "pdfminer.six",
+          "20260107"
+        ],
+        [
+          "pdfplumber",
+          "0.11.10"
+        ],
+        [
+          "pillow",
+          "12.3.0"
+        ],
+        [
+          "pip",
+          "25.0.1"
+        ],
+        [
+          "protobuf",
+          "7.36.0"
+        ],
+        [
+          "pyarrow",
+          "25.0.1"
+        ],
+        [
+          "pycparser",
+          "3.0"
+        ],
+        [
+          "pydantic",
+          "2.13.4"
+        ],
+        [
+          "pydantic_core",
+          "2.46.4"
+        ],
+        [
+          "pydeck",
+          "0.9.3"
+        ],
+        [
+          "pyhwp",
+          "0.1b15"
+        ],
+        [
+          "pypdf",
+          "6.16.2"
+        ],
+        [
+          "pypdfium2",
+          "5.13.0"
+        ],
+        [
+          "python-dateutil",
+          "2.9.0.post0"
+        ],
+        [
+          "python-dotenv",
+          "1.2.3"
+        ],
+        [
+          "python-multipart",
+          "0.0.32"
+        ],
+        [
+          "referencing",
+          "0.37.0"
+        ],
+        [
+          "regex",
+          "2026.7.19"
+        ],
+        [
+          "requests",
+          "2.34.2"
+        ],
+        [
+          "rpds-py",
+          "2026.6.3"
+        ],
+        [
+          "safetensors",
+          "0.8.0"
+        ],
+        [
+          "scikit-learn",
+          "1.9.0"
+        ],
+        [
+          "scipy",
+          "1.18.1"
+        ],
+        [
+          "sentence-transformers",
+          "5.7.0"
+        ],
+        [
+          "setuptools",
+          "84.0.0"
+        ],
+        [
+          "six",
+          "1.17.0"
+        ],
+        [
+          "sniffio",
+          "1.3.1"
+        ],
+        [
+          "starlette",
+          "1.6.0"
+        ],
+        [
+          "streamlit",
+          "1.62.0"
+        ],
+        [
+          "sympy",
+          "1.14.0"
+        ],
+        [
+          "threadpoolctl",
+          "3.6.0"
+        ],
+        [
+          "tiktoken",
+          "0.13.0"
+        ],
+        [
+          "tokenizers",
+          "0.22.2"
+        ],
+        [
+          "toml",
+          "0.10.2"
+        ],
+        [
+          "torch",
+          "2.13.0"
+        ],
+        [
+          "tqdm",
+          "4.70.0"
+        ],
+        [
+          "transformers",
+          "4.57.6"
+        ],
+        [
+          "truststore",
+          "0.10.4"
+        ],
+        [
+          "typing-inspection",
+          "0.4.4"
+        ],
+        [
+          "typing_extensions",
+          "4.16.0"
+        ],
+        [
+          "urllib3",
+          "2.7.0"
+        ],
+        [
+          "uvicorn",
+          "0.52.4"
+        ],
+        [
+          "websockets",
+          "16.1.1"
+        ],
+        [
+          "wrapt",
+          "2.3.0"
+        ]
+      ]
+    },
+    "source_origin": {
+      "origin": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/src/midprojectrag/__init__.py",
+      "project_metadata": [
+        {
+          "name": "midprojectrag",
+          "version": "0.1.0",
+          "location": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/lib/python3.12/site-packages/midprojectrag-0.1.0.dist-info"
+        },
+        {
+          "name": "midprojectrag",
+          "version": "0.1.0",
+          "location": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/src/midprojectrag.egg-info"
+        }
+      ]
+    },
+    "no_source_origin": {
+      "origin": null,
+      "project_metadata": [
+        {
+          "name": "midprojectrag",
+          "version": "0.1.0",
+          "location": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/lib/python3.12/site-packages/midprojectrag-0.1.0.dist-info"
+        }
+      ]
+    },
+    "isolated_source_origin": {
+      "origin": "/private/tmp/eh-post-fusion-isolated.L5d8i8/src/midprojectrag/__init__.py",
+      "project_metadata": [
+        {
+          "name": "midprojectrag",
+          "version": "0.1.0",
+          "location": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/lib/python3.12/site-packages/midprojectrag-0.1.0.dist-info"
+        }
+      ]
+    },
+    "third_party_multiset_exact": true,
+    "only_cross_probe_delta": "One additional midprojectrag 0.1.0 source egg-info entry",
+    "limitation": "Current observations exactly reproduce recorded runtime values; historical inherited PYTHONPATH/import origins/dependency file bytes were not captured and are not reconstructed. Fresh deep review must judge composition admissibility.",
+    "clarification": {
+      "path": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-runtime-probe-interpretation.json",
+      "sha256": "a4598eb634f0c85813ceaf69d7565559033a8b85220c3d035930f4eb3eabafd2"
+    }
+  },
+  "runtime_probe_audit_after": {
+    "historical_main_probe_pythonpath": "UNKNOWN",
+    "historical_actual_unittest_child_pythonpath": "src (explicit in preserved launcher and command)",
+    "current_probe_command": "import json,sys,platform,importlib.metadata as m; print(json.dumps({\"executable\":sys.executable,\"version\":sys.version,\"machine\":platform.machine(),\"platform\":platform.platform(),\"distributions\":sorted([(d.metadata.get(\"Name\", \"\"),d.version) for d in m.distributions()])}))",
+    "current_origin_command": "import json,importlib.util as u,importlib.metadata as m; s=u.find_spec(\"midprojectrag\"); print(json.dumps({\"origin\":None if s is None else s.origin,\"project_metadata\":sorted([{\"name\":d.metadata.get(\"Name\", \"\"),\"version\":d.version,\"location\":str(d._path)} for d in m.distributions() if d.metadata.get(\"Name\", \"\")==\"midprojectrag\"],key=lambda x:x[\"location\"])}))",
+    "current_probe_cwd": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
+    "current_source_probe_pythonpath": "src",
+    "current_no_source_probe_pythonpath": "explicitly absent for this current probe only",
+    "isolated_current_origin_cwd": "/private/tmp/eh-post-fusion-isolated.L5d8i8",
+    "source": {
+      "executable": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/bin/python3",
+      "version": "3.12.14 (main, Aug 25 2026, 13:50:33) [Clang 22.1.3 ]",
+      "machine": "arm64",
+      "platform": "macOS-26.6.2-arm64-arm-64bit",
+      "distributions": [
+        [
+          "Jinja2",
+          "3.1.6"
+        ],
+        [
+          "MarkupSafe",
+          "3.0.3"
+        ],
+        [
+          "PyYAML",
+          "6.0.3"
+        ],
+        [
+          "altair",
+          "6.2.2"
+        ],
+        [
+          "annotated-types",
+          "0.8.0"
+        ],
+        [
+          "anyio",
+          "4.14.2"
+        ],
+        [
+          "attrs",
+          "26.1.0"
+        ],
+        [
+          "backoff",
+          "2.2.1"
+        ],
+        [
+          "blinker",
+          "1.9.0"
+        ],
+        [
+          "certifi",
+          "2026.7.22"
+        ],
+        [
+          "cffi",
+          "2.1.1"
+        ],
+        [
+          "charset-normalizer",
+          "3.5.1"
+        ],
+        [
+          "click",
+          "8.4.2"
+        ],
+        [
+          "cloudpickle",
+          "3.1.2"
+        ],
+        [
+          "cryptography",
+          "50.0.0"
+        ],
+        [
+          "filelock",
+          "3.32.4"
+        ],
+        [
+          "fsspec",
+          "2026.7.0"
+        ],
+        [
+          "googleapis-common-protos",
+          "1.75.1"
+        ],
+        [
+          "h11",
+          "0.16.0"
+        ],
+        [
+          "hf-xet",
+          "1.6.0"
+        ],
+        [
+          "httpcore",
+          "1.0.9"
+        ],
+        [
+          "httpcore2",
+          "2.12.0"
+        ],
+        [
+          "httptools",
+          "0.8.0"
+        ],
+        [
+          "httpx",
+          "0.28.1"
+        ],
+        [
+          "httpx2",
+          "2.12.0"
+        ],
+        [
+          "huggingface_hub",
+          "0.36.2"
+        ],
+        [
+          "idna",
+          "3.19"
+        ],
+        [
+          "itsdangerous",
+          "2.2.0"
+        ],
+        [
+          "jiter",
+          "0.16.0"
+        ],
+        [
+          "joblib",
+          "1.6.0"
+        ],
+        [
+          "jsonschema",
+          "4.26.0"
+        ],
+        [
+          "jsonschema-specifications",
+          "2025.9.1"
+        ],
+        [
+          "kiwipiepy",
+          "0.23.2"
+        ],
+        [
+          "kiwipiepy_model",
+          "0.23.0"
+        ],
+        [
+          "langfuse",
+          "4.14.5"
+        ],
+        [
+          "lxml",
+          "6.1.2"
+        ],
+        [
+          "midprojectrag",
+          "0.1.0"
+        ],
+        [
+          "midprojectrag",
+          "0.1.0"
+        ],
+        [
+          "mpmath",
+          "1.3.0"
+        ],
+        [
+          "narwhals",
+          "2.25.0"
+        ],
+        [
+          "networkx",
+          "3.6.1"
+        ],
+        [
+          "numpy",
+          "2.5.2"
+        ],
+        [
+          "olefile",
+          "0.47"
+        ],
+        [
+          "openai",
+          "3.3.1"
+        ],
+        [
+          "opentelemetry-api",
+          "1.44.0"
+        ],
+        [
+          "opentelemetry-exporter-otlp-proto-common",
+          "1.44.0"
+        ],
+        [
+          "opentelemetry-exporter-otlp-proto-http",
+          "1.44.0"
+        ],
+        [
+          "opentelemetry-proto",
+          "1.44.0"
+        ],
+        [
+          "opentelemetry-sdk",
+          "1.44.0"
+        ],
+        [
+          "opentelemetry-semantic-conventions",
+          "0.65b0"
+        ],
+        [
+          "packaging",
+          "26.3"
+        ],
+        [
+          "pandas",
+          "3.0.5"
+        ],
+        [
+          "pdfminer.six",
+          "20260107"
+        ],
+        [
+          "pdfplumber",
+          "0.11.10"
+        ],
+        [
+          "pillow",
+          "12.3.0"
+        ],
+        [
+          "pip",
+          "25.0.1"
+        ],
+        [
+          "protobuf",
+          "7.36.0"
+        ],
+        [
+          "pyarrow",
+          "25.0.1"
+        ],
+        [
+          "pycparser",
+          "3.0"
+        ],
+        [
+          "pydantic",
+          "2.13.4"
+        ],
+        [
+          "pydantic_core",
+          "2.46.4"
+        ],
+        [
+          "pydeck",
+          "0.9.3"
+        ],
+        [
+          "pyhwp",
+          "0.1b15"
+        ],
+        [
+          "pypdf",
+          "6.16.2"
+        ],
+        [
+          "pypdfium2",
+          "5.13.0"
+        ],
+        [
+          "python-dateutil",
+          "2.9.0.post0"
+        ],
+        [
+          "python-dotenv",
+          "1.2.3"
+        ],
+        [
+          "python-multipart",
+          "0.0.32"
+        ],
+        [
+          "referencing",
+          "0.37.0"
+        ],
+        [
+          "regex",
+          "2026.7.19"
+        ],
+        [
+          "requests",
+          "2.34.2"
+        ],
+        [
+          "rpds-py",
+          "2026.6.3"
+        ],
+        [
+          "safetensors",
+          "0.8.0"
+        ],
+        [
+          "scikit-learn",
+          "1.9.0"
+        ],
+        [
+          "scipy",
+          "1.18.1"
+        ],
+        [
+          "sentence-transformers",
+          "5.7.0"
+        ],
+        [
+          "setuptools",
+          "84.0.0"
+        ],
+        [
+          "six",
+          "1.17.0"
+        ],
+        [
+          "sniffio",
+          "1.3.1"
+        ],
+        [
+          "starlette",
+          "1.6.0"
+        ],
+        [
+          "streamlit",
+          "1.62.0"
+        ],
+        [
+          "sympy",
+          "1.14.0"
+        ],
+        [
+          "threadpoolctl",
+          "3.6.0"
+        ],
+        [
+          "tiktoken",
+          "0.13.0"
+        ],
+        [
+          "tokenizers",
+          "0.22.2"
+        ],
+        [
+          "toml",
+          "0.10.2"
+        ],
+        [
+          "torch",
+          "2.13.0"
+        ],
+        [
+          "tqdm",
+          "4.70.0"
+        ],
+        [
+          "transformers",
+          "4.57.6"
+        ],
+        [
+          "truststore",
+          "0.10.4"
+        ],
+        [
+          "typing-inspection",
+          "0.4.4"
+        ],
+        [
+          "typing_extensions",
+          "4.16.0"
+        ],
+        [
+          "urllib3",
+          "2.7.0"
+        ],
+        [
+          "uvicorn",
+          "0.52.4"
+        ],
+        [
+          "websockets",
+          "16.1.1"
+        ],
+        [
+          "wrapt",
+          "2.3.0"
+        ]
+      ]
+    },
+    "without_source": {
+      "executable": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/bin/python3",
+      "version": "3.12.14 (main, Aug 25 2026, 13:50:33) [Clang 22.1.3 ]",
+      "machine": "arm64",
+      "platform": "macOS-26.6.2-arm64-arm-64bit",
+      "distributions": [
+        [
+          "Jinja2",
+          "3.1.6"
+        ],
+        [
+          "MarkupSafe",
+          "3.0.3"
+        ],
+        [
+          "PyYAML",
+          "6.0.3"
+        ],
+        [
+          "altair",
+          "6.2.2"
+        ],
+        [
+          "annotated-types",
+          "0.8.0"
+        ],
+        [
+          "anyio",
+          "4.14.2"
+        ],
+        [
+          "attrs",
+          "26.1.0"
+        ],
+        [
+          "backoff",
+          "2.2.1"
+        ],
+        [
+          "blinker",
+          "1.9.0"
+        ],
+        [
+          "certifi",
+          "2026.7.22"
+        ],
+        [
+          "cffi",
+          "2.1.1"
+        ],
+        [
+          "charset-normalizer",
+          "3.5.1"
+        ],
+        [
+          "click",
+          "8.4.2"
+        ],
+        [
+          "cloudpickle",
+          "3.1.2"
+        ],
+        [
+          "cryptography",
+          "50.0.0"
+        ],
+        [
+          "filelock",
+          "3.32.4"
+        ],
+        [
+          "fsspec",
+          "2026.7.0"
+        ],
+        [
+          "googleapis-common-protos",
+          "1.75.1"
+        ],
+        [
+          "h11",
+          "0.16.0"
+        ],
+        [
+          "hf-xet",
+          "1.6.0"
+        ],
+        [
+          "httpcore",
+          "1.0.9"
+        ],
+        [
+          "httpcore2",
+          "2.12.0"
+        ],
+        [
+          "httptools",
+          "0.8.0"
+        ],
+        [
+          "httpx",
+          "0.28.1"
+        ],
+        [
+          "httpx2",
+          "2.12.0"
+        ],
+        [
+          "huggingface_hub",
+          "0.36.2"
+        ],
+        [
+          "idna",
+          "3.19"
+        ],
+        [
+          "itsdangerous",
+          "2.2.0"
+        ],
+        [
+          "jiter",
+          "0.16.0"
+        ],
+        [
+          "joblib",
+          "1.6.0"
+        ],
+        [
+          "jsonschema",
+          "4.26.0"
+        ],
+        [
+          "jsonschema-specifications",
+          "2025.9.1"
+        ],
+        [
+          "kiwipiepy",
+          "0.23.2"
+        ],
+        [
+          "kiwipiepy_model",
+          "0.23.0"
+        ],
+        [
+          "langfuse",
+          "4.14.5"
+        ],
+        [
+          "lxml",
+          "6.1.2"
+        ],
+        [
+          "midprojectrag",
+          "0.1.0"
+        ],
+        [
+          "mpmath",
+          "1.3.0"
+        ],
+        [
+          "narwhals",
+          "2.25.0"
+        ],
+        [
+          "networkx",
+          "3.6.1"
+        ],
+        [
+          "numpy",
+          "2.5.2"
+        ],
+        [
+          "olefile",
+          "0.47"
+        ],
+        [
+          "openai",
+          "3.3.1"
+        ],
+        [
+          "opentelemetry-api",
+          "1.44.0"
+        ],
+        [
+          "opentelemetry-exporter-otlp-proto-common",
+          "1.44.0"
+        ],
+        [
+          "opentelemetry-exporter-otlp-proto-http",
+          "1.44.0"
+        ],
+        [
+          "opentelemetry-proto",
+          "1.44.0"
+        ],
+        [
+          "opentelemetry-sdk",
+          "1.44.0"
+        ],
+        [
+          "opentelemetry-semantic-conventions",
+          "0.65b0"
+        ],
+        [
+          "packaging",
+          "26.3"
+        ],
+        [
+          "pandas",
+          "3.0.5"
+        ],
+        [
+          "pdfminer.six",
+          "20260107"
+        ],
+        [
+          "pdfplumber",
+          "0.11.10"
+        ],
+        [
+          "pillow",
+          "12.3.0"
+        ],
+        [
+          "pip",
+          "25.0.1"
+        ],
+        [
+          "protobuf",
+          "7.36.0"
+        ],
+        [
+          "pyarrow",
+          "25.0.1"
+        ],
+        [
+          "pycparser",
+          "3.0"
+        ],
+        [
+          "pydantic",
+          "2.13.4"
+        ],
+        [
+          "pydantic_core",
+          "2.46.4"
+        ],
+        [
+          "pydeck",
+          "0.9.3"
+        ],
+        [
+          "pyhwp",
+          "0.1b15"
+        ],
+        [
+          "pypdf",
+          "6.16.2"
+        ],
+        [
+          "pypdfium2",
+          "5.13.0"
+        ],
+        [
+          "python-dateutil",
+          "2.9.0.post0"
+        ],
+        [
+          "python-dotenv",
+          "1.2.3"
+        ],
+        [
+          "python-multipart",
+          "0.0.32"
+        ],
+        [
+          "referencing",
+          "0.37.0"
+        ],
+        [
+          "regex",
+          "2026.7.19"
+        ],
+        [
+          "requests",
+          "2.34.2"
+        ],
+        [
+          "rpds-py",
+          "2026.6.3"
+        ],
+        [
+          "safetensors",
+          "0.8.0"
+        ],
+        [
+          "scikit-learn",
+          "1.9.0"
+        ],
+        [
+          "scipy",
+          "1.18.1"
+        ],
+        [
+          "sentence-transformers",
+          "5.7.0"
+        ],
+        [
+          "setuptools",
+          "84.0.0"
+        ],
+        [
+          "six",
+          "1.17.0"
+        ],
+        [
+          "sniffio",
+          "1.3.1"
+        ],
+        [
+          "starlette",
+          "1.6.0"
+        ],
+        [
+          "streamlit",
+          "1.62.0"
+        ],
+        [
+          "sympy",
+          "1.14.0"
+        ],
+        [
+          "threadpoolctl",
+          "3.6.0"
+        ],
+        [
+          "tiktoken",
+          "0.13.0"
+        ],
+        [
+          "tokenizers",
+          "0.22.2"
+        ],
+        [
+          "toml",
+          "0.10.2"
+        ],
+        [
+          "torch",
+          "2.13.0"
+        ],
+        [
+          "tqdm",
+          "4.70.0"
+        ],
+        [
+          "transformers",
+          "4.57.6"
+        ],
+        [
+          "truststore",
+          "0.10.4"
+        ],
+        [
+          "typing-inspection",
+          "0.4.4"
+        ],
+        [
+          "typing_extensions",
+          "4.16.0"
+        ],
+        [
+          "urllib3",
+          "2.7.0"
+        ],
+        [
+          "uvicorn",
+          "0.52.4"
+        ],
+        [
+          "websockets",
+          "16.1.1"
+        ],
+        [
+          "wrapt",
+          "2.3.0"
+        ]
+      ]
+    },
+    "source_origin": {
+      "origin": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/src/midprojectrag/__init__.py",
+      "project_metadata": [
+        {
+          "name": "midprojectrag",
+          "version": "0.1.0",
+          "location": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/lib/python3.12/site-packages/midprojectrag-0.1.0.dist-info"
+        },
+        {
+          "name": "midprojectrag",
+          "version": "0.1.0",
+          "location": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/src/midprojectrag.egg-info"
+        }
+      ]
+    },
+    "no_source_origin": {
+      "origin": null,
+      "project_metadata": [
+        {
+          "name": "midprojectrag",
+          "version": "0.1.0",
+          "location": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/lib/python3.12/site-packages/midprojectrag-0.1.0.dist-info"
+        }
+      ]
+    },
+    "isolated_source_origin": {
+      "origin": "/private/tmp/eh-post-fusion-isolated.L5d8i8/src/midprojectrag/__init__.py",
+      "project_metadata": [
+        {
+          "name": "midprojectrag",
+          "version": "0.1.0",
+          "location": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/lib/python3.12/site-packages/midprojectrag-0.1.0.dist-info"
+        }
+      ]
+    },
+    "third_party_multiset_exact": true,
+    "only_cross_probe_delta": "One additional midprojectrag 0.1.0 source egg-info entry",
+    "limitation": "Current observations exactly reproduce recorded runtime values; historical inherited PYTHONPATH/import origins/dependency file bytes were not captured and are not reconstructed. Fresh deep review must judge composition admissibility.",
+    "clarification": {
+      "path": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-runtime-probe-interpretation.json",
+      "sha256": "a4598eb634f0c85813ceaf69d7565559033a8b85220c3d035930f4eb3eabafd2"
+    }
+  }
+}

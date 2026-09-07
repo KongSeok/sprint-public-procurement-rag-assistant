@@ -153,3 +153,11 @@ Per batch:
 - Verified: 집중25(779.422초)·관련202(230.049초)·격리227(944.217초)·전체1611(1161.717초) PASS, 실패/오류/skip0, exit0; fresh Astra APPROVE, 제품/테스트4개 변경.
 - Boundary: progress open/coverage0/in_progress/terminal false. context·verify·ordinal4는 후속.
 - Evidence: work/collaboration/eh-relay-20260907/messages/EH2.6.c4.2.b.2/.
+
+## 2026-09-07 — EH2.6.d2.x.b.2 fusion 이후 행동 선택
+
+- Intent: source/effect/state 기반 다음 permit을 결정한다.
+- Change: revision3 rederivation·owner quota·first seed·budget/empty reason shape·idempotence/GC 보호.
+- Verified: 집중11·관련205·격리216 PASS. 원래 전체1657은 CSV 동결 해시 오류1로 FAIL; 동결 사본 analytics5 재검증 PASS 및 fresh deep의 증거 결합 승인.
+- Boundary: 실행/의미 검증/부재 확정/terminal 없음; real model/API0.
+- Evidence: work/collaboration/eh-relay-20260907/messages/EH2.6.d2.x.b.2/.

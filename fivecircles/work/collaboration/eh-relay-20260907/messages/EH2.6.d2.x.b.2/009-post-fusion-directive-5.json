@@ -1,0 +1,375 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.d2.x.b.2",
+  "message_id": "post-fusion-directive-5",
+  "in_reply_to": "post-fusion-recovery-launcher-question-1",
+  "sender": "PHILOSOPHER",
+  "kind": "DIRECTIVE",
+  "body": {
+    "mode": "DESIGN",
+    "contract_id": "sha256:6d80a97e9261b359ad3d80fa05f986f19340c9b905b737c5714183511ba512a4",
+    "objective": "Connect the exact effect-derived first-fusion revision3 state to one bounded ordinal4 decision: budget abstain, first bounded parent-context target for applied fusion, or zero-provider exhaustion-check intent for empty fusion. Do not execute the selected action.",
+    "authority_assessment": {
+      "status": "WITHIN_EXISTING_AUTHORITY",
+      "needs_new_authority": false,
+      "reason": "Existing EH2.6.d2.x.b and technical section16.10 already require source-derived post-fusion eligibility, bounded context ordering and empty-obligation exhaustion intent. Completed c4.2.b.2 supplies its state prerequisite. This selects decision-only behavior, not a new experiment or full Controller expansion."
+    },
+    "direction_assessment": {
+      "target": "Authenticated retrieval/fusion/state -> bounded eligible next action -> later context and verification execution, while preserving the immutable baseline and separating implementation from measured quality.",
+      "current": "HEAD 8db05102b3c858b96f89ef62ee9a442bfe935951 contains first-fusion state reduction. Exact revision3 has candidate or provisional_missing, source-derived effect provenance, open progress and retained predecessors. The current decision planner and closed reason shapes support revision0/1/2 only.",
+      "gap": "The next decision rejects authentic revision3. EH2.5 candidate preview is not execution authority and adds rerank/verify without this controller's prerequisite history.",
+      "selection_reason": "Choose the first eligible action only. Existing parent context is store-backed; empty exhaustion intent is explicitly zero-provider. Neither needs later compare sibling lifetime, context receipt minting or semantic verification execution.",
+      "rubric": {
+        "upstream": "0..4",
+        "connection": "0..3",
+        "safety": "0..2",
+        "validation": "0..2",
+        "risk_penalty": "-3..0",
+        "formula": "sum of five components; selection heuristic, not performance evidence or agent scoring"
+      },
+      "candidates": [
+        {
+          "task": "EH2.6.d2.x.b.2",
+          "components": [
+            3,
+            3,
+            2,
+            2,
+            -2
+          ],
+          "score": 8,
+          "decision": "SELECT: closes the actual current decision gap with synthetic end-to-end prerequisite history."
+        },
+        {
+          "task": "EH2.6.c4.2.b remaining context dispatch",
+          "components": [
+            3,
+            3,
+            1,
+            1,
+            -3
+          ],
+          "score": 5,
+          "decision": "DEFER: selected ordinal4 permit and exact dispatch contract must precede execution."
+        },
+        {
+          "task": "EH2.6.d2.x.b later compare obligations",
+          "components": [
+            2,
+            1,
+            2,
+            1,
+            -2
+          ],
+          "score": 4,
+          "decision": "DEFER: complete canonical sibling-obligation lifetime remains unspecified for later execution."
+        },
+        {
+          "task": "EH2.6.d2.d full decision matrix",
+          "components": [
+            3,
+            2,
+            1,
+            1,
+            -3
+          ],
+          "score": 4,
+          "decision": "DEFER: spans still-unimplemented action and successor prerequisites."
+        }
+      ],
+      "prior_evidence": {
+        "integration_ref": "fivecircles/work/collaboration/eh-relay-20260907/integration-EH2.6.c4.2.b.2.json",
+        "candidate_id": "sha256:cc5e19ca5b6a7ab1cc40fe5b62734df3e4a50a760a8274ea7590c1db53058e87",
+        "test_evidence_id": "sha256:8142e1f1b406947e18d5a650d61229c0576adcad07674018b79949b8fdb45d28",
+        "reuse": "Reuse valid prior integration/product PASS and unchanged report sections. Explicitly show the new decision-contract delta. Prior tests do not approve the new candidate."
+      }
+    },
+    "selected_task_ref": {
+      "path": "fivecircles/architecture/todolist.md",
+      "parent_task": "EH2.6.d2.x.b",
+      "task_id": "EH2.6.d2.x.b.2",
+      "label": "First post-fusion ordinal4 source/state-derived decision",
+      "recording": "Main records this bounded child and relay form before WORK; parents remain PARTIAL."
+    },
+    "contract_proposal": {
+      "target": "fivecircles/architecture/specs/controller-next-decision.md",
+      "base_sha256": "1a43c93fcf9bf2ab85572d76e93896c3f795319b685a059e3bd23adc0f2fa7fb",
+      "operation": "Replace only the b.2 amendment's larger-round success assumption and matching acceptance sentence with pinned round1 and zero-dispatch round-cap2 rejection. Use the complete proposed file /private/tmp/eh-relay-20260907.GNy8vE/post-fusion-contract-v2.md; preserve all other contract text.",
+      "final_bytes": 14930,
+      "sha256": "6d80a97e9261b359ad3d80fa05f986f19340c9b905b737c5714183511ba512a4",
+      "format": "UTF-8, LF, exactly one final newline",
+      "installation_gate": "Main independently checks installed complete-file hash before dispatch. Hash or semantic disagreement requires correction before WORK.",
+      "main_owned_alignment": [
+        "Append a concise orchestration/module-contract.md reference identifying revision3 ordinal4 decision-only support and unchanged execution/state boundaries.",
+        "Update the existing d2.x.b TODO parent wording and add only the selected b.2 child.",
+        "Record the report contract delta without rewriting historical b.1/b.2 receipts or the first-fusion contract's historical acceptance."
+      ]
+    },
+    "scope": {
+      "repository": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
+      "branch": "feat/total-integration",
+      "base_commit": "8db05102b3c858b96f89ef62ee9a442bfe935951",
+      "allowed_files": [
+        "src/midprojectrag/orchestration/execution_contracts.py",
+        "tests/test_controller_post_fusion_decision.py",
+        "tests/test_controller_first_fusion_transition.py"
+      ],
+      "ownership": "One gpt-5.6-sol ultra Coder owns these product/test files after explicit intake. Main owns contracts/module-contract/TODO/form/state/report/log/safety/integration. Historical Coder identity is not a live worker; record actual dispatch identity. Preserve all unrelated dirty work.",
+      "prohibited_actions": [
+        "No other file edits without a complete updated DIRECTIVE; harness_state.py and actions.py remain unchanged.",
+        "No context, bridge, rerank, verifier, absence, terminal or fourth-step execution; no revision4 successor.",
+        "No state/reducer/progress/ledger changes, source or semantic obligation issuance, capability-unavailable recording or claim consumption during decision issuance.",
+        "No later compare obligation selection/execution, canonical tuple remint, follow-up, deadline or public start/step/run.",
+        "No EH2.5 preview promotion, caller target/outcome/hash authority or parallel controller framework.",
+        "No model/API/GCP/Langfuse/VLM/clock/private-data/gold/corpus/baseline/evaluation/config/dependency changes.",
+        "No profiling, benchmark, DIAG131 duplication, Git mutation or nested delegation."
+      ]
+    },
+    "acceptance_criteria": [
+      "Existing public decision signatures and revision0/1/2 behavior remain unchanged. Authentic c4.2.b.2 revision3 fact/compare issues ordinal4 bound to current derived state, ledger/snapshot and exact transition3.",
+      "Authenticate the complete retained fusion/lexical/dense chain and original owner using existing live readers. Counts and hashes are consistency checks only. Reject source/state/root/owner/dependency drift before applying budget or normal reasons.",
+      "Validated count3 at budget3 returns abstain-only with action_budget_exhausted. With budget4 or higher, applied returns exactly first bounded expand_parent then abstain; empty returns exactly obligation-only verify_slot then abstain. Both use first_eligible_nonterminal.",
+      "Derive positive bounded context quota from exact owner final/rerank budgets and config. Select the first ID in the sorted bounded seed prefix without changing exact fusion/state candidate order or minting semantic/context receipts.",
+      "Empty verify_slot means only zero-provider exhaustion-check intent from exact normal-empty lane/fusion history. It issues no absence and does not claim confirmed absence, verifier availability or answerability. max_retrieval_rounds_per_obligation stays pinned to 1; requesting 2 must fail with retrieval_rounds_not_pinned_to_one before dispatch. No configuration expansion or retry is allowed.",
+      "Preserve source provenance, all earlier decisions/states/executions, three source receipts, sibling identities, open progress, coverage0.0, in_progress, no-progress and false terminal gates.",
+      "Update closed payload shapes and live rederivation for revision3, including targeted parent versus obligation-only verify shape. Extend budget reason to revision3 without widening prior error/diagnostic reason restrictions.",
+      "Explicitly revise the existing decision policy payload. Preserve stable identity within the process; do not rewrite historical receipts or baseline/config hashes.",
+      "Repeated and barrier-concurrent issuance returns one live decision object; GC cannot remint while its snapshot remains live. Clone/mixed/reason/action/target/tuple/owner-budget/effect/source/transition/ledger drift fails closed.",
+      "Decision issuance and readback perform zero additional retrieval/fusion/context/rerank/verifier/absence/provider/model/clock work, mint no prerequisite receipts and consume no claim or action.",
+      "Update only obsolete ordinal4-unsupported assertions in the existing fusion test. Preserve previous temporal/concurrency/failure/budget/source/state regressions and rejection of unsupported later histories.",
+      "Final frozen product plus behavior-contract candidate passes required focused/adjacent and main isolated/full validation and fresh deep review. Do not claim quality improvement, whole Controller completion or prospective PASS.",
+      "Active v4 evidence acceptance uses only the explicitly specified native-full-plus-five-test recovery composition after all identity/coverage conditions and fresh deep approval. The historical unwrapped full remains FAIL; no test requirement, assertion or behavior contract is waived."
+    ],
+    "required_tests": [
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest tests.test_controller_post_fusion_decision",
+        "purpose": "TDD for synthetic dense->lexical->fusion/state->ordinal4: fact/compare four lane pairs, rescue, budgets3/4, authentic round1 and zero-dispatch round-cap2 rejection, exact seed order/quota, unavailable verifier, history and zero-side-effect behavior."
+      },
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest tests.test_controller_first_fusion_transition tests.test_controller_first_fusion_state tests.test_controller_post_lexical_decision tests.test_controller_next_decision tests.test_controller_decision_receipt tests.test_controller_source_authority tests.test_controller_step_history tests.test_controller_initial_transition tests.test_controller_lexical_transition tests.test_controller_target_context_accumulator tests.test_harness_context tests.test_absence_confirmation tests.test_execution_contracts tests.test_retrieval_obligations",
+        "purpose": "Affected adjacent decision/source/state/context-order/exhaustion compatibility. During implementation select relevant subsets; gather final bound evidence without repeating full suites per internal leaf."
+      },
+      {
+        "command": "PATH=\"$PWD/.venv/bin:$PATH\" PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest discover -s tests -t . -p 'test*.py'",
+        "purpose": "Main runs once at the final frozen-candidate integration boundary. Record actual collection, exit, failures, errors and skips; prior1611 is not a fixed expected count."
+      },
+      {
+        "command": "Main isolated base-plus-owned-candidate validation using HEAD 8db05102b3c858b96f89ef62ee9a442bfe935951 and the focused/adjacent modules above",
+        "purpose": "Exclude dependence on unrelated dirty product changes. Bind exact candidate, behavior contracts and relevant input/runtime fingerprints; main resolves and records the actual command and isolated path."
+      },
+      {
+        "command": "git diff --check -- src/midprojectrag/orchestration/execution_contracts.py tests/test_controller_first_fusion_transition.py",
+        "purpose": "Check owned tracked edits and separately include the entire new untracked test in candidate manifest/review."
+      }
+    ],
+    "inherited_review_constraints": [
+      {
+        "source": "fivecircles/work/collaboration/eh-relay-20260907/messages/EH2.6.c4.2.b.2/003-first-fuse-state-review-1.json",
+        "sha256": "616886f94d9c71a968a7a662a3d3ad94b59afbddc92ceaff0fc348e3bf0fe945",
+        "json_pointer": "/body/next_batch_constraints",
+        "required_count": 13,
+        "application": "Incorporate all 13 constraints without alteration. Items1-9 are historical text; item10 prospectively supersedes only b.2 state/progress behavior. This new directive now explicitly selects ordinal4 decision only under the separate-Design condition; all execution, semantic, sibling, data and publication exclusions otherwise remain."
+      },
+      {
+        "source": "fivecircles/work/collaboration/eh-relay-20260907/messages/EH2.6.c4.2.b.2/005-first-fuse-state-publication-review-1.json",
+        "json_pointer": "/body/next_batch_constraints",
+        "required_count": 9,
+        "application": "Incorporate all nine publication constraints as historical binding restrictions. The exact-two-field exception and prior reviewed/final payload do not clear new findings, new bytes or future publication. Preserve native FAIL and original fields/events; do not duplicate the offending digest in prose."
+      }
+    ],
+    "constraints": [
+      "Read actual project collaboration/messages/relay-cycle, relevant implementation/test skills, authority and source contracts before work. Use the existing confirmed .venv Python3.12 and synthetic fixtures only.",
+      "Use existing fusion/state/source-owner and decision-authority machinery. Read-only owner-budget projection is not semantic-obligation issuance. Do not use actions.py preview to skip context prerequisites.",
+      "Do not create artificial errors/capability outcomes or a future context default merely to complete a matrix. Unsupported history remains rejected.",
+      "All parent tasks remain PARTIAL; this permit does not implement fourth execution. The next dispatcher must separately specify source admission, complete context batches and once-only behavior.",
+      "Fresh deep review is mandatory because decision authority spans live state/source and downstream permit contracts. No preimplementation PASS or duplicate review of unchanged prior product is needed.",
+      "Main preserves and records prior publication exception narrowly; future actual findings require their own applicable review. No scanner, security policy or immutable evidence change is authorized.",
+      "Final evidence reuse requires exact relevant candidate/contract/input/dependency/environment identity. Report only proven coverage and preserve native failures; added behavior cannot reuse old PASS as its verification.",
+      "Main handles one closeout/report/logall and authorized selective integration after final candidate checks. New candidate/evidence IDs do not yet exist.",
+      "If implementing these rules requires state-owner changes, semantic receipt minting, widening action shape, later sibling lifetime or a new authority framework, return QUESTION/NEEDS_GUIDANCE before expansion.",
+      "Return a complete IMPLEMENTATION_REPORT bound to post-fusion-directive-5 with actual candidate/evidence/files/commands/exits/deviations/questions. Freeze at REVIEW_READY.",
+      "All historical v3 Owned3+Refs3 manifests, accepted directives, candidate records and results remain immutable. Main alone runs the permitted temporary analytics resolver and collects new recovery/composition evidence; Coder remains product3 frozen. This directive is guidance, not REVIEW/PASS.",
+      "v5 changes only the recovery launcher invocation/event capture and explicitly incorporates the bounded runtime-probe interpretation. Main alone may execute exactly analytics attempt2 after accepting this directive; original full FAIL, attempt1 FAIL and canonical mismatch remain immutable facts. No tests were executed by Design."
+    ],
+    "source_refs": [
+      "fivecircles/agent/authority.md",
+      "fivecircles/requirements/current.md sections1.1 and8",
+      "fivecircles/requirements/decisions.md D-024",
+      "fivecircles/architecture/todolist.md EH2.6.c4.2.b, EH2.6.d2.x.b and EH2.6.d2.d",
+      "fivecircles/architecture/specs/bidfit-evidence-harness-v1-rc0.md section16.10 action-order/context-quota/exhaustion/reducer rules",
+      "fivecircles/architecture/specs/controller-next-decision.md",
+      "fivecircles/architecture/specs/controller-first-fusion-transition.md b.2 amendment",
+      "src/midprojectrag/orchestration/module-contract.md",
+      "src/midprojectrag/orchestration/execution_contracts.py:_d2_controller_action_plan",
+      "src/midprojectrag/orchestration/execution_contracts.py:_require_controller_source_owner",
+      "src/midprojectrag/orchestration/execution_contracts.py:_context_seed_evidence_ids",
+      "src/midprojectrag/orchestration/execution_contracts.py:issue_retrieval_absence_confirmation",
+      "src/midprojectrag/orchestration/harness_state.py:_build_controller_first_fusion_state_accessors",
+      "tests/test_controller_first_fusion_transition.py",
+      "tests/test_controller_first_fusion_state.py",
+      "tests/test_controller_post_lexical_decision.py",
+      "fivecircles/architecture/specs/evidence-harness-progress-flow-validation.md",
+      "fivecircles/architecture/specs/evidence-harness-progress-current-flow.mmd",
+      "fivecircles/architecture/specs/evidence-harness-progress-target-flow.mmd",
+      "fivecircles/work/collaboration/eh-relay-20260907/messages/EH2.6.c4.2.b.2/001-first-fuse-state-directive-1.json",
+      "fivecircles/work/collaboration/eh-relay-20260907/messages/EH2.6.c4.2.b.2/003-first-fuse-state-review-1.json",
+      "fivecircles/work/collaboration/eh-relay-20260907/messages/EH2.6.c4.2.b.2/005-first-fuse-state-publication-review-1.json",
+      "fivecircles/test/testpolicy.md"
+    ],
+    "resolution": {
+      "question_id": "post-fusion-recovery-launcher-question-1",
+      "decision": "ACCEPT",
+      "reason": "Accept A: invocation-only repair via exact python -c/runpy program. Attempt1 failed discovery before any required analytics test ran because the absolute helper script supplied the temporary directory as sys.path[0]. Preserve its FAIL and all v4 records. Keep the resolver bytes/hash, candidate, contract, inputs, expectations and test methods unchanged. Only main may run analytics attempt2; no full fallback or product changes. Composition remains PENDING_REVIEW."
+    },
+    "evidence_scope_clarification": {
+      "classification": "EVIDENCE_ONLY",
+      "product_files": [
+        "src/midprojectrag/orchestration/execution_contracts.py",
+        "tests/test_controller_post_fusion_decision.py",
+        "tests/test_controller_first_fusion_transition.py"
+      ],
+      "behavior_reference_files": [
+        {
+          "path": "fivecircles/architecture/specs/controller-next-decision.md",
+          "role": "changed active behavior contract",
+          "sha256": "6d80a97e9261b359ad3d80fa05f986f19340c9b905b737c5714183511ba512a4"
+        },
+        {
+          "path": "src/midprojectrag/orchestration/module-contract.md",
+          "role": "changed module behavior alignment",
+          "sha256": "953703f50cc9e84c11b939cd0020a24bb2c1ffc619c1c98f32a5022cb3070012"
+        },
+        {
+          "path": "fivecircles/architecture/specs/controller-first-fusion-transition.md",
+          "role": "unchanged first-fusion prerequisite; no edit permission",
+          "sha256": "1b92dbdf8d116e3812a1e27181e431a9aef39f6e0c70996a70e59dadd3a4c3e8",
+          "must_match_base_commit": "8db05102b3c858b96f89ef62ee9a442bfe935951"
+        }
+      ],
+      "requirements": [
+        "Final Coder focused/adjacent, main full/isolated helpers and evidence collector must agree on exactly three product files plus these three behavior references in start/end fingerprints: six files total.",
+        "Preserve existing candidate_id derivation from the three product files. Bind all three behavior references separately in evidence; do not silently redefine product candidate identity.",
+        "Active contract_id remains the exact unchanged next-decision hash. Confirm all listed behavior-reference hashes at both boundaries; unexpected drift blocks evidence sealing and requires reconciliation.",
+        "Isolated validation uses baseline8db05102b3c858b96f89ef62ee9a442bfe935951 plus the three product files and three references. The first-fusion reference must remain byte-identical to baseline; no edit authority is added.",
+        "Required focused/adjacent module scope and final isolated/full gates remain unchanged. Main owns helper/collector coordination; this directive grants Coder no additional file ownership.",
+        "Use actual final commands, exits and artifacts after execution. This clarification is neither product/contract modification nor a REVIEW PASS."
+      ]
+    },
+    "validation_recovery": {
+      "classification": "EVIDENCE_RECOVERY_ONLY_NOT_PRODUCT_REVIEW",
+      "candidate_id": "sha256:8d3172b1ec96ce2d11a1892d41cd2a8d3dddc9aa83dc6c050df72b0f401fba24",
+      "contract_id": "sha256:6d80a97e9261b359ad3d80fa05f986f19340c9b905b737c5714183511ba512a4",
+      "choice": "A_ANALYTICS_MODULE_RECOVERY_PLUS_EXPLICIT_COMPOSITION",
+      "authority_basis": [
+        "fivecircles/test/testpolicy.md Impact-based Validation and Evidence Reuse permits reuse only where relevant code/contract/config/data/dependency/environment identity is established and required failures are resolved.",
+        "controller-next-decision.md requires isolated and full regression coverage at integration; it does not require discarding successful unchanged test outcomes or mandate a single successful process as the only evidence format.",
+        "corpus_analytics_baseline.py EXPECTED_HASHES and baseline config seal artifact bytes/snapshot, while CSV_PATH is the module's default file locator. Both _load_and_bind_inputs and _build_enriched resolve that same global.",
+        "This operational recovery explicitly supersedes only v3's unwrapped-invocation-only evidence limitation. It does not waive any test, modify the behavior contract, repair canonical data or authorize a later batch."
+      ],
+      "native_full": {
+        "status": "FAIL",
+        "exit_code": 1,
+        "tests_run": 1657,
+        "errors": 1,
+        "failures": 0,
+        "skipped": 0,
+        "unittest_seconds": 1672.755,
+        "result": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-full-result.json",
+        "result_sha256": "0200fb56b61d16777c582ef013e19da5c86d65a48cd2e63d56907b528a3654dc",
+        "native_log": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-full-main.log",
+        "native_log_sha256": "e420a617e901eb22787344b5fbf1d7d2d586a999cb644a4b28ef0e5f83dc433d",
+        "input_manifest_sha256": "e1bbd00cb19ed0b6689c9c2ca24ccb785f018c3611ac165658fa7d86e15f9dcb",
+        "preservation": "Never overwrite native result, log, invocation, v3 fingerprints or original failure. The manifest excludes private resources and is not evidence of global private-file equality.",
+        "sole_error_test": "tests.evaluation.test_corpus_analytics_baseline.CorpusAnalyticsBaselineTests.test_frozen_refined98_snapshot_recomputes_all_gold_fields"
+      },
+      "resolver": {
+        "path": "/private/tmp/eh-relay-20260907.GNy8vE/run-post-fusion-frozen-analytics-check.py",
+        "sha256": "9cd31699b714ec0c207c1cd063a3d8352a539751d7536ae8efa0d559ad7847db",
+        "audit": "Read exact draft source. It checks cwd/module/default locator, verifies all five frozen artifact hashes, assigns only CSV_PATH, runs existing tests, records inputs/test IDs/results, checks input/code/config/canonical equality and restores the symbol in finally. It has not been executed by Design.",
+        "required_helper_correction": "Keep pinned resolver bytes unchanged. Main may adjust only temporary capture instrumentation to use the exact -c program and post-fusion-recovery-2 artifact prefix, account for the additional launcher context event and enforce all unchanged recovery checks. Record actual capture bytes/hash; no repository helper edit or suppression is authorized.",
+        "permitted_scope": "analytics",
+        "prohibited_scope": "full is present in helper but not authorized by this directive; no automatic fallback full rerun.",
+        "patched_symbol": "midprojectrag.corpus_analytics_baseline.CSV_PATH",
+        "original_path": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/resources/data_refined/refined_data_list.csv",
+        "original_sha256": "7c5a9b76e96383a669790b41056ae8e45d0464192a083709afa06c14a48c9fe0",
+        "selected_path": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/resources/data_refined/share/2026-08-31/MidProjectRAG_refined98_catalog_csv/refined_data_list.csv",
+        "selected_sha256": "cef0a27602976af468206ad2fa855027cb6f686fc877a52ce8fb191c57cd7e5b",
+        "selected_size_bytes": 16544015,
+        "selected_mode": "0600",
+        "invocation": "PATH=\"$PWD/.venv/bin:$PATH\" PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -c <exact launcher_program_utf8 below, passed as one argv element without shell interpolation>",
+        "cwd": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
+        "environment": "Use the same confirmed project .venv interpreter/package/runtime identity. Explicit invocation variables are PATH with the existing .venv prefix, PYTHONDONTWRITEBYTECODE=1 and PYTHONPATH=src. Retain only necessary existing nonsecret OS/runtime variables such as HOME, TMPDIR, LANG, LC_ALL, LC_CTYPE and TZ without inventing values; record the actual effective allowlist. Do not load .env, credentials, provider keys, alternate PYTHONPATH, test-disable/skip flags or environment-based expected-value overrides. An environment difference affecting evidence must be disclosed and reviewed, not hidden.",
+        "side_effect_boundary": "Only the exact process-local locator assignment and normal existing test temporary-file activity are allowed. No baseline/canonical/archive/gold/config/expectation/assertion/function/skip edits, symlinks, restoration, corpus transformation, model/API/network/GCP/profiling or global monkeypatch. Code-owned data readers/calculators and unittest test methods remain unchanged.",
+        "launcher_program_utf8": "import importlib.util,json,runpy,sys\nfrom pathlib import Path\nroot=Path(\"/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG\")\nresolver=\"/private/tmp/eh-relay-20260907.GNy8vE/run-post-fusion-frozen-analytics-check.py\"\nif Path.cwd().resolve()!=root or not sys.path or sys.path[0]!=\"\":\n    raise RuntimeError(\"exact_cwd_minus_c_import_context_required\")\ntests_spec=importlib.util.find_spec(\"tests\")\nproduct_spec=importlib.util.find_spec(\"midprojectrag\")\norigins={\"tests\":None if tests_spec is None else tests_spec.origin,\"midprojectrag\":None if product_spec is None else product_spec.origin}\nif origins[\"tests\"] is None or Path(origins[\"tests\"]).resolve()!=root/\"tests/__init__.py\":\n    raise RuntimeError(\"exact_tests_package_origin_required\")\nif origins[\"midprojectrag\"] is None or Path(origins[\"midprojectrag\"]).resolve()!=root/\"src/midprojectrag/__init__.py\":\n    raise RuntimeError(\"exact_product_package_origin_required\")\nsys.argv=[resolver,\"--scope\",\"analytics\"]\nprint(json.dumps({\"event\":\"frozen_analytics_launcher_context\",\"cwd\":str(Path.cwd().resolve()),\"executable\":sys.executable,\"sys_path\":list(sys.path),\"import_origins\":origins,\"resolver_path\":resolver,\"argv\":list(sys.argv)},sort_keys=True),flush=True)\nrunpy.run_path(resolver,run_name=\"__main__\")\n",
+        "launcher_program_format": "UTF-8 LF, including exactly one final LF; capture hash of these exact bytes from directive before running. Pass as one argv element to python -c; do not shell-expand Markdown or code."
+      },
+      "expected_test_ids": [
+        "tests.evaluation.test_corpus_analytics_baseline.CorpusAnalyticsBaselineTests.test_comparison_applies_semantic_numeric_tolerances",
+        "tests.evaluation.test_corpus_analytics_baseline.CorpusAnalyticsBaselineTests.test_comparison_rejects_extra_or_missing_fields_and_list_items",
+        "tests.evaluation.test_corpus_analytics_baseline.CorpusAnalyticsBaselineTests.test_frozen_refined98_snapshot_recomputes_all_gold_fields",
+        "tests.evaluation.test_corpus_analytics_baseline.CorpusAnalyticsBaselineTests.test_linear_quantile_uses_frozen_n_minus_one_interpolation",
+        "tests.evaluation.test_corpus_analytics_baseline.CorpusAnalyticsBaselineTests.test_private_jsonl_is_mode_0600_and_canonical"
+      ],
+      "preflight_and_capture": [
+        "Before recovery, main verifies original v3 full/isolated/focused/adjacent artifacts and their hashes, candidate derivation and all Owned3+Refs3 start/end snapshots. All six current files must match the frozen v3 evidence_scope_clarification and candidate; active contract and first-fusion baseline remain unchanged.",
+        "Recheck the exact full input-manifest paths and their recorded hashes plus interpreter/distribution/runtime identity, not merely candidate3. Any unrelated changed test/code/config/dependency input prevents automatic reuse and requires impact reconciliation.",
+        "Verify loader/test/config source bytes, all five EXPECTED_HASHES against the actual selected files and config.input_sha256, the archive size/mode/hash and original canonical hash before execution; record after values. Preserve complete source/evaluation hash binding without copying contents to logs.",
+        "Preserve historical native full collection1657 and its sole error identity, zero skips/failures and unchanged listed inputs/runtime. Static inspection identifies this live CSV dependency in the analytics frozen test and shows other module tests are synthetic. Do not describe this as a global filesystem dependency proof or reconstruct a historical per-test ID list that the original dot log did not record.",
+        "Main captures new immutable stdout/stderr, exact launcher hash/invocation, start/end Owned3+Refs3 and relevant input/runtime fingerprints, process exit/signal/spawn errors and actual helper events. Main capture instrumentation remains temporary and its bytes/hash are recorded.",
+        "The recovery start event must contain exactly the five expected IDs with no duplicate/discovery error; result must run5 with errors0/failures0/skipped0/expected_failures0/unexpected_successes0, unchanged inputs and native exit0. Absence of complete events, unexpected IDs or postflight drift blocks recovery even if helper exits0.",
+        "Unchanged successful v3 focused11, adjacent205 and isolated216 are reusable with their original directive/version/snapshots. Do not rerun them solely to replace their historical directive_id. Revalidation receipts under v4 point to original artifacts and establish applicability."
+      ],
+      "composition": {
+        "owner": "Main assembles evidence; fresh independent deep Critic decides applicability. Coder retains only its three frozen files and supplies a v4 report referencing original v3 provenance.",
+        "coverage": "Native full1657 with one failed frozen-input check, plus the entire original analytics module5 under the exact frozen-input resolver. Four recovered module tests overlap original successes; do not add counts to claim1662 unique tests. Effective regression coverage remains the original1657 only if identity and mapping conditions are proved.",
+        "labels": {
+          "native_full_status": "FAIL",
+          "native_full_exit_code": 1,
+          "recovery_status": "PENDING for attempt2; attempt1 remains FAIL. PASS only after actual attempt2 satisfies every unchanged check.",
+          "composed_regression_gate": "PENDING_REVIEW until fresh deep REVIEW explicitly accepts composition and runtime limitation; no launcher success alone changes this status.",
+          "canonical_input_status": "UNREPAIRED_FROZEN_HASH_MISMATCH"
+        },
+        "prohibited_claims": [
+          "No native_full_pass, no repaired canonical CSV, no successful single resolved full run, no complete private input inventory and no product quality/performance improvement.",
+          "No transfer of the previous two-hash publication exception to new records. Publication and authorized integration remain independent pending gates.",
+          "No replacing original error with recovered status or attributing unrelated worktree code/results wholly to this batch."
+        ],
+        "final_manifest": "Create a new final evidence manifest binding original full failure, v3 focused/adjacent/isolated results and snapshots, unchanged candidate/contract, exact v4 directive, pinned resolver/capture instrumentation, actual recovery artifacts and explicit impact/coverage/reuse assessment. Preserve all earlier candidate/evidence records byte-for-byte; new test_evidence_id identifies the added evidence, not changed product. Include preserved attempt1 failure, attempt2 launcher context/program/capture hashes and runtime-probe clarification; do not regenerate v3 historical manifests.",
+        "fallback": "If more errors appear, identity/coverage is uncertain, a relevant dependency changed, private-input scope cannot be justified or Critic finds the composed gate insufficient, remain NEEDS_GUIDANCE/BLOCKED. Request a complete resolution, potentially B resolved full; do not silently rerun, skip or grant an exception."
+      },
+      "launcher_repair": {
+        "artifact_prefix": "post-fusion-recovery-2",
+        "attempt1": {
+          "status": "FAIL",
+          "required_analytics_tests_run": 0,
+          "observed_failed_test_placeholder": "unittest.loader._FailedTest.tests",
+          "result_path": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-recovery-result.json",
+          "result_sha256": "fe6a7e7f2e3327c576b494063ce55581bbfe137465e4529d0e5ed73ba71d219b",
+          "native_log_path": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-recovery-native.log",
+          "native_log_sha256": "fbcea2944e679b127f7f23d275accf39b500ed0519309f1b3fb8be5501253a1a",
+          "preserve": "Do not overwrite attempt1 start/result/input/native/stdout/stderr or count the FailedTest placeholder as an executed required analytics test."
+        },
+        "event_contract": [
+          "Successful attempt2 requires one frozen_analytics_launcher_context event followed by exactly one frozen_analytics_resolver_start and exactly one frozen_analytics_resolver_result, in order. Do not retain the old exactly-two-total-events assertion after adding the explicitly approved launcher event.",
+          "All five expected IDs, tests_run5, zero discovery errors/errors/failures/skips/expected failures/unexpected successes, native exit0, complete native summary and unchanged candidate/reference/frozen5/listed-input/runtime evidence remain mandatory.",
+          "Capture actual cwd, sys.path and import origins from the same recovery child before runpy. The program must fail closed on wrong project/test origin; it does not insert sys.path entries, replace imported functions, change PYTHONPATH or broaden discovery.",
+          "The unchanged resolver still alone assigns baseline.CSV_PATH and restores it in finally. Interpreter argv/sys.argv setup is launcher plumbing, not an additional product-symbol patch.",
+          "Main records exact new instrumentation and -c program bytes/hash in the new immutable attempt2 artifacts before launch. Missing/extra events or incomplete postflight remains FAIL, never an automatic repeat."
+        ]
+      },
+      "runtime_probe_clarification": {
+        "source": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-runtime-probe-interpretation.json",
+        "sha256": "a4598eb634f0c85813ceaf69d7565559033a8b85220c3d035930f4eb3eabafd2",
+        "historical_metadata_probe_pythonpath": "UNKNOWN",
+        "conditions": [
+          "Current dual probes must exactly reproduce the respective historical 95/96 distribution observations without claiming recovery of the unknown historical inherited environment.",
+          "Only the independently located same-version midprojectrag source egg-info versus venv dist-info duplicate may explain the cross-probe difference. All third-party tuples and multiplicities plus other recorded runtime fields remain exact; no general deduplication.",
+          "Bind actual historical child commands' explicit PYTHONPATH=src and known candidate/source snapshots. Record current source-enabled import origins separately; isolated source must resolve to its own captured root.",
+          "Preserve preflight focused-runtime-mismatch failure and diagnostic AttributeError. These are not product-test results and cannot be relabelled as successful execution.",
+          "Original environment/import/dependency-byte coverage was limited. Fresh deep Critic must explicitly assess that limitation together with all v4 composition evidence before any COMPOSED_VALIDATION_PASS."
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.d2.x.b.2",
+  "record_kind": "DESIGN_CLARIFICATION",
+  "record_id": "post-fusion-runtime-probe-interpretation",
+  "active_directive_id": "post-fusion-directive-4",
+  "contract_id": "sha256:6d80a97e9261b359ad3d80fa05f986f19340c9b905b737c5714183511ba512a4",
+  "status": "PENDING_FRESH_CRITIC_ASSESSMENT",
+  "changes_active_directive": false,
+  "grants_execution_authority": false,
+  "is_review_pass": false,
+  "interpretation": {
+    "decision": "Option A remains admissible as an evidence proposal for fresh deep Critic assessment; this unrecorded metadata-probe environment value alone does not automatically require option B.",
+    "historical_probe_pythonpath": "UNKNOWN",
+    "historical_limitation": "The original main metadata-only probe did not record inherited PYTHONPATH. Omission of an explicit setting in helper source does not prove absence in the inherited environment.",
+    "current_observation_scope": "Current dual probes may reproduce the historical 95- and 96-entry observations exactly. Such reproduction is not recovery or proof of the complete historical environment.",
+    "conditions": [
+      "Preserve original 95/96 runtime receipts and all native preflight/diagnostic failures unchanged. Never write historical UNKNOWN as absent or infer a historical value from current probes.",
+      "Record current probe command, cwd, interpreter and actual effective environment context. Each current distribution multiset must match its corresponding original receipt exactly.",
+      "The only cross-probe difference may be one additional same-version midprojectrag 0.1.0 metadata entry whose source egg-info and venv dist-info provenance is explicitly verified. Do not apply general deduplication or ignore arbitrary package differences.",
+      "All third-party distribution name/version tuples and multiplicities, plus other recorded runtime fields, must match exactly. Metadata version equality is not a claim that all dependency-file contents were historically hashed.",
+      "The actual historical unittest child explicitly sets PYTHONPATH=src according to the helper and recorded command. Bind this known setting to the preserved candidate/source snapshots, interpreter and recorded runtime evidence.",
+      "Current source-enabled import-origin checks must resolve to the correct project source; isolated source checks must resolve to the captured isolated base-plus-owned root. Current checks do not retrospectively record historical imports.",
+      "Keep recovery before/after source-enabled runtime, candidate/reference/input fingerprints and exact launcher identity checks required by v4. This clarification does not remove any other v4 gate.",
+      "Disclose the historical metadata-probe context limitation in the final evidence packet. Fresh deep Critic must explicitly determine whether the known source binding and reconciled observations sufficiently support option A composition."
+    ],
+    "stop_conditions": [
+      "Any additional unexplained metadata/runtime difference, failed actual test-source binding, candidate/reference/input drift or insufficient evidence keeps the composed gate pending or blocked.",
+      "If fresh Critic finds the evidence insufficient, request complete follow-up guidance, potentially option B. Do not automatically run full, waive checks or declare composed validation passed."
+    ],
+    "correction_of_prior_wording": "The earlier demand to reproduce the unrecorded historical inherited value was too strong: an unknown value cannot be recovered. The permitted interpretation is bounded assessment of explicitly limited evidence, not relaxed runtime validation."
+  },
+  "scope": {
+    "allowed_write": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-runtime-probe-interpretation.json",
+    "prohibited_actions": [
+      "No product, contract, test, helper, snapshot, state or historical receipt edits.",
+      "No tests, probes, models, APIs, Git operations or other executions authorized by this record."
+    ]
+  }
+}

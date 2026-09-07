@@ -1,0 +1,67 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.d2.x.b.2",
+  "message_id": "post-fusion-recovery-launcher-question-1",
+  "in_reply_to": "post-fusion-directive-4",
+  "sender": "CODER",
+  "kind": "QUESTION",
+  "body": {
+    "contract_id": "sha256:6d80a97e9261b359ad3d80fa05f986f19340c9b905b737c5714183511ba512a4",
+    "candidate_id": "sha256:8d3172b1ec96ce2d11a1892d41cd2a8d3dddc9aa83dc6c050df72b0f401fba24",
+    "question": "May main preserve the pinned resolver bytes and run analytics recovery attempt2 via python -c plus runpy.run_path so sys.path[0] retains the repository working-directory import context, or must the resolver itself be revised and re-pinned?",
+    "blocking_constraint": "The v4-authorized absolute-script invocation sets sys.path[0] to the helper's /private/tmp directory. PYTHONPATH=src then exposes product code but not the repository-root tests package, so unittest produced _FailedTest.tests before any of the five required analytics tests ran. Invocation repair is not yet authorized; product3 remains frozen and no recovery/full run may be inferred as PASS.",
+    "evidence": [
+      {
+        "kind": "recovery_attempt1",
+        "result": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-recovery-result.json",
+        "result_sha256": "fe6a7e7f2e3327c576b494063ce55581bbfe137465e4529d0e5ed73ba71d219b",
+        "native_log": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-recovery-native.log",
+        "native_log_sha256": "fbcea2944e679b127f7f23d275accf39b500ed0519309f1b3fb8be5501253a1a",
+        "stdout_sha256": "ed57cc63a1379ff3a43e4e412b24ce4a43afa1bfe829cd55af8dfca0b04ef3d3",
+        "stderr_sha256": "6fd26fe4a01cd8496eb1d0ebb517fba8830fb179d7edeccb168b6535114b3e33",
+        "actual": "native/child/helper exit 1, signal null, elapsed 0.429s, recovery_status FAIL, test_count/unittest_summary null"
+      },
+      {
+        "kind": "exact_collection_failure",
+        "resolver_event": "frozen_analytics_resolver_start",
+        "observed_test_count": 1,
+        "observed_test_ids": [
+          "unittest.loader._FailedTest.tests"
+        ],
+        "discovery_error": "ModuleNotFoundError: No module named 'tests'",
+        "required_tests_actually_run": 0,
+        "missing_event": "No frozen_analytics_resolver_result event",
+        "postflight_issues": [
+          "Error: exactly two events required",
+          "native summary not clean five-test PASS",
+          "child did not exit successfully"
+        ]
+      },
+      {
+        "kind": "identity_and_scope",
+        "resolver_path": "/private/tmp/eh-relay-20260907.GNy8vE/run-post-fusion-frozen-analytics-check.py",
+        "resolver_sha256": "9cd31699b714ec0c207c1cd063a3d8352a539751d7536ae8efa0d559ad7847db",
+        "cwd": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
+        "environment": "Exact v4 allowlist retained PATH with repo .venv prefix, PYTHONDONTWRITEBYTECODE=1, PYTHONPATH=src and the recorded necessary nonsecret variables",
+        "unchanged": "Owned3+Refs3, all five frozen analytics inputs, canonical mismatch identity, listed full inputs and runtime remained unchanged; no product/data/gold/config/assertion/skip mutation occurred"
+      }
+    ],
+    "options": [
+      {
+        "id": "A",
+        "name": "unchanged resolver via runpy",
+        "procedure": "Keep resolver path and SHA256 9cd31699... fixed. From repo cwd invoke the same .venv interpreter with python -c; set sys.argv exactly to [resolver_path, '--scope', 'analytics']; call runpy.run_path(resolver_path, run_name='__main__'). This preserves python -c sys.path[0] as the working-directory entry while executing the pinned helper logic unchanged.",
+        "evidence_rule": "Use immutable prefix post-fusion-recovery-2 for start/result/native/stdout/stderr/input-manifest artifacts; capture the exact -c program bytes/hash or exact command, resolver hash, cwd/sys.path/import origins, five IDs/events, exit/signal, candidate/ref/input/runtime start/end identity."
+      },
+      {
+        "id": "B",
+        "name": "revise and re-pin resolver",
+        "procedure": "Add the verified repository root explicitly to sys.path inside the helper, then issue a complete updated directive with the new full helper bytes and SHA before execution.",
+        "tradeoff": "This changes evidence tooling despite the failure being fully explained by invocation context and requires another pin/reconciliation cycle."
+      }
+    ],
+    "recommendation": "A. It repairs only launcher import context, leaves the v4-pinned resolver and all product/test/data bytes unchanged, and matches the repository-root context used by -m unittest. Authorize only --scope analytics and the exact five expected IDs; the helper's available full scope remains prohibited.",
+    "impact": "Preserve attempt1 as FAIL and never overwrite it. If accepted, main alone runs attempt2 under a complete updated DIRECTIVE. A valid attempt2 can set only recovery_status=PASS; native full remains FAIL/exit1, canonical_input_status remains UNREPAIRED_FROZEN_HASH_MISMATCH, and composed_regression_gate remains PENDING_REVIEW until fresh deep review. No focused/adjacent/isolated rerun, product edit, full fallback, experiment, model/API or integration is authorized."
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.d2.x.b.2",
+  "candidate_id": "sha256:8d3172b1ec96ce2d11a1892d41cd2a8d3dddc9aa83dc6c050df72b0f401fba24",
+  "contract_id": "sha256:6d80a97e9261b359ad3d80fa05f986f19340c9b905b737c5714183511ba512a4",
+  "test_evidence_id": "sha256:eaf054ab203e73671d84ba9f9b035bbcaf45027f12bb6c8c21a7e331c8366771",
+  "product_review": "post-fusion-review-1",
+  "publication_review": "post-fusion-publication-review-1",
+  "publication_review_sha256": "28d39782caf351fa1ec93e682ac82adb35ff844c142ca6033d885ccc077bb9ad",
+  "native_safety_status": "FAIL",
+  "native_safety_exit_code": 1,
+  "native_audit": {
+    "path": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-publication-audit.json",
+    "sha256": "a22e5154a6850201bd126115b95b35a89889a281dbe4521ef4f3ff1dcf676126"
+  },
+  "proposed_payload": {
+    "path": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-proposed-publication.json",
+    "sha256": "61dd24d15900a14b67ac9acf7001cdb79d8b988c96389e2e45c32481a290cbe8",
+    "files": 46,
+    "pii_detections": 0,
+    "secret_detections": 0
+  },
+  "policy_status": "CLEARED_BY_CURRENT_BOUNDED_REVIEW",
+  "scope": "Only current exact payload plus explicitly enumerated actual review/status records. Existing two unchanged nonpersonal synthetic hash fields are outside this proposed payload; no generic exception or native PASS.",
+  "prospective_closeout_only": {
+    "new_files": [
+      "fivecircles/work/collaboration/eh-relay-20260907/messages/EH2.6.d2.x.b.2/012-post-fusion-publication-review-1.json",
+      "fivecircles/work/collaboration/eh-relay-20260907/batches/EH2.6.d2.x.b.2/publication-clearance.json"
+    ],
+    "mutable_files": [
+      "fivecircles/work/collaboration/eh-relay-20260907/state.json",
+      "fivecircles/work/2026-09-07-controller-post-fusion-decision-relay.md",
+      "fivecircles/test/errorlogs/backend/2026-09-07-controller-post-fusion-decision.md",
+      "fivecircles/architecture/specs/evidence-harness-progress-flow-validation.md",
+      "fivecircles/architecture/specs/evidence-harness-progress-flow-validation.html",
+      "fivecircles/test/playwright-screenshots/controller-post-fusion-decision-2026-09-07.png"
+    ],
+    "limits": "Only actual returned review, native FAIL and bounded publication-status/reference metadata. No product/behavior contract/required evidence change. Main must independently inspect actual new bytes/images, reconcile final paths/hashes and recheck detections. This dispatch does not preapprove future bytes."
+  },
+  "final_reconciliation": "Main must verify actual final bytes/images/detections and write final scoped staging/integration receipt before integration; this record does not claim that future bytes were already reviewed.",
+  "recorded_at": "2026-09-07T12:53:08.526Z"
+}

@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.d2.x.b.2",
+  "directive_id": "post-fusion-directive-3",
+  "contract_id": "sha256:6d80a97e9261b359ad3d80fa05f986f19340c9b905b737c5714183511ba512a4",
+  "repository": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
+  "branch": "feat/total-integration",
+  "base_head": "8db05102b3c858b96f89ef62ee9a442bfe935951",
+  "candidate_id": "sha256:8d3172b1ec96ce2d11a1892d41cd2a8d3dddc9aa83dc6c050df72b0f401fba24",
+  "candidate_id_derivation": "SHA-256 of exact post-fusion-owned-files.sha256 bytes",
+  "files": [
+    {
+      "path": "src/midprojectrag/orchestration/execution_contracts.py",
+      "sha256": "a9fd7b218bd37cedc8588005dd455fce837e72b078c11d94231bdb85865e1654"
+    },
+    {
+      "path": "tests/test_controller_post_fusion_decision.py",
+      "sha256": "15b689574bb2c0fdc12fa1ff95047020273793eb3e6b61456403218155f026c6"
+    },
+    {
+      "path": "tests/test_controller_first_fusion_transition.py",
+      "sha256": "135645c1c8514a8ea65b456c0fa098ec7cd7d27107c9d28916abda8d95fcbe4a"
+    }
+  ],
+  "additional_review_files": [
+    {
+      "path": "fivecircles/architecture/specs/controller-next-decision.md",
+      "sha256": "6d80a97e9261b359ad3d80fa05f986f19340c9b905b737c5714183511ba512a4"
+    },
+    {
+      "path": "src/midprojectrag/orchestration/module-contract.md",
+      "sha256": "953703f50cc9e84c11b939cd0020a24bb2c1ffc619c1c98f32a5022cb3070012"
+    },
+    {
+      "path": "fivecircles/architecture/specs/controller-first-fusion-transition.md",
+      "sha256": "1b92dbdf8d116e3812a1e27181e431a9aef39f6e0c70996a70e59dadd3a4c3e8"
+    }
+  ],
+  "artifacts": {
+    "hash_manifest": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-owned-files.sha256",
+    "snapshot_tar": {
+      "path": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-owned.tar",
+      "sha256": "3b2b17519ec5a6fcf0fdd91882ebbb6715c75e3c18640f65dab9fe0eec5dbbc3"
+    },
+    "tracked_diff": {
+      "path": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-main-tracked.diff",
+      "sha256": "7a403bc39a188915fb157db20f8fffc9d0ee5195e233ee01d09630ee6a4c1783"
+    },
+    "untracked_diff": {
+      "path": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-new-test.diff",
+      "sha256": "5895f864ce59c3cdaeb6f25686499b38f5687298416dfbb66b46c712e52eb1d3"
+    }
+  }
+}

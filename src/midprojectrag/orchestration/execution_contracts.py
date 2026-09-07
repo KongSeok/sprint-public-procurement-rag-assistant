@@ -3623,6 +3623,37 @@ _require_controller_source_owner = _build_controller_source_owner_reader(
 del _build_controller_source_owner_reader
 
 
+def _source_owner_plan_budget(source: object) -> tuple[str, str, int, int]:
+    """Read the already-authenticated owner's exact bounded plan budget."""
+
+    planning = object.__getattribute__(source, "planning")
+    plan = object.__getattribute__(planning, "plan")
+    budget = object.__getattribute__(plan, "budget")
+    rerank_k = object.__getattribute__(budget, "rerank_k")
+    final_evidence_budget = object.__getattribute__(
+        budget, "final_evidence_budget"
+    )
+    owner_plan_config_sha256 = object.__getattribute__(plan, "config_sha256")
+    _require_hash(
+        owner_plan_config_sha256,
+        "invalid_semantic_owner_plan_config_sha256",
+    )
+    if (
+        type(rerank_k) is not int
+        or rerank_k < 1
+        or type(final_evidence_budget) is not int
+        or final_evidence_budget < 1
+        or final_evidence_budget > rerank_k
+    ):
+        raise ValueError("invalid_semantic_owner_rerank_budget")
+    return (
+        _canonical_sha256(plan.to_dict()),
+        owner_plan_config_sha256,
+        rerank_k,
+        final_evidence_budget,
+    )
+
+
 # EH2.6.d2.i revision-zero controller decision permit.  This deliberately
 # defines a new controller action instead of promoting EH2.5 preview values.
 _CONTROLLER_ACTION_TOKEN = object()
@@ -3652,20 +3683,24 @@ _CONTROLLER_DECISION_POLICY_SHA256 = _canonical_sha256(
         "schema_version": SCHEMA_VERSION,
         "policy_id": HARNESS_EXECUTION_POLICY_ID,
         "closed_action_kinds": list(_CONTROLLER_ACTION_KINDS),
-        "policy_revision": "initial_dense_and_lexical_successor_v2",
-        "d2_slice": "revision_zero_one_two_first_obligation_fact_compare",
+        "policy_revision": "first_post_fusion_successor_v3",
+        "d2_slice": "revision_zero_one_two_three_first_obligation_fact_compare",
         "decision_ordinals": {
             "revision_zero": 1,
             "revision_one": 2,
             "revision_two": 3,
+            "revision_three": 4,
         },
         "order": (
             "revision_zero_obligation_major_dense_lexical_then_abstain;"
             "revision_one_same_obligation_lexical_then_abstain;"
-            "revision_two_same_obligation_fuse_then_abstain"
+            "revision_two_same_obligation_fuse_then_abstain;"
+            "revision_three_applied_first_bounded_parent_or_empty_verify_then_abstain"
         ),
         "selection": "first_allowed",
-        "cross_state": "exact_initial_dense_then_lexical_transition_chain_only",
+        "cross_state": (
+            "exact_initial_dense_then_lexical_then_first_fusion_transition_chain_only"
+        ),
         "next_decision_priority": [
             "revision_one:action_budget_exhausted",
             "revision_one:contract_error",
@@ -3675,6 +3710,9 @@ _CONTROLLER_DECISION_POLICY_SHA256 = _canonical_sha256(
             "revision_two:contract_error",
             "revision_two:provider_error",
             "revision_two:same_obligation_fuse",
+            "revision_three:action_budget_exhausted",
+            "revision_three:applied_first_bounded_parent",
+            "revision_three:empty_zero_provider_verify",
         ],
     }
 )
@@ -3815,7 +3853,7 @@ def _controller_allowed_actions_sha256(
 
 
 class ControllerDecisionReceipt:
-    """Exact live decision through the first dense and lexical successors."""
+    """Exact live decision through the first post-fusion successor."""
 
     __slots__ = (
         "stage",
@@ -3986,9 +4024,17 @@ class ControllerDecisionReceipt:
             "provider_error", "contract_error", "action_budget_exhausted",
         }:
             raise ValueError("invalid_controller_decision_reason")
-        if self.reason_code in {"contract_error", "action_budget_exhausted"}:
+        if self.reason_code == "contract_error":
             if (
                 self.ledger_revision not in {1, 2}
+                or self.decision_ordinal != self.ledger_revision + 1
+                or len(self.allowed_actions) != 1
+                or self.selected_action.kind != "abstain"
+            ):
+                raise ValueError("invalid_terminal_controller_decision_reason")
+        elif self.reason_code == "action_budget_exhausted":
+            if (
+                self.ledger_revision not in {1, 2, 3}
                 or self.decision_ordinal != self.ledger_revision + 1
                 or len(self.allowed_actions) != 1
                 or self.selected_action.kind != "abstain"
@@ -4009,6 +4055,15 @@ class ControllerDecisionReceipt:
                 or self.allowed_actions[1].kind != "abstain"
             ):
                 raise ValueError("invalid_diagnostic_controller_decision_reason")
+        elif self.ledger_revision == 3:
+            if (
+                self.decision_ordinal != 4
+                or len(self.allowed_actions) != 2
+                or self.selected_action.kind
+                not in {"expand_parent", "verify_slot"}
+                or self.allowed_actions[1].kind != "abstain"
+            ):
+                raise ValueError("invalid_post_fusion_controller_decision_reason")
         elif self.ledger_revision == 2:
             if (
                 self.decision_ordinal != 3 or len(self.allowed_actions) != 2
@@ -4068,6 +4123,235 @@ def _d2_initial_action_specs(
     return tuple(specs)
 
 
+def _d2_post_fusion_action_plan(
+    *,
+    execution: HarnessExecution,
+    store: EvidenceStore,
+    config: HarnessExecutionConfig,
+    runtime: HarnessRuntimeBinding,
+) -> tuple[tuple[tuple[str, str | None, str | None], ...], str]:
+    """Derive ordinal four from the exact retained first-fusion history."""
+
+    fusion_effect, fusion_transition = (
+        _require_controller_first_fusion_transition(
+            execution=execution,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+    )
+    execution_authority = _require_harness_execution_authority(execution)
+    lexical_execution = execution_authority[11]
+    lexical_effect, lexical_transition = _require_controller_lexical_transition(
+        execution=lexical_execution,
+        store=store,
+        config=config,
+        runtime=runtime,
+    )
+    lexical_authority = _require_harness_execution_authority(lexical_execution)
+    dense_execution = lexical_authority[11]
+    dense_effect, dense_transition = _require_controller_initial_transition(
+        execution=dense_execution,
+        store=store,
+        config=config,
+        runtime=runtime,
+    )
+    dense_authority = _require_harness_execution_authority(dense_execution)
+    initial_execution = execution_authority[12]
+    initial_authority = _require_harness_execution_authority(initial_execution)
+    source_owner = _require_controller_source_owner(
+        execution=execution,
+        store=store,
+        config=config,
+        runtime=runtime,
+    )
+    initial_source_owner = _require_controller_source_owner(
+        execution=initial_execution,
+        store=store,
+        config=config,
+        runtime=runtime,
+    )
+    (
+        _owner_plan_sha256,
+        owner_plan_config_sha256,
+        rerank_k,
+        final_evidence_budget,
+    ) = _source_owner_plan_budget(source_owner.source)
+
+    ledger = execution.ledger
+    obligation_key = ledger.obligation_keys[0]
+    state = execution.state
+    before_state = lexical_execution.state
+    entries = state.belief.evidence_map
+    before_entries = before_state.belief.evidence_map
+    expected_stage = (
+        "candidate" if fusion_effect.outcome == "applied"
+        else "provisional_missing"
+    )
+    expected_candidates = (
+        fusion_effect.ordered_evidence_ids
+        if fusion_effect.outcome == "applied"
+        else ()
+    )
+    if (
+        execution.source_kind not in {"fact", "compare"}
+        or execution.step_index != 3
+        or lexical_execution.step_index != 2
+        or dense_execution.step_index != 1
+        or initial_execution.step_index != 0
+        or execution.execution_identity_sha256
+        != lexical_execution.execution_identity_sha256
+        or execution.execution_identity_sha256
+        != dense_execution.execution_identity_sha256
+        or execution.execution_identity_sha256
+        != initial_execution.execution_identity_sha256
+        or execution.initial_state is not initial_execution.state
+        or lexical_execution.initial_state is not initial_execution.state
+        or dense_execution.initial_state is not initial_execution.state
+        or before_state is not initial_execution.state
+        or state is before_state
+        or execution_authority[8] is not fusion_transition
+        or lexical_authority[8] is not lexical_transition
+        or dense_authority[8] is not dense_transition
+        or execution_authority[12] is not initial_execution
+        or lexical_authority[12] is not initial_execution
+        or dense_authority[12] is not initial_execution
+        or dense_authority[11] is not initial_execution
+        or execution_authority[10] is not source_owner
+        or lexical_authority[10] is not source_owner
+        or dense_authority[10] is not source_owner
+        or initial_authority[10] is not source_owner
+        or initial_source_owner is not source_owner
+        or dense_effect.action_kind != "retrieve_dense"
+        or lexical_effect.action_kind != "retrieve_lexical"
+        or fusion_effect.action_kind != "fuse"
+        or dense_effect.obligation_key != obligation_key
+        or lexical_effect.obligation_key != obligation_key
+        or fusion_effect.obligation_key != obligation_key
+        or dense_effect.source_kind != execution.source_kind
+        or lexical_effect.source_kind != execution.source_kind
+        or fusion_effect.source_kind != execution.source_kind
+        or dense_effect.source_receipt_kind != "lane_search"
+        or lexical_effect.source_receipt_kind != "lane_search"
+        or fusion_effect.source_receipt_kind != "fusion"
+        or dense_effect.outcome not in {"applied", "empty"}
+        or lexical_effect.outcome not in {"applied", "empty"}
+        or fusion_effect.outcome not in {"applied", "empty"}
+        or dense_effect.effect_sha256 != dense_transition.effect_sha256
+        or lexical_effect.effect_sha256 != lexical_transition.effect_sha256
+        or fusion_effect.effect_sha256 != fusion_transition.effect_sha256
+        or dense_transition.transition_sha256
+        != dense_execution.last_transition_sha256
+        or lexical_transition.previous_transition_sha256
+        != dense_transition.transition_sha256
+        or lexical_transition.transition_sha256
+        != lexical_execution.last_transition_sha256
+        or fusion_transition.previous_transition_sha256
+        != lexical_transition.transition_sha256
+        or fusion_transition.transition_sha256
+        != execution.last_transition_sha256
+        or dense_transition.after_ledger_sha256
+        != dense_execution.ledger.ledger_sha256
+        or lexical_transition.before_ledger_sha256
+        != dense_execution.ledger.ledger_sha256
+        or lexical_transition.after_ledger_sha256
+        != lexical_execution.ledger.ledger_sha256
+        or fusion_transition.before_ledger_sha256
+        != lexical_execution.ledger.ledger_sha256
+        or fusion_transition.after_ledger_sha256 != ledger.ledger_sha256
+        or fusion_transition.before_state_sha256 != before_state.state_sha256
+        or fusion_transition.after_state_sha256 != state.state_sha256
+        or ledger.revision != 3
+        or ledger.previous_ledger_sha256
+        != lexical_execution.ledger.ledger_sha256
+        or ledger.nonterminal_action_count != 3
+        or ledger.consumed_action_sha256s
+        != (
+            dense_effect.action_sha256,
+            lexical_effect.action_sha256,
+            fusion_effect.action_sha256,
+        )
+        or ledger.consumed_lane_keys
+        != (
+            (obligation_key, 1, "dense"),
+            (obligation_key, 1, "lexical"),
+        )
+        or ledger.round_indexes
+        != (1,) + (0,) * (len(ledger.obligation_keys) - 1)
+        or ledger.unavailable_action_sha256s
+        or any(ledger.no_progress_streaks)
+        or type(before_entries) is not tuple
+        or not before_entries
+        or tuple(entry.obligation_key for entry in before_entries)
+        != ledger.obligation_keys
+        or any(
+            entry.observation_stage != "unsearched"
+            or entry.candidate_evidence_ids
+            or entry.verified_evidence_ids
+            for entry in before_entries
+        )
+        or type(entries) is not tuple
+        or len(entries) != len(before_entries)
+        or entries[0].obligation_key != obligation_key
+        or entries[0].observation_stage != expected_stage
+        or entries[0].candidate_evidence_ids is not expected_candidates
+        or entries[0].verified_evidence_ids
+        or any(
+            current is not previous
+            for current, previous in zip(entries[1:], before_entries[1:])
+        )
+        or state.belief.source_receipt_sha256 != fusion_effect.effect_sha256
+        or state.belief.config_sha256 != owner_plan_config_sha256
+        or state.progress.required_obligation_keys != ledger.obligation_keys
+        or state.progress.open_obligation_keys != ledger.obligation_keys
+        or state.progress.verified_obligation_keys
+        or state.progress.confirmed_missing_obligation_keys
+        or state.progress.contradicted_obligation_keys
+        or state.progress.provisional_missing_obligation_keys
+        != (() if fusion_effect.outcome == "applied" else (obligation_key,))
+        or state.progress.slot_coverage_ratio != 0.0
+        or state.progress.answerability != "in_progress"
+        or state.progress.normal_stop_allowed is not False
+        or state.progress.abstain_required is not False
+    ):
+        raise ValueError("controller_decision_fusion_transition_required")
+
+    abstain = (("abstain", None, None),)
+    if ledger.nonterminal_action_count >= config.max_nonterminal_actions:
+        return abstain, "action_budget_exhausted"
+    if fusion_effect.outcome == "empty":
+        return (("verify_slot", obligation_key, None),) + abstain, (
+            "first_eligible_nonterminal"
+        )
+
+    candidate_ids = entries[0].candidate_evidence_ids
+    quota = min(
+        config.max_context_targets_per_obligation,
+        final_evidence_budget,
+        rerank_k,
+        len(candidate_ids),
+    )
+    bounded_seed_ids = tuple(sorted(candidate_ids)[:quota])
+    if not bounded_seed_ids:
+        raise ValueError("controller_decision_parent_context_required")
+    target_evidence_id = bounded_seed_ids[0]
+    try:
+        seed = object.__getattribute__(store, "_evidence")[target_evidence_id]
+        parent = object.__getattribute__(store, "_parents")[seed.parent_id]
+    except (AttributeError, KeyError, TypeError) as error:
+        raise ValueError("controller_decision_parent_context_required") from error
+    if (
+        type(seed) is not Evidence
+        or type(parent) is not ProvenanceParent
+        or seed.evidence_id != target_evidence_id
+        or parent.parent_id != seed.parent_id
+    ):
+        raise ValueError("controller_decision_parent_context_required")
+    return (("expand_parent", obligation_key, target_evidence_id),) + abstain, (
+        "first_eligible_nonterminal"
+    )
+
+
 def _d2_controller_action_plan(
     *, execution: HarnessExecution, store: EvidenceStore,
     config: HarnessExecutionConfig, runtime: HarnessRuntimeBinding,
@@ -4111,6 +4395,13 @@ def _d2_controller_action_plan(
         if effect.outcome in {"applied", "empty"}:
             return lexical, "first_eligible_nonterminal"
         raise ValueError("controller_decision_initial_outcome_not_ready")
+    if execution.step_index == 3:
+        return _d2_post_fusion_action_plan(
+            execution=execution,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
     if execution.step_index != 2:
         raise ValueError("controller_decision_cross_state_not_ready")
 
@@ -10963,32 +11254,8 @@ def _semantic_owner_plan_budget(
 ) -> tuple[str, str, int, int]:
     if type(authority) is not _SemanticVerificationObligationAuthority:
         raise TypeError("semantic_verification_obligation_authority_required")
-    source = object.__getattribute__(authority, "source")
-    planning = object.__getattribute__(source, "planning")
-    plan = object.__getattribute__(planning, "plan")
-    budget = object.__getattribute__(plan, "budget")
-    rerank_k = object.__getattribute__(budget, "rerank_k")
-    final_evidence_budget = object.__getattribute__(
-        budget, "final_evidence_budget"
-    )
-    owner_plan_config_sha256 = object.__getattribute__(plan, "config_sha256")
-    _require_hash(
-        owner_plan_config_sha256,
-        "invalid_semantic_owner_plan_config_sha256",
-    )
-    if (
-        type(rerank_k) is not int
-        or rerank_k < 1
-        or type(final_evidence_budget) is not int
-        or final_evidence_budget < 1
-        or final_evidence_budget > rerank_k
-    ):
-        raise ValueError("invalid_semantic_owner_rerank_budget")
-    return (
-        _canonical_sha256(plan.to_dict()),
-        owner_plan_config_sha256,
-        rerank_k,
-        final_evidence_budget,
+    return _source_owner_plan_budget(
+        object.__getattribute__(authority, "source")
     )
 
 
@@ -20697,6 +20964,7 @@ _RUNTIME_GATE_FUNCTION_PINS = tuple(
         ("_semantic_execution_key", _semantic_execution_key),
         ("_semantic_public_entry", _semantic_public_entry),
         ("_semantic_common_preflight", _semantic_common_preflight),
+        ("_source_owner_plan_budget", _source_owner_plan_budget),
         ("_semantic_owner_plan_budget", _semantic_owner_plan_budget),
         (
             "_derive_followup_semantic_target",
@@ -20991,6 +21259,7 @@ _RUNTIME_GATE_FUNCTION_PINS = tuple(
         ),
         ("_register_harness_execution_successor", _register_harness_execution_successor),
         ("_d2_initial_action_specs", _d2_initial_action_specs),
+        ("_d2_post_fusion_action_plan", _d2_post_fusion_action_plan),
         ("_d2_controller_action_plan", _d2_controller_action_plan),
         ("_advance_initial_controller_step", _advance_initial_controller_step),
         ("_require_controller_initial_transition", _require_controller_initial_transition),

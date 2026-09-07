@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.d2.x.b.2",
+  "message_id": "post-fusion-contract-evidence-question-1",
+  "in_reply_to": "post-fusion-directive-2",
+  "sender": "CODER",
+  "kind": "QUESTION",
+  "body": {
+    "contract_id": "sha256:6d80a97e9261b359ad3d80fa05f986f19340c9b905b737c5714183511ba512a4",
+    "question": "Which behavior-reference files must final start/end evidence capture?",
+    "blocking_constraint": "Earlier accepted intake references next-decision and first-fusion-transition, but main helper captures next-decision and module-contract. Final tests not started.",
+    "evidence": [
+      {
+        "capture": "Main-normalized envelope of actual Coder textual QUESTION; not claimed as original native JSON",
+        "text": "QUESTION/evidence-helper mismatch before final use: helper line `contractPaths` captures `src/.../module-contract.md` + `controller-next-decision.md`, but your earlier explicit final requirement (and my accepted intake record) named the 2 behavior contracts as `controller-next-decision.md` + `controller-first-fusion-transition.md`. Thus current helper omits first-fusion-transition and adds module-contract. Please confirm intended exact 2, or provide updated complete helper; I will not start final evidence until resolved. Product/test work remains unblocked/read-only review only."
+      }
+    ],
+    "options": [
+      "Capture both changed references plus the unchanged first-fusion prerequisite, with unchanged product identity",
+      "Choose only one historical pair and risk omitting a relevant contract fingerprint"
+    ],
+    "recommendation": "Capture all three reference files; no additional product or contract edit authority",
+    "impact": "Hold final evidence execution/sealing until helper and complete directive agree; no final tests invalidated because none started."
+  }
+}

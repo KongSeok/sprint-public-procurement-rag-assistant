@@ -493,3 +493,10 @@ Reference:
 - 연락처 정규식 탐지와 실제 개인정보를 구분한다. 이번 두 typed SHA256은 원본 합성 diff 재계산과 독립 검수로 비개인·필수 값임을 확인했다.
 - 자동 FAIL/exit1과 기존 보안 정책에 따른 한정 공개 판정을 따로 기록한다. 스캐너나 원본 해시를 바꾸거나 미래 탐지를 포괄 허용하지 않는다.
 - 실제 최종 파일/내용은 별도 확인한다. ref: errorlogs/backend/2026-09-07-controller-state-publication-hash-pattern.md.
+
+### 동결 입력 위치와 임시 unittest 실행기 (2026-09-07)
+
+- 원인: live CSV alias는 동결 해시와 달랐고, 임시 Python 파일 직접 실행은 repo tests import 경로를 잃었다.
+- 예방: 원본/정답을 덮지 말고 계약에 맞는 동결 입력을 확인한다. -m/-c/절대 script의 sys.path 차이를 최소 discovery로 먼저 검증한다.
+- 계측: 실제 child의 cwd/import origin/runtime를 기록한다. 수집하지 않은 과거 환경은 UNKNOWN이며, metadata 중복은 패키지 변경과 구분한다.
+- 결과: 원래 full FAIL·첫 discovery FAIL 보존, analytics5 PASS 후 독립 결합 승인. [오류 기록](errorlogs/backend/2026-09-07-controller-post-fusion-decision.md).

@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.d2.x.b.2",
+  "message_id": "post-fusion-round-cap-question-1",
+  "in_reply_to": "post-fusion-directive-1",
+  "sender": "CODER",
+  "kind": "QUESTION",
+  "body": {
+    "contract_id": "sha256:1a43c93fcf9bf2ab85572d76e93896c3f795319b685a059e3bd23adc0f2fa7fb",
+    "question": "The directive requires authentic post-fusion success with round caps1/larger, but current config rejects every max_retrieval_rounds_per_obligation other than1. Which contract controls?",
+    "blocking_constraint": "Config changes are prohibited; no honest authentic larger-cap success can be produced under the current pin1 contract.",
+    "evidence": [
+      "Coder reported execution_contracts.py:_validate_config_values lines434-435 rejects !=1 as retrieval_rounds_not_pinned_to_one.",
+      "Existing learning also records pin1."
+    ],
+    "options": [
+      "A: preserve pin1; test valid round1 and zero-dispatch rejection of attempted round2.",
+      "B: expand configuration contract and allowed scope/tests."
+    ],
+    "recommendation": "A, because this batch selects ordinal4 only and must not widen config.",
+    "impact": "Independent round1 decision implementation may continue; disputed round-cap validation and final freeze wait for complete updated directive.",
+    "capture": "Main-normalized JSON from actual /root/post_fusion_coder QUESTION text; no fabricated test success or original JSON artifact claimed."
+  }
+}

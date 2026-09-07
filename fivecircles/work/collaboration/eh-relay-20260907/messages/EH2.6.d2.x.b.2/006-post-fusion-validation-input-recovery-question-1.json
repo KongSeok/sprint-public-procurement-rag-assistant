@@ -1,0 +1,74 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.d2.x.b.2",
+  "message_id": "post-fusion-validation-input-recovery-question-1",
+  "in_reply_to": "post-fusion-directive-3",
+  "sender": "CODER",
+  "kind": "QUESTION",
+  "body": {
+    "contract_id": "sha256:6d80a97e9261b359ad3d80fa05f986f19340c9b905b737c5714183511ba512a4",
+    "candidate_id": "sha256:8d3172b1ec96ce2d11a1892d41cd2a8d3dddc9aa83dc6c050df72b0f401fba24",
+    "question": "May the sole full-suite frozen-input binding error be closed by an explicitly bound targeted recovery plus evidence composition under impact-based validation, or must the entire full suite be rerun through the same process-local frozen-input resolver; and what exact status/identity rules govern the final gate?",
+    "blocking_constraint": "The v3 directive requires final full regression evidence, but the only native full run is correctly FAIL/exit 1. A matching frozen CSV exists, yet rebinding corpus_analytics_baseline.CSV_PATH, even process-locally and without filesystem changes, is a different validation invocation not authorized by post-fusion-directive-3. I will not edit data/code/tests/assertions, skip the test, rerun anything, or relabel the native failure as PASS without a complete updated DIRECTIVE.",
+    "evidence": [
+      {
+        "kind": "native_full_failure",
+        "result": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-full-result.json",
+        "result_sha256": "0200fb56b61d16777c582ef013e19da5c86d65a48cd2e63d56907b528a3654dc",
+        "native_log": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-full-main.log",
+        "native_log_sha256": "e420a617e901eb22787344b5fbf1d7d2d586a999cb644a4b28ef0e5f83dc433d",
+        "actual": "native/child/helper exit 1, signal null, 1657 tests in 1672.755s, FAILED(errors=1), no other reported error/failure/skip; candidate/ref files, listed input manifest and runtime unchanged"
+      },
+      {
+        "kind": "sole_error",
+        "test": "tests.evaluation.test_corpus_analytics_baseline.CorpusAnalyticsBaselineTests.test_frozen_refined98_snapshot_recomputes_all_gold_fields",
+        "boundary": "_load_and_bind_inputs -> _verify_hash, before _calculate/_verify_targets",
+        "actual_error": "ValueError: refined_csv_sha256_mismatch:7c5a9b76e96383a669790b41056ae8e45d0464192a083709afa06c14a48c9fe0",
+        "expected_sha256": "cef0a27602976af468206ad2fa855027cb6f686fc877a52ce8fb191c57cd7e5b",
+        "current_path": "resources/data_refined/refined_data_list.csv",
+        "current_sha256": "7c5a9b76e96383a669790b41056ae8e45d0464192a083709afa06c14a48c9fe0",
+        "note": "The full input manifest SHA e1bbd00cb19ed0b6689c9c2ca24ccb785f018c3611ac165658fa7d86e15f9dcb expressly excludes private resource inputs, so its unchanged flag does not by itself establish this CSV's intended frozen identity."
+      },
+      {
+        "kind": "exact_frozen_input_available",
+        "path": "resources/data_refined/share/2026-08-31/MidProjectRAG_refined98_catalog_csv/refined_data_list.csv",
+        "sha256": "cef0a27602976af468206ad2fa855027cb6f686fc877a52ce8fb191c57cd7e5b",
+        "size_bytes": 16544015,
+        "mode": "0600",
+        "binding_source": "src/midprojectrag/corpus_analytics_baseline.py defines module global CSV_PATH and EXPECTED_HASHES['refined_csv']; _load_and_bind_inputs resolves that global at call time"
+      },
+      {
+        "kind": "same_candidate_pass_evidence",
+        "focused": "exit 0; 11 tests/904.510s/OK; capture PASS",
+        "adjacent": "exit 0; 205 tests/647.583s/OK; capture PASS",
+        "isolated": "exit 0; 216 tests/1843.717s/OK; no skips; result SHA256 28b045517d48d6306c3630308ed816ee11bc8587932b573a856f67752cf54f22; native log SHA256 037cbf6b574ccbced8fece3e5b207c738ac8c01d0d4b898e6a2b668cc967e7c8",
+        "identity": "candidate 8d3172b1..., contract 6d80a97e..., Owned3+Refs3/base/runtime unchanged"
+      }
+    ],
+    "options": [
+      {
+        "id": "A",
+        "name": "targeted recovery plus composed gate",
+        "procedure": "In a fresh recorded process, rebind only midprojectrag.corpus_analytics_baseline.CSV_PATH to the exact archive Path after verifying its expected SHA, then run exactly the one failing TestCase. Preserve the original full FAIL and compose its 1657-test result with the targeted recovery, focused, adjacent and isolated evidence.",
+        "tradeoff": "Smallest impact-based rerun and no product/data mutation, but the final status must be explicitly defined as composed validation rather than a native full-suite PASS."
+      },
+      {
+        "id": "B",
+        "name": "resolved-input full rerun",
+        "procedure": "Use the same one-symbol process-local resolver, then execute full unittest discovery in that process and capture a fresh complete result while preserving the original native FAIL.",
+        "tradeoff": "Stronger single-run coverage but repeats roughly 28 minutes and still needs an explicit rule because the launcher is not the literal unwrapped v3 command."
+      }
+    ],
+    "recommendation": "A, provided the updated directive explicitly authorizes evidence composition and names its final status something such as COMPOSED_VALIDATION_PASS, never native_full_pass. The observed failure is a pre-computation frozen-input binding mismatch outside Owned3/Refs3, while all other collected full tests and all same-candidate scoped/isolated gates have no reported failure. If the integration contract requires one resolved invocation of all full tests with exit 0, choose B instead.",
+    "requested_identity_rules": [
+      "Keep candidate_id and contract_id unchanged and verify Owned3+Refs3/base/branch/runtime before and after; no implementation/report is regenerated from changed product bytes.",
+      "Pin and record both the rejected canonical path/hash and the selected archive absolute path/hash/size/mode; require the archive SHA to equal EXPECTED_HASHES['refined_csv'] before test discovery.",
+      "Permit only an in-memory assignment to the exact symbol midprojectrag.corpus_analytics_baseline.CSV_PATH for the child process. Prohibit copying, symlinking, editing or restoring the canonical CSV, and prohibit changes to expected hashes, config, gold, test assertions or skip conditions.",
+      "Record exact launcher bytes/hash, command, cwd, interpreter/runtime, environment allowlist, start/end candidate/ref/input fingerprints, child exit/signal, native stdout/stderr and test count; use new immutable artifact paths.",
+      "Preserve and cite the original exit-1 full result/log as historical failure. Define whether Option A satisfies the required full gate by composition, the exact machine-readable gate label, and whether the fresh deep reviewer must explicitly approve that composition.",
+      "Define whether focused/adjacent/isolated evidence remains reusable without rerun and which actor owns the recovery run and evidence-composition record."
+    ],
+    "impact": "Implementation remains frozen and REVIEW_READY is withheld. No next-batch, integration, product/contract/config/data/gold/dependency change, profiling, external/model/GCP/private work, or PASS claim proceeds until a complete updated DIRECTIVE resolves the gate."
+  }
+}
