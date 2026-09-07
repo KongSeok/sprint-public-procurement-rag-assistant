@@ -1,0 +1,62 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.c4.2.b.1",
+  "status": "CLOSED",
+  "commit_sha": "a37562a774ea72281950102416c0b71f3a00e6fa",
+  "parent_sha": "05eb878bd0ed16e534d5a6d32a1ec8a4f1f8552a",
+  "branch": "feat/total-integration",
+  "remote": "origin",
+  "remote_url": "https://github.com/KongSeok/sprint-public-procurement-rag-assistant.git",
+  "push": {
+    "command": "git push origin HEAD:refs/heads/feat/total-integration",
+    "exit_code": 0,
+    "remote_verified_sha": "a37562a774ea72281950102416c0b71f3a00e6fa",
+    "verified_at": "2026-09-07T06:15:06.594Z"
+  },
+  "review_message_id": "first-fuse-review-1",
+  "candidate_id": "sha256:b6ba30e02e09b6090f7ec1c17315cbe316ceefd1dc31544a352251c55cbcf17b",
+  "contract_id": "sha256:088d1280b7ccae54370aeb5d5fbcb648d4eea857ee8b1663e8d228a8efd06d7c",
+  "test_evidence_id": "sha256:f1a433dbec5603855a6a418a17711589361d57a963b8d9a31bc66a66a657b03a",
+  "committed_file_count": 28,
+  "validation": {
+    "focused": 12,
+    "adjacent": 185,
+    "isolated_candidate": 197,
+    "full_worktree": 1577,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "exit_code": 0,
+    "safety_scanned": 1024,
+    "report_browser": {
+      "command": "NODE_PATH=/Users/pio/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules MIDPROJECTRAG_REPORT_CHROMIUM='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' /usr/local/bin/node scripts/check_harness_progress_report.cjs fivecircles/architecture/specs/evidence-harness-progress-flow-validation.html fivecircles/test/playwright-screenshots/controller-first-fusion-transition-2026-09-07.png EH2.6.c4.2.b.1",
+      "exit_code": 0,
+      "desktop": "1440x1000",
+      "mobile": "390x844",
+      "images": [
+        {
+          "width": 1350,
+          "height": 6400
+        },
+        {
+          "width": 1568,
+          "height": 1656
+        }
+      ],
+      "tables": 8,
+      "page_errors": 0,
+      "external_requests": 0
+    },
+    "full_count_scope": "includes unrelated current-worktree tests; not batch-owned delta"
+  },
+  "worktree": {
+    "status": "unrelated dirty preserved",
+    "status_entry_count": 226,
+    "index_empty": true,
+    "resources_tracked": false
+  },
+  "continuation": "CONTINUE_WITH_NEXT_FORM",
+  "next_selection": "post-fusion eligibility/state bounded Design under existing approved TODO; exact next child selected by Design",
+  "note": "Post-integration receipt not included in its own commit. DIAG131 remains separately owned and its frozen snapshot is unchanged by this commit."
+}

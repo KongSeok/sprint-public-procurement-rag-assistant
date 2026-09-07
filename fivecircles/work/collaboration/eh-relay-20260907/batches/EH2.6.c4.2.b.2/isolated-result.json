@@ -1,0 +1,57 @@
+{
+  "base": "a37562a774ea72281950102416c0b71f3a00e6fa",
+  "mode": "isolated",
+  "cwd": "/private/tmp/eh-first-fuse-state-isolated.rDvqZa",
+  "command": "PATH=\"/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/bin:$PATH\" PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src /Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/bin/python3 -m unittest tests.test_controller_first_fusion_state tests.test_controller_first_fusion_transition tests.test_harness_state tests.test_controller_source_authority tests.test_controller_step_history tests.test_controller_source_outcome_resolver tests.test_controller_structural_effect_bridge tests.test_controller_initial_transition tests.test_controller_lexical_transition tests.test_controller_post_lexical_decision tests.test_controller_next_decision tests.test_controller_decision_receipt tests.test_execution_contracts tests.test_e0_fusion tests.test_retrieval_obligations",
+  "files": [
+    {
+      "path": "src/midprojectrag/orchestration/execution_contracts.py",
+      "sha256": "2b89d5fd0ededf742e000e4b8697b4f9ac0a2cf29619e7c94f67d49e5277792a"
+    },
+    {
+      "path": "src/midprojectrag/orchestration/harness_state.py",
+      "sha256": "56c9f0e98c38305997b5ad56d08b57b522182170641dbd6cd592c01b09a50c77"
+    },
+    {
+      "path": "tests/test_controller_first_fusion_state.py",
+      "sha256": "eab574ef9f24bff12faac14178086ae701cb71fc99401a6478a20fa0c54e4404"
+    },
+    {
+      "path": "tests/test_controller_first_fusion_transition.py",
+      "sha256": "7168d31583d83855688ddb10f052f1688ca7c3f165d137f3e63a40257b143932"
+    },
+    {
+      "path": "tests/test_harness_state.py",
+      "sha256": "6c452c174f665cead7f531b1f47f96979b008b677e2e478ea10302cc6044eb8a"
+    },
+    {
+      "path": "src/midprojectrag/orchestration/module-contract.md",
+      "sha256": "4d7dd169f9e7069a5de388775d5b2df216fc09cba94965ce9afb314a88392d8a"
+    },
+    {
+      "path": "fivecircles/architecture/specs/controller-first-fusion-transition.md",
+      "sha256": "1b92dbdf8d116e3812a1e27181e431a9aef39f6e0c70996a70e59dadd3a4c3e8"
+    }
+  ],
+  "input_manifest": {
+    "path": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-state-isolated-input-manifest.json",
+    "sha256": "2541403ea702b052043effec1c7ce675d8f97a73f85de94350428778f97c5727"
+  },
+  "candidate_id": "sha256:cc5e19ca5b6a7ab1cc40fe5b62734df3e4a50a760a8274ea7590c1db53058e87",
+  "contract_id": "sha256:1b92dbdf8d116e3812a1e27181e431a9aef39f6e0c70996a70e59dadd3a4c3e8",
+  "recorded_at": "2026-09-07T07:44:15.209Z",
+  "exit_code": 0,
+  "signal": null,
+  "spawn_error": null,
+  "finished_at": "2026-09-07T08:00:02.164Z",
+  "elapsed_seconds": 946.946,
+  "files_unchanged": true,
+  "drift": null,
+  "test_inputs_unchanged": true,
+  "runtime_unchanged": true,
+  "changed_test_input_paths": [],
+  "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-state-isolated-main.log",
+  "artifact_sha256": "c9c75f13131a81e0954ece26044da2e85f0dab5c1fee6d7abb69ba7348eca258",
+  "test_count": 227,
+  "unittest_summary": "\nRan 227 tests in 944.217s\n\nOK"
+}

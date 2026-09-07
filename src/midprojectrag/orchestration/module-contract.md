@@ -461,6 +461,34 @@ successor/error receipt. Initial/lexical readback remains revision-specific; new
 readback revalidates the three sources and retained predecessor/root chain. No ordinal-four decision,
 context, semantic reducer, terminal or later compare execution is included. See
 `controller-first-fusion-transition.md`; implementation acceptance is tracked separately in Cycle22.
+
+C4.2.b.2 prospectively extends the accepted C4.2.b.1 dispatch-only slice for future first-fusion
+issuance; the preceding same-state revision-three description remains its historical contract.
+The same exact revision-two/ordinal-three fuse consumes one action and produces one revision-three
+successor, now reducing only its first unsearched obligation after the exact live effect is bound.
+Applied fusion preserves exact ordered effect candidate IDs; empty fusion creates provisional_missing
+with no IDs. Neither is verified support, confirmed absence, answerability or terminal readiness.
+Sibling entries/order and all earlier immutable states, executions, decisions and sources are retained.
+
+harness_state.py owns the new Belief/Progress/State; execution_contracts.py owns the exact effect,
+claim and source authority. A bounded sealed owner bridge validates the live before-state/effect/root
+graph without sharing factory tokens, caller candidate tuples or hash-only mint permission. Derived
+belief.source_receipt_sha256 binds effect.effect_sha256, while original planner/coverage source ownership
+and three retrieval/fusion source lineages remain separately retained and revalidated. Structural DTO
+validation is not a mint permit. State creation must precede transition sealing without circular authority;
+reduction/registration failure consumes the existing claim and exposes no valid partial successor or
+orphan authorizing state, nor another fusion attempt.
+
+Revision-three transition separately seals before/after state hashes and semantic fingerprints. The
+fingerprint uses ordered stages/candidate/verified/actual verifier-context IDs, not provenance hashes,
+ordinals, time or counters. This bounded initial history has no context-producing action. Fuse resets
+the first obligation's no-progress streak on semantic change; only unchanged state and context would
+increment it. Valid unsearched-to-candidate/provisional transitions change it; siblings and all lane,
+round, unavailable and action-count rules remain unchanged. All obligations remain open, coverage0.0,
+in_progress, normal_stop_allowed=false and abstain_required=false. Ordinal-four decisions, context,
+rerank/verify/absence, later compare obligations and public start/step/run still require later Designs.
+See the explicitly labelled b.2 amendment in controller-first-fusion-transition.md and Cycle23.
+
 An E1 compare seed must be all-unsearched; already hybrid-searched EH2.4 coverage cannot be
 relabeled as independent lane execution. Once all approved retrieval paths close with no
 candidates, controller-only `verify_slot` performs a zero-provider exhaustion check that may

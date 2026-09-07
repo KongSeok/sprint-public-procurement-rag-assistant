@@ -1,0 +1,172 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.c4.2.b.2",
+  "message_id": "first-fuse-state-directive-1",
+  "in_reply_to": null,
+  "sender": "PHILOSOPHER",
+  "kind": "DIRECTIVE",
+  "body": {
+    "mode": "DESIGN",
+    "contract_id": "sha256:1b92dbdf8d116e3812a1e27181e431a9aef39f6e0c70996a70e59dadd3a4c3e8",
+    "resolution": null,
+    "objective": "Complete the first-fusion reducer prerequisite: future selected revision2-to-revision3 fusion issues an exact effect-bound candidate/provisional-missing state for only the first obligation, without semantic support, ordinal4 or additional execution.",
+    "authority_assessment": {
+      "status": "WITHIN_EXISTING_AUTHORITY",
+      "needs_new_authority": false,
+      "reason": "Existing c4.2.b explicitly includes state-changing reducer. Main confirmed this prospective bounded prerequisite within approved relay after §16.10/source-owner audit. The former same-state slice remains valid historical acceptance; this new contract explicitly selects its future extension, not an unannounced repair or new evaluation authority."
+    },
+    "direction_assessment": {
+      "target": "Authenticated first fusion -> source-derived candidate/provisional state -> later context/verify eligibility, retaining immutable baseline and non-authorizing history.",
+      "current": "c4.2.b.1 integrated at a37562a774ea72281950102416c0b71f3a00e6fa; revision3 fusion works once with same semantic state. Technical §16.10 requires effect-derived state and semantic no-progress checkpoint; current state remains unsearched. Existing harness_state owner validates planner/coverage origin and has no effect-derived state owner.",
+      "gap": "Ordinal4 context/empty verification would otherwise bypass the candidate/provisional prerequisite. Add one bounded live effect-to-state owner bridge and update future fusion transition3 issuance/readback, using existing state constructors and execution registry.",
+      "selection_reason": "Select c4.2.b.2 before d2.x.b ordinal4. This gives future eligibility actual canonical state, avoids inventing provisional status from serialized counts and does not open later compare/context work.",
+      "score": {
+        "upstream_weight": 3,
+        "connection_value": 3,
+        "safety_value": 2,
+        "validation_value": 1,
+        "risk_penalty": -2,
+        "connection_score": 7
+      },
+      "prior_acceptance": {
+        "review": "fivecircles/work/collaboration/eh-relay-20260907/messages/EH2.6.c4.2.b.1/003-first-fuse-review-1.json",
+        "candidate_id": "sha256:b6ba30e02e09b6090f7ec1c17315cbe316ceefd1dc31544a352251c55cbcf17b",
+        "contract_id": "sha256:088d1280b7ccae54370aeb5d5fbcb648d4eea857ee8b1663e8d228a8efd06d7c",
+        "test_evidence_id": "sha256:f1a433dbec5603855a6a418a17711589361d57a963b8d9a31bc66a66a657b03a",
+        "integration": "fivecircles/work/collaboration/eh-relay-20260907/integration-EH2.6.c4.2.b.1.json",
+        "reuse": "Reuse valid prior PASS/integration; no unchanged-candidate re-review. New reducer candidate requires fresh deep review."
+      }
+    },
+    "selected_task_ref": {
+      "path": "fivecircles/architecture/todolist.md",
+      "parent_task": "EH2.6.c4.2.b",
+      "task_id": "EH2.6.c4.2.b.2",
+      "label": "First-fusion effect-bound candidate/provisional state prerequisite",
+      "recording": "Main adds child/form before Coder dispatch; d2.x.b post-fusion eligibility remains later."
+    },
+    "contract_proposal": {
+      "target": "fivecircles/architecture/specs/controller-first-fusion-transition.md",
+      "draft": "/private/tmp/eh-relay-20260907.GNy8vE/controller-first-fusion-state-proposed.md",
+      "sha256": "1b92dbdf8d116e3812a1e27181e431a9aef39f6e0c70996a70e59dadd3a4c3e8",
+      "format": "UTF-8 LF exactly one final newline",
+      "change": "Full existing file plus explicit labelled b.2 prospective amendment. Historical b.1 commit/hash and same-state scope remain documented; new issuance behavior is clearly superseded.",
+      "main_owned_alignment": [
+        "src/midprojectrag/orchestration/module-contract.md: label new effect-derived state authority, prospective revision3 semantics and no-progress checkpoint; preserve historical slice claims.",
+        "fivecircles/architecture/todolist.md and new existing-work relay form: selected b.2 state prerequisite; leave ordinal4/context/parents PARTIAL.",
+        "fivecircles/architecture/specs/controller-next-decision.md: revision0/1/2 decision behavior remains unchanged; no new ordinal4 contract implied.",
+        "fivecircles/architecture/specs/bidfit-evidence-harness-v1-rc0.md §16.10 already defines effect-state/fingerprint rule; no new broad product requirement needed."
+      ]
+    },
+    "scope": {
+      "repository": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
+      "branch": "feat/total-integration",
+      "base_commit": "a37562a774ea72281950102416c0b71f3a00e6fa",
+      "allowed_files": [
+        "src/midprojectrag/orchestration/execution_contracts.py",
+        "src/midprojectrag/orchestration/harness_state.py",
+        "tests/test_controller_first_fusion_state.py",
+        "tests/test_controller_first_fusion_transition.py",
+        "tests/test_harness_state.py"
+      ],
+      "ownership": "One Coder owns all selected product/tests after baseline status/hash check. New state test is batch-owned; existing fusion test changes only explicitly amended state assertions and relevant new state validation; existing harness-state test changes only bounded effect-derived state coverage. Main exclusively owns contracts/module-contract/TODO/form/state/report/log/integration. Preserve unrelated dirt and frozen prior evidence.",
+      "prohibited_actions": [
+        "Do not edit other files without complete updated DIRECTIVE.",
+        "No public package/API expansion, ordinal4/decision policy behavior changes, extra action/transition4, fusion replay or retrospective object/history mutation.",
+        "No context/rerank/verify/absence execution, verified/confirmed/contradicted/ready/answerable or terminal result; no follow-up/deadline/later compare obligation/tuple remint.",
+        "No structural effect/hash-only state mint authority, arbitrary candidate inputs, factory token sharing, parallel authority framework or weakening owner validation.",
+        "No profiling/optimization/SLO tasks; no real model/API/provider/Langfuse/VLM/clock/private-data/evaluation/index/gold/baseline/runtime config/dependency changes.",
+        "No Git mutation, authoritative log/state edits or nested agents. No contact/ownership of separate DIAG131 task."
+      ]
+    },
+    "execution_scheme": {
+      "coder_count": 1,
+      "model": "gpt-5.6-sol",
+      "reasoning_effort": "ultra",
+      "reason": "Cross-module effect/state owner and transition tests are coupled; separate test Coder adds ownership/interface contention. Independent HTML QA or completed-evaluation analysis is only a possible separate task, not selected here."
+    },
+    "acceptance_criteria": [
+      "Future exact selected revision2 ordinal3 fusion still computes once, binds exact source-derived effect, and mints the reduced state before sealing the same revision3 transition. No additional action, decision, child dispatch or budget consumption.",
+      "State owner uses exact live before-state and effect authenticated through claim/source authority. State provenance (belief.source_receipt_sha256) binds effect_sha256; original root/source owner and three source lineages remain separately retained and validated. Structural effect validation, caller hashes or callbacks alone cannot authorize mint.",
+      "Applied effect yields first entry candidate with exact ordered source effect IDs and no verified IDs; empty yields provisional_missing with empty candidates/verified. Reject inconsistent outcome/evidence. All sibling entries and obligation ordering remain unchanged; no tuple remint.",
+      "New owner-issued Belief/Progress/State preserve source plan/query/scope metadata and immutable earlier objects. All obligations remain open; first empty joins provisional_missing only. Verified/confirmed/contradicted empty, coverage0.0, in_progress, normal_stop_allowed=false, abstain_required=false.",
+      "Stable initial execution identity/initial_state and immediate predecessor are preserved. Ledger remains revision3/count3 with only fuse action appended and unchanged dense/lexical lane keys, rounds and unavailable entries. Revision0/1/2 and earlier decisions remain valid.",
+      "Transition3 separately seals before/after state and semantic fingerprint plus exact effect/decision/previous transition2. Fingerprint includes stage/candidate/verified/actual verifier-context IDs and excludes provenance/counter/ordinal/time. This first no-context history has empty context IDs by authenticated boundary, never assumed future capability readiness.",
+      "At first-obligation fuse checkpoint reset no-progress streak to0 when semantic fingerprint changes, otherwise increment if both state and context unchanged; preserve sibling streaks. Valid initial unsearched -> candidate/provisional transitions always change fingerprint. Do not widen inputs/fabricate authority to force an unreachable no-change case.",
+      "Public state validation, execution validation and revision3 readback recognize exact effect-derived authority and reject clones/mixed/drift/source mismatch. Historical readback dispatches nothing. GC retains necessary state/effect/predecessor/source chain and cannot remint consumed work.",
+      "Failure after fusion/effect binding during state reduction/registration/transition completion returns no valid partial successor or orphan authorizing state, consumes claim and prevents replay. Preserve exact once/concurrency/temporal caller-source binding and sanitized failure behavior.",
+      "Update existing b.1 same-state/equal-fingerprint assertions for future mint only; keep all error/budget/private/API/temporal/dispatch-count/GC and predecessor regression checks. Ordinal4 remains unsupported.",
+      "Focused/adjacent and final main isolated/full synthetic checks pass on frozen candidate with behavior contracts included. Fresh deep review verifies cross-module state ownership, contract amendment and all9 prior constraints; no quality or production-latency claim."
+    ],
+    "required_tests": [
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest tests.test_controller_first_fusion_state tests.test_controller_first_fusion_transition tests.test_harness_state",
+        "purpose": "New prospective state behavior TDD; fact/compare normal4pair/rescue/empty, exact candidate order/sibling identity, effect provenance/open progress/fingerprint/no-progress, owner validation, failure/GC/drift and no replay."
+      },
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest tests.test_controller_source_authority tests.test_controller_step_history tests.test_controller_source_outcome_resolver tests.test_controller_structural_effect_bridge tests.test_controller_initial_transition tests.test_controller_lexical_transition tests.test_controller_post_lexical_decision tests.test_controller_next_decision tests.test_controller_decision_receipt tests.test_execution_contracts tests.test_e0_fusion tests.test_retrieval_obligations",
+        "purpose": "Impacted root/state/controller/temporal/fusion compatibility on final candidate; focused subsets while implementing, no full-suite run per internal leaf."
+      },
+      {
+        "command": "PATH=\"$PWD/.venv/bin:$PATH\" PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest discover -s tests -t . -p 'test*.py'",
+        "purpose": "Main runs final frozen-candidate full regression and isolated selected tests once; actual collection/exit/errors/failures/skips/fingerprint evidence, not old count1577 as a fixed target."
+      },
+      {
+        "command": "git diff --check -- src/midprojectrag/orchestration/execution_contracts.py src/midprojectrag/orchestration/harness_state.py tests/test_controller_first_fusion_transition.py tests/test_harness_state.py",
+        "purpose": "Owned tracked patch check; include complete new state test in manifest/review."
+      }
+    ],
+    "prior_next_batch_constraints": [
+      "Keep EH2.6.c4.2.b, EH2.6.d2.x.b, Controller and E2E PARTIAL. This PASS approves only the bound first-obligation fusion candidate and its frozen contracts and required evidence.",
+      "Select post-fusion eligibility/state handling through a separate complete Design directive. Revision3 fusion leaves semantic state unchanged; both-empty is neither confirmed absence nor answerability.",
+      "Preserve the shared attempt-start epoch and atomic claim cutoff, exact executor/minter/module/source-kind binding, child and controller once-only consumption, source-derived effects and failure-without-retry behavior.",
+      "Preserve all predecessor executions, prior decisions and three source lineages. Historical readback must remain non-authorizing and must not redispatch fusion or either retrieval lane.",
+      "Specify and verify complete canonical sibling-obligation lifetime before executing later compare obligations; do not remint the tuple to recover expired siblings.",
+      "Keep ordinal4, context, rerank, verify, semantic reducer, follow-up, deadline, terminal and public start/step/run outside this PASS and outside subsequent implementation unless explicitly selected by its authorized directive.",
+      "Continue synthetic/offline implementation validation without real model/API/provider/Langfuse/VLM/private-data activity or baseline/corpus/gold/evaluation/runtime configuration changes. Keep DIAG131 independently owned and its shared-host diagnostic latency distinct from controlled performance evidence.",
+      "Any later profiling or optimization selection must follow existing measured-improvement selection authority, potentially EXP-SELECT.3.b. Current test durations do not establish production hotspots or retrieval superiority.",
+      "Integrate only the reviewed files and bound behavior-affecting documents. Preserve unrelated dirty work and exclude resources from Git. Product, contract or required-evidence changes require a new candidate and review; closeout-only records may remain separate."
+    ],
+    "constraints": [
+      "Main installs exact proposed contract and records child/form before dispatch. Recheck actual installed SHA; never reuse a hash of different newline bytes. This prospective semantic amendment is explicit, not prior-PASS invalidation.",
+      "Read applicable implementation/test skills and relevant logs. Use actual repository root and confirmed .venv Python3.12 with synthetic fixtures. No new libraries or environment changes.",
+      "Reuse existing state construction/validation and effect/claim/transition authority. Introduce only the bounded live effect-derived state owner bridge needed for this reducer; avoid circular mint/readback and preserve module tokens inside their owner.",
+      "Original planner/coverage owner cannot be relabelled as an effect. Keep initial root ownership intact and add exact derived-state provenance rather than weakening its original source hash check.",
+      "Prior first-fuse same-state contract is documented historical behavior; new-process future first-fusion issuance follows b.2. Existing serialized receipts are never migrated/reminted into live authority and no previous commit/evidence is rewritten.",
+      "Explicitly retain all9 prior review constraints verbatim. Semantic reduction alone is now selected; ordinal4/context/rerank/verify/follow-up/deadline/terminal remain excluded. No new compare sibling lifetime work.",
+      "FF-INFO-1 remains nonblocking profiling advice; no instrumentation/optimization/SLO selected. Test duration is not production latency.",
+      "Cross-module live authority/state/transition behavior requires fresh deep final review. Apply updated collaboration risk triggers during work; no preimplementation candidate PASS or duplicate unchanged-PASS review.",
+      "Main owns affected module-contract alignment, current/target report, safety, integration/closeout/logall and final isolated/full evidence. Freeze all behavior-affecting contracts with product candidate before review.",
+      "DIAG131 is separately owned on frozen inputs and shared-host timing. Optional communication permission failure does not block this local work or grant permission to contact that task. Do not duplicate evaluation or mutate its assets.",
+      "If existing schema/owner boundary cannot implement the specified projection without scope expansion, return QUESTION/NEEDS_GUIDANCE with exact conflict; do not silently change answerability, candidate ordering, source provenance or add a separate action.",
+      "Return complete IMPLEMENTATION_REPORT bound to first-fuse-state-directive-1 and contract_id with actual files/candidate/evidence/commands/exits/questions. No candidate/evidence exists at Design time. Freeze at REVIEW_READY.",
+      "Keep c4.2.b/d2.x.b/Controller/E2E PARTIAL. After validated integration, re-evaluate ordinal4 source/state-derived eligibility through separate Design; independent QA/analysis remains optional and unselected."
+    ],
+    "source_refs": [
+      "fivecircles/agent/authority.md",
+      "fivecircles/requirements/current.md §1.1 and §8",
+      "fivecircles/requirements/decisions.md D-024",
+      "fivecircles/architecture/specs/bidfit-evidence-harness-v1-rc0.md §16.10 lines1121–1130 and absence matrix",
+      "fivecircles/architecture/specs/controller-first-fusion-transition.md (prospective b.2 amendment installed by main)",
+      "fivecircles/architecture/specs/controller-initial-transition.md",
+      "fivecircles/architecture/specs/controller-lexical-transition.md",
+      "fivecircles/architecture/specs/controller-next-decision.md",
+      "src/midprojectrag/orchestration/module-contract.md",
+      "src/midprojectrag/orchestration/harness_state.py:347",
+      "src/midprojectrag/orchestration/harness_state.py:1109",
+      "src/midprojectrag/orchestration/harness_state.py:1217",
+      "src/midprojectrag/orchestration/harness_state.py:1554",
+      "fivecircles/architecture/todolist.md EH2.6.c4.2.b and EH2.6.d2.x.b",
+      "fivecircles/work/2026-09-07-controller-first-fusion-transition-relay.md",
+      "fivecircles/work/collaboration/eh-relay-20260907/integration-EH2.6.c4.2.b.1.json",
+      "fivecircles/work/collaboration/eh-relay-20260907/messages/EH2.6.c4.2.b.1/003-first-fuse-review-1.json",
+      "fivecircles/work/collaboration/eh-relay-20260907/batches/EH2.6.c4.2.b.1/candidate.json",
+      "fivecircles/work/collaboration/eh-relay-20260907/batches/EH2.6.c4.2.b.1/full-result.json",
+      "fivecircles/work/collaboration/eh-relay-20260907/batches/EH2.6.c4.2.b.1/isolated-result.json",
+      "fivecircles/architecture/specs/evidence-harness-progress-flow-validation.md",
+      "fivecircles/agent/skills/collaboration/SKILL.md",
+      "fivecircles/agent/skills/collaboration/references/messages.md",
+      "fivecircles/agent/skills/collaboration/references/relay-cycle.md"
+    ]
+  }
+}

@@ -1067,3 +1067,20 @@ This file summarizes recent updates so other agents can continue without re‑di
 ### Relay
 - 로그올 후 검수 범위만 선택 통합; 실제 SHA는 사후 receipt. 다음=post-fusion 자격/후속 상태 bounded Design.
 - 부모 Controller/E2E PARTIAL. 본 배치 실모델/API/골든셋 실행0; 별도 DIAG131과 분리.
+
+## Addendum (2026-09-07) - CPU 장기 실측 가속 점검 누락 어레스트
+### Operations
+- CPU smoke 설정의 장기 KURE 실측 계승과 사전 MPS 점검 누락을 기록했다. 가드·테스트 정책·교훈을 연결했다.
+- refs: test/errorlogs/backend/2026-09-07-kure-cpu-accelerator-preflight.md. 이 기록에서는 실측·장치·제품 코드를 변경하지 않았다.
+### Checks
+- 동일 venv에서 sandbox MPS=false, 승인 host MPS=true 확인. 가용성 검사이며 모델 실행·속도 검증은 아니다.
+- GPU 실제 장치·연산 확인은 기존 DIAG131.GCP의 미완료 선행 조건이다. 전환 완료나 지연 개선을 선언하지 않는다.
+
+## Addendum (2026-09-07) - EH2.6.c4.2.b.2 첫 fusion 상태 연결
+### Backend
+- exact effect→첫 candidate/provisional_missing→같은 전이3. 형제/계보·실패 소비 보존, 정답·부재 확정 없음.
+### Tests
+- 집중25·관련202·격리227·전체1611 PASS, fresh Astra deep PASS. 오류 이력과 최종 증거를 분리했다.
+### Relay
+- refs: work/2026-09-07-controller-fusion-state-relay.md. 로그올 후 선택 통합, 다음은 ordinal4 자격 Design.
+- Controller/E2E PARTIAL. API/실모델 실행0, 별도 DIAG131 실측과 분리.

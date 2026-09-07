@@ -51,7 +51,11 @@ from .followup_retrieval import (
 from .harness_state import (
     HarnessState,
     _ControllerSourceOwnerAuthority,
+    _discard_controller_first_fusion_state,
+    _reduce_controller_first_fusion_state,
+    _require_controller_first_fusion_state_authority,
     _require_harness_state_source_owner,
+    _seal_controller_first_fusion_state_authorities,
     build_e1_followup_harness_state,
     validate_harness_state,
 )
@@ -2930,6 +2934,7 @@ def _d1_execution_identity_payload(
 def _build_harness_execution_authority_accessors(
     ledger_cls: type,
     execution_cls: type,
+    state_cls: type,
     canonical_sha256: Any,
 ):
     authority_lock = Lock()
@@ -3071,7 +3076,7 @@ def _build_harness_execution_authority_accessors(
             return current
 
     def register_successor(
-        *, before: HarnessExecution, ledger: ExecutionLedger,
+        *, before: HarnessExecution, state: HarnessState, ledger: ExecutionLedger,
         transition: object,
     ) -> HarnessExecution:
         caller = _GET_FRAME(1)
@@ -3081,13 +3086,22 @@ def _build_harness_execution_authority_accessors(
         ):
             raise ValueError("harness_execution_successor_issuer_required")
         before_authority = require(before)
+        state_is_valid = (
+            state is before.state
+            if before.step_index in {0, 1}
+            else state is not before.state
+        )
         if (
             before.step_index not in {0, 1, 2}
+            or type(state) is not state_cls
             or (before_authority[8] is None) != (before.step_index == 0)
             or ledger.revision != before.step_index + 1
             or ledger.previous_ledger_sha256 != before.ledger.ledger_sha256
             or transition.step_index != ledger.revision
             or transition.previous_transition_sha256 != before.last_transition_sha256
+            or not state_is_valid
+            or transition.before_state_sha256 != before.state.state_sha256
+            or transition.after_state_sha256 != state.state_sha256
         ):
             raise ValueError("harness_execution_lane_successor_required")
         initial_root = before if before.step_index == 0 else before_authority[12]
@@ -3095,6 +3109,7 @@ def _build_harness_execution_authority_accessors(
         for name in execution_cls.__slots__:
             if name != "__weakref__":
                 object.__setattr__(execution, name, getattr(before, name))
+        object.__setattr__(execution, "state", state)
         object.__setattr__(execution, "ledger", ledger)
         object.__setattr__(execution, "step_index", before.step_index + 1)
         object.__setattr__(execution, "last_transition_sha256", transition.transition_sha256)
@@ -3106,7 +3121,7 @@ def _build_harness_execution_authority_accessors(
         )
         authority = (
             execution_weak, canonical_sha256(execution.to_dict()),
-            before.initial_state, before.state, ledger,
+            before.initial_state, state, ledger,
             before_authority[5], before_authority[6], before_authority[7], transition,
             (ledger.obligation_keys, ledger.round_indexes, ledger.consumed_action_sha256s,
              ledger.consumed_lane_keys, ledger.unavailable_action_sha256s, ledger.no_progress_streaks),
@@ -3134,6 +3149,7 @@ def _build_harness_execution_authority_accessors(
 ) = _build_harness_execution_authority_accessors(
     ExecutionLedger,
     HarnessExecution,
+    HarnessState,
     _canonical_sha256,
 )
 del _build_harness_execution_authority_accessors
@@ -19469,7 +19485,7 @@ del _build_controller_structural_effect_bridge_accessors
 
 @dataclass(frozen=True, slots=True, weakref_slot=True, repr=False, init=False)
 class HarnessTransitionReceipt:
-    """Bounded dense/lexical transition; no public mint authority."""
+    """Bounded dense/lexical/first-fusion transition; no public mint authority."""
 
     stage: str
     execution_identity_sha256: str
@@ -19512,13 +19528,21 @@ class HarnessTransitionReceipt:
         }
 
     def _validate_payload(self) -> None:
+        state_and_progress_match = (
+            self.before_state_sha256 == self.after_state_sha256
+            and self.before_progress_sha256 == self.after_progress_sha256
+        )
+        state_and_progress_change = (
+            self.before_state_sha256 != self.after_state_sha256
+            and self.before_progress_sha256 != self.after_progress_sha256
+        )
         if (
             self.stage != "harness_transition" or type(self.step_index) is not int
             or self.step_index not in {1, 2, 3}
             or (self.step_index == 1 and self.previous_transition_sha256 is not None)
             or self.operational_progress is not True
-            or self.before_state_sha256 != self.after_state_sha256
-            or self.before_progress_sha256 != self.after_progress_sha256
+            or (self.step_index in {1, 2} and not state_and_progress_match)
+            or (self.step_index == 3 and not state_and_progress_change)
         ):
             raise ValueError("invalid_initial_harness_transition")
         if self.step_index in {2, 3}:
@@ -19549,6 +19573,9 @@ def _build_initial_controller_transition_accessors(
     fusion_executor: FunctionType, fusion_inputs_validator: FunctionType,
     fusion_pristine_reader: FunctionType,
     obligation_authority_reader: FunctionType,
+    state_reducer: FunctionType,
+    state_validator: FunctionType,
+    state_revoker: FunctionType,
 ):
     """Preserve one root's first two lanes and first fusion lineage."""
 
@@ -19639,7 +19666,21 @@ def _build_initial_controller_transition_accessors(
             raise ValueError("controller_step_transition_authority_required")
         validate_record(record, store=store, config=config, runtime=runtime)
 
-    def progress_fingerprint(state: HarnessState) -> str:
+    def progress_fingerprint(
+        state: HarnessState,
+        verifier_context_ids: tuple[tuple[str, ...], ...],
+    ) -> str:
+        if (
+            type(verifier_context_ids) is not tuple
+            or len(verifier_context_ids) != len(state.belief.evidence_map)
+            or any(
+                type(ids) is not tuple
+                or len(ids) != len(set(ids))
+                or any(type(evidence_id) is not str or not evidence_id for evidence_id in ids)
+                for ids in verifier_context_ids
+            )
+        ):
+            raise ValueError("controller_transition_verifier_context_required")
         return canonical_sha256({
             "schema_version": SCHEMA_VERSION,
             "obligations": [{
@@ -19647,8 +19688,8 @@ def _build_initial_controller_transition_accessors(
                 "stage": entry.observation_stage,
                 "candidate_evidence_ids": list(entry.candidate_evidence_ids),
                 "verified_evidence_ids": list(entry.verified_evidence_ids),
-                "verifier_context_evidence_ids": [],
-            } for entry in state.belief.evidence_map],
+                "verifier_context_evidence_ids": list(verifier_context_ids[index]),
+            } for index, entry in enumerate(state.belief.evidence_map)],
         })
 
     def advance_initial_controller_step(*, bridge, store, config, runtime) -> HarnessExecution:
@@ -19698,6 +19739,7 @@ def _build_initial_controller_transition_accessors(
             root = ref(before)
             roots[key] = root
             roots_shadow[key] = root
+        derived_state = None
         try:
             payload = {
                 "stage": "action_effect", "execution_sha256": before.execution_identity_sha256,
@@ -19722,6 +19764,17 @@ def _build_initial_controller_transition_accessors(
             )
             replace_record(key, record)
             effect_binder(claim=claim, effect=effect, store=store, config=config, runtime=runtime)
+            after_state = before.state
+            if expected_lane is None:
+                after_state = state_reducer(
+                    before_state=before.state,
+                    effect=effect,
+                    claim=claim,
+                    store=store,
+                    config=config,
+                    runtime=runtime,
+                )
+                derived_state = after_state
             ledger = object.__new__(ExecutionLedger)
             for name in ExecutionLedger.__dataclass_fields__:
                 object.__setattr__(ledger, name, getattr(before.ledger, name))
@@ -19749,18 +19802,31 @@ def _build_initial_controller_transition_accessors(
                 ),
             )
             object.__setattr__(ledger, "nonterminal_action_count", before.ledger.nonterminal_action_count + 1)
+            context_ids = tuple(() for _ in before.state.belief.evidence_map)
+            before_fingerprint = progress_fingerprint(before.state, context_ids)
+            after_fingerprint = progress_fingerprint(after_state, context_ids)
+            if expected_lane is None:
+                first_streak = (
+                    0
+                    if before_fingerprint != after_fingerprint
+                    else before.ledger.no_progress_streaks[0] + 1
+                )
+                object.__setattr__(
+                    ledger,
+                    "no_progress_streaks",
+                    (first_streak,) + before.ledger.no_progress_streaks[1:],
+                )
             object.__setattr__(ledger, "ledger_sha256", canonical_sha256(ledger._payload()))
             ledger._validate_payload()
-            fingerprint = progress_fingerprint(before.state)
             transition = object.__new__(transition_cls)
             transition_payload = {
                 "stage": "harness_transition", "execution_identity_sha256": before.execution_identity_sha256,
                 "step_index": next_revision, "controller_decision_sha256": decision.decision_sha256,
                 "effect_sha256": effect.effect_sha256,
-                "before_state_sha256": before.state.state_sha256, "after_state_sha256": before.state.state_sha256,
+                "before_state_sha256": before.state.state_sha256, "after_state_sha256": after_state.state_sha256,
                 "before_ledger_sha256": before.ledger.ledger_sha256, "after_ledger_sha256": ledger.ledger_sha256,
                 "previous_transition_sha256": before.last_transition_sha256,
-                "before_progress_sha256": fingerprint, "after_progress_sha256": fingerprint,
+                "before_progress_sha256": before_fingerprint, "after_progress_sha256": after_fingerprint,
                 "operational_progress": True,
             }
             for name, value in transition_payload.items():
@@ -19769,13 +19835,28 @@ def _build_initial_controller_transition_accessors(
             transition._validate_payload()
             record = record[:2] + (transition,) + record[3:10] + (values(transition, transition_fields),)
             replace_record(key, record)
-            successor = successor_issuer(before=before, ledger=ledger, transition=transition)
+            successor = successor_issuer(
+                before=before,
+                state=after_state,
+                ledger=ledger,
+                transition=transition,
+            )
             record = record[:8] + (ref(successor),) + record[9:]
             replace_record(key, record)
             validate_record(record, store=store, config=config, runtime=runtime)
             step_completer(claim=claim, transition=transition, store=store, config=config, runtime=runtime)
             return successor
-        except Exception:
+        except BaseException:
+            if derived_state is not None:
+                try:
+                    state_revoker(
+                        state=derived_state,
+                        effect=effect,
+                        claim=claim,
+                        store=store,
+                    )
+                except (TypeError, ValueError):
+                    pass
             with transition_lock:
                 records.pop(key, None)
                 records_shadow.pop(key, None)
@@ -19809,9 +19890,17 @@ def _build_initial_controller_transition_accessors(
             raise ValueError("controller_initial_transition_authority_drift")
         validate_record(record, store=store, config=config, runtime=runtime)
         execution._validate_payload()
+        expected_state_identity = (
+            execution.state is before.state
+            if revision in {1, 2}
+            else execution.state is not before.state
+        )
         if (
             authority[1] != canonical_sha256(execution.to_dict())
-            or execution.state is not before.state or execution.ledger is not authority[4]
+            or not expected_state_identity
+            or transition.before_state_sha256 != before.state.state_sha256
+            or transition.after_state_sha256 != execution.state.state_sha256
+            or execution.ledger is not authority[4]
             or any(issued is not actual for issued, actual in zip(authority[9], (
                 execution.ledger.obligation_keys, execution.ledger.round_indexes,
                 execution.ledger.consumed_action_sha256s, execution.ledger.consumed_lane_keys,
@@ -19820,6 +19909,8 @@ def _build_initial_controller_transition_accessors(
             or status_reader(execution=before, decision=record[9][1], store=store, config=config, runtime=runtime) != "transitioned"
         ):
             raise ValueError("controller_initial_transition_successor_drift")
+        if revision == 3:
+            state_validator(state=execution.state, store=store)
         return record
 
     def require_controller_initial_transition(*, execution, store, config, runtime):
@@ -20075,6 +20166,7 @@ def _build_initial_controller_transition_accessors(
                 source_binder, bridge_issuer, lane_executor, lane_authority_reader,
                 obligation_validator, fusion_executor, fusion_inputs_validator,
                 fusion_pristine_reader, obligation_authority_reader,
+                state_reducer, state_validator, state_revoker,
             )
         )
 
@@ -20133,16 +20225,25 @@ def _build_initial_controller_transition_accessors(
     fusion_inputs_validator=_validate_fusion_inputs,
     fusion_pristine_reader=_fusion_execution_pristine,
     obligation_authority_reader=_require_retrieval_obligation_authority,
+    state_reducer=_reduce_controller_first_fusion_state,
+    state_validator=_require_controller_first_fusion_state_authority,
+    state_revoker=_discard_controller_first_fusion_state,
 )
 _seal_harness_execution_successor_issuer(_controller_lane_successor_issuer_code)
 _seal_controller_step_completion_authorities(
     effect_reader=_initial_controller_effect_authority_reader,
     transition_reader=_initial_controller_transition_authority_reader,
 )
+_seal_controller_first_fusion_state_authorities(
+    effect_authority_reader=_initial_controller_effect_authority_reader,
+    successor_issuer_code=_controller_lane_successor_issuer_code,
+    successor_issuer_globals=globals(),
+)
 _seal_controller_initial_transition_dependencies()
 del _build_initial_controller_transition_accessors
 del _controller_lane_successor_issuer_code
 del _seal_controller_initial_transition_dependencies
+del _seal_controller_first_fusion_state_authorities
 del _seal_harness_execution_successor_issuer, _seal_controller_step_completion_authorities
 
 
@@ -20902,6 +21003,18 @@ _RUNTIME_GATE_FUNCTION_PINS = tuple(
         (
             "_require_controller_first_fusion_transition",
             _require_controller_first_fusion_transition,
+        ),
+        (
+            "_reduce_controller_first_fusion_state",
+            _reduce_controller_first_fusion_state,
+        ),
+        (
+            "_require_controller_first_fusion_state_authority",
+            _require_controller_first_fusion_state_authority,
+        ),
+        (
+            "_discard_controller_first_fusion_state",
+            _discard_controller_first_fusion_state,
         ),
         ("_initial_controller_effect_authority_reader", _initial_controller_effect_authority_reader),
         ("_initial_controller_transition_authority_reader", _initial_controller_transition_authority_reader),

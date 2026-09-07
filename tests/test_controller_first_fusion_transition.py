@@ -1,4 +1,4 @@
-"""The selected first fusion seals one exact state-stable revision three."""
+"""The selected first fusion seals one exact effect-derived revision three."""
 
 from concurrent.futures import ThreadPoolExecutor
 import gc
@@ -17,6 +17,7 @@ from midprojectrag.orchestration import (
     validate_controller_decision_receipt,
     validate_fusion_receipt,
     validate_harness_execution,
+    validate_harness_state,
 )
 import tests.test_controller_lexical_transition as lexical_fixtures
 from tests.test_retrieval_obligations import _calls, _clone_slots
@@ -166,18 +167,81 @@ class ControllerFirstFusionTransitionTests(unittest.TestCase):
                         three.ledger.unavailable_action_sha256s,
                         two.ledger.unavailable_action_sha256s,
                     )
-                    self.assertIs(
+                    self.assertEqual(
                         three.ledger.no_progress_streaks,
-                        two.ledger.no_progress_streaks,
+                        (0,) + two.ledger.no_progress_streaks[1:],
                     )
-                    self.assertIs(three.state, two.state)
+                    self.assertIsNot(three.state, two.state)
                     self.assertIs(three.initial_state, two.initial_state)
                     self.assertEqual(two.to_dict(), before_payload)
+                    before_entries = two.state.belief.evidence_map
+                    after_entries = three.state.belief.evidence_map
+                    self.assertEqual(
+                        after_entries[0].observation_stage,
+                        "provisional_missing"
+                        if expected_outcome == "empty"
+                        else "candidate",
+                    )
+                    self.assertIs(
+                        after_entries[0].candidate_evidence_ids,
+                        effect.ordered_evidence_ids,
+                    )
+                    self.assertEqual(after_entries[0].verified_evidence_ids, ())
+                    self.assertTrue(
+                        all(
+                            after is before
+                            for before, after in zip(
+                                before_entries[1:], after_entries[1:]
+                            )
+                        )
+                    )
+                    self.assertEqual(
+                        three.state.belief.source_receipt_sha256,
+                        effect.effect_sha256,
+                    )
+                    self.assertIs(
+                        three.state.belief.entities,
+                        two.state.belief.entities,
+                    )
+                    self.assertIs(
+                        three.state.belief.constraints,
+                        two.state.belief.constraints,
+                    )
+                    self.assertIs(
+                        three.state.belief.scope_doc_ids,
+                        two.state.belief.scope_doc_ids,
+                    )
+                    self.assertEqual(
+                        three.state.progress.open_obligation_keys,
+                        two.state.progress.required_obligation_keys,
+                    )
+                    self.assertEqual(
+                        three.state.progress.provisional_missing_obligation_keys,
+                        ()
+                        if expected_outcome == "applied"
+                        else (after_entries[0].obligation_key,),
+                    )
+                    self.assertEqual(
+                        (
+                            three.state.progress.verified_obligation_keys,
+                            three.state.progress.confirmed_missing_obligation_keys,
+                            three.state.progress.contradicted_obligation_keys,
+                            three.state.progress.slot_coverage_ratio,
+                            three.state.progress.answerability,
+                            three.state.progress.normal_stop_allowed,
+                            three.state.progress.abstain_required,
+                        ),
+                        ((), (), (), 0.0, "in_progress", False, False),
+                    )
                     self.assertTrue(
                         all(
                             entry.observation_stage == "unsearched"
-                            for entry in three.state.belief.evidence_map
+                            for entry in before_entries
                         )
+                    )
+                    validate_harness_state(
+                        state=three.state,
+                        store=case["env"]["store"],
                     )
 
                     self.assertEqual(
@@ -216,6 +280,18 @@ class ControllerFirstFusionTransitionTests(unittest.TestCase):
                         effect.effect_sha256,
                     )
                     self.assertEqual(
+                        transition.before_state_sha256,
+                        two.state.state_sha256,
+                    )
+                    self.assertEqual(
+                        transition.after_state_sha256,
+                        three.state.state_sha256,
+                    )
+                    self.assertNotEqual(
+                        transition.before_state_sha256,
+                        transition.after_state_sha256,
+                    )
+                    self.assertNotEqual(
                         transition.before_progress_sha256,
                         transition.after_progress_sha256,
                     )
@@ -476,10 +552,12 @@ class ControllerFirstFusionTransitionTests(unittest.TestCase):
         obligation, dense, lexical = self._sources(case)
         registration_code = contracts._register_harness_execution_successor.__code__
         injected = []
+        partial_states = []
 
         def fail_registration(frame, event, _argument):
             if event == "call" and frame.f_code is registration_code:
                 injected.append(True)
+                partial_states.append(frame.f_locals["state"])
                 sys.settrace(None)
                 raise RuntimeError("synthetic-fusion-registration-failure")
             return fail_registration
@@ -494,6 +572,14 @@ class ControllerFirstFusionTransitionTests(unittest.TestCase):
         finally:
             sys.settrace(previous_trace)
         self.assertEqual(injected, [True])
+        self.assertEqual(len(partial_states), 1)
+        with self.assertRaisesRegex(
+            ValueError, "harness_state_runtime_authority_required"
+        ):
+            validate_harness_state(
+                state=partial_states[0],
+                store=case["env"]["store"],
+            )
         self.assertEqual(
             contracts._controller_step_status(
                 execution=case["second"],
@@ -560,13 +646,33 @@ class ControllerFirstFusionTransitionTests(unittest.TestCase):
         )
         obligation, dense, lexical = self._sources(case)
         fusion = self._fusion_sources(obligation)[0]
-        weak_values = tuple(ref(value) for value in (obligation, dense, lexical, fusion))
+        weak_values = tuple(
+            ref(value)
+            for value in (
+                obligation,
+                dense,
+                lexical,
+                fusion,
+                effect,
+                two.state,
+                three.state,
+            )
+        )
         for name in ("claim", "projection", "bridge", "receipt"):
             case.pop(name, None)
-        del obligation, dense, lexical, fusion
+        del obligation, dense, lexical, fusion, effect
         gc.collect()
         self.assertTrue(all(value() is not None for value in weak_values))
-        self.assertEqual(effect.source_receipt_sha256, weak_values[3]().receipt_sha256)
+        self.assertEqual(
+            weak_values[4]().source_receipt_sha256,
+            weak_values[3]().receipt_sha256,
+        )
+        self.assertIs(weak_values[5](), two.state)
+        self.assertIs(weak_values[6](), three.state)
+        validate_harness_state(
+            state=three.state,
+            store=case["env"]["store"],
+        )
         for execution in (zero, one, two, three):
             validate_harness_execution(execution=execution, **case["env"])
         for execution, decision in (
@@ -593,6 +699,8 @@ class ControllerFirstFusionTransitionTests(unittest.TestCase):
         mutations = (
             (fusion, "receipt_sha256", "0" * 64),
             (effect, "effect_sha256", "0" * 64),
+            (three.state.belief, "source_receipt_sha256", "0" * 64),
+            (three.state, "state_sha256", "0" * 64),
             (transition, "transition_sha256", "0" * 64),
             (three.ledger, "consumed_lane_keys", ()),
         )

@@ -80,3 +80,11 @@
 - Repository safety1024 files PASS, scoped diff --check exit0. resources 추적0, 검수 외 변경은 통합 대상에서 제외한다.
 - 실제 전체 검사 구간14:34:10~14:52:16 KST, 격리14:34:15~14:48:26 KST. 별도 평가 task에 공유 호스트 중첩 구간 전달.
 - Report=COMPLETED. 남은 마감은 선택 commit/push 및 실제 receipt 기록.
+
+## 통합 완료·재진입 — 2026-09-07 15:15 KST
+
+- Commit/push a37562a774ea72281950102416c0b71f3a00e6fa, origin/feat/total-integration. 원격 직접 조회·커밋28파일 hash 일치, index empty, resources 추적0.
+- 코드·계약·이번 로그/보고만 선택 통합. 공용 로그/TODO의 다른 작업 변경은 working tree에 보존했다.
+- 실제 영수증: collaboration/eh-relay-20260907/integration-EH2.6.c4.2.b.1.json.
+- Intake/Selection/Contract/Implementation/Validation/Review/Logall/Report/Push=COMPLETED. Controller/E2E는 GAP/PARTIAL.
+- Relay=CONTINUE_WITH_NEXT_FORM. 다음 안전한 post-fusion 단위는 마지막9개 검수 제약을 받아 Design에서 선정한다. 신규 프로파일링/최적화 작업을 자동 추가하지 않는다.

@@ -321,8 +321,9 @@ runtime은 local profile 기본·LLM provider 교체형으로 유지하며 새 �
           계약: `specs/controller-initial-transition.md`; 원장: `../work/2026-09-06-controller-initial-transition-relay.md`.
       - [ ] **EH2.6.c4.2** `[VERTICAL_SLICES]` 실제 발급 가능한 successor부터 d2.x와 교대로 full action matrix/reducer를 연결한다.
         - [x] **EH2.6.c4.2.a** `[COMPLETED 2026-09-07]` ordinal2 lexical→exact dense obligation 실행/effect/ledger2/전이2. 집중36·관련98·격리134·전체1534 PASS, fresh Astra PASS.
-        - [ ] **EH2.6.c4.2.b** `[PARTIAL / B.1_PASS]` 첫 obligation fusion 실행·revision3 완료. post-fusion 자격/semantic state-changing reducer/terminal은 후속으로 연결한다.
+        - [ ] **EH2.6.c4.2.b** `[PARTIAL / B.2_PASS]` 첫 fusion 실행·candidate/provisional 상태·revision3 완료. post-fusion 자격/context·semantic 검증/후속 reducer·terminal은 후속이다.
           - [x] **EH2.6.c4.2.b.1** `[COMPLETED 2026-09-07]` 첫 obligation fuse 1회→effect/ledger3/transition3. shared epoch·실패 소비·이전 chain, lane/의미 상태 불변. 집중12·관련185·격리197·전체1577 PASS, fresh Astra PASS.
+          - [x] **EH2.6.c4.2.b.2** `[COMPLETED 2026-09-07]` 첫 fusion exact effect→candidate/provisional_missing→전이3. 계보/형제·open progress·fingerprint/no-progress·실패 소비 보존. 집중25·관련202·격리227·전체1611 PASS, fresh Astra PASS. ordinal4/context/verify/terminal 제외.
         - [ ] 실제 verifier-context ID fingerprint와 successor GC 후 passive registry 정리 회귀를 포함한다.
     - [ ] **EH2.6.c5** verified/contradicted/confirmed-missing·raw bool/ID 공격 focused gate를 통과한다.
   - [ ] **EH2.6.d** bounded E1 controller와 replay를 구현한다.

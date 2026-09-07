@@ -1,0 +1,57 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.c4.2.b.2",
+  "message_id": "first-fuse-state-publication-review-1",
+  "in_reply_to": "first-fuse-state-implementation-report-1",
+  "sender": "PHILOSOPHER",
+  "kind": "REVIEW",
+  "body": {
+    "verdict": "PASS",
+    "directive_id": "first-fuse-state-directive-1",
+    "contract_id": "sha256:1b92dbdf8d116e3812a1e27181e431a9aef39f6e0c70996a70e59dadd3a4c3e8",
+    "candidate_id": "sha256:cc5e19ca5b6a7ab1cc40fe5b62734df3e4a50a760a8274ea7590c1db53058e87",
+    "test_evidence_id": "sha256:8142e1f1b406947e18d5a650d61229c0576adcad07674018b79949b8fdb45d28",
+    "reviewed_message_id": "first-fuse-state-implementation-report-1",
+    "direction_score": null,
+    "direction_rubric": null,
+    "direction_rationale": "This publication-only review applies supplemental directive first-fuse-state-publication-directive-1. It establishes the existing policy exception for exactly two necessary non-personal digest fields while preserving the automated failure and the earlier product review. It does not repeat product approval, expand implementation scope or authorize integration.",
+    "findings": [
+      {
+        "id": "PUBLICATION-INFO-1",
+        "category": "contract",
+        "severity": "info",
+        "evidence": "Independently read security.md at HEAD and in the current worktree. Both versions classify non-reversible hashes as public after review in section 1 and expressly allow reviewer-established non-personal necessary values in section 4. Section 6 continues to prohibit restricted artifacts and actual personal contacts. The inspected security, Git, work and test requirements do not impose an unconditional native exit-zero requirement that removes this existing exception.",
+        "action": "Apply this existing exception only to the two field values identified below. Preserve policy and scanner bytes; do not create a generic hash exception."
+      },
+      {
+        "id": "PUBLICATION-INFO-2",
+        "category": "contract",
+        "severity": "info",
+        "evidence": "The exact locations are fivecircles/work/collaboration/eh-relay-20260907/batches/EH2.6.c4.2.b.2/candidate.json at /artifacts/untracked_diff/sha256, line 56, and fivecircles/work/collaboration/eh-relay-20260907/messages/EH2.6.c4.2.b.2/002-first-fuse-state-implementation-report-1.json at /body/candidate_manifest/new_test_diff_sha256, line 152. Both are strings containing identical complete 64-hex SHA256 values. Independent SHA256 recomputation of /private/tmp/eh-relay-20260907.GNy8vE/first-fuse-state-new-test.diff equals both values. The matched decimal run lies wholly inside each digest. The diff contains the owned synthetic state tests and no restricted source material.",
+        "action": "Retain both complete original values unchanged because they bind the synthetic test diff to the immutable candidate and implementation evidence. Their digit pattern is non-personal; neither value is a contact nor an access-granting identifier. Do not duplicate the matched substring or digest in new prose."
+      },
+      {
+        "id": "PUBLICATION-INFO-3",
+        "category": "contract",
+        "severity": "info",
+        "evidence": "Verified /private/tmp/eh-relay-20260907.GNy8vE/first-fuse-state-publication-audit.json at SHA256 145064e4edcef93499184d4c8a51a3ccf4ad5589def6b0ddf7ba132049464934. It preserves bash scripts/validate_repo_safety.sh, exit 1, stdout PII_PATTERN_FOUND followed by Repository safety check: FAIL, empty stderr, the scanner hash and historical enumeration of 1056 files. The scanner bytes still match its recorded hash. Independent checks using the scanner's unchanged content patterns on the proposed payload reproduced exactly the two identified PII detections and no secret-pattern detections.",
+        "action": "Record automated_status=FAIL and automated_exit_code=1 separately from this bounded policy clearance. The independent payload checks are not a rerun or PASS of the native safety script."
+      }
+    ],
+    "requested_task_changes": [],
+    "next_batch_constraints": [
+      "Preserve all 13 next_batch_constraints from first-fuse-state-review-1, recorded in fivecircles/work/collaboration/eh-relay-20260907/messages/EH2.6.c4.2.b.2/003-first-fuse-state-review-1.json at SHA256 616886f94d9c71a968a7a662a3d3ad94b59afbddc92ceaff0fc348e3bf0fe945. This reference incorporates every constraint, including its explicit prospective b.2 amendment, without alteration or contradiction.",
+      "This clearance binds only the two specified JSON pointers, their unchanged complete values, their equality to the recomputed synthetic diff hash, audit SHA256 145064e4edcef93499184d4c8a51a3ccf4ad5589def6b0ddf7ba132049464934 and proposed publication manifest SHA256 be38311a1ceda3f84a3288f136c353d1fd3959e978202039c1e6253099cbfb4b. It grants no exception for any other field, artifact or future finding.",
+      "Keep the exact 38 reviewed payload files and their hashes fixed except for the narrowly enumerated pending_closeout_only additions and updates in that manifest. Integrate reconstructed mixed files from the reviewed payload; do not substitute whole dirty-worktree files.",
+      "The two prospective new files and seven prospective mutable files listed in pending_closeout_only are not preapproved bytes. After recording this actual response, main must inspect every actual addition/update, reconcile the final path/hash manifest, check actual content and images, and verify that changes concern only this review and its specified status/error/learning/report metadata.",
+      "Preserve the native automated FAIL, immutable candidate/report/product review and native failure artifact. Do not mask binding hashes, suppress scanner findings, change scanner scope and call it the native result, or include unrelated scanner/.gitignore/security edits.",
+      "Final validation must use and report its actual coverage. The preserved historical native enumeration is 1056; the read-only current worktree enumeration was 1059. This review covers the exact supplied 38-file payload, not unknown worktree additions or future publication bytes.",
+      "Any unexpected path, extra detection, restricted content, access-granting identifier, unreviewed payload change or unexplained coverage gap blocks publication and requires renewed bounded review. Any changed product, behavior contract or required evidence invalidates evidence reuse and requires appropriate candidate validation.",
+      "Keep resources and independently owned DIAG131 changes excluded. This REVIEW provides no commit, push, external-sharing, model/API, private-data or next-batch execution authority.",
+      "Main must validate this complete returned JSON and all binding identifiers before recording it. Only after actual final payload reconciliation and applicable authorized integration checks may main record publication clearance or advance closeout; do not describe this response as an automated safety PASS."
+    ],
+    "reason": "The exact non-personal necessary-value exception requested by supplemental directive first-fuse-state-publication-directive-1 is established under existing security sections 1 and 4, with section 6 prohibitions preserved. Verified the supplied proposed manifest at SHA256 be38311a1ceda3f84a3288f136c353d1fd3959e978202039c1e6253099cbfb4b, every listed payload hash, and an exact filesystem inventory of 38 files with no additional payload paths. Reviewed the synthetic diff, publication records, reconstructed HEAD-plus-owned log additions, scoped Controller TODO change, report references and supplied images; no additional restricted-publication condition was found. The two detected values are immutable integrity hashes, not personal contacts. Automated safety remains FAIL/exit 1. Repository branch and HEAD match the directive. All seven candidate/contract file hashes, recorded input-manifest hashes and existing recorded input paths remain unchanged. Independently confirmed Python/platform/distribution identity and all 17 final evidence-manifest entries; native logs retain focused 25, adjacent 202, isolated 227 and full 1611 PASS with exit 0. Supporting reuse audit SHA256 d81e96c33ef304ff5ef9626372408342c0ac5af4291dc8868d6c0c9f929b67e5 also matches. These checks support reuse of the existing product PASS without regression reruns; they do not claim a fresh full new-file inventory or new product execution. Queue file is absent, so review scope was resolved from the complete directive and existing debate record. No files, Git state, policy, scanner, models or private corpus were changed or executed. Main records this response only after validating the actual returned message. Final prospective closeout bytes remain subject to the explicit reconciliation constraints.",
+    "resume_conditions": []
+  }
+}

@@ -23,3 +23,10 @@
 - Evidence: 집중12(747.497초)·관련185(289.662초)·격리197(846.583초)·전체1577(1079.654초) PASS, 실패/오류/skip0, exit0. 후보b6ba30e0·계약088d1280·최종 원시 증거 JSON 결속.
 - Decision: 구현 PASS이며 성능 우승 아님. parent c4.2.b/Controller/E2E PARTIAL, post-fusion 자격/후속 상태 별도.
 - Review: fivecircles/work/review/review-controller-first-fusion-transition-2026-09-07.md.
+
+## 2026-09-07 — EH2.6.c4.2.b.2 첫 fusion 상태 연결
+
+- Status: APPROVE / fresh Astra first-fuse-state-review-1.
+- Evidence: 집중25·관련202·격리227·전체1611 PASS; 후보cc5e19ca·계약1b92dbdf·증거8142e1f1.
+- Decision: 실제 fusion→effect→state→전이3 연결. verified/confirmed absence 아님; 부모 Controller/E2E PARTIAL.
+- Review: fivecircles/work/review/review-controller-first-fusion-state-2026-09-07.md. 다음 ordinal4 자격은 별도 Design·계약으로 선정한다.

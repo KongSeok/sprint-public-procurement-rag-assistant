@@ -1,0 +1,39 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.c4.2.b.2",
+  "message_id": "first-fuse-state-review-1",
+  "in_reply_to": "first-fuse-state-implementation-report-1",
+  "sender": "PHILOSOPHER",
+  "kind": "REVIEW",
+  "body": {
+    "verdict": "PASS",
+    "directive_id": "first-fuse-state-directive-1",
+    "contract_id": "sha256:1b92dbdf8d116e3812a1e27181e431a9aef39f6e0c70996a70e59dadd3a4c3e8",
+    "candidate_id": "sha256:cc5e19ca5b6a7ab1cc40fe5b62734df3e4a50a760a8274ea7590c1db53058e87",
+    "test_evidence_id": "sha256:8142e1f1b406947e18d5a650d61229c0576adcad07674018b79949b8fdb45d28",
+    "reviewed_message_id": "first-fuse-state-implementation-report-1",
+    "direction_score": null,
+    "direction_rubric": null,
+    "direction_rationale": "The selected change closes a concrete prerequisite: the existing private controller fusion execution now projects its authenticated effect into the first obligation's canonical state before sealing the same revision-three successor. This connects actual fusion execution, source authority, state ownership and transition readback; it is not solely an internal DTO addition. The bounded owner bridge preserves the original planner/coverage owner separately from effect provenance and reuses existing state constructors and execution registries. Its additional complexity is justified for this selected live-authority boundary, without establishing a need for a broader authority framework. Ordinal-four eligibility, context execution and final retrieval quality remain unproven and unselected. No numerical direction rubric was defined for this final review.",
+    "findings": [],
+    "requested_task_changes": [],
+    "next_batch_constraints": [
+      "Keep EH2.6.c4.2.b, EH2.6.d2.x.b, Controller and E2E PARTIAL. This PASS approves only the bound first-obligation fusion candidate and its frozen contracts and required evidence.",
+      "Select post-fusion eligibility/state handling through a separate complete Design directive. Revision3 fusion leaves semantic state unchanged; both-empty is neither confirmed absence nor answerability.",
+      "Preserve the shared attempt-start epoch and atomic claim cutoff, exact executor/minter/module/source-kind binding, child and controller once-only consumption, source-derived effects and failure-without-retry behavior.",
+      "Preserve all predecessor executions, prior decisions and three source lineages. Historical readback must remain non-authorizing and must not redispatch fusion or either retrieval lane.",
+      "Specify and verify complete canonical sibling-obligation lifetime before executing later compare obligations; do not remint the tuple to recover expired siblings.",
+      "Keep ordinal4, context, rerank, verify, semantic reducer, follow-up, deadline, terminal and public start/step/run outside this PASS and outside subsequent implementation unless explicitly selected by its authorized directive.",
+      "Continue synthetic/offline implementation validation without real model/API/provider/Langfuse/VLM/private-data activity or baseline/corpus/gold/evaluation/runtime configuration changes. Keep DIAG131 independently owned and its shared-host diagnostic latency distinct from controlled performance evidence.",
+      "Any later profiling or optimization selection must follow existing measured-improvement selection authority, potentially EXP-SELECT.3.b. Current test durations do not establish production hotspots or retrieval superiority.",
+      "Integrate only the reviewed files and bound behavior-affecting documents. Preserve unrelated dirty work and exclude resources from Git. Product, contract or required-evidence changes require a new candidate and review; closeout-only records may remain separate.",
+      "The preceding nine constraints are retained verbatim from the prior review. Their historical same-state and semantic-reducer exclusions are superseded only by the explicit b.2 prospective amendment: future first fusion now changes the first unsearched obligation to candidate or provisional_missing. All remaining exclusions continue unchanged; historical b.1 artifacts and acceptance must not be rewritten.",
+      "For subsequent Design, use the exact derived state and authenticated predecessor/source graph. Preserve candidate ordering, untouched sibling identities, effect provenance, open progress, coverage 0.0, in_progress and false terminal gates. Empty fusion must not become confirmed absence or verification readiness.",
+      "Preserve the reported focused-start fingerprint limitation and development evidence provenance. Final isolated/full evidence provides the authoritative same-candidate binding; do not relabel exploratory transcriptions as native final logs or attribute the full shared-worktree collection wholly to this batch.",
+      "The accelerator-preflight and impact-based-validation policy additions do not waive this DIRECTIVE's gates or authorize external/model runs. GCP measurements remain separately owned; optional blocked cross-task notices must not be retried without authorization."
+    ],
+    "reason": "Fresh deep review found no blocking contract, implementation, architecture or required-test defect in the frozen candidate. The actual repository, branch and HEAD match the directive. All five owned-file hashes, both behavior-contract hashes, the implementation-report hash d8f650f406b9f853722f51b7bac7dd79143d6fdd0d5945d265c5795839a12774 and all 17 final evidence-manifest entries were independently checked. Durable candidate/full/isolated JSON matches the temporary originals. Reviewed the changed product paths and relevant constructors, public execution issuer/validators, source-owner reader, transition issuance/readback, complete changed tests and authority/requirements/contracts. queue.json is absent; scope was resolved from the current DIRECTIVE, EH2.6.c4.2.b.2 TODO and existing debate history. The reducer authenticates the exact revision-two claim/effect graph, preserves original source ownership, projects only the first entry and seals distinct semantic fingerprints. Public initial execution issuance still requires the separate original source-owner registry, so a derived state does not become an initial root merely by passing state validation. Prior states, executions, decisions and source lineages remain retained and validated. Rollback removes derived state authority, clears transition records and consumes the claim; the registration-failure regression verifies the captured partial state is unusable and fusion cannot retry. Existing matrix, temporal, concurrency, error/budget, drift, GC and private-surface checks remain present. Native logs and result manifests confirm focused 25, adjacent 202, isolated 227 and full 1611 passing tests, with exit 0; isolated/full snapshots bind all seven files and unchanged recorded test/runtime inputs. The missing focused-start manifest is explicitly disclosed and does not invalidate the independently bound final runs. The isolated base-plus-seven-files run addresses dependency on unrelated dirty product changes for the selected modules. No suite was repeated for this review. The operational policy additions preserve required gates and distinguish synthetic validation from separately authorized accelerator measurements. This PASS approves the bounded implementation and evidence only, not parent completion, integration authority, production latency or a retrieval winner.",
+    "resume_conditions": []
+  }
+}

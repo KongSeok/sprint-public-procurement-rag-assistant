@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.c4.2.b.2",
+  "publication_review": "first-fuse-state-publication-review-1",
+  "product_review": "first-fuse-state-review-1",
+  "candidate_id": "sha256:cc5e19ca5b6a7ab1cc40fe5b62734df3e4a50a760a8274ea7590c1db53058e87",
+  "contract_id": "sha256:1b92dbdf8d116e3812a1e27181e431a9aef39f6e0c70996a70e59dadd3a4c3e8",
+  "test_evidence_id": "sha256:8142e1f1b406947e18d5a650d61229c0576adcad07674018b79949b8fdb45d28",
+  "automated_status": "FAIL",
+  "automated_exit_code": 1,
+  "policy_adjudication": "Exact two necessary nonpersonal SHA256 fields accepted under unchanged security sections1/4; no generic exception.",
+  "proposed_manifest_sha256": "be38311a1ceda3f84a3288f136c353d1fd3959e978202039c1e6253099cbfb4b",
+  "reviewed_payload_files": 38,
+  "pending_final_index_reconciliation": true,
+  "final_receipt_ref": "../../integration-EH2.6.c4.2.b.2.json",
+  "native_scan_enumerated_files": 1060,
+  "report_browser": {
+    "status": "PASS",
+    "command": "NODE_PATH=/Users/pio/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules MIDPROJECTRAG_REPORT_CHROMIUM='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' /usr/local/bin/node scripts/check_harness_progress_report.cjs fivecircles/architecture/specs/evidence-harness-progress-flow-validation.html fivecircles/test/playwright-screenshots/controller-first-fusion-state-2026-09-07.png EH2.6.c4.2.b.2",
+    "exit_code": 0,
+    "milestone": "EH2.6.c4.2.b.2",
+    "images": [
+      {
+        "width": 1350,
+        "height": 6496
+      },
+      {
+        "width": 1568,
+        "height": 1656
+      }
+    ],
+    "tables": 8,
+    "desktop": "1440x1000",
+    "mobile": "390x844",
+    "page_errors": 0,
+    "external_requests": 0,
+    "capture": "Actual completed exec session37080 tool-returned stdout/exit0; not a separately redirected raw log",
+    "main_visual_inspection": "Current diagram and final full-page screenshot inspected; target unchanged/reused"
+  },
+  "recorded_at": "2026-09-07T08:46:06.771Z"
+}

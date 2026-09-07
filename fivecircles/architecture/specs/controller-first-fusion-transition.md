@@ -91,3 +91,102 @@ another task, not an execution permission for this batch. Do not overlap perform
 regression runs without coordination. No context/rerank/verify/semantic reducer/follow-up/deadline/terminal
 or later compare execution. Parent c4.2.b/d2.x.b/Controller/E2E remain PARTIAL.
 After this batch, select post-fusion eligibility/state handling through a separate complete Design.
+
+## EH2.6.c4.2.b.2 — Effect-bound first-fusion state reduction (2026-09-07)
+
+### Prospective amendment and bounded goal
+
+The preceding c4.2.b.1 sections describe the accepted dispatch-only revision at commit
+a37562a774ea72281950102416c0b71f3a00e6fa and contract SHA256
+088d1280b7ccae54370aeb5d5fbcb648d4eea857ee8b1663e8d228a8efd06d7c.
+This b.2 amendment supersedes ONLY their state-stable revision3 and equal-fingerprint rules for
+future first-fusion issuance. It completes the existing §16.10 fusion reducer prerequisite before ordinal4.
+It does not rewrite historical artifacts, replay old dispatch, mutate any existing state or migrate persisted
+receipts into live authority. Revision0/1/2 issuance, inputs and previous decisions remain unchanged.
+
+The same private first-fusion entrypoint consumes the same selected revision2/ordinal3 fuse once.
+After its exact effect is bound, reduce the first obligation and seal the resulting state in the same
+revision3 transition. No extra action, decision, retrieval, fusion computation or revision4 is created.
+
+### Exact effect-bound state ownership
+
+- State creation belongs to harness_state.py; effect/claim/source execution authority stays in
+  execution_contracts.py. Use a bounded sealed owner bridge consistent with existing module ownership.
+  Do not share factory tokens, accept caller-chosen candidate IDs, or turn the structural ActionEffectReceipt
+  validator into a live mint permit. Do not introduce a second generic controller/authority framework.
+- The only mint input is the exact live before-state and the bound first-fusion effect authenticated by its
+  existing controller claim and FusionReceipt/transition history, with exact store/config/runtime/root.
+  Validate action=fuse, step3, first obligation, exact before-state SHA, applied|empty outcome and source evidence.
+- New state provenance binds the exact effect, and belief.source_receipt_sha256 equals its effect_sha256
+  as required by §16.10. Retain and revalidate the original root owner, original source receipts and before-state
+  separately; do not pretend the effect is a planner trace or CompareCoverage.
+- Public state validation and execution readback must recognize the effect-derived state through live authority.
+  Serialized matching effect hashes, cloned values, arbitrary after-state/entry tuples and loose callback inputs
+  cannot create or validate a controller state. Pin any cross-module bridge/callback dependencies.
+- Retain authenticated predecessors and three sources while a successor remains live; avoid a circular
+  requirement for an already-issued transition to mint the state that transition itself must seal.
+  Mint after effect binding and before transition completion. Post-bind reduction/registration failure consumes
+  the existing claim, exposes no usable partial successor or orphan authorizing state, and cannot rerun fusion.
+
+### Deterministic first-obligation projection
+
+Precondition: exact revision2 first-obligation fact/compare state is unsearched with no candidates or verified IDs.
+All other obligations remain unsearched and untouched.
+
+| Exact fusion effect | First entry stage | candidate_evidence_ids | verified_evidence_ids |
+| --- | --- | --- | --- |
+| applied | candidate | exact ordered fusion effect evidence IDs | empty |
+| empty | provisional_missing | empty | empty |
+
+Require applied to be nonempty and empty to have no candidates, using live source validation. Preserve source
+scope, binding, query/plan metadata and obligation ordering. Preserve unchanged sibling entry objects.
+The new Belief/Progress/State are owner-issued, not mutable patches to previous objects.
+
+Progress is recomputed from the resulting entry map: all obligations remain open, verified/confirmed-missing/
+contradicted remain empty, and only an empty first obligation enters provisional_missing_obligation_keys.
+For this initial retrieval slice, slot_coverage_ratio remains 0.0, answerability=in_progress,
+normal_stop_allowed=false and abstain_required=false. Candidate retrieval is not semantic support.
+No absence receipt, context/rerank/verifier capability result, verified/confirmed-missing/ready/terminal state
+is inferred, including both-empty and lexical-only rescue.
+
+### Transition and no-progress checkpoint
+
+- Preserve stable execution identity and initial_state, immediate revision2 predecessor, ordinal3 effect,
+  previous transition2, action count3 and exactly the existing dense/lexical consumed lanes.
+  No new action budget consumption, round or unavailable capability entry.
+- Revision3 current state is the exact new effect-derived state; before/after state hashes and semantic
+  fingerprints are separately computed and sealed in the existing transition. Effect.before_state stays revision2.
+- Canonical semantic fingerprint contains ordered obligations with stage, candidate IDs, verified IDs and
+  actual verifier-context IDs; it excludes provenance/effect/receipt hashes, ordinal, timestamps and counters.
+  This slice has authenticated initial no-context history and admits no context-producing actions, so the
+  before/after context ID sets are empty by that bounded history, not by a general capability/default assumption.
+  Unsupported context-bearing histories are rejected rather than erased.
+- Apply §16.10 at the first-obligation fuse checkpoint: if semantic fingerprint changes reset that obligation's
+  no-progress streak to 0; if neither semantic state nor verifier-context changes increment its streak by 1.
+  Preserve every sibling streak. Under this slice's valid inputs, unsearched -> candidate/provisional_missing
+  always changes the fingerprint, hence streak remains 0. Do not widen inputs or fabricate a live no-change case
+  just to exercise a branch reserved for future checkpoints. Provenance-only hash changes are not semantic progress.
+- Initial/lexical transitions remain same-state and retain their existing fingerprint/no-progress behavior.
+  Revision3 readback validates the effect-derived state and its exact transition; ordinal4 remains unsupported.
+
+### Acceptance and integration
+
+- Fact/compare four applied/empty lane combinations, rescue and both-empty, exact candidate order and sibling
+  preservation; open/in_progress/nonterminal state, no semantic support or confirmed absence.
+- Before-state and revision0/1/2/decisions unchanged; new state hashes/fingerprint/effect provenance bound;
+  all source chains and derived-state validation survive required GC, with no redispatch or remint.
+- Wrong/clone/mixed effect/state/store/root/candidate tuple, effect/source drift and direct unauthorized state
+  creation fail closed. Reduction/registration failure after actual fusion yields no partial valid result or retry.
+- Adapt existing first-fusion tests only where their b.1 same-state assertions are prospectively superseded.
+  Keep temporal, exact dispatch-count, concurrency, error/budget, private-surface and predecessor regressions.
+- Focused reducer plus impacted state/controller/fusion tests; main performs final frozen-candidate isolated/full
+  checks once. Fresh deep review includes this changed state-owner boundary and all behavior contracts.
+  No performance threshold/profiling/optimization is added.
+
+### Explicit remaining scope
+
+Ordinal4 selection and later context/rerank/verify execution require another Design after this state prerequisite.
+No follow-up, later compare obligation, sibling tuple remint, deadline, terminal result or public start/step/run.
+All nine first-fuse REVIEW constraints remain applicable, with state reduction explicitly selected by this b.2
+directive. DIAG131 and its inputs/artifacts/communications remain separately owned. No real provider/model/API/
+Langfuse/VLM/clock/private data, baseline/gold/evaluation/runtime configuration or dependency changes.

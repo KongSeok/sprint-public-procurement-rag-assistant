@@ -1,7 +1,7 @@
 # Local RAG Baseline → Evidence-Harness Challenger 평가 진행 보고서
 
 
-기준: 2026-09-07 · 현재 작업대 `feat/total-integration` · EH2.6.c4.2.b.1 자동 검증·fresh 검수 PASS
+기준: 2026-09-07 · 현재 작업대 `feat/total-integration` · EH2.6.c4.2.b.2 자동 검증·fresh 검수 PASS
 최종 통합 대상: `feat/local-qwen-mini131-eval`
 
 > **고정된 목적:** 기존 local KURE page-v1 RAG baseline은 최종 구조가 아니라 비교를 위한 control이다. GPT retrieval 연구,
@@ -20,7 +20,7 @@
 | --- | --- | --- | --- |
 | 주 비교 통제군 B0 | KURE page-v1 + local Qwen 계열 | Mac-equivalent 측정 완료·provisional | local-first retrieval 비교의 authoritative control. 계속 보존한다. |
 | 별도 API arm | `text-embedding-3-small` + `gpt-5-nano` + Streamlit | 사용자-facing 호환 경로 | API-first는 과거 구현 순서이며 local control을 대체하지 않는다. |
-| 현재 개발 대상 | `feat/total-integration`의 Evidence-Harness challenger | EH2.6.c4.2.b.1 구현·독립 검수 완료 | exact revision2에서 첫 fusion을 1회 실행해 effect/ledger3/transition3를 만든다. 의미 상태는 그대로이며 후속 context·reducer·생성 E2E는 미완성이다. |
+| 현재 개발 대상 | `feat/total-integration`의 Evidence-Harness challenger | EH2.6.c4.2.b.2 구현·독립 검수 완료 | 첫 fusion의 exact effect로 첫 항목을 candidate 또는 provisional_missing으로 투영한다. 정답·부재 확정은 하지 않으며 후속 context·semantic 검증·생성 E2E는 미완성이다. |
 | 최종 전달 대상 | `feat/local-qwen-mini131-eval` | 병합·선택 전 | 같은 Evidence Pack 뒤에서 local/API generator를 갈아 끼운다. |
 | 최종 선택 | baseline 대 assembled challenger | **미실행·미선정** | 동일 골든셋 A/B와 gate/Pareto 판정 뒤 결정한다. |
 
@@ -51,8 +51,9 @@
 | EH2.6.c4.2.a | 8 | DONE | 실제 lexical 실행·전이2, 전체1534 및 fresh Astra PASS |
 | EH2.6.d2.x.b.1 | 7 | DONE | 두 source outcome 기반 ordinal3 fuse/기권. 전체1545·fresh Astra PASS |
 | EH2.6.d2.x.b | 7 | PARTIAL | 첫 항목 후속 선택을 구현했다. context/후속 항목 full matrix는 미완성 |
-| EH2.6.c4.2.b.1 첫 fuse | 7 | DONE | source-derived effect/ledger3/transition3. 전체1577·fresh Astra PASS |
-| EH2.6.d2.x | 8 | PARTIAL | ordinal2/3 선택·첫 fusion 실행 완료, post-fusion context matrix는 별도 확장 |
+| EH2.6.c4.2.b.1 첫 fuse | 7 | DONE | source-derived effect/ledger3/transition3. 선행 전체1577·fresh Astra PASS |
+| EH2.6.c4.2.b.2 첫 상태 투영 | 7 | DONE | candidate/provisional_missing·effect 근거·형제 보존. 전체1611·fresh Astra PASS |
+| EH2.6.d2.x | 8 | PARTIAL | ordinal2/3 선택·첫 fusion/상태 투영 완료, post-fusion context matrix는 별도 확장 |
 | EH2.6.d2 | 8 | PARTIAL | initial slice 완료, cross-state slice와 full matrix 미완성 |
 | EH2.6.c4 | 7 | PARTIAL | c4.0→c4.1→d2.x→c4.2 순서로 진행 |
 | EH2.EVAL.4 | 5 | WAIT | GAP — 사람 승인·private qrels 선행 필요 |
@@ -63,7 +64,7 @@
 | --- | --- | --- | --- |
 | baseline의 의미 | 먼저 만든 동작 경로 | 재현 가능한 immutable control로 명시 | 모든 후보의 공정한 비교·rollback 기준 |
 | 연구 문서의 의미 | 좋은 구성의 참고안 | GPT/EvoHarness/통합안을 challenger 가설로 명시 | 실측에서 이긴 구성만 채택 |
-| 구현 | page-only baseline + 분리된 실험 섬 | EvidenceStore, KURE child, Kiwi, RRF, QueryPlan, 첫 dense effect/ledger 전이 | bounded controller·전문 lane·교체형 generation E2E |
+| 구현 | page-only baseline + 분리된 실험 섬 | EvidenceStore, KURE child, Kiwi, RRF, QueryPlan, 첫 dense·lexical·fusion 및 candidate/provisional 상태 전이 | bounded controller·전문 lane·교체형 generation E2E |
 | 평가 | 각 실험의 부분 지표가 혼재 | 구현 PASS와 품질 우승을 분리 | 같은 frozen golden에서 component ablation + assembled A/B |
 | 전달 | API UI와 local 실험 경로가 혼재 | 통합 작업대와 최종 local branch의 역할 분리 | local-first 기본 profile, API는 교체형 보조 arm |
 | 선택 | 추천 스택을 바로 목표처럼 읽을 여지 | winner 미선정으로 고정 | 품질·효율·guardrail gate 및 Pareto 판정 |
@@ -171,8 +172,8 @@ Mini131 결과와 unit/full regression은 출발점·안전성 증거지만 새 
 | DONE | 첫 successor 다음 결정 | same-obligation lexical, provider-error 진단, contract-error·budget 기권; ordinal2 chain과 비소비 조회 | c4.2.a 실제 lexical |
 | DONE | 두 번째 lexical 전이 | source-derived effect·ledger2·transition2, 같은 항목 1회 실행, 두 원본/이전 상태 보존 | d2.x.b |
 | DONE | ordinal3 후속 선택 | exact 두 결과의 budget/error/fuse 분기. 실행·의미 상태 불변 | 첫 fuse 실행 |
-| DONE | 첫 fusion 전이 | exact 원본 기반 1회 fuse, effect/ledger3/transition3. lane·의미 상태 불변 | post-fusion 자격/context |
-| NOT DONE | 후속 상태 전이·종료 | post-fusion context matrix, state-changing reducer, bounded controller 미완성 | 후속 c4.2→d3~d4 |
+| DONE | 첫 fusion 실행·상태 전이 | exact 원본 기반 1회 fuse→effect/전이3. 첫 항목 candidate/provisional_missing, lane·형제 보존 | post-fusion 자격/context |
+| NOT DONE | 후속 상태 전이·종료 | post-fusion context matrix, semantic 검증·후속 상태/종료 reducer, bounded controller 미완성 | 후속 c4.2→d3~d4 |
 | NOT DONE | 전문 lane E2E | analytics/list/table/figure가 controller 밖 | EH3.1~EH3.G |
 | NOT DONE | 생성·평가 조립 | reranker/generator/CLI/layer evaluator 미완성 | EH4.1~EH4.G |
 | NOT DONE | 공정 비교 동결 | 공통 freeze receipt와 threshold 미동결 | EXP-SELECT.2 |
@@ -181,7 +182,7 @@ Mini131 결과와 unit/full regression은 출발점·안전성 증거지만 새 
 
 ## 다음 실행 순서
 
-1. c4.2.b.1 독립 검수 PASS·로그올 후 같은 후보만 선택 통합한다. 이후 post-fusion 자격/context/reducer의 다음 bounded Design을 선정한다.
+1. c4.2.b.2의 같은 검수 후보만 선택 통합한다. 이후 실제 candidate/provisional 상태에 근거한 ordinal4 자격 판단을 별도 bounded Design으로 선정한다.
 2. EH3에서 catalog/analytics/list/table/figure specialist를 같은 evidence contract에 연결한다.
 3. EH4에서 identity/reranker, local/API generator adapter, CLI와 계층별 evaluator를 완성한다.
 4. baseline·local control·challenger의 corpus/gold/qrels/judge/budget/hash와 metric threshold를 동결한다.
@@ -191,9 +192,22 @@ Mini131 결과와 unit/full regression은 출발점·안전성 증거지만 새 
 
 ## 검증 상태
 
-- 현재 c4.2.b.1: 집중12(747.497초)·관련185(289.662초)·격리197(846.583초)·전체1577(1079.654초) PASS, 실패/오류/skip0, exit0. 전체는 현재 worktree의 실제 수집 수이며 다른 작업의 테스트를 포함한다. 격리는 HEAD05eb878+이번 후보만 사용했다.
+- 현재 c4.2.b.2: 집중25(779.422초)·관련202(230.049초)·격리227(944.217초)·전체1611(1161.717초) PASS, 실패/오류/skip0, exit0. 전체는 현재 worktree의 실제 수집 수, 격리는 HEAD a37562a+고정 후보/계약만 사용했다.
+- 후보=`sha256:cc5e19ca5b6a7ab1cc40fe5b62734df3e4a50a760a8274ea7590c1db53058e87`, 계약=`sha256:1b92dbdf8d116e3812a1e27181e431a9aef39f6e0c70996a70e59dadd3a4c3e8`, 증거=`sha256:8142e1f1b406947e18d5a650d61229c0576adcad07674018b79949b8fdb45d28`. 5제품/테스트(실제 변경4개)+계약2개, first-fuse-state-review-1 PASS.
+- [Cycle23 원장](../../work/2026-09-07-controller-fusion-state-relay.md), [독립 검수·제약](../../work/review/review-controller-first-fusion-state-2026-09-07.md). 전체 목표 GAP/PARTIAL·품질 winner 미선정.
+- 원시 테스트/입력·환경 확인의 범위는 해당 receipt를 따른다. TDD RED·공개 오류 이름 assertion 수리·탐색 출력 전사 이력은 보존했으며 최종 PASS와 구분한다.
+
+### 이번 공개 검사 판정
+
+- 자동 안전 검사는 합성 diff SHA256의 두 숫자 패턴 때문에 **FAIL / exit1**이다. 원본 해시·탐지기는 변경하지 않았다.
+- 별도 fresh 공개 검수는 기존 정책에 따라 정확한 두 필드를 비개인·필수 값으로 확인했다. 최종 공개 패키지 대조는 별도이며 자동 검사 PASS로 표기하지 않는다.
+- [탐지·한정 판정 기록](../../test/errorlogs/backend/2026-09-07-controller-state-publication-hash-pattern.md).
+
+### 선행 c4.2.b.1 검증
+
+- 선행 c4.2.b.1: 집중12(747.497초)·관련185(289.662초)·격리197(846.583초)·전체1577(1079.654초) PASS, 실패/오류/skip0, exit0. 전체는 현재 worktree의 실제 수집 수이며 다른 작업의 테스트를 포함한다. 격리는 HEAD05eb878+이번 후보만 사용했다.
 - 후보=`b6ba30e0…`, 계약=`088d1280…`, 증거=`f1a433db…`. 코드/테스트4개(실제 변경2개)와 계약2개 hash 전후 동일, fresh Astra first-fuse-review-1 PASS. 실행 시간은 fixture·검증·공유 호스트 부하 포함 테스트 wall이며 RAG 응답시간이 아니다.
-- 현재 원장: `../../work/2026-09-07-controller-first-fusion-transition-relay.md`. [독립 검수·후속 제약](../../work/review/review-controller-first-fusion-transition-2026-09-07.md). 전체 목표 GAP/PARTIAL, 품질 winner 미선정.
+- 선행 원장: `../../work/2026-09-07-controller-first-fusion-transition-relay.md`. [독립 검수·후속 제약](../../work/review/review-controller-first-fusion-transition-2026-09-07.md). 전체 목표 GAP/PARTIAL, 품질 winner 미선정.
 
 ### 선행 d2.x.b.1 검증
 

@@ -1,0 +1,57 @@
+{
+  "base": "a37562a774ea72281950102416c0b71f3a00e6fa",
+  "mode": "full",
+  "cwd": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
+  "command": "PATH=\"/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/bin:$PATH\" PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src /Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/bin/python3 -m unittest discover -s tests -t . -p 'test*.py'",
+  "files": [
+    {
+      "path": "src/midprojectrag/orchestration/execution_contracts.py",
+      "sha256": "2b89d5fd0ededf742e000e4b8697b4f9ac0a2cf29619e7c94f67d49e5277792a"
+    },
+    {
+      "path": "src/midprojectrag/orchestration/harness_state.py",
+      "sha256": "56c9f0e98c38305997b5ad56d08b57b522182170641dbd6cd592c01b09a50c77"
+    },
+    {
+      "path": "tests/test_controller_first_fusion_state.py",
+      "sha256": "eab574ef9f24bff12faac14178086ae701cb71fc99401a6478a20fa0c54e4404"
+    },
+    {
+      "path": "tests/test_controller_first_fusion_transition.py",
+      "sha256": "7168d31583d83855688ddb10f052f1688ca7c3f165d137f3e63a40257b143932"
+    },
+    {
+      "path": "tests/test_harness_state.py",
+      "sha256": "6c452c174f665cead7f531b1f47f96979b008b677e2e478ea10302cc6044eb8a"
+    },
+    {
+      "path": "src/midprojectrag/orchestration/module-contract.md",
+      "sha256": "4d7dd169f9e7069a5de388775d5b2df216fc09cba94965ce9afb314a88392d8a"
+    },
+    {
+      "path": "fivecircles/architecture/specs/controller-first-fusion-transition.md",
+      "sha256": "1b92dbdf8d116e3812a1e27181e431a9aef39f6e0c70996a70e59dadd3a4c3e8"
+    }
+  ],
+  "input_manifest": {
+    "path": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-state-full-input-manifest.json",
+    "sha256": "e4a1680c1403c5cf14e00569054ce494899512a56cf2737fb0f2e3e58cad1a2a"
+  },
+  "candidate_id": "sha256:cc5e19ca5b6a7ab1cc40fe5b62734df3e4a50a760a8274ea7590c1db53058e87",
+  "contract_id": "sha256:1b92dbdf8d116e3812a1e27181e431a9aef39f6e0c70996a70e59dadd3a4c3e8",
+  "recorded_at": "2026-09-07T07:44:12.265Z",
+  "exit_code": 0,
+  "signal": null,
+  "spawn_error": null,
+  "finished_at": "2026-09-07T08:03:40.267Z",
+  "elapsed_seconds": 1167.992,
+  "files_unchanged": true,
+  "drift": null,
+  "test_inputs_unchanged": true,
+  "runtime_unchanged": true,
+  "changed_test_input_paths": [],
+  "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-state-full-main.log",
+  "artifact_sha256": "a9c524ee34efd4f72592dfeeeaf18946fd4af6aa33a51eb87d035efa7ff1282b",
+  "test_count": 1611,
+  "unittest_summary": "\nRan 1611 tests in 1161.717s\n\nOK"
+}

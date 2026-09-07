@@ -474,3 +474,22 @@ Reference:
 - receipt 개수와 provider 호출·모델 호출은 다른 개념이다. 합성 fusion 연산을 외부 LLM 호출로 보고하지 않는다.
 - 병렬 검사는 제품/계약 snapshot 고정 후 별도 프로세스·격리 복사본으로 진행한다. 공유 호스트 wall time을 응답 지연 벤치마크로 쓰지 않는다.
 - ref: errorlogs/backend/2026-09-07-controller-first-fusion-red.md.
+
+### 가속기 사전 점검 누락 — 원인 확인/실행 교정 대기 (2026-09-07)
+
+- CPU smoke를 장기 모델 실측에 재사용하기 전 실제 device·기존 가속 이력·승인된 문맥의 가용성과 최소 연산을 확인한다. sandbox false는 하드웨어 미지원 증거가 아니다.
+- 원인·가드 기록은 완료했지만 GPU smoke/전환/재실측은 미완료다. 기존 CPU 결과를 보존하고 비동기 연산 완료·단계별 시간을 구분한다. 속도 배수는 추정하지 않는다.
+- ref: errorlogs/backend/2026-09-07-kure-cpu-accelerator-preflight.md; testpolicy.md의 Model Accelerator Preflight.
+
+### 공개 상태 validator와 오류 assertion (2026-09-07)
+
+- 공개 validator의 거절 여부와 기존 공개 오류 이름을 확인한다. private helper 이름을 예외 계약으로 가정하지 않는다.
+- 단일 수리 PASS와 최종 고정 후보 승인을 구분한다. 탐색 실행 출력 전사본을 처음부터 redirect한 원시 실행 파일이라고 보고하지 않는다.
+- ref: errorlogs/backend/2026-09-07-controller-state-rollback-assertion.md. b.2 최종 필수 검증은 별도로 진행한다.
+- py_compile는 명시적으로 캐시를 쓰므로 PYTHONDONTWRITEBYTECODE=1만으로 해결되지 않는다. 읽기용 문법 확인과 쓰기 권한을 구분한다. ref: errorlogs/backend/2026-09-07-controller-state-pycompile-permission.md.
+
+### 합성 테스트 diff 해시의 공개 탐지 판정 (2026-09-07)
+
+- 연락처 정규식 탐지와 실제 개인정보를 구분한다. 이번 두 typed SHA256은 원본 합성 diff 재계산과 독립 검수로 비개인·필수 값임을 확인했다.
+- 자동 FAIL/exit1과 기존 보안 정책에 따른 한정 공개 판정을 따로 기록한다. 스캐너나 원본 해시를 바꾸거나 미래 탐지를 포괄 허용하지 않는다.
+- 실제 최종 파일/내용은 별도 확인한다. ref: errorlogs/backend/2026-09-07-controller-state-publication-hash-pattern.md.

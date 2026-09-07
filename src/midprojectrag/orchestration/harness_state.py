@@ -8,13 +8,15 @@ from hashlib import sha256
 import json
 import math
 import re
+from sys import _getframe as _GET_FRAME
 from threading import RLock
-from types import FunctionType
+from types import CodeType, FunctionType
 from typing import Any
 from weakref import ReferenceType, ref
 
 from midprojectrag.evidence import EvidenceStore, validate_evidence_store_snapshot
 
+from . import action_effects as _ACTION_EFFECTS_MODULE
 from .compare_coverage import CompareCoverage
 from .compare_slots import BoundCompare
 from .contracts import PlanConstraint, PlanEntity, RuleRegistry
@@ -177,6 +179,7 @@ _BELIEF_TOKEN = object()
 _PROGRESS_TOKEN = object()
 _STATE_TOKEN = object()
 _SOURCE_OWNER_TOKEN = object()
+_EFFECT_DERIVED_STATE_TOKEN = object()
 _ENTRY_AUTHORITIES: dict[int, tuple[Any, ...]] = {}
 _BELIEF_AUTHORITIES: dict[int, tuple[Any, ...]] = {}
 _PROGRESS_AUTHORITIES: dict[int, tuple[Any, ...]] = {}
@@ -233,6 +236,73 @@ class _ControllerSourceOwnerAuthority:
             ("registry", registry),
             ("policy", policy),
             ("projection_kind", projection_kind),
+        ):
+            object.__setattr__(result, name, value)
+        return result
+
+
+class _ControllerEffectDerivedStateAuthority:
+    """Private live fusion-effect lineage for one derived controller state."""
+
+    __slots__ = (
+        "before_state",
+        "effect",
+        "claim",
+        "store",
+        "config",
+        "runtime",
+        "source_owner",
+        "first_entry",
+        "before_state_sha256",
+        "effect_sha256",
+        "state_sha256",
+    )
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        raise TypeError("controller_effect_derived_state_factory_required")
+
+    def __setattr__(self, name: str, value: object) -> None:
+        raise AttributeError("controller_effect_derived_state_immutable")
+
+    def __delattr__(self, name: str) -> None:
+        raise AttributeError("controller_effect_derived_state_immutable")
+
+    def __repr__(self) -> str:
+        return "_ControllerEffectDerivedStateAuthority(<redacted>)"
+
+    @classmethod
+    def _create(
+        cls,
+        *,
+        before_state: HarnessState,
+        effect: object,
+        claim: object,
+        store: EvidenceStore,
+        config: object,
+        runtime: object,
+        source_owner: _ControllerSourceOwnerAuthority,
+        first_entry: EvidenceBeliefEntry,
+        state_sha256: str,
+        _token: object,
+    ) -> _ControllerEffectDerivedStateAuthority:
+        if (
+            cls is not _ControllerEffectDerivedStateAuthority
+            or _token is not _EFFECT_DERIVED_STATE_TOKEN
+        ):
+            raise ValueError("controller_effect_derived_state_factory_required")
+        result = object.__new__(cls)
+        for name, value in (
+            ("before_state", before_state),
+            ("effect", effect),
+            ("claim", claim),
+            ("store", store),
+            ("config", config),
+            ("runtime", runtime),
+            ("source_owner", source_owner),
+            ("first_entry", first_entry),
+            ("before_state_sha256", before_state.state_sha256),
+            ("effect_sha256", effect.effect_sha256),
+            ("state_sha256", state_sha256),
         ):
             object.__setattr__(result, name, value)
         return result
@@ -1210,6 +1280,19 @@ class HarnessState:
             _validate_store_snapshot(store, self.belief.evidence_bundle_sha256)
         if current[1] != _canonical_sha256(self.to_dict()):
             raise ValueError("harness_state_runtime_authority_drift")
+
+        owner = current[5]
+        if type(owner) is _ControllerEffectDerivedStateAuthority:
+            reader = globals().get(
+                "_require_controller_first_fusion_state_authority"
+            )
+            issued = globals().get(
+                "_ISSUED_REQUIRE_CONTROLLER_FIRST_FUSION_STATE_AUTHORITY"
+            )
+            if reader is not issued or type(reader) is not FunctionType:
+                raise ValueError("controller_effect_state_dependency_drift")
+            reader(state=self, store=current[4])
+
     def to_dict(self) -> dict[str, Any]:
         return {**self._payload(), "state_sha256": self.state_sha256}
 
@@ -1586,6 +1669,487 @@ def _make_progress(
         abstain_required=abstain_required,
         _token=_PROGRESS_TOKEN,
     )
+
+
+def _build_controller_first_fusion_state_accessors(
+    *,
+    state_cls: type,
+    belief_cls: type,
+    entry_cls: type,
+    progress_cls: type,
+    store_cls: type,
+    effect_cls: type,
+    action_effect_module: object,
+    authority_cls: type,
+    state_token: object,
+    entry_token: object,
+    authority_token: object,
+    state_authorities: dict[int, tuple[Any, ...]],
+    authority_reader: FunctionType,
+    source_owner_reader: FunctionType,
+    belief_maker: FunctionType,
+    progress_maker: FunctionType,
+    store_validator: FunctionType,
+    canonical_sha256: FunctionType,
+    frame_reader: Any,
+):
+    """Build the one sealed effect-to-state projection used by fusion revision3."""
+
+    effect_reader: FunctionType | None = None
+    effect_reader_pin: tuple[Any, ...] | None = None
+    issuer_code: CodeType | None = None
+    issuer_globals: dict[str, Any] | None = None
+    module = globals()
+    state_create = type.__getattribute__(state_cls, "__dict__")["_create"].__func__
+    state_validate_payload = type.__getattribute__(state_cls, "__dict__")[
+        "_validate_payload"
+    ]
+    entry_create = type.__getattribute__(entry_cls, "__dict__")["_create"].__func__
+    authority_create = type.__getattribute__(authority_cls, "__dict__")[
+        "_create"
+    ].__func__
+
+    global_pins = (
+        ("HarnessState", state_cls),
+        ("Belief", belief_cls),
+        ("EvidenceBeliefEntry", entry_cls),
+        ("Progress", progress_cls),
+        ("EvidenceStore", store_cls),
+        ("_ControllerEffectDerivedStateAuthority", authority_cls),
+        ("_ACTION_EFFECTS_MODULE", action_effect_module),
+        ("_STATE_TOKEN", state_token),
+        ("_ENTRY_TOKEN", entry_token),
+        ("_EFFECT_DERIVED_STATE_TOKEN", authority_token),
+        ("_STATE_AUTHORITIES", state_authorities),
+        ("_authority_record", authority_reader),
+        ("_require_harness_state_source_owner", source_owner_reader),
+        ("_make_belief", belief_maker),
+        ("_make_progress", progress_maker),
+        ("_validate_store_snapshot", store_validator),
+        ("_canonical_sha256", canonical_sha256),
+        ("_GET_FRAME", frame_reader),
+    )
+
+    def callable_pin(function: FunctionType) -> tuple[Any, ...]:
+        return (
+            function,
+            object.__getattribute__(function, "__code__"),
+            object.__getattribute__(function, "__defaults__"),
+            object.__getattribute__(function, "__kwdefaults__"),
+            object.__getattribute__(function, "__globals__"),
+            object.__getattribute__(function, "__closure__"),
+        )
+
+    callable_pins = tuple(
+        callable_pin(function)
+        for function in (
+            state_create,
+            state_validate_payload,
+            entry_create,
+            authority_create,
+            authority_reader,
+            source_owner_reader,
+            belief_maker,
+            progress_maker,
+            store_validator,
+            canonical_sha256,
+        )
+    )
+
+    def validate_dependencies() -> None:
+        if (
+            effect_reader is None
+            or effect_reader_pin is None
+            or issuer_code is None
+            or issuer_globals is None
+        ):
+            raise ValueError("controller_effect_state_dependencies_not_sealed")
+        for name, issued in global_pins:
+            if module.get(name) is not issued:
+                raise ValueError("controller_effect_state_dependency_drift")
+        if (
+            object.__getattribute__(action_effect_module, "__dict__").get(
+                "ActionEffectReceipt"
+            )
+            is not effect_cls
+        ):
+            raise ValueError("controller_effect_state_dependency_drift")
+        for pin in callable_pins + (effect_reader_pin,):
+            function, code, defaults, kwdefaults, namespace, closure = pin
+            if (
+                object.__getattribute__(function, "__code__") is not code
+                or object.__getattribute__(function, "__defaults__") is not defaults
+                or object.__getattribute__(function, "__kwdefaults__")
+                is not kwdefaults
+                or object.__getattribute__(function, "__globals__") is not namespace
+                or object.__getattribute__(function, "__closure__") is not closure
+            ):
+                raise ValueError("controller_effect_state_dependency_drift")
+        if module.get(
+            "_ISSUED_REQUIRE_CONTROLLER_FIRST_FUSION_STATE_AUTHORITY"
+        ) is not require_state:
+            raise ValueError("controller_effect_state_dependency_drift")
+
+    def require_caller() -> None:
+        caller = frame_reader(2)
+        if caller.f_code is not issuer_code or caller.f_globals is not issuer_globals:
+            raise ValueError("controller_effect_state_issuer_required")
+
+    def validate_projection(
+        *,
+        state: HarnessState,
+        before_state: HarnessState,
+        effect: object,
+        claim: object,
+        store: EvidenceStore,
+        config: object,
+        runtime: object,
+        source_owner: _ControllerSourceOwnerAuthority,
+        first_entry: EvidenceBeliefEntry,
+    ) -> None:
+        effect_reader(
+            claim=claim,
+            effect=effect,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+        execution = object.__getattribute__(claim, "execution")
+        decision = object.__getattribute__(claim, "decision")
+        action = object.__getattribute__(claim, "selected_action")
+        before_belief = before_state.belief
+        belief = state.belief
+        before_entries = before_belief.evidence_map
+        entries = belief.evidence_map
+        if (
+            object.__getattribute__(execution, "state") is not before_state
+            or object.__getattribute__(execution, "initial_state") is not before_state
+            or object.__getattribute__(execution, "step_index") != 2
+            or object.__getattribute__(execution, "source_kind")
+            not in {"fact", "compare"}
+            or object.__getattribute__(execution, "ledger").revision != 2
+            or object.__getattribute__(execution, "ledger").nonterminal_action_count
+            != 2
+            or object.__getattribute__(decision, "selected_action") is not action
+            or object.__getattribute__(decision, "decision_ordinal") != 3
+            or object.__getattribute__(action, "kind") != "fuse"
+            or object.__getattribute__(action, "obligation_key")
+            != before_entries[0].obligation_key
+            or effect.action_kind != "fuse"
+            or effect.step_index != 3
+            or effect.execution_sha256
+            != object.__getattribute__(execution, "execution_identity_sha256")
+            or effect.controller_decision_sha256
+            != object.__getattribute__(decision, "decision_sha256")
+            or effect.action_sha256
+            != object.__getattribute__(action, "action_sha256")
+            or effect.obligation_key != before_entries[0].obligation_key
+            or effect.before_state_sha256 != before_state.state_sha256
+            or effect.source_kind != before_belief.source_kind
+            or effect.source_receipt_kind != "fusion"
+            or effect.outcome not in {"applied", "empty"}
+            or effect.call_performed is not True
+            or effect.target_evidence_id is not None
+            or effect.parent_context_receipt_sha256s
+            or effect.bridge_context_receipt_sha256s
+            or effect.absence_confirmation_sha256 is not None
+            or (effect.outcome == "applied") != bool(effect.ordered_evidence_ids)
+            or type(effect.ordered_evidence_ids) is not tuple
+            or len(effect.ordered_evidence_ids)
+            != len(set(effect.ordered_evidence_ids))
+        ):
+            raise ValueError("controller_first_fusion_effect_state_source_mismatch")
+        exact_source_owner = source_owner_reader(state=before_state, store=store)
+        if exact_source_owner is not source_owner:
+            raise ValueError("controller_effect_state_source_owner_mismatch")
+        if (
+            type(before_entries) is not tuple
+            or not before_entries
+            or any(
+                entry.observation_stage != "unsearched"
+                or entry.candidate_evidence_ids
+                or entry.verified_evidence_ids
+                for entry in before_entries
+            )
+        ):
+            raise ValueError("controller_first_fusion_before_state_required")
+        expected_stage = (
+            "candidate" if effect.outcome == "applied" else "provisional_missing"
+        )
+        expected_candidates = (
+            effect.ordered_evidence_ids if effect.outcome == "applied" else ()
+        )
+        if (
+            type(state) is not state_cls
+            or type(belief) is not belief_cls
+            or type(state.progress) is not progress_cls
+            or type(first_entry) is not entry_cls
+            or type(entries) is not tuple
+            or len(entries) != len(before_entries)
+            or entries[0] is not first_entry
+            or first_entry.obligation_key != before_entries[0].obligation_key
+            or first_entry.observation_stage != expected_stage
+            or first_entry.candidate_evidence_ids is not expected_candidates
+            or first_entry.verified_evidence_ids
+            or any(
+                actual is not previous
+                for actual, previous in zip(entries[1:], before_entries[1:])
+            )
+            or belief.source_kind != before_belief.source_kind
+            or belief.request_fingerprint != before_belief.request_fingerprint
+            or belief.binding_sha256 != before_belief.binding_sha256
+            or belief.effective_plan_sha256 != before_belief.effective_plan_sha256
+            or belief.config_sha256 != before_belief.config_sha256
+            or belief.evidence_bundle_sha256
+            != before_belief.evidence_bundle_sha256
+            or belief.query_type != before_belief.query_type
+            or belief.entities is not before_belief.entities
+            or belief.constraints is not before_belief.constraints
+            or belief.scope_state != before_belief.scope_state
+            or belief.scope_origin != before_belief.scope_origin
+            or belief.scope_doc_ids is not before_belief.scope_doc_ids
+            or belief.source_receipt_sha256 != effect.effect_sha256
+            or state.progress.required_obligation_keys
+            != tuple(entry.obligation_key for entry in entries)
+            or state.progress.verified_obligation_keys
+            or state.progress.confirmed_missing_obligation_keys
+            or state.progress.contradicted_obligation_keys
+            or state.progress.provisional_missing_obligation_keys
+            != (() if effect.outcome == "applied" else (first_entry.obligation_key,))
+            or state.progress.open_obligation_keys
+            != tuple(entry.obligation_key for entry in entries)
+            or state.progress.slot_coverage_ratio != 0.0
+            or state.progress.answerability != "in_progress"
+            or state.progress.normal_stop_allowed is not False
+            or state.progress.abstain_required is not False
+        ):
+            raise ValueError("controller_first_fusion_effect_state_projection_mismatch")
+
+    def require_state(
+        *,
+        state: HarnessState,
+        store: EvidenceStore,
+    ) -> _ControllerEffectDerivedStateAuthority:
+        validate_dependencies()
+        if type(state) is not state_cls:
+            raise TypeError("harness_state_required")
+        if type(store) is not store_cls:
+            raise TypeError("evidence_store_required")
+        current = authority_reader(
+            state_authorities,
+            state,
+            code="controller_effect_state_runtime_authority_required",
+        )
+        authority = current[5]
+        if (
+            type(authority) is not authority_cls
+            or current[2] is not state.belief
+            or current[3] is not state.progress
+            or current[4] is not store
+            or authority.store is not store
+            or authority.state_sha256 != state.state_sha256
+            or authority.before_state_sha256 != authority.before_state.state_sha256
+            or authority.effect_sha256 != authority.effect.effect_sha256
+            or authority.first_entry is not state.belief.evidence_map[0]
+        ):
+            raise ValueError("controller_effect_state_runtime_authority_drift")
+        state_validate_payload(state)
+        store_validator(store, state.belief.evidence_bundle_sha256)
+        if current[1] != canonical_sha256(state.to_dict()):
+            raise ValueError("controller_effect_state_runtime_authority_drift")
+        validate_projection(
+            state=state,
+            before_state=authority.before_state,
+            effect=authority.effect,
+            claim=authority.claim,
+            store=store,
+            config=authority.config,
+            runtime=authority.runtime,
+            source_owner=authority.source_owner,
+            first_entry=authority.first_entry,
+        )
+        return authority
+
+    def reduce_state(
+        *,
+        before_state: HarnessState,
+        effect: object,
+        claim: object,
+        store: EvidenceStore,
+        config: object,
+        runtime: object,
+    ) -> HarnessState:
+        validate_dependencies()
+        require_caller()
+        if type(before_state) is not state_cls:
+            raise TypeError("harness_state_required")
+        if type(effect) is not effect_cls:
+            raise TypeError("action_effect_receipt_required")
+        if type(store) is not store_cls:
+            raise TypeError("evidence_store_required")
+        source_owner = source_owner_reader(state=before_state, store=store)
+        before_entries = before_state.belief.evidence_map
+        expected_stage = (
+            "candidate" if effect.outcome == "applied" else "provisional_missing"
+        )
+        expected_candidates = (
+            effect.ordered_evidence_ids if effect.outcome == "applied" else ()
+        )
+        first_entry = entry_create(
+            entry_cls,
+            obligation_key=before_entries[0].obligation_key,
+            observation_stage=expected_stage,
+            candidate_evidence_ids=expected_candidates,
+            verified_evidence_ids=(),
+            _token=entry_token,
+        )
+        entries = (first_entry,) + before_entries[1:]
+        before_belief = before_state.belief
+        belief = belief_maker(
+            source_kind=before_belief.source_kind,
+            request_fingerprint=before_belief.request_fingerprint,
+            binding_sha256=before_belief.binding_sha256,
+            effective_plan_sha256=before_belief.effective_plan_sha256,
+            config_sha256=before_belief.config_sha256,
+            evidence_bundle_sha256=before_belief.evidence_bundle_sha256,
+            query_type=before_belief.query_type,
+            entities=before_belief.entities,
+            constraints=before_belief.constraints,
+            scope_state=before_belief.scope_state,
+            scope_origin=before_belief.scope_origin,
+            scope_doc_ids=before_belief.scope_doc_ids,
+            evidence_map=entries,
+            source_receipt_sha256=effect.effect_sha256,
+        )
+        progress = progress_maker(
+            evidence_map=entries,
+            slot_coverage_ratio=0.0,
+            answerability="in_progress",
+            normal_stop_allowed=False,
+            abstain_required=False,
+        )
+        state = state_create(
+            state_cls,
+            belief=belief,
+            progress=progress,
+            store=store,
+            _token=state_token,
+        )
+        try:
+            authority = authority_create(
+                authority_cls,
+                before_state=before_state,
+                effect=effect,
+                claim=claim,
+                store=store,
+                config=config,
+                runtime=runtime,
+                source_owner=source_owner,
+                first_entry=first_entry,
+                state_sha256=state.state_sha256,
+                _token=authority_token,
+            )
+            current = authority_reader(
+                state_authorities,
+                state,
+                code="harness_state_runtime_authority_required",
+            )
+            if current[5] is not None:
+                raise ValueError("controller_effect_state_owner_already_attached")
+            dict.__setitem__(
+                state_authorities,
+                id(state),
+                (*current[:5], authority),
+            )
+            require_state(state=state, store=store)
+            return state
+        except BaseException:
+            current = dict.get(state_authorities, id(state))
+            if current is not None and current[0]() is state:
+                dict.pop(state_authorities, id(state), None)
+            raise
+
+    def discard_state(
+        *,
+        state: HarnessState,
+        effect: object,
+        claim: object,
+        store: EvidenceStore,
+    ) -> None:
+        validate_dependencies()
+        require_caller()
+        if type(state) is not state_cls:
+            raise TypeError("harness_state_required")
+        current = dict.get(state_authorities, id(state))
+        if current is None:
+            return
+        authority = current[5]
+        if (
+            current[0]() is not state
+            or type(authority) is not authority_cls
+            or authority.effect is not effect
+            or authority.claim is not claim
+            or authority.store is not store
+        ):
+            raise ValueError("controller_effect_state_revoke_authority_mismatch")
+        dict.pop(state_authorities, id(state), None)
+
+    def seal(
+        *,
+        effect_authority_reader: FunctionType,
+        successor_issuer_code: CodeType,
+        successor_issuer_globals: dict[str, Any],
+    ) -> None:
+        nonlocal effect_reader, effect_reader_pin, issuer_code, issuer_globals
+        caller = frame_reader(1)
+        if (
+            effect_reader is not None
+            or type(effect_authority_reader) is not FunctionType
+            or type(successor_issuer_code) is not CodeType
+            or type(successor_issuer_globals) is not dict
+            or caller.f_globals is not successor_issuer_globals
+            or successor_issuer_globals.get("__name__")
+            != "midprojectrag.orchestration.execution_contracts"
+        ):
+            raise ValueError("controller_effect_state_dependencies_already_sealed")
+        effect_reader = effect_authority_reader
+        effect_reader_pin = callable_pin(effect_authority_reader)
+        issuer_code = successor_issuer_code
+        issuer_globals = successor_issuer_globals
+
+    return reduce_state, require_state, discard_state, seal
+
+
+(
+    _reduce_controller_first_fusion_state,
+    _require_controller_first_fusion_state_authority,
+    _discard_controller_first_fusion_state,
+    _seal_controller_first_fusion_state_authorities,
+) = _build_controller_first_fusion_state_accessors(
+    state_cls=HarnessState,
+    belief_cls=Belief,
+    entry_cls=EvidenceBeliefEntry,
+    progress_cls=Progress,
+    store_cls=EvidenceStore,
+    effect_cls=_ACTION_EFFECTS_MODULE.ActionEffectReceipt,
+    action_effect_module=_ACTION_EFFECTS_MODULE,
+    authority_cls=_ControllerEffectDerivedStateAuthority,
+    state_token=_STATE_TOKEN,
+    entry_token=_ENTRY_TOKEN,
+    authority_token=_EFFECT_DERIVED_STATE_TOKEN,
+    state_authorities=_STATE_AUTHORITIES,
+    authority_reader=_authority_record,
+    source_owner_reader=_require_harness_state_source_owner,
+    belief_maker=_make_belief,
+    progress_maker=_make_progress,
+    store_validator=_validate_store_snapshot,
+    canonical_sha256=_canonical_sha256,
+    frame_reader=_GET_FRAME,
+)
+_ISSUED_REQUIRE_CONTROLLER_FIRST_FUSION_STATE_AUTHORITY = (
+    _require_controller_first_fusion_state_authority
+)
+del _build_controller_first_fusion_state_accessors
 
 
 def build_compare_harness_state(

@@ -1,0 +1,199 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.c4.2.b.2",
+  "message_id": "first-fuse-state-implementation-report-1",
+  "in_reply_to": "first-fuse-state-directive-1",
+  "sender": "CODER",
+  "kind": "IMPLEMENTATION_REPORT",
+  "body": {
+    "status": "REVIEW_READY",
+    "directive_id": "first-fuse-state-directive-1",
+    "contract_id": "sha256:1b92dbdf8d116e3812a1e27181e431a9aef39f6e0c70996a70e59dadd3a4c3e8",
+    "candidate_id": "sha256:cc5e19ca5b6a7ab1cc40fe5b62734df3e4a50a760a8274ea7590c1db53058e87",
+    "test_evidence_id": "sha256:8142e1f1b406947e18d5a650d61229c0576adcad07674018b79949b8fdb45d28",
+    "changed_files": [
+      "src/midprojectrag/orchestration/execution_contracts.py",
+      "src/midprojectrag/orchestration/harness_state.py",
+      "tests/test_controller_first_fusion_state.py",
+      "tests/test_controller_first_fusion_transition.py"
+    ],
+    "implementation_summary": [
+      "Added one private, closure-sealed effect-derived state authority in harness_state.py. Its only issuer and revoker admit the exact existing transition factory code and module globals; the effect authority callback remains owned by execution_contracts.py, factory tokens remain inside harness_state.py, and the original planner/coverage source owner is retained separately through the exact revision-2 root.",
+      "The reducer accepts only the authenticated bound first-fusion effect and exact revision-2 fact/compare claim. It revalidates action fuse, ordinal/step 3, first obligation, before-state/root/store/config/runtime, source kind, FusionReceipt-backed applied-or-empty outcome, true computation, exact ordered evidence, and the no-context/no-absence boundary before authorizing the new state.",
+      "For applied fusion, the first entry becomes candidate with the exact effect ordered-evidence tuple and no verified IDs. For empty fusion, it becomes provisional_missing with empty candidates and verified IDs. The new owner-issued Belief preserves source/query/plan/scope metadata and binds source_receipt_sha256 to effect_sha256; all sibling entry objects and ordering remain exact.",
+      "Recomputed Progress leaves every obligation open, with verified/confirmed-missing/contradicted empty, coverage 0.0, answerability in_progress and both terminal gates false. Only an empty first fusion enters provisional_missing; no semantic support, confirmed absence, context, readiness or terminal state is inferred.",
+      "Extended the existing revision-3 transition/successor path so effect binding precedes state reduction, and the same transition separately seals before/after state hashes and canonical semantic fingerprints. The fingerprint includes each ordered obligation's stage, candidate IDs, verified IDs and the authenticated slice's empty verifier-context IDs while excluding provenance and counters.",
+      "The revision-3 ledger still appends only the fuse action and count 3, preserving dense/lexical lanes, rounds and unavailable entries. Its first no-progress streak is reset to 0 on the required semantic change (with the future no-change increment branch kept bounded), while sibling streaks are preserved. Initial identity/state and the immediate revision-2 predecessor remain exact.",
+      "Public state/execution validation and private revision-3 readback revalidate the exact derived-state authority, original root owner, effect and all three retained source lineages without redispatch. Clones, mixed stores/roots, equal-value candidate tuple replacement, source/effect/state/ledger/transition drift and direct unauthorized reducer calls fail closed.",
+      "Post-bind failures revoke the newly minted state authority before the existing controller claim is tombstoned. The synthetic registration-failure regression captures the partial state and proves public validation rejects it; fusion remains consumed and cannot be retried. Existing temporal, concurrency, budget/error, private-surface and ordinal-4-not-ready behavior remains intact.",
+      "Added four focused state-reducer tests and prospectively adapted only superseded same-state/equal-fingerprint assertions in the existing first-fusion suite. tests/test_harness_state.py remained byte-identical and passed with the new authority path."
+    ],
+    "tests": [
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest tests.test_controller_first_fusion_state tests.test_controller_first_fusion_transition tests.test_harness_state",
+        "workdir": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
+        "exit_code": 0,
+        "candidate_id": "sha256:cc5e19ca5b6a7ab1cc40fe5b62734df3e4a50a760a8274ea7590c1db53058e87",
+        "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-state-focused-1.log",
+        "artifact_sha256": "898605f436d6c5cc8b84eba58e7dbc14c4d4888de62c5780c4abe2d83bbb852e",
+        "result": "25 tests passed in 779.422s; failures=0, errors=0, skips=0. Output was natively redirected by the executed command. A separate focused-start hash was not captured; the focused-end five-file manifest equals the adjacent start/end manifest and the Coder made no edits during the run."
+      },
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest tests.test_controller_source_authority tests.test_controller_step_history tests.test_controller_source_outcome_resolver tests.test_controller_structural_effect_bridge tests.test_controller_initial_transition tests.test_controller_lexical_transition tests.test_controller_post_lexical_decision tests.test_controller_next_decision tests.test_controller_decision_receipt tests.test_execution_contracts tests.test_e0_fusion tests.test_retrieval_obligations",
+        "workdir": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
+        "exit_code": 0,
+        "candidate_id": "sha256:cc5e19ca5b6a7ab1cc40fe5b62734df3e4a50a760a8274ea7590c1db53058e87",
+        "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-state-adjacent-1.log",
+        "artifact_sha256": "e8dbf856adbce19ac2356427301349573f8655332111b2d9fb5d11145417badd",
+        "result": "202 tests passed in 230.049s; failures=0, errors=0, skips=0. Output was natively redirected. Exact start and end five-file manifests are byte-identical and their SHA-256 equals the candidate ID payload hash."
+      },
+      {
+        "command": "PATH=\"/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/bin:$PATH\" PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src /Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/bin/python3 -m unittest tests.test_controller_first_fusion_state tests.test_controller_first_fusion_transition tests.test_harness_state tests.test_controller_source_authority tests.test_controller_step_history tests.test_controller_source_outcome_resolver tests.test_controller_structural_effect_bridge tests.test_controller_initial_transition tests.test_controller_lexical_transition tests.test_controller_post_lexical_decision tests.test_controller_next_decision tests.test_controller_decision_receipt tests.test_execution_contracts tests.test_e0_fusion tests.test_retrieval_obligations",
+        "workdir": "/private/tmp/eh-first-fuse-state-isolated.rDvqZa",
+        "executor": "MAIN_COORDINATOR",
+        "exit_code": 0,
+        "candidate_id": "sha256:cc5e19ca5b6a7ab1cc40fe5b62734df3e4a50a760a8274ea7590c1db53058e87",
+        "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-state-isolated-main.log",
+        "artifact_sha256": "c9c75f13131a81e0954ece26044da2e85f0dab5c1fee6d7abb69ba7348eca258",
+        "result_manifest": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-state-isolated-result.json",
+        "result_manifest_sha256": "ebee6bec814658297230354eefccb7af5647f9d10786b56714329bcb887a77b8",
+        "result": "227 tests passed in 944.217s (946.946s elapsed) against base a37562a774ea72281950102416c0b71f3a00e6fa plus the exact five owned files and two behavior contracts; failures=0, errors=0, skips=0. All seven fingerprints, test inputs and runtime inputs remained unchanged."
+      },
+      {
+        "command": "PATH=\"/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/bin:$PATH\" PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src /Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/bin/python3 -m unittest discover -s tests -t . -p 'test*.py'",
+        "workdir": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
+        "executor": "MAIN_COORDINATOR",
+        "exit_code": 0,
+        "candidate_id": "sha256:cc5e19ca5b6a7ab1cc40fe5b62734df3e4a50a760a8274ea7590c1db53058e87",
+        "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-state-full-main.log",
+        "artifact_sha256": "a9c524ee34efd4f72592dfeeeaf18946fd4af6aa33a51eb87d035efa7ff1282b",
+        "result_manifest": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-state-full-result.json",
+        "result_manifest_sha256": "08a777ad4fe9aad5e17c10d9a04ceee0f379480045c4770e1fd0884ab3bd0e02",
+        "result": "Current worktree collection: 1611 tests passed in 1161.717s (1167.992s elapsed); failures=0, errors=0, skips=0. All seven candidate/contract fingerprints, test inputs and runtime inputs remained unchanged. The total is the actual shared worktree collection and is not attributed wholly to this four-test batch."
+      },
+      {
+        "command": "git diff --check -- src/midprojectrag/orchestration/execution_contracts.py src/midprojectrag/orchestration/harness_state.py tests/test_controller_first_fusion_transition.py tests/test_harness_state.py",
+        "workdir": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
+        "exit_code": 0,
+        "candidate_id": "sha256:cc5e19ca5b6a7ab1cc40fe5b62734df3e4a50a760a8274ea7590c1db53058e87",
+        "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-state-diff-check.log",
+        "artifact_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "result": "No whitespace or conflict-marker diagnostics."
+      },
+      {
+        "command": "git diff --no-index --check -- /dev/null tests/test_controller_first_fusion_state.py",
+        "workdir": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
+        "exit_code": 1,
+        "expected_exit_code": 1,
+        "candidate_id": "sha256:cc5e19ca5b6a7ab1cc40fe5b62734df3e4a50a760a8274ea7590c1db53058e87",
+        "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-state-new-test-diff-check.log",
+        "artifact_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "result": "No diagnostics; exit 1 is the expected no-index difference status for the new test file."
+      }
+    ],
+    "development_evidence": [
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest tests.test_controller_first_fusion_state",
+        "candidate_stage": "pre-implementation behavioral RED",
+        "exit_code": 1,
+        "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-state-focused-red.log",
+        "artifact_sha256": "58f351eee9b2669a6750dea3a5bee46efbbcd222ce75ac0873b5735c16482754",
+        "capture": "native_redirect",
+        "result": "13 tests ran in 442.366s with failures=1, errors=0. The one intended failure was successor.state remaining identical to the revision-2 state. Twelve existing fusion tests were also collected because the initial new test directly imported their TestCase class; the final test uses a module alias and no longer duplicates collection."
+      },
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest tests.test_controller_first_fusion_state.ControllerFirstFusionStateTests.test_applied_fusion_mints_candidate_state_from_exact_effect",
+        "candidate_stage": "first product GREEN checkpoint",
+        "exit_code": 0,
+        "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-state-single-green-1.log",
+        "artifact_sha256": "0575c6a220a5197585152849eb3a5c456db8cefebb0fcb8980fc22f0bd8768b4",
+        "capture": "exact transcription of unified exec stdout chunks; the exploratory command was not initially redirected",
+        "result": "1 test passed in 19.696s. This historical checkpoint is not final candidate evidence."
+      },
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest tests.test_controller_first_fusion_transition.ControllerFirstFusionTransitionTests.test_fact_compare_all_normal_pairs_seal_exact_revision_three tests.test_controller_first_fusion_transition.ControllerFirstFusionTransitionTests.test_failure_after_fusion_before_successor_consumes_both_claims tests.test_controller_first_fusion_transition.ControllerFirstFusionTransitionTests.test_all_predecessors_decisions_and_three_sources_survive_gc tests.test_controller_first_fusion_transition.ControllerFirstFusionTransitionTests.test_source_effect_ledger_and_transition_drift_fail_readback",
+        "candidate_stage": "affected transition subset before test-message correction",
+        "exit_code": 1,
+        "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-state-affected-1.log",
+        "artifact_sha256": "afa32de237e07dd09eff69cc6b9856f7cca9a9cd377ab44cfb110d47b4c784ab",
+        "capture": "exact transcription of unified exec stdout chunks; the exploratory command was not initially redirected",
+        "result": "4 tests ran in 317.700s with failures=1, errors=0. The matrix, GC and drift cases passed. Rollback correctly revoked the captured partial state, but the new assertion expected a bridge-specific error string rather than the existing public harness_state_runtime_authority_required string; only that assertion was corrected."
+      },
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest tests.test_controller_first_fusion_transition.ControllerFirstFusionTransitionTests.test_failure_after_fusion_before_successor_consumes_both_claims",
+        "candidate_stage": "test-message correction verification",
+        "exit_code": 0,
+        "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-state-rollback-repair.log",
+        "artifact_sha256": "317faaa43ef3fc151af7ed82bdbee3483bcad658b88103ed2eea88b4e2a62918",
+        "capture": "exact transcription of unified exec stdout chunks; the exploratory command was not initially redirected",
+        "result": "1 test passed in 41.605s. Final native focused evidence independently includes this repaired case."
+      },
+      {
+        "command": "python_path=.venv/bin/python3; \"$python_path\" -m py_compile src/midprojectrag/orchestration/harness_state.py src/midprojectrag/orchestration/execution_contracts.py tests/test_controller_first_fusion_state.py tests/test_controller_first_fusion_transition.py",
+        "candidate_stage": "tooling-only syntax-check mistake",
+        "exit_code": 1,
+        "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-state-pycompile-sandbox-failure.log",
+        "artifact_sha256": "f2e3f3391a1f3271f29ba6a656cf038b81a9b75cbde4d4e956dcd50fe92a0419",
+        "capture": "exact transcription of unified exec stderr",
+        "result": "py_compile attempted to write src/midprojectrag/orchestration/__pycache__/harness_state.cpython-312.pyc.4397979568 and was denied with [Errno 1] Operation not permitted. PYTHONDONTWRITEBYTECODE was omitted, and explicit py_compile would write even if it were set. No repository file was created or changed; a subsequent no-bytecode import passed. This is not candidate test evidence."
+      }
+    ],
+    "candidate_manifest": {
+      "path": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-state-candidate.json",
+      "sha256": "efb2f17e362305a1843b8d913804a7a9a6d133c58608d72383cd4b60138e4b8a",
+      "owned_files_manifest": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-state-owned-files.sha256",
+      "owned_files_manifest_sha256": "cc5e19ca5b6a7ab1cc40fe5b62734df3e4a50a760a8274ea7590c1db53058e87",
+      "snapshot_tar": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-state-owned.tar",
+      "snapshot_tar_sha256": "17fd776c9ad49c8cf4ab96737d28e19561ef7ac4c98cf3d05d43d3b3e69649ba",
+      "tracked_diff": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-state-main-tracked.diff",
+      "tracked_diff_sha256": "768ce4c57818e9c7469ceb49fcdc7135302282fb8d0c55a6f58c587da442f833",
+      "new_test_diff": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-state-new-test.diff",
+      "new_test_diff_sha256": "6b8911d1b4807af18a968178852c0169958495a07fbd3739dceaf61c2b3a17fc"
+    },
+    "candidate_fingerprint_evidence": [
+      {
+        "path": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-state-focused-end.sha256",
+        "sha256": "cc5e19ca5b6a7ab1cc40fe5b62734df3e4a50a760a8274ea7590c1db53058e87",
+        "scope": "focused end only; no separate focused-start manifest was captured"
+      },
+      {
+        "path": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-state-adjacent-start.sha256",
+        "sha256": "cc5e19ca5b6a7ab1cc40fe5b62734df3e4a50a760a8274ea7590c1db53058e87",
+        "scope": "adjacent start"
+      },
+      {
+        "path": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-state-adjacent-end.sha256",
+        "sha256": "cc5e19ca5b6a7ab1cc40fe5b62734df3e4a50a760a8274ea7590c1db53058e87",
+        "scope": "adjacent end"
+      }
+    ],
+    "additional_review_files": [
+      {
+        "path": "src/midprojectrag/orchestration/module-contract.md",
+        "sha256": "4d7dd169f9e7069a5de388775d5b2df216fc09cba94965ce9afb314a88392d8a"
+      },
+      {
+        "path": "fivecircles/architecture/specs/controller-first-fusion-transition.md",
+        "sha256": "1b92dbdf8d116e3812a1e27181e431a9aef39f6e0c70996a70e59dadd3a4c3e8"
+      }
+    ],
+    "test_evidence_manifest": {
+      "path": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-state-final-test-evidence.sha256",
+      "sha256": "8142e1f1b406947e18d5a650d61229c0576adcad07674018b79949b8fdb45d28",
+      "entry_count": 17
+    },
+    "deviations": [
+      "No contract, scope, public API, provider, model, VLM, Langfuse, runtime clock, private-data, baseline, corpus, gold, evaluation, configuration, dependency, Git or integration deviation was taken.",
+      "The behavioral RED was intentional. Its 13-test count includes 12 duplicated existing cases caused by directly importing a TestCase into the new module; final code uses a module alias. This was collection hygiene, not a reduced required test set.",
+      "The only behavioral-test repair after product GREEN changed an expected error string to the existing public state-authority error. Rollback behavior already worked, and no product code changed for that repair.",
+      "The exploratory py_compile failure was a local tooling/sandbox mistake and did not indicate a code failure or change the candidate. Import plus focused and adjacent native commands subsequently passed with bytecode writes disabled.",
+      "The focused command was natively captured, but no separate five-file manifest was saved at its start. The Coder made no edits during it; its end manifest matches the adjacent start/end manifests and the final candidate. Main's isolated/full start/end manifests provide the authoritative final same-candidate binding.",
+      "The allowed tests/test_harness_state.py remained byte-identical at SHA256 6c452c174f665cead7f531b1f47f96979b008b677e2e478ea10302cc6044eb8a and passed in focused, adjacent as applicable, isolated and full evidence."
+    ],
+    "unresolved_questions": [],
+    "proposed_next_steps": [
+      "After main inserts exact final isolated/full evidence and derives the immutable evidence ID, dispatch the frozen five-file candidate plus the two behavior contracts and this report to a fresh deep Philosopher/Critic. Do not integrate unless the bound REVIEW verdict is PASS."
+    ]
+  }
+}

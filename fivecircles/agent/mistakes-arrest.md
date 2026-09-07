@@ -25,3 +25,12 @@ This active file contains only project-independent recurrence guards.
   문서 기록만으로 오류를 종료하지 않으며, 라이브러리 미설치/버전 불일치 진단은 실행한 환경을 명시한다.
 - **근거:** [상세 오류·해결 기록](../test/errorlogs/backend/2026-09-06-eh2-6-c40e-full-regression-environment.md),
   [테스트 실행 정책](../test/testpolicy.md), [기존 venv 사용 교훈](../test/learn-from-log.md#harness-tests-must-use-the-repository-runtime-2026-09-05).
+
+## Arrest Record — 2026-09-07 가속기 확인 없이 CPU 장기 실측
+
+- **실수:** CPU smoke 설정을 장기 KURE 검색 실측에 그대로 재사용하고 MPS 사전 점검을 누락했다. 현재 host에서는 MPS 사용이 가능하며 과거 실행 이력도 있었다.
+- **근거·상태:** CPU 고정 생성자와 sandbox/host 가용성 차이 확인. 전체 지연의 원인 비율·속도 배수는 미측정. 기록 완료와 GPU 전환 완료를 구분한다.
+- **필수 가드:** 장기 모델 실행 전 기존 장치 이력/실제 worker device → 승인된 문맥의 backend 가용성 → 허용된 최소 모델/device/fallback smoke → 장치 선택 이유·설정 봉인 순서를 적용한다.
+- **금지:** available=true 또는 GPU 장착만으로 가속 사용을 보고하지 않는다. sandbox의 false를 하드웨어 미지원으로 단정하거나 권한을 몰래 우회하지 않는다. GPU 전제의 실행을 CPU로 조용히 대체하지 않는다.
+- **경계:** CPU-only 일반 테스트/검색·검증은 제외한다. 기존 frozen run을 바꾸지 않고 장치 변경은 승인 범위·새 run에 기록하며 서로 다른 장치의 지연을 동일 조건으로 합산하지 않는다.
+- [상세 오류·재발 방지](../test/errorlogs/backend/2026-09-07-kure-cpu-accelerator-preflight.md), [실행 전 점검](../test/testpolicy.md#model-accelerator-preflight-2026-09-07).

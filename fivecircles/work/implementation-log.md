@@ -145,3 +145,11 @@ Per batch:
 - Verified: 집중12(747.497초)·관련185(289.662초)·격리197(846.583초)·전체1577(1079.654초) PASS, 실패/오류/skip0, exit0, fresh Astra APPROVE. source/new test만 변경, 기존 history/E0 test는 그대로 검증.
 - Boundary: action+1, lane/의미 상태 유지. empty는 부재 확정 아님, 후속 context/reducer/terminal은 별도.
 - Evidence: work/collaboration/eh-relay-20260907/messages/EH2.6.c4.2.b.1/.
+
+## 2026-09-07 — EH2.6.c4.2.b.2 첫 fusion 상태 연결
+
+- Intent: 첫 fusion의 authenticated effect를 canonical 후보/잠정 결측 상태에 연결한다.
+- Change: bounded state-owner bridge, 원래 planner/coverage 계보 보존, 전후 semantic fingerprint/no-progress, rollback.
+- Verified: 집중25(779.422초)·관련202(230.049초)·격리227(944.217초)·전체1611(1161.717초) PASS, 실패/오류/skip0, exit0; fresh Astra APPROVE, 제품/테스트4개 변경.
+- Boundary: progress open/coverage0/in_progress/terminal false. context·verify·ordinal4는 후속.
+- Evidence: work/collaboration/eh-relay-20260907/messages/EH2.6.c4.2.b.2/.

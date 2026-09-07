@@ -1,0 +1,59 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.c4.2.b.2",
+  "directive_id": "first-fuse-state-directive-1",
+  "contract_id": "sha256:1b92dbdf8d116e3812a1e27181e431a9aef39f6e0c70996a70e59dadd3a4c3e8",
+  "repository": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
+  "branch": "feat/total-integration",
+  "base_head": "a37562a774ea72281950102416c0b71f3a00e6fa",
+  "candidate_id": "sha256:cc5e19ca5b6a7ab1cc40fe5b62734df3e4a50a760a8274ea7590c1db53058e87",
+  "candidate_id_derivation": "SHA-256 of exact first-fuse-state-owned-files.sha256 bytes",
+  "files": [
+    {
+      "path": "src/midprojectrag/orchestration/execution_contracts.py",
+      "sha256": "2b89d5fd0ededf742e000e4b8697b4f9ac0a2cf29619e7c94f67d49e5277792a"
+    },
+    {
+      "path": "src/midprojectrag/orchestration/harness_state.py",
+      "sha256": "56c9f0e98c38305997b5ad56d08b57b522182170641dbd6cd592c01b09a50c77"
+    },
+    {
+      "path": "tests/test_controller_first_fusion_state.py",
+      "sha256": "eab574ef9f24bff12faac14178086ae701cb71fc99401a6478a20fa0c54e4404"
+    },
+    {
+      "path": "tests/test_controller_first_fusion_transition.py",
+      "sha256": "7168d31583d83855688ddb10f052f1688ca7c3f165d137f3e63a40257b143932"
+    },
+    {
+      "path": "tests/test_harness_state.py",
+      "sha256": "6c452c174f665cead7f531b1f47f96979b008b677e2e478ea10302cc6044eb8a"
+    }
+  ],
+  "additional_review_files": [
+    {
+      "path": "src/midprojectrag/orchestration/module-contract.md",
+      "sha256": "4d7dd169f9e7069a5de388775d5b2df216fc09cba94965ce9afb314a88392d8a"
+    },
+    {
+      "path": "fivecircles/architecture/specs/controller-first-fusion-transition.md",
+      "sha256": "1b92dbdf8d116e3812a1e27181e431a9aef39f6e0c70996a70e59dadd3a4c3e8"
+    }
+  ],
+  "artifacts": {
+    "hash_manifest": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-state-owned-files.sha256",
+    "snapshot_tar": {
+      "path": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-state-owned.tar",
+      "sha256": "17fd776c9ad49c8cf4ab96737d28e19561ef7ac4c98cf3d05d43d3b3e69649ba"
+    },
+    "tracked_diff": {
+      "path": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-state-main-tracked.diff",
+      "sha256": "768ce4c57818e9c7469ceb49fcdc7135302282fb8d0c55a6f58c587da442f833"
+    },
+    "untracked_diff": {
+      "path": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-state-new-test.diff",
+      "sha256": "6b8911d1b4807af18a968178852c0169958495a07fbd3739dceaf61c2b3a17fc"
+    }
+  }
+}

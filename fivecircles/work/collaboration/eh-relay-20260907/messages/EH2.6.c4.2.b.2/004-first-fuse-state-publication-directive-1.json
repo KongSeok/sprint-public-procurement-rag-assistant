@@ -1,0 +1,83 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.c4.2.b.2",
+  "message_id": "first-fuse-state-publication-directive-1",
+  "in_reply_to": null,
+  "sender": "PHILOSOPHER",
+  "kind": "DIRECTIVE",
+  "body": {
+    "mode": "FRESH_CRITIC",
+    "contract_id": "sha256:1b92dbdf8d116e3812a1e27181e431a9aef39f6e0c70996a70e59dadd3a4c3e8",
+    "objective": "Independently adjudicate exactly two reported SHA256 PII-pattern detections for current batch publication under existing security sections 1, 4 and 6. This supplements closeout review and does not replace the accepted product implementation directive or its product REVIEW.",
+    "implementation_directive_id": "first-fuse-state-directive-1",
+    "candidate_id": "sha256:cc5e19ca5b6a7ab1cc40fe5b62734df3e4a50a760a8274ea7590c1db53058e87",
+    "test_evidence_id": "sha256:8142e1f1b406947e18d5a650d61229c0576adcad07674018b79949b8fdb45d28",
+    "reviewed_message_id": "first-fuse-state-implementation-report-1",
+    "scope": {
+      "allowed_files": [],
+      "read_only_scope": [
+        "fivecircles/architecture/specs/security.md",
+        "fivecircles/test/testpolicy.md",
+        "fivecircles/work/workpolicy.md",
+        "fivecircles/agent/skills/collaboration/SKILL.md",
+        "fivecircles/agent/skills/collaboration/references/messages.md",
+        "fivecircles/agent/skills/collaboration/references/relay-cycle.md",
+        "scripts/validate_repo_safety.sh",
+        "fivecircles/work/collaboration/eh-relay-20260907/batches/EH2.6.c4.2.b.2/candidate.json",
+        "fivecircles/work/collaboration/eh-relay-20260907/messages/EH2.6.c4.2.b.2/001-first-fuse-state-directive-1.json",
+        "fivecircles/work/collaboration/eh-relay-20260907/messages/EH2.6.c4.2.b.2/002-first-fuse-state-implementation-report-1.json",
+        "fivecircles/work/collaboration/eh-relay-20260907/messages/EH2.6.c4.2.b.2/003-first-fuse-state-review-1.json",
+        "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-state-new-test.diff",
+        "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-state-publication-audit.json"
+      ],
+      "additional_evidence": "Main must supply the proposed publication file manifest, preserved native safety invocation/output and explicitly enumerated pending closeout-only additions. Reviewer may inspect only those resolved artifacts and publication files necessary for this adjudication. Pending bytes are not deemed reviewed.",
+      "prohibited_actions": [
+        "No product, test, script, contract, policy or immutable event edits.",
+        "No scanner suppression, masking of existing binding hashes, generic hash allowlist or altered scan scope presented as the native result.",
+        "No model, API, private corpus, evaluation, GCP, Git mutation or nested delegation.",
+        "No repeated product suites or new implementation.",
+        "No state-file writes; return REVIEW for main to validate and append."
+      ]
+    },
+    "acceptance_criteria": [
+      "Confirm the two identified JSON fields are strings containing complete identical 64-hex SHA256 values and that recomputing SHA256 of the named synthetic new-test diff yields that exact value. Bind the value through these immutable typed fields and recomputation; do not duplicate the digest in directive or review prose.",
+      "Confirm candidate.json line 56 artifacts.untracked_diff.sha256 and implementation report line 152 new_test_diff_sha256 are the only reported PII detections, using the actual JSON structure and preserved content-free diagnostic evidence rather than line numbers alone.",
+      "Independently establish that the matched decimal substring lies wholly inside each digest and that retaining the complete digest in the original fields is necessary for candidate and evidence integrity. Do not print the matched decimal substring.",
+      "Confirm the linked diff contains owned synthetic test changes and does not encode restricted source material; do not inspect private corpus or gold inputs.",
+      "Confirm preserved native safety result remains exit 1 / PII_PATTERN_FOUND. Explicitly distinguish automated FAIL from this bounded policy adjudication.",
+      "Confirm the reviewed proposed publication manifest has no security section 6 forbidden artifacts, secrets, personal contacts or access-granting identifiers. Any additional detection or unknown scan coverage blocks publication adjudication.",
+      "Bind the decision to the exact two field locations, their recomputed digest equality, native diagnostic evidence and reviewed publication manifest. It grants no reusable exception to other hashes or future findings.",
+      "Confirm the seven-file product candidate, behavior contract and relevant test/runtime inputs remain identical to the existing deep PASS. Preserve all its next-batch constraints.",
+      "Require reviewed payload bytes to remain unchanged except explicitly enumerated additions or updates for this review itself and its closeout status/error metadata. Do not claim that prospective unknown bytes have been audited. Main must validate the final manifest and actual added bytes before publication; unrelated changes or additional detections require renewed review."
+    ],
+    "required_tests": [
+      "Read and validate the preserved native publication-safety invocation, scan coverage, output and exit 1; do not rerun or relabel it.",
+      "Verify the supplied publication-audit artifact identity, then independently check its two-location claim and digest equality against the original fields and named diff.",
+      "Perform read-only JSON-field and publication-manifest checks. These are publication evidence checks, not model execution or product regression.",
+      "Reuse existing focused 25, adjacent 202, isolated 227 and full 1611 passing evidence only after exact candidate/contract/relevant-environment identity verification; preserve their actual exits and provenance.",
+      "Return a complete protocol REVIEW. Bind directive_id to first-fuse-state-directive-1 as the actual implementation directive and identify this supplemental publication directive explicitly in reason/findings. State whether this exact publication exception is established; do not claim safety-script PASS.",
+      "Main must reconcile the final publication manifest against the reviewed manifest and inspect the explicitly pending review/status/error metadata after those bytes exist. Record final coverage without pretending the reviewer prehashed or audited its own future output."
+    ],
+    "constraints": [
+      "Security section 3 requires running the safety script; section 4 expressly permits reviewer-established non-personal necessary values, while section 6 forbids actual restricted publication. This review applies that existing distinction without weakening the script.",
+      "The scanner's unrelated dirty resources guard must remain untouched and must not be included in the product integration merely to resolve this finding.",
+      "The prior product PASS remains historical evidence, not automatic publication clearance. Do not overwrite it or advance closeout before this independent decision and final payload validation.",
+      "If evidence is missing, another forbidden condition appears, or an applicable higher-priority gate explicitly requires native exit 0 without policy adjudication, return HALT with exact resume conditions. Do not self-waive it.",
+      "If identity or product/contract/required-evidence inputs changed, stop evidence reuse and request the appropriate new candidate validation.",
+      "A new supplemental REVIEW and main-owned closeout/error records may record the adjudication; existing candidate/report/native failure artifacts remain immutable.",
+      "References to the two original digest fields avoid introducing another copy of the same detection. They do not mask, modify or remove the original evidence.",
+      "This directive authorizes no commit, push, experiment, policy amendment or expansion of Controller scope."
+    ],
+    "source_refs": [
+      "fivecircles/architecture/specs/security.md sections 1, 3, 4 and 6",
+      "fivecircles/test/testpolicy.md: Impact-based Validation and Evidence Reuse",
+      "fivecircles/work/workpolicy.md",
+      "fivecircles/agent/skills/collaboration/references/messages.md: DIRECTIVE, REVIEW and review transition rules",
+      "fivecircles/work/collaboration/eh-relay-20260907/messages/EH2.6.c4.2.b.2/003-first-fuse-state-review-1.json",
+      "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-state-publication-audit.json"
+    ],
+    "publication_audit_sha256": "145064e4edcef93499184d4c8a51a3ccf4ad5589def6b0ddf7ba132049464934",
+    "resolution": null
+  }
+}

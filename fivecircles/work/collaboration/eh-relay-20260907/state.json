@@ -1,8 +1,8 @@
 {
   "run_id": "eh-relay-20260907",
-  "batch_id": "EH2.6.c4.2.b.1",
+  "batch_id": "EH2.6.c4.2.b.2",
   "phase": "READY_TO_INTEGRATE",
-  "lifecycle_substage": "closeout",
+  "lifecycle_substage": "integration",
   "roles": {
     "design": {
       "agent_id": "/root/lexical_design",
@@ -15,43 +15,101 @@
       "effort": "ultra"
     },
     "critic": {
-      "agent_id": "/root/first_fuse_critic_1",
+      "agent_id": "/root/first_fuse_state_critic_1",
       "model": "gpt-6-astra",
       "effort": "inherited; no override"
     }
   },
-  "active_directive_id": "first-fuse-directive-1",
-  "candidate_id": "sha256:b6ba30e02e09b6090f7ec1c17315cbe316ceefd1dc31544a352251c55cbcf17b",
-  "contract_id": "sha256:088d1280b7ccae54370aeb5d5fbcb648d4eea857ee8b1663e8d228a8efd06d7c",
-  "test_evidence_id": "sha256:f1a433dbec5603855a6a418a17711589361d57a963b8d9a31bc66a66a657b03a",
-  "review_message_id": "first-fuse-review-1",
+  "active_directive_id": "first-fuse-state-directive-1",
+  "candidate_id": "sha256:cc5e19ca5b6a7ab1cc40fe5b62734df3e4a50a760a8274ea7590c1db53058e87",
+  "contract_id": "sha256:1b92dbdf8d116e3812a1e27181e431a9aef39f6e0c70996a70e59dadd3a4c3e8",
+  "test_evidence_id": "sha256:8142e1f1b406947e18d5a650d61229c0576adcad07674018b79949b8fdb45d28",
+  "review_message_id": "first-fuse-state-review-1",
   "waiting_for": null,
-  "last_pass_candidate_id": "sha256:b6ba30e02e09b6090f7ec1c17315cbe316ceefd1dc31544a352251c55cbcf17b",
-  "resume_point": "final report browser/safety and selective integration, then next Design",
-  "closeout_ref": "../../2026-09-07-controller-first-fusion-transition-relay.md",
-  "integration_receipt_ref": "integration-EH2.6.c4.2.b.1.json",
+  "last_pass_candidate_id": "sha256:cc5e19ca5b6a7ab1cc40fe5b62734df3e4a50a760a8274ea7590c1db53058e87",
+  "resume_point": "Final index exact-payload scan/whitelist, authorized commit/push, then next Design",
+  "closeout_ref": "../../2026-09-07-controller-fusion-state-relay.md",
+  "integration_receipt_ref": "integration-EH2.6.c4.2.b.2.json",
   "report_fingerprint": {
-    "candidate_id": "sha256:b6ba30e02e09b6090f7ec1c17315cbe316ceefd1dc31544a352251c55cbcf17b",
-    "contract_id": "sha256:088d1280b7ccae54370aeb5d5fbcb648d4eea857ee8b1663e8d228a8efd06d7c",
-    "test_evidence_id": "sha256:f1a433dbec5603855a6a418a17711589361d57a963b8d9a31bc66a66a657b03a",
-    "full_run_files_ref": "batches/EH2.6.c4.2.b.1/full-result.json"
+    "candidate_id": "sha256:cc5e19ca5b6a7ab1cc40fe5b62734df3e4a50a760a8274ea7590c1db53058e87",
+    "contract_id": "sha256:1b92dbdf8d116e3812a1e27181e431a9aef39f6e0c70996a70e59dadd3a4c3e8",
+    "test_evidence_id": "sha256:8142e1f1b406947e18d5a650d61229c0576adcad07674018b79949b8fdb45d28",
+    "full_run_files_ref": "batches/EH2.6.c4.2.b.2/full-result.json"
   },
   "continuation": "CONTINUE_WITH_NEXT_FORM",
   "previous_batch": {
-    "batch_id": "EH2.6.d2.x.b.1",
-    "commit_sha": "05eb878bd0ed16e534d5a6d32a1ec8a4f1f8552a",
-    "receipt_ref": "integration-EH2.6.d2.x.b.1.json",
-    "closed_state_ref": "closed-EH2.6.d2.x.b.1.json"
+    "batch_id": "EH2.6.c4.2.b.1",
+    "commit_sha": "a37562a774ea72281950102416c0b71f3a00e6fa",
+    "receipt_ref": "integration-EH2.6.c4.2.b.1.json",
+    "closed_state_ref": "closed-EH2.6.c4.2.b.1.json"
   },
-  "candidate_ref": "batches/EH2.6.c4.2.b.1/candidate.json",
-  "review_gate": {
-    "depth": "deep",
-    "basis": [
-      "shared source temporal authority extended to fusion",
-      "behavior-affecting contract and successor layers",
-      "manual source/test diff exceeds500 lines",
-      "final candidate mandatory review"
-    ],
-    "code_changes_during_review": "prohibited"
+  "optional_coordination_notice": {
+    "status": "BLOCKED_PERMISSION",
+    "message_sent": false,
+    "reason": "Last cross-task commit/time notice rejected by auto-review for destination/data authorization; user clarification requested asynchronously. Earlier full-test completion notice was sent successfully.",
+    "effect_on_local_work": "none",
+    "retry": "do not retry without user approval or verified authority",
+    "additional_notice": {
+      "destination_thread_id": "01a07a34-4d6d-7a82-b355-822b0c8e941d",
+      "status": "BLOCKED_PERMISSION",
+      "message_sent": false,
+      "reason": "Auto-review rejected policy/GCP summary transfer because destination sharing authority was not confirmed; user approval asked in commentary. No retry.",
+      "effect_on_local_work": "none; independent Controller implementation and required validation continue"
+    }
+  },
+  "gcp_coordination": {
+    "user_authorization": "Assign migration to existing measurement task; continue Controller development here",
+    "request_delivered": true,
+    "recipient_acknowledgement": true,
+    "vm_actions_in_this_task": false,
+    "status": "Measurement owner reports old CPU partial run preserved/stopped, device-derived snapshot prepared and CUDA environment available; asset transfer/model CUDA smoke/full receipt not yet confirmed complete. No VM or model actions in this Controller task.",
+    "execution_source_ref": "../../2026-09-07-mini131-retrieval-comparison.md",
+    "report_origin": "separate measurement task, not independently reproduced here"
+  },
+  "dispatch": {
+    "directive_id": "first-fuse-state-directive-1",
+    "delivered": true,
+    "accepted": true,
+    "recorded_at": "2026-09-07T06:34:17Z"
+  },
+  "validation_checkpoint": {
+    "focused": {
+      "tests": 25,
+      "seconds": 779.422,
+      "exit_code": 0,
+      "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-state-focused-1.log",
+      "source": "native redirected output, process exit reported by Coder; no separately persisted start manifest"
+    },
+    "adjacent": {
+      "tests": 202,
+      "seconds": 230.049,
+      "exit_code": 0,
+      "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-state-adjacent-1.log",
+      "source": "native redirected output and start/end owned manifests, process exit reported by Coder"
+    },
+    "candidate_ref": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-state-candidate.json",
+    "full_started_at": "2026-09-07T07:44:12.265Z",
+    "isolated_started_at": "2026-09-07T07:44:15.209Z",
+    "final_result": "PASS; pending fresh independent candidate review"
+  },
+  "candidate_ref": "batches/EH2.6.c4.2.b.2/candidate.json",
+  "review_dispatch": {
+    "delivered": true,
+    "recorded_at": "2026-09-07T08:14:54.028Z",
+    "candidate_frozen": true
+  },
+  "publication_gate": {
+    "automated_status": "FAIL",
+    "exit_code": 1,
+    "diagnostic_ref": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-state-publication-audit.json",
+    "supplemental_directive_ref": "messages/EH2.6.c4.2.b.2/004-first-fuse-state-publication-directive-1.json",
+    "review_message_id": "first-fuse-state-publication-review-1",
+    "reviewer": {
+      "agent_id": "/root/first_fuse_state_publication_critic",
+      "model": "gpt-6-astra",
+      "effort": "inherited; no override"
+    },
+    "status": "CLEARED_BY_SPECIFIC_POLICY_REVIEW",
+    "final_selected_payload_scan_required": true
   }
 }

@@ -1,0 +1,57 @@
+{
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.c4.2.b.1",
+  "phase": "CLOSED",
+  "lifecycle_substage": "reentry",
+  "roles": {
+    "design": {
+      "agent_id": "/root/lexical_design",
+      "model": "gpt-6-astra",
+      "effort": "inherited; no override"
+    },
+    "coder": {
+      "agent_id": "/root/lexical_coder",
+      "model": "gpt-5.6-sol",
+      "effort": "ultra"
+    },
+    "critic": {
+      "agent_id": "/root/first_fuse_critic_1",
+      "model": "gpt-6-astra",
+      "effort": "inherited; no override"
+    }
+  },
+  "active_directive_id": "first-fuse-directive-1",
+  "candidate_id": "sha256:b6ba30e02e09b6090f7ec1c17315cbe316ceefd1dc31544a352251c55cbcf17b",
+  "contract_id": "sha256:088d1280b7ccae54370aeb5d5fbcb648d4eea857ee8b1663e8d228a8efd06d7c",
+  "test_evidence_id": "sha256:f1a433dbec5603855a6a418a17711589361d57a963b8d9a31bc66a66a657b03a",
+  "review_message_id": "first-fuse-review-1",
+  "waiting_for": null,
+  "last_pass_candidate_id": "sha256:b6ba30e02e09b6090f7ec1c17315cbe316ceefd1dc31544a352251c55cbcf17b",
+  "resume_point": "current batch integrated; dispatch next target/current Design selection",
+  "closeout_ref": "../../2026-09-07-controller-first-fusion-transition-relay.md",
+  "integration_receipt_ref": "integration-EH2.6.c4.2.b.1.json",
+  "report_fingerprint": {
+    "candidate_id": "sha256:b6ba30e02e09b6090f7ec1c17315cbe316ceefd1dc31544a352251c55cbcf17b",
+    "contract_id": "sha256:088d1280b7ccae54370aeb5d5fbcb648d4eea857ee8b1663e8d228a8efd06d7c",
+    "test_evidence_id": "sha256:f1a433dbec5603855a6a418a17711589361d57a963b8d9a31bc66a66a657b03a",
+    "full_run_files_ref": "batches/EH2.6.c4.2.b.1/full-result.json"
+  },
+  "continuation": "CONTINUE_WITH_NEXT_FORM",
+  "previous_batch": {
+    "batch_id": "EH2.6.d2.x.b.1",
+    "commit_sha": "05eb878bd0ed16e534d5a6d32a1ec8a4f1f8552a",
+    "receipt_ref": "integration-EH2.6.d2.x.b.1.json",
+    "closed_state_ref": "closed-EH2.6.d2.x.b.1.json"
+  },
+  "candidate_ref": "batches/EH2.6.c4.2.b.1/candidate.json",
+  "review_gate": {
+    "depth": "deep",
+    "basis": [
+      "shared source temporal authority extended to fusion",
+      "behavior-affecting contract and successor layers",
+      "manual source/test diff exceeds500 lines",
+      "final candidate mandatory review"
+    ],
+    "code_changes_during_review": "prohibited"
+  }
+}

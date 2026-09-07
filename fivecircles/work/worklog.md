@@ -171,3 +171,9 @@
   - Result: 첫 fuse/effect/전이3, 집중12(747.497초)·관련185(289.662초)·격리197(846.583초)·전체1577(1079.654초) PASS, 실패/오류/skip0, exit0. 후보b6ba30e0·계약088d1280 결속.
   - Boundary: semantic/reducer/terminal 및 public start/step/run 제외. local baseline/corpus/gold/index/runtime 불변.
   - Closeout: 2026-09-07-controller-first-fusion-transition-relay.md. 로그올·선택 통합 후 다음 Design.
+
+- [2026-09-07 17:21] Stage=Implementation/Test/Review/Logall (Cycle23 / EH2.6.c4.2.b.2)
+  - Method: Astra Design → Sol Ultra → 고정 후보 전체/격리 병렬 검사 → fresh Astra deep.
+  - Result: 첫 effect-bound state 연결; 집중25(779.422초)·관련202(230.049초)·격리227(944.217초)·전체1611(1161.717초) PASS, 실패/오류/skip0, exit0. 후보cc5e19ca·계약1b92dbdf·증거8142e1f1.
+  - Boundary: candidate/잠정 결측까지만; ordinal4/context/verify/terminal/생성 E2E 제외.
+  - Closeout: 2026-09-07-controller-fusion-state-relay.md. 선택 통합 뒤 다음 Design 실제 dispatch.
