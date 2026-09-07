@@ -112,7 +112,7 @@ def load_golden_set_v3(
         )
 
     if corpus_doc_ids is None:
-        from .merge_text import load_merged
+        from ..data_processing.merge_text import load_merged
 
         df = load_merged()
         if df is None:
