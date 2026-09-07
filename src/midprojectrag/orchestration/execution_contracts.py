@@ -3082,7 +3082,7 @@ def _build_harness_execution_authority_accessors(
             raise ValueError("harness_execution_successor_issuer_required")
         before_authority = require(before)
         if (
-            before.step_index not in {0, 1}
+            before.step_index not in {0, 1, 2}
             or (before_authority[8] is None) != (before.step_index == 0)
             or ledger.revision != before.step_index + 1
             or ledger.previous_ledger_sha256 != before.ledger.ledger_sha256
@@ -3415,6 +3415,10 @@ def _build_harness_execution_public_api(
             )
         elif execution.step_index == 2:
             _require_controller_lexical_transition(
+                execution=execution, store=store, config=config, runtime=runtime
+            )
+        elif execution.step_index == 3:
+            _require_controller_first_fusion_transition(
                 execution=execution, store=store, config=config, runtime=runtime
             )
         elif execution.step_index != 0:
@@ -8908,6 +8912,7 @@ def _mint_fusion_receipt(
     outcome: str,
     result_sha256: str,
     execution_permit: _FusionClosurePermit,
+    source_attempt: object,
 ) -> FusionReceipt:
     base = {
         "stage": "fusion",
@@ -8986,6 +8991,10 @@ def _mint_fusion_receipt(
             execution_permit=execution_permit,
             issued_payload_sha256=_canonical_sha256(receipt.to_dict()),
         ),
+    )
+    _record_controller_source_attempt(
+        permit=source_attempt,
+        receipt=receipt,
     )
     return receipt
 
@@ -9111,6 +9120,7 @@ def execute_retrieval_fusion(
         dense_receipt=dense_receipt,
         lexical_receipt=lexical_receipt,
     )
+    source_attempt = _begin_controller_source_attempt()
     try:
         raw_result = _require_harness_runtime_authority(runtime).fusion_method(
             dense_authority.result,
@@ -9135,32 +9145,43 @@ def execute_retrieval_fusion(
             rrf_k=config.rrf_k,
         )
     except Exception:
-        _fail_fusion_execution(claim)
+        try:
+            _fail_fusion_execution(claim)
+        finally:
+            _discard_controller_source_attempt(permit=source_attempt)
         raise ValueError("fusion_contract_error") from None
+    except BaseException:
+        _discard_controller_source_attempt(permit=source_attempt)
+        raise
     outcome = "applied" if evidence_ids else "empty"
-    permit = _close_fusion_execution(
-        claim,
-        outcome=outcome,
-        result_sha256=result_sha256,
-    )
-    return _mint_fusion_receipt(
-        obligation=obligation,
-        dense_receipt=dense_receipt,
-        lexical_receipt=lexical_receipt,
-        store=store,
-        config=config,
-        runtime=runtime,
-        result=raw_result,
-        evidence_ids=evidence_ids,
-        anchors=anchors,
-        dense_only=dense_only,
-        lexical_only=lexical_only,
-        both=both,
-        distinct_doc_count=distinct_doc_count,
-        outcome=outcome,
-        result_sha256=result_sha256,
-        execution_permit=permit,
-    )
+    try:
+        permit = _close_fusion_execution(
+            claim,
+            outcome=outcome,
+            result_sha256=result_sha256,
+        )
+        return _mint_fusion_receipt(
+            obligation=obligation,
+            dense_receipt=dense_receipt,
+            lexical_receipt=lexical_receipt,
+            store=store,
+            config=config,
+            runtime=runtime,
+            result=raw_result,
+            evidence_ids=evidence_ids,
+            anchors=anchors,
+            dense_only=dense_only,
+            lexical_only=lexical_only,
+            both=both,
+            distinct_doc_count=distinct_doc_count,
+            outcome=outcome,
+            result_sha256=result_sha256,
+            execution_permit=permit,
+            source_attempt=source_attempt,
+        )
+    except BaseException:
+        _discard_controller_source_attempt(permit=source_attempt)
+        raise
 
 
 def validate_fusion_receipt(
@@ -16890,8 +16911,10 @@ class _ControllerSourceAttemptPermit:
         raise TypeError("controller_source_attempt_factory_required")
 
 
-def _build_controller_source_attempt_registry(*, permit_cls: type):
-    """Linearize lane dispatch start and controller claim under one lock."""
+def _build_controller_source_attempt_registry(
+    *, permit_cls: type, lane_receipt_cls: type, fusion_receipt_cls: type
+):
+    """Linearize admitted source dispatch starts and controller claims."""
 
     issuance_lock = Lock()
     get_frame = _GET_FRAME
@@ -16903,9 +16926,26 @@ def _build_controller_source_attempt_registry(*, permit_cls: type):
     # pins authenticate closure-cell identities, so rebinding a nonlocal int
     # after dispatch would otherwise look indistinguishable from tampering.
     epoch_state = {"current": 0, "shadow": 0}
-    begin_code: CodeType | None = None
-    record_code: CodeType | None = None
+    begin_codes: tuple[tuple[CodeType, str], ...] | None = None
+    record_codes: tuple[tuple[CodeType, str], ...] | None = None
     claim_code: CodeType | None = None
+    source_kinds = frozenset({"lane_search", "fusion"})
+
+    def source_kind_for_code(
+        code: object,
+        admitted: tuple[tuple[CodeType, str], ...] | None,
+        error: str,
+    ) -> str:
+        if type(admitted) is not tuple:
+            raise ValueError(error)
+        matches = tuple(
+            source_kind
+            for issued_code, source_kind in admitted
+            if code is issued_code
+        )
+        if len(matches) != 1 or tuple.__getitem__(matches, 0) not in source_kinds:
+            raise ValueError(error)
+        return tuple.__getitem__(matches, 0)
 
     def prune_unlocked() -> None:
         for visible, shadow in (
@@ -16919,11 +16959,13 @@ def _build_controller_source_attempt_registry(*, permit_cls: type):
                 if (
                     type(identity) is not int
                     or type(current) is not tuple
-                    or len(current) != 2
+                    or len(current) != 3
                     or sealed is not current
                     or type(tuple.__getitem__(current, 0))
                     is not ReferenceType
                     or type(tuple.__getitem__(current, 1)) is not int
+                    or type(tuple.__getitem__(current, 2)) is not str
+                    or tuple.__getitem__(current, 2) not in source_kinds
                 ):
                     raise ValueError("controller_source_attempt_registry_drift")
                 if tuple.__getitem__(current, 0)() is None:
@@ -16932,11 +16974,13 @@ def _build_controller_source_attempt_registry(*, permit_cls: type):
 
     def begin() -> object:
         caller = get_frame(1)
-        if (
-            object.__getattribute__(caller, "f_code") is not begin_code
-            or object.__getattribute__(caller, "f_globals") is not globals()
-        ):
+        if object.__getattribute__(caller, "f_globals") is not globals():
             raise ValueError("controller_source_attempt_begin_authority_required")
+        source_kind = source_kind_for_code(
+            object.__getattribute__(caller, "f_code"),
+            begin_codes,
+            "controller_source_attempt_begin_authority_required",
+        )
         with issuance_lock:
             prune_unlocked()
             current_epoch = dict.get(epoch_state, "current")
@@ -16954,20 +16998,27 @@ def _build_controller_source_attempt_registry(*, permit_cls: type):
             permit = object.__new__(permit_cls)
             identity = id(permit)
             permit_weak = ref(permit)
-            attempt = (permit_weak, next_epoch)
+            attempt = (permit_weak, next_epoch, source_kind)
             dict.__setitem__(attempts, identity, attempt)
             dict.__setitem__(attempts_shadow, identity, attempt)
             return permit
 
-    def record(*, permit: object, receipt: LaneSearchReceipt) -> None:
+    def record(*, permit: object, receipt: object) -> None:
         caller = get_frame(1)
-        if (
-            object.__getattribute__(caller, "f_code") is not record_code
-            or object.__getattribute__(caller, "f_globals") is not globals()
-        ):
+        if object.__getattribute__(caller, "f_globals") is not globals():
             raise ValueError("controller_source_attempt_record_authority_required")
-        if type(receipt) is not LaneSearchReceipt:
-            raise TypeError("lane_search_receipt_required")
+        source_kind = source_kind_for_code(
+            object.__getattribute__(caller, "f_code"),
+            record_codes,
+            "controller_source_attempt_record_authority_required",
+        )
+        expected_receipt_cls = (
+            lane_receipt_cls
+            if source_kind == "lane_search"
+            else fusion_receipt_cls
+        )
+        if type(receipt) is not expected_receipt_cls:
+            raise TypeError("controller_source_attempt_receipt_kind_mismatch")
         with issuance_lock:
             prune_unlocked()
             permit_identity = id(permit)
@@ -16976,10 +17027,11 @@ def _build_controller_source_attempt_registry(*, permit_cls: type):
             if (
                 type(permit) is not permit_cls
                 or type(current_attempt) is not tuple
-                or len(current_attempt) != 2
+                or len(current_attempt) != 3
                 or sealed_attempt is not current_attempt
                 or tuple.__getitem__(current_attempt, 0)() is not permit
                 or type(tuple.__getitem__(current_attempt, 1)) is not int
+                or tuple.__getitem__(current_attempt, 2) != source_kind
             ):
                 raise ValueError("controller_source_attempt_permit_required")
             started_epoch = tuple.__getitem__(current_attempt, 1)
@@ -16990,7 +17042,7 @@ def _build_controller_source_attempt_registry(*, permit_cls: type):
             ):
                 raise ValueError("controller_source_attempt_receipt_reuse")
             receipt_weak = ref(receipt)
-            entry = (receipt_weak, started_epoch)
+            entry = (receipt_weak, started_epoch, source_kind)
             dict.pop(attempts, permit_identity, None)
             dict.pop(attempts_shadow, permit_identity, None)
             dict.__setitem__(receipts, identity, entry)
@@ -16998,13 +17050,15 @@ def _build_controller_source_attempt_registry(*, permit_cls: type):
 
     def discard(*, permit: object) -> None:
         caller = get_frame(1)
-        if (
-            object.__getattribute__(caller, "f_code") is not begin_code
-            or object.__getattribute__(caller, "f_globals") is not globals()
-        ):
+        if object.__getattribute__(caller, "f_globals") is not globals():
             raise ValueError(
                 "controller_source_attempt_discard_authority_required"
             )
+        source_kind = source_kind_for_code(
+            object.__getattribute__(caller, "f_code"),
+            begin_codes,
+            "controller_source_attempt_discard_authority_required",
+        )
         with issuance_lock:
             prune_unlocked()
             identity = id(permit)
@@ -17013,25 +17067,34 @@ def _build_controller_source_attempt_registry(*, permit_cls: type):
             if (
                 type(permit) is not permit_cls
                 or type(current) is not tuple
-                or len(current) != 2
+                or len(current) != 3
                 or sealed is not current
                 or tuple.__getitem__(current, 0)() is not permit
+                or tuple.__getitem__(current, 2) != source_kind
             ):
                 raise ValueError("controller_source_attempt_permit_required")
             dict.pop(attempts, identity, None)
             dict.pop(attempts_shadow, identity, None)
 
     def receipt_epoch(receipt: object) -> int:
+        expected_source_kind = (
+            "lane_search"
+            if type(receipt) is lane_receipt_cls
+            else "fusion"
+            if type(receipt) is fusion_receipt_cls
+            else None
+        )
         with issuance_lock:
             prune_unlocked()
             current = dict.get(receipts, id(receipt))
             sealed = dict.get(receipts_shadow, id(receipt))
             if (
                 type(current) is not tuple
-                or len(current) != 2
+                or len(current) != 3
                 or sealed is not current
                 or tuple.__getitem__(current, 0)() is not receipt
                 or type(tuple.__getitem__(current, 1)) is not int
+                or tuple.__getitem__(current, 2) != expected_source_kind
             ):
                 raise ValueError("controller_source_attempt_authority_required")
             return tuple.__getitem__(current, 1)
@@ -17059,22 +17122,32 @@ def _build_controller_source_attempt_registry(*, permit_cls: type):
 
     def seal(
         *,
-        issued_begin_code: CodeType,
-        issued_record_code: CodeType,
+        issued_lane_begin_code: CodeType,
+        issued_fusion_begin_code: CodeType,
+        issued_lane_record_code: CodeType,
+        issued_fusion_record_code: CodeType,
         issued_claim_code: CodeType,
     ) -> None:
-        nonlocal begin_code, record_code, claim_code
+        nonlocal begin_codes, record_codes, claim_code
         if (
-            type(issued_begin_code) is not CodeType
-            or type(issued_record_code) is not CodeType
+            type(issued_lane_begin_code) is not CodeType
+            or type(issued_fusion_begin_code) is not CodeType
+            or type(issued_lane_record_code) is not CodeType
+            or type(issued_fusion_record_code) is not CodeType
             or type(issued_claim_code) is not CodeType
-            or begin_code is not None
-            or record_code is not None
+            or begin_codes is not None
+            or record_codes is not None
             or claim_code is not None
         ):
             raise ValueError("controller_source_attempt_seal_forbidden")
-        begin_code = issued_begin_code
-        record_code = issued_record_code
+        begin_codes = (
+            (issued_lane_begin_code, "lane_search"),
+            (issued_fusion_begin_code, "fusion"),
+        )
+        record_codes = (
+            (issued_lane_record_code, "lane_search"),
+            (issued_fusion_record_code, "fusion"),
+        )
         claim_code = issued_claim_code
 
     return (
@@ -17098,6 +17171,8 @@ def _build_controller_source_attempt_registry(*, permit_cls: type):
     _seal_controller_source_attempt_registry,
 ) = _build_controller_source_attempt_registry(
     permit_cls=_ControllerSourceAttemptPermit,
+    lane_receipt_cls=LaneSearchReceipt,
+    fusion_receipt_cls=FusionReceipt,
 )
 del _build_controller_source_attempt_registry
 
@@ -17146,6 +17221,7 @@ def _build_controller_step_history_accessors(
     action_cls: type,
     projection_cls: type,
     lane_receipt_cls: type,
+    fusion_receipt_cls: type,
     store_cls: type,
     config_cls: type,
     runtime_cls: type,
@@ -17564,7 +17640,10 @@ def _build_controller_step_history_accessors(
             and object.__getattribute__(selected_action, "kind")
             in {"stop", "abstain"}
         )
-        if not is_terminal_decision and type(source_receipt) is not lane_receipt_cls:
+        if not is_terminal_decision and type(source_receipt) not in {
+            lane_receipt_cls,
+            fusion_receipt_cls,
+        }:
             raise ValueError("controller_step_source_receipt_not_ready")
         if not is_terminal_decision:
             try:
@@ -18159,6 +18238,7 @@ def _build_controller_step_history_accessors(
     action_cls=ControllerAction,
     projection_cls=_ControllerSourceOutcomeProjection,
     lane_receipt_cls=LaneSearchReceipt,
+    fusion_receipt_cls=FusionReceipt,
     store_cls=EvidenceStore,
     config_cls=HarnessExecutionConfig,
     runtime_cls=HarnessRuntimeBinding,
@@ -18175,11 +18255,17 @@ def _build_controller_step_history_accessors(
 )
 del _build_controller_step_history_accessors
 _seal_controller_source_attempt_registry(
-    issued_begin_code=object.__getattribute__(
+    issued_lane_begin_code=object.__getattribute__(
         execute_retrieval_lane, "__code__"
     ),
-    issued_record_code=object.__getattribute__(
+    issued_fusion_begin_code=object.__getattribute__(
+        execute_retrieval_fusion, "__code__"
+    ),
+    issued_lane_record_code=object.__getattribute__(
         _mint_lane_search_receipt, "__code__"
+    ),
+    issued_fusion_record_code=object.__getattribute__(
+        _mint_fusion_receipt, "__code__"
     ),
     issued_claim_code=object.__getattribute__(
         _claim_controller_step, "__code__"
@@ -19428,14 +19514,14 @@ class HarnessTransitionReceipt:
     def _validate_payload(self) -> None:
         if (
             self.stage != "harness_transition" or type(self.step_index) is not int
-            or self.step_index not in {1, 2}
+            or self.step_index not in {1, 2, 3}
             or (self.step_index == 1 and self.previous_transition_sha256 is not None)
             or self.operational_progress is not True
             or self.before_state_sha256 != self.after_state_sha256
             or self.before_progress_sha256 != self.after_progress_sha256
         ):
             raise ValueError("invalid_initial_harness_transition")
-        if self.step_index == 2:
+        if self.step_index in {2, 3}:
             _require_hash(self.previous_transition_sha256, "invalid_previous_harness_transition")
         for name in self.__dataclass_fields__:
             if name.endswith("sha256") and name != "previous_transition_sha256":
@@ -19460,8 +19546,11 @@ def _build_initial_controller_transition_accessors(
     source_preparer: FunctionType, source_binder: FunctionType,
     bridge_issuer: FunctionType, lane_executor: FunctionType,
     lane_authority_reader: FunctionType, obligation_validator: FunctionType,
+    fusion_executor: FunctionType, fusion_inputs_validator: FunctionType,
+    fusion_pristine_reader: FunctionType,
+    obligation_authority_reader: FunctionType,
 ):
-    """Preserve one root's first two lane effects and their exact source lineage."""
+    """Preserve one root's first two lanes and first fusion lineage."""
 
     transition_lock = Lock()
     records: dict[tuple[object, ...], tuple[object, ...]] = {}
@@ -19574,16 +19663,33 @@ def _build_initial_controller_transition_accessors(
         bridge_reader(bridge=bridge, store=store, config=config, runtime=runtime)
         claim = bridge.claim
         before, decision, action = claim.execution, claim.decision, claim.selected_action
-        expected_lane = "dense" if before.step_index == 0 else "lexical"
+        expected_lane = (
+            "dense"
+            if before.step_index == 0
+            else "lexical"
+            if before.step_index == 1
+            else None
+        )
+        expected_action_kind = (
+            "fuse" if expected_lane is None else f"retrieve_{expected_lane}"
+        )
+        expected_receipt_kind = (
+            "fusion" if expected_lane is None else "lane_search"
+        )
+        allowed_outcomes = (
+            {"applied", "empty"}
+            if expected_lane is None
+            else {"applied", "empty", "provider_error", "contract_error"}
+        )
         if (
-            before.step_index not in {0, 1} or before.source_kind not in {"fact", "compare"}
-            or action.kind != f"retrieve_{expected_lane}" or action is not decision.selected_action
+            before.step_index not in {0, 1, 2} or before.source_kind not in {"fact", "compare"}
+            or action.kind != expected_action_kind or action is not decision.selected_action
             or action.obligation_key != before.ledger.obligation_keys[0]
-            or bridge.source_receipt_kind != "lane_search"
-            or bridge.outcome not in {"applied", "empty", "provider_error", "contract_error"}
+            or bridge.source_receipt_kind != expected_receipt_kind
+            or bridge.outcome not in allowed_outcomes
             or bridge.target_context is not None
         ):
-            raise ValueError("controller_bounded_lane_step_required")
+            raise ValueError("controller_bounded_transition_step_required")
         key = claim.step_key
         with transition_lock:
             prune_unlocked()
@@ -19622,9 +19728,26 @@ def _build_initial_controller_transition_accessors(
             next_revision = before.step_index + 1
             object.__setattr__(ledger, "revision", next_revision)
             object.__setattr__(ledger, "previous_ledger_sha256", before.ledger.ledger_sha256)
-            object.__setattr__(ledger, "round_indexes", (1,) + before.ledger.round_indexes[1:])
+            object.__setattr__(
+                ledger,
+                "round_indexes",
+                (
+                    before.ledger.round_indexes
+                    if expected_lane is None
+                    else (1,) + before.ledger.round_indexes[1:]
+                ),
+            )
             object.__setattr__(ledger, "consumed_action_sha256s", before.ledger.consumed_action_sha256s + (action.action_sha256,))
-            object.__setattr__(ledger, "consumed_lane_keys", before.ledger.consumed_lane_keys + ((action.obligation_key, 1, expected_lane),))
+            object.__setattr__(
+                ledger,
+                "consumed_lane_keys",
+                (
+                    before.ledger.consumed_lane_keys
+                    if expected_lane is None
+                    else before.ledger.consumed_lane_keys
+                    + ((action.obligation_key, 1, expected_lane),)
+                ),
+            )
             object.__setattr__(ledger, "nonterminal_action_count", before.ledger.nonterminal_action_count + 1)
             object.__setattr__(ledger, "ledger_sha256", canonical_sha256(ledger._payload()))
             ledger._validate_payload()
@@ -19711,6 +19834,18 @@ def _build_initial_controller_transition_accessors(
         )
         return record[1], record[2]
 
+    def require_controller_first_fusion_transition(
+        *, execution, store, config, runtime
+    ):
+        record = require_successor_record(
+            execution=execution,
+            store=store,
+            config=config,
+            runtime=runtime,
+            revision=3,
+        )
+        return record[1], record[2]
+
     def execute_controller_lexical_step(*, execution, decision, store, config, runtime):
         validate_dependencies()
         execution_validator(execution=execution, store=store, config=config, runtime=runtime)
@@ -19749,6 +19884,158 @@ def _build_initial_controller_transition_accessors(
                 pass
             raise
 
+    def execute_controller_first_fusion_step(
+        *, execution, decision, store, config, runtime
+    ):
+        validate_dependencies()
+        execution_validator(
+            execution=execution,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+        decision_validator(
+            receipt=decision,
+            execution=execution,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+        if (
+            execution.step_index != 2
+            or execution.ledger.revision != 2
+            or execution.ledger.nonterminal_action_count != 2
+            or decision.decision_ordinal != 3
+            or decision.selected_action.kind != "fuse"
+            or decision.selected_action.obligation_key
+            != execution.ledger.obligation_keys[0]
+            or execution.ledger.nonterminal_action_count
+            >= config.max_nonterminal_actions
+        ):
+            raise ValueError("controller_first_fusion_step_permit_required")
+
+        lexical_record = require_successor_record(
+            execution=execution,
+            store=store,
+            config=config,
+            runtime=runtime,
+            revision=2,
+        )
+        execution_authority = execution_authority_reader(execution)
+        predecessor = execution_authority[11]
+        dense_record = require_successor_record(
+            execution=predecessor,
+            store=store,
+            config=config,
+            runtime=runtime,
+            revision=1,
+        )
+        dense_receipt = dense_record[0].projection.source_receipt
+        lexical_receipt = lexical_record[0].projection.source_receipt
+        dense_authority = lane_authority_reader(dense_receipt)
+        lexical_authority = lane_authority_reader(lexical_receipt)
+        obligation = object.__getattribute__(dense_authority, "obligation")
+        obligation_validator(
+            obligation=obligation,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+        fusion_inputs_validator(
+            obligation=obligation,
+            dense_receipt=dense_receipt,
+            lexical_receipt=lexical_receipt,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+        obligation_authority = obligation_authority_reader(obligation)
+        obligation_key = execution.ledger.obligation_keys[0]
+        if (
+            predecessor is not execution_authority[11]
+            or execution_authority[12]
+            is not execution_authority_reader(predecessor)[12]
+            or dense_record[1].action_kind != "retrieve_dense"
+            or lexical_record[1].action_kind != "retrieve_lexical"
+            or dense_record[1].outcome not in {"applied", "empty"}
+            or lexical_record[1].outcome not in {"applied", "empty"}
+            or dense_record[0].source_receipt_kind != "lane_search"
+            or lexical_record[0].source_receipt_kind != "lane_search"
+            or object.__getattribute__(lexical_authority, "obligation")
+            is not obligation
+            or obligation.obligation_key != obligation_key
+            or obligation.round_index != 1
+            or execution.ledger.consumed_action_sha256s
+            != (
+                dense_record[1].action_sha256,
+                lexical_record[1].action_sha256,
+            )
+            or execution.ledger.consumed_lane_keys
+            != (
+                (obligation_key, 1, "dense"),
+                (obligation_key, 1, "lexical"),
+            )
+            or execution.ledger.round_indexes
+            != (1,) + (0,) * (len(execution.ledger.obligation_keys) - 1)
+            or execution.ledger.unavailable_action_sha256s
+            or any(execution.ledger.no_progress_streaks)
+            or not fusion_pristine_reader(
+                object.__getattribute__(obligation_authority, "ledger")
+            )
+        ):
+            raise ValueError("controller_first_fusion_step_source_required")
+
+        claim = claim_issuer(
+            execution=execution,
+            decision=decision,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+        try:
+            receipt = fusion_executor(
+                obligation=obligation,
+                dense_receipt=dense_receipt,
+                lexical_receipt=lexical_receipt,
+                store=store,
+                config=config,
+                runtime=runtime,
+            )
+            projection = source_preparer(
+                claim=claim,
+                source_receipt=receipt,
+                store=store,
+                config=config,
+                runtime=runtime,
+            )
+            source_binder(
+                claim=claim,
+                projection=projection,
+                store=store,
+                config=config,
+                runtime=runtime,
+            )
+            bridge = bridge_issuer(
+                claim=claim,
+                projection=projection,
+                target_context=None,
+                store=store,
+                config=config,
+                runtime=runtime,
+            )
+            return advance_lane_step(
+                bridge=bridge,
+                store=store,
+                config=config,
+                runtime=runtime,
+            )
+        except BaseException:
+            try:
+                step_failure(claim=claim)
+            except (TypeError, ValueError):
+                pass
+            raise
+
     helper_pins: tuple[tuple[object, ...], ...] | None = None
 
     def validate_dependencies() -> None:
@@ -19779,12 +20066,15 @@ def _build_initial_controller_transition_accessors(
                 advance_lane_step, require_successor_record,
                 require_controller_initial_transition,
                 require_controller_lexical_transition, execute_controller_lexical_step,
+                require_controller_first_fusion_transition,
+                execute_controller_first_fusion_step,
                 bridge_reader, projection_reader, execution_validator,
                 execution_authority_reader, successor_issuer, effect_binder,
                 step_completer, step_failure, status_reader, effect_validator,
                 canonical_sha256, decision_validator, claim_issuer, source_preparer,
                 source_binder, bridge_issuer, lane_executor, lane_authority_reader,
-                obligation_validator,
+                obligation_validator, fusion_executor, fusion_inputs_validator,
+                fusion_pristine_reader, obligation_authority_reader,
             )
         )
 
@@ -19793,6 +20083,8 @@ def _build_initial_controller_transition_accessors(
         require_controller_initial_transition,
         execute_controller_lexical_step,
         require_controller_lexical_transition,
+        execute_controller_first_fusion_step,
+        require_controller_first_fusion_transition,
         require_effect,
         require_transition,
         validate_dependencies,
@@ -19806,6 +20098,8 @@ def _build_initial_controller_transition_accessors(
     _require_controller_initial_transition,
     _execute_controller_lexical_step,
     _require_controller_lexical_transition,
+    _execute_controller_first_fusion_step,
+    _require_controller_first_fusion_transition,
     _initial_controller_effect_authority_reader,
     _initial_controller_transition_authority_reader,
     _validate_controller_initial_transition_dependencies,
@@ -19835,6 +20129,10 @@ def _build_initial_controller_transition_accessors(
     lane_executor=execute_retrieval_lane,
     lane_authority_reader=_read_lane_search_receipt_authority,
     obligation_validator=validate_retrieval_obligation,
+    fusion_executor=execute_retrieval_fusion,
+    fusion_inputs_validator=_validate_fusion_inputs,
+    fusion_pristine_reader=_fusion_execution_pristine,
+    obligation_authority_reader=_require_retrieval_obligation_authority,
 )
 _seal_harness_execution_successor_issuer(_controller_lane_successor_issuer_code)
 _seal_controller_step_completion_authorities(
@@ -20597,6 +20895,14 @@ _RUNTIME_GATE_FUNCTION_PINS = tuple(
         ("_require_controller_initial_transition", _require_controller_initial_transition),
         ("_execute_controller_lexical_step", _execute_controller_lexical_step),
         ("_require_controller_lexical_transition", _require_controller_lexical_transition),
+        (
+            "_execute_controller_first_fusion_step",
+            _execute_controller_first_fusion_step,
+        ),
+        (
+            "_require_controller_first_fusion_transition",
+            _require_controller_first_fusion_transition,
+        ),
         ("_initial_controller_effect_authority_reader", _initial_controller_effect_authority_reader),
         ("_initial_controller_transition_authority_reader", _initial_controller_transition_authority_reader),
         ("_validate_controller_initial_transition_dependencies", _validate_controller_initial_transition_dependencies),

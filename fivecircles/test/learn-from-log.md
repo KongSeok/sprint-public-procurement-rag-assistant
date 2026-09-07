@@ -466,3 +466,11 @@ Reference:
 - 내용 동일성이 확인된 경우에도 Design의 완전한 갱신 DIRECTIVE를 남긴다. hash guard를 생략하지 않는다.
 - 의도된 새 행동 TDD RED와 기존 기능 회귀를 구분하고 최종 후보·원시 테스트·fresh REVIEW를 결속한다.
 - refs: errorlogs/backend/2026-09-07-collaboration-contract-eof.md, 2026-09-07-controller-post-lexical-red.md.
+
+### 구조화 근거의 실제 필드와 검증 증거 구분 (2026-09-07)
+
+- StableEvidenceAnchor의 실제 필드를 확인한다. 존재하지 않는 evidence_id를 테스트에서 가정하지 않는다. ordered ID/anchor 정합성은 기존 canonical validator로 확인한다.
+- 기대 TDD RED, 테스트 assertion 오류, 제품 회귀를 구분한다. 테스트-only 수정도 새 고정 후보의 최종 집중/인접/전체/격리 증거와 결속한다.
+- receipt 개수와 provider 호출·모델 호출은 다른 개념이다. 합성 fusion 연산을 외부 LLM 호출로 보고하지 않는다.
+- 병렬 검사는 제품/계약 snapshot 고정 후 별도 프로세스·격리 복사본으로 진행한다. 공유 호스트 wall time을 응답 지연 벤치마크로 쓰지 않는다.
+- ref: errorlogs/backend/2026-09-07-controller-first-fusion-red.md.

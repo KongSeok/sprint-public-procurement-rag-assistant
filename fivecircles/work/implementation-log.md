@@ -137,3 +137,11 @@ Per batch:
 - Verified: focused11/adjacent105/isolated132/full1545 PASS, fresh Astra APPROVE.
 - Boundary: no new provider dispatch, no semantic/terminal promotion. 다음 fuse 실행은 새 계약/검증 필요.
 - Evidence: work/collaboration/eh-relay-20260907/messages/EH2.6.d2.x.b.1/.
+
+## 2026-09-07 — EH2.6.c4.2.b.1 첫 fusion 실행
+
+- Intent: 선택된 첫 fuse를 기존 E0 RRF와 controller effect/ledger/전이에 연결한다.
+- Change: shared source epoch에 fusion kind/정확한 executor·minter 허용, pre-claim 결과 소급 결속 차단, revision3 원본 readback.
+- Verified: 집중12(747.497초)·관련185(289.662초)·격리197(846.583초)·전체1577(1079.654초) PASS, 실패/오류/skip0, exit0, fresh Astra APPROVE. source/new test만 변경, 기존 history/E0 test는 그대로 검증.
+- Boundary: action+1, lane/의미 상태 유지. empty는 부재 확정 아님, 후속 context/reducer/terminal은 별도.
+- Evidence: work/collaboration/eh-relay-20260907/messages/EH2.6.c4.2.b.1/.

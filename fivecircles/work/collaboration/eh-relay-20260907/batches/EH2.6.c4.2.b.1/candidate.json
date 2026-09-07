@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.c4.2.b.1",
+  "directive_id": "first-fuse-directive-1",
+  "contract_id": "sha256:088d1280b7ccae54370aeb5d5fbcb648d4eea857ee8b1663e8d228a8efd06d7c",
+  "repository": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
+  "branch": "feat/total-integration",
+  "base_head": "05eb878bd0ed16e534d5a6d32a1ec8a4f1f8552a",
+  "candidate_id": "sha256:b6ba30e02e09b6090f7ec1c17315cbe316ceefd1dc31544a352251c55cbcf17b",
+  "candidate_id_derivation": "SHA-256 of exact first-fuse-owned-files.sha256 bytes",
+  "files": [
+    {
+      "path": "src/midprojectrag/orchestration/execution_contracts.py",
+      "sha256": "f2a9638c4f116d1bfdf2e9d186252ef5b78034d189fda88d8de73156a4278b33"
+    },
+    {
+      "path": "tests/test_controller_first_fusion_transition.py",
+      "sha256": "222c7c84174bcda1d50b4b4e77e9875a0a3c24ec39606a4652c0fa461adc0018"
+    },
+    {
+      "path": "tests/test_controller_step_history.py",
+      "sha256": "31ae080edeb8c7e38beae8509d0c4c4562016d3bab1a52a4720f5b442f6b53a5"
+    },
+    {
+      "path": "tests/test_e0_fusion.py",
+      "sha256": "26d931d74927ca003a1a95ef58c5fefaabbf9d245ea1c130f4de4e1bb87c5dbb"
+    }
+  ],
+  "additional_review_files": [
+    {
+      "path": "src/midprojectrag/orchestration/module-contract.md",
+      "sha256": "727631b70fde93bb33ceabc49829ce675b1bc310d028b8affc29c1ab8da6fb7a"
+    },
+    {
+      "path": "fivecircles/architecture/specs/controller-first-fusion-transition.md",
+      "sha256": "088d1280b7ccae54370aeb5d5fbcb648d4eea857ee8b1663e8d228a8efd06d7c"
+    }
+  ],
+  "artifacts": {
+    "hash_manifest": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-owned-files.sha256",
+    "snapshot_tar": {
+      "path": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-owned.tar",
+      "sha256": "4b10f3a79d022bb6c8aabb50a7af6d2a28d6c3bb55a25fa5940a8bfdfed5d89a"
+    },
+    "tracked_diff": {
+      "path": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-tracked.diff",
+      "sha256": "656042b52aba7c68d43a10f8afff3e7d847c758e794528316777d01b4dcdf72d"
+    },
+    "untracked_diff": {
+      "path": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-new-test.diff",
+      "sha256": "70e3944627d870cc2de67c0c9e0066703510c5846770327727e1217d992766f0"
+    }
+  }
+}

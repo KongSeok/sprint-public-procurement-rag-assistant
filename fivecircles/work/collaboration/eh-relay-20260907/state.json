@@ -1,6 +1,6 @@
 {
   "run_id": "eh-relay-20260907",
-  "batch_id": "EH2.6.d2.x.b.1",
+  "batch_id": "EH2.6.c4.2.b.1",
   "phase": "READY_TO_INTEGRATE",
   "lifecycle_substage": "closeout",
   "roles": {
@@ -15,52 +15,42 @@
       "effort": "ultra"
     },
     "critic": {
-      "agent_id": "/root/post_lexical_critic_1",
+      "agent_id": "/root/first_fuse_critic_1",
       "model": "gpt-6-astra",
       "effort": "inherited; no override"
     }
   },
-  "active_directive_id": "post-lexical-directive-2",
-  "candidate_id": "sha256:0bf15494c562e632a378b6eeffe7e905a3d86bb5db7b246299f8060bb27364f5",
-  "contract_id": "sha256:a94c4e18105b63e71d93164ef7976c82bf0a2809adb2b06877e8691f67baa4ed",
-  "test_evidence_id": "sha256:0b905e12be93d4fea487a2ae2d5cefddd958e67f846f5225d81092d438bacaf1",
+  "active_directive_id": "first-fuse-directive-1",
+  "candidate_id": "sha256:b6ba30e02e09b6090f7ec1c17315cbe316ceefd1dc31544a352251c55cbcf17b",
+  "contract_id": "sha256:088d1280b7ccae54370aeb5d5fbcb648d4eea857ee8b1663e8d228a8efd06d7c",
+  "test_evidence_id": "sha256:f1a433dbec5603855a6a418a17711589361d57a963b8d9a31bc66a66a657b03a",
+  "review_message_id": "first-fuse-review-1",
   "waiting_for": null,
-  "last_pass_candidate_id": "sha256:0bf15494c562e632a378b6eeffe7e905a3d86bb5db7b246299f8060bb27364f5",
-  "resume_point": "final browser/safety and selective integration, then next Design",
-  "closeout_ref": "../../2026-09-07-controller-post-lexical-decision-relay.md",
-  "integration_receipt_ref": "integration-EH2.6.d2.x.b.1.json",
+  "last_pass_candidate_id": "sha256:b6ba30e02e09b6090f7ec1c17315cbe316ceefd1dc31544a352251c55cbcf17b",
+  "resume_point": "final report browser/safety and selective integration, then next Design",
+  "closeout_ref": "../../2026-09-07-controller-first-fusion-transition-relay.md",
+  "integration_receipt_ref": "integration-EH2.6.c4.2.b.1.json",
   "report_fingerprint": {
-    "candidate_id": "sha256:0bf15494c562e632a378b6eeffe7e905a3d86bb5db7b246299f8060bb27364f5",
-    "contract_id": "sha256:a94c4e18105b63e71d93164ef7976c82bf0a2809adb2b06877e8691f67baa4ed",
-    "test_evidence_id": "sha256:0b905e12be93d4fea487a2ae2d5cefddd958e67f846f5225d81092d438bacaf1",
-    "full_run_files_ref": "batches/EH2.6.d2.x.b.1/full-result.json"
+    "candidate_id": "sha256:b6ba30e02e09b6090f7ec1c17315cbe316ceefd1dc31544a352251c55cbcf17b",
+    "contract_id": "sha256:088d1280b7ccae54370aeb5d5fbcb648d4eea857ee8b1663e8d228a8efd06d7c",
+    "test_evidence_id": "sha256:f1a433dbec5603855a6a418a17711589361d57a963b8d9a31bc66a66a657b03a",
+    "full_run_files_ref": "batches/EH2.6.c4.2.b.1/full-result.json"
   },
   "continuation": "CONTINUE_WITH_NEXT_FORM",
-  "review_message_id": "post-lexical-review-1",
-  "intervening_commit": {
-    "sha": "892c9f0842f3183c544970d703de93d4b282b24a",
-    "scope": "four collaboration/relay skill documents only; product/test/contract hashes unchanged",
-    "effect": "risk trigger/depth split and default collaboration; current deep review and single-main closeout already satisfy both versions"
-  },
   "previous_batch": {
-    "batch_id": "EH2.6.c4.2.a",
-    "commit_sha": "57df8e428ac4df5b6096451874f39b68fa28f49a",
-    "receipt_ref": "integration-EH2.6.c4.2.a.json",
-    "closed_state_ref": "closed-EH2.6.c4.2.a.json"
+    "batch_id": "EH2.6.d2.x.b.1",
+    "commit_sha": "05eb878bd0ed16e534d5a6d32a1ec8a4f1f8552a",
+    "receipt_ref": "integration-EH2.6.d2.x.b.1.json",
+    "closed_state_ref": "closed-EH2.6.d2.x.b.1.json"
   },
-  "superseded_directive": {
-    "message_id": "post-lexical-directive-1",
-    "dispatched": false,
-    "reason": "EOF newline byte normalization changed contract hash only; complete replacement by Design"
-  },
-  "candidate_ref": "batches/EH2.6.d2.x.b.1/candidate.json",
+  "candidate_ref": "batches/EH2.6.c4.2.b.1/candidate.json",
   "review_gate": {
     "depth": "deep",
     "basis": [
-      "new closed public decision reason and contract",
-      "manual product/test delta exceeds 500 lines",
-      "source-derived history integrity boundary",
-      "final candidate review required"
+      "shared source temporal authority extended to fusion",
+      "behavior-affecting contract and successor layers",
+      "manual source/test diff exceeds500 lines",
+      "final candidate mandatory review"
     ],
     "code_changes_during_review": "prohibited"
   }

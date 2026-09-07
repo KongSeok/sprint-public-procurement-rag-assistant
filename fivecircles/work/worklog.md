@@ -165,3 +165,9 @@
   - Result: ordinal3 fuse/기권 선택. 집중11·관련105·격리132·전체1545 PASS, 후보0bf15494·증거0b905e12 결속.
   - Boundary: fusion 실제 실행·semantic 승격·전체 E2E는 후속. baseline/corpus/gold/resources/runtime 불변.
   - Closeout: 2026-09-07-controller-post-lexical-decision-relay.md. 선택 통합 후 첫 fuse Design; 별도 retrieval 비교와 파일/자원 경계 조정.
+
+- [2026-09-07 15:07] Stage=Implementation/Test/Review (Cycle22 / EH2.6.c4.2.b.1)
+  - Method: Astra Design → Sol Ultra → 고정 후보 전체/격리 병렬 검사 → fresh Astra deep JSON REVIEW.
+  - Result: 첫 fuse/effect/전이3, 집중12(747.497초)·관련185(289.662초)·격리197(846.583초)·전체1577(1079.654초) PASS, 실패/오류/skip0, exit0. 후보b6ba30e0·계약088d1280 결속.
+  - Boundary: semantic/reducer/terminal 및 public start/step/run 제외. local baseline/corpus/gold/index/runtime 불변.
+  - Closeout: 2026-09-07-controller-first-fusion-transition-relay.md. 로그올·선택 통합 후 다음 Design.

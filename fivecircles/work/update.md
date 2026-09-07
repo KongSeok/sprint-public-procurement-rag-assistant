@@ -1057,3 +1057,13 @@ This file summarizes recent updates so other agents can continue without re‑di
 ### Relay
 - run=eh-relay-20260907. 로그올 후 선택 통합; 실제 SHA는 사후 receipt. 다음=첫 obligation fuse 실행 Design.
 - 부모 Controller/E2E는 PARTIAL. 이 배치는 실모델/API/골든셋 품질 실행0; 별도 평가 작업과 분리.
+
+## Addendum (2026-09-07) - EH2.6.c4.2.b.1 첫 fusion 실행
+### Backend
+- exact 두 검색 원본으로 첫 fuse 1회→effect/ledger3/transition3. 공유 시점 fence·중복 소비/재시도 방지·이전 chain 보존. lane/의미 상태 불변.
+### Tests
+- 집중12(747.497초)·관련185(289.662초)·격리197(846.583초)·전체1577(1079.654초) PASS, 실패/오류/skip0, exit0. fresh Astra deep REVIEW PASS.
+- 기대 TDD RED와 새 테스트의 존재하지 않는 evidence_id 참조를 구분 기록, 테스트-only 수정 후 최종 후보 검증.
+### Relay
+- 로그올 후 검수 범위만 선택 통합; 실제 SHA는 사후 receipt. 다음=post-fusion 자격/후속 상태 bounded Design.
+- 부모 Controller/E2E PARTIAL. 본 배치 실모델/API/골든셋 실행0; 별도 DIAG131과 분리.

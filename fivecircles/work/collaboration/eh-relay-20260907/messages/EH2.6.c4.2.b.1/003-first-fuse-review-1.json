@@ -1,0 +1,60 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.c4.2.b.1",
+  "message_id": "first-fuse-review-1",
+  "in_reply_to": "first-fuse-implementation-report-1",
+  "sender": "PHILOSOPHER",
+  "kind": "REVIEW",
+  "body": {
+    "verdict": "PASS",
+    "directive_id": "first-fuse-directive-1",
+    "contract_id": "sha256:088d1280b7ccae54370aeb5d5fbcb648d4eea857ee8b1663e8d228a8efd06d7c",
+    "candidate_id": "sha256:b6ba30e02e09b6090f7ec1c17315cbe316ceefd1dc31544a352251c55cbcf17b",
+    "test_evidence_id": "sha256:f1a433dbec5603855a6a418a17711589361d57a963b8d9a31bc66a66a657b03a",
+    "reviewed_message_id": "first-fuse-implementation-report-1",
+    "direction_score": null,
+    "direction_rubric": null,
+    "direction_rationale": "The candidate completes the selected first-obligation revision2-to-revision3 fusion edge using retained source authority, existing child consumption, the shared temporal fence and existing controller transition machinery. It preserves semantic state and advances the approved bounded implementation without claiming retrieval superiority, terminal readiness or completed Controller/E2E functionality.",
+    "findings": [
+      {
+        "id": "FF-INFO-1",
+        "category": "architecture",
+        "severity": "INFO",
+        "evidence": [
+          "src/midprojectrag/orchestration/execution_contracts.py:19887 validates the execution and decision, reads both predecessor transition records, validates fusion inputs and subsequently invokes the existing executor, claim and source boundaries.",
+          "src/midprojectrag/orchestration/execution_contracts.py:19797 recursively validates predecessor executions during transition readback; source projection readback also revalidates its source.",
+          "src/midprojectrag/orchestration/execution_contracts.py:8277 reconstructs expected RRF scores and ordering during validation without dispatching fuse_rrf.",
+          "The supplemental independent check observed one authentic fuse_rrf dispatch under two concurrent private calls and zero additional dispatches during duplicate rejection plus revision3 readback."
+        ],
+        "action": "Nonblocking advisory: if a later authorized improvement-selection batch selects profiling, separately measure dependency traversal, recursive execution/decision/source validation and RRF result reconstruction. The repeated validation paths are observable statically, but their production cost has not been established. This review does not authorize removing checks, introduce an SLO or select an optimization leaf."
+      }
+    ],
+    "requested_task_changes": [],
+    "next_batch_constraints": [
+      "Keep EH2.6.c4.2.b, EH2.6.d2.x.b, Controller and E2E PARTIAL. This PASS approves only the bound first-obligation fusion candidate and its frozen contracts and required evidence.",
+      "Select post-fusion eligibility/state handling through a separate complete Design directive. Revision3 fusion leaves semantic state unchanged; both-empty is neither confirmed absence nor answerability.",
+      "Preserve the shared attempt-start epoch and atomic claim cutoff, exact executor/minter/module/source-kind binding, child and controller once-only consumption, source-derived effects and failure-without-retry behavior.",
+      "Preserve all predecessor executions, prior decisions and three source lineages. Historical readback must remain non-authorizing and must not redispatch fusion or either retrieval lane.",
+      "Specify and verify complete canonical sibling-obligation lifetime before executing later compare obligations; do not remint the tuple to recover expired siblings.",
+      "Keep ordinal4, context, rerank, verify, semantic reducer, follow-up, deadline, terminal and public start/step/run outside this PASS and outside subsequent implementation unless explicitly selected by its authorized directive.",
+      "Continue synthetic/offline implementation validation without real model/API/provider/Langfuse/VLM/private-data activity or baseline/corpus/gold/evaluation/runtime configuration changes. Keep DIAG131 independently owned and its shared-host diagnostic latency distinct from controlled performance evidence.",
+      "Any later profiling or optimization selection must follow existing measured-improvement selection authority, potentially EXP-SELECT.3.b. Current test durations do not establish production hotspots or retrieval superiority.",
+      "Integrate only the reviewed files and bound behavior-affecting documents. Preserve unrelated dirty work and exclude resources from Git. Product, contract or required-evidence changes require a new candidate and review; closeout-only records may remain separate."
+    ],
+    "reason": "Fresh deep review read the complete changed product diff and new focused test, the directive/report, relevant authority and predecessor contracts, and affected executor, resolver, epoch/claim, fusion-consumption, successor and readback dependencies. Actual repository HEAD is 05eb878bd0ed16e534d5a6d32a1ec8a4f1f8552a on feat/total-integration. All four current owned-file hashes, both frozen contract hashes, report SHA256 3bda70916078336a9ab51f1087fa09cd6ac36e61a5e27c66a86e4c38be90433c, candidate/evidence manifest hashes and all 11 required evidence entries verified. Current tracked diff matches the supplied frozen diff. Raw logs confirm focused12, adjacent185, isolated197 and current-worktree1577 PASS; manifests record exit0 and unchanged six-file fingerprints. The current worktree count includes unrelated work and is not attributed to this batch. Historical behavioral RED and the repaired nonexistent StableEvidenceAnchor.evidence_id test assertion remain explicitly distinguished from final-candidate results. The legacy queue.json is actually absent; existing directive/TODO/debate supplied review scope. Static gates reject invalid or ineligible input before dispatch, derive the exact first obligation and same-round lane pair from retained authority, and preserve budget/error precedence. Shared temporal admission rejects pre-claim fusion attempts, including late completion. Claim and child ledgers permit at most one execution; failures consume authority and expose no valid partial successor. Revision3 records precisely one additional action with unchanged lane consumption and semantic state. Matrix, failure, temporal, concurrency, drift and lineage/GC evidence support these bounded claims. The supplemental read-only synthetic dispatch check independently confirmed actual computation count rather than relying only on receipt counts. No unresolved blocking implementation, contract or required-test finding remains. No repository files or Git state were modified by this reviewer.",
+    "resume_conditions": [],
+    "supplemental_independent_verification": {
+      "required_evidence_manifest_changed": false,
+      "workdir": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
+      "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -",
+      "stdin": "import sys, threading, json\nfrom concurrent.futures import ThreadPoolExecutor\nfrom threading import Barrier\nfrom tests.test_controller_first_fusion_transition import ControllerFirstFusionTransitionTests\nimport midprojectrag.orchestration.execution_contracts as c\nf=ControllerFirstFusionTransitionTests('runTest'); f.setUp()\ntry:\n    case=f._case()\n    code=c._FUSION_RUNTIME_MODULE.fuse_rrf.__code__\n    count=[0]\n    def profile(frame,event,arg):\n        if event=='call' and frame.f_code is code: count[0]+=1\n    gate=Barrier(2)\n    def execute(_):\n        gate.wait()\n        try: return f._execute(case)\n        except (TypeError,ValueError): return None\n    old=threading.getprofile()\n    threading.setprofile(profile)\n    try:\n        with ThreadPoolExecutor(max_workers=2) as pool: result=tuple(pool.map(execute, range(2)))\n    finally: threading.setprofile(old)\n    assert count[0]==1 and sum(x is not None for x in result)==1\n    before=count[0]; old=sys.getprofile();sys.setprofile(profile)\n    try:\n        try: f._execute(case)\n        except (TypeError,ValueError): pass\n        else: raise AssertionError('duplicate accepted')\n        c.validate_harness_execution(execution=next(x for x in result if x is not None), **case['env'])\n    finally: sys.setprofile(old)\n    assert count[0]==before\n    print(json.dumps({'check':'synthetic authentic fuse_rrf dispatch count','concurrent_calls':2,'successors':1,'fusion_dispatches':count[0],'duplicate_plus_readback_extra_dispatches':count[0]-before}))\nfinally: f.doCleanups()\n",
+      "exit_code": 0,
+      "captured_stdout": "{\"check\": \"synthetic authentic fuse_rrf dispatch count\", \"concurrent_calls\": 2, \"successors\": 1, \"fusion_dispatches\": 1, \"duplicate_plus_readback_extra_dispatches\": 0}",
+      "artifact": null,
+      "artifact_sha256": null,
+      "capture_reference": "exec session 26637; completion output chunk 86e9fb",
+      "limitations": "One bounded synthetic concurrent-success case plus duplicate and readback. No pinned callable replacement, production latency measurement, new required-evidence artifact or broad regression."
+    }
+  }
+}

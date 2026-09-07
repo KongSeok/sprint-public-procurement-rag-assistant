@@ -449,6 +449,18 @@ success does not erase a dense provider error or authorize fusion. Preflight rej
 post-dispatch failure consumes the claim without a retry or partial successor. Third decisions, fusion,
 semantic reducers, public start/step/run and model/clock calls remain outside this slice. This boundary follows
 `controller-lexical-transition.md`; its implementation acceptance is recorded separately in the Cycle20 ledger.
+
+C4.2.b.1 contracts the first private fusion execution for exact revision-two fact/compare and ordinal-three
+selected fuse only. The existing shared temporal source fence admits exact authenticated fusion attempts
+and rejects pre-claim attempts even when the receipt is minted afterward. It reuses the retained first
+obligation, both lane sources, child fusion claim, structural bridge and bounded successor authority. A
+successful fusion appends one action/effect/ledger/transition revision three but no consumed lane or new
+round. Semantic state and fingerprint remain unchanged; both-empty is not absence or readiness. Failed
+claimed execution consumes the controller step, preserves any child consumption and returns no partial
+successor/error receipt. Initial/lexical readback remains revision-specific; new private first-fusion
+readback revalidates the three sources and retained predecessor/root chain. No ordinal-four decision,
+context, semantic reducer, terminal or later compare execution is included. See
+`controller-first-fusion-transition.md`; implementation acceptance is tracked separately in Cycle22.
 An E1 compare seed must be all-unsearched; already hybrid-searched EH2.4 coverage cannot be
 relabeled as independent lane execution. Once all approved retrieval paths close with no
 candidates, controller-only `verify_slot` performs a zero-provider exhaustion check that may

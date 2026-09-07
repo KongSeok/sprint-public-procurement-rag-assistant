@@ -15,3 +15,11 @@
 - Evidence: 집중11·관련105·격리132·전체1545 PASS. 후보0bf15494·계약a94c4e18·증거0b905e12 결속.
 - Next: 첫 obligation fuse 별도 계약, parent PARTIAL. sibling 수명·semantic/terminal 별도.
 - Review: fivecircles/work/review/review-controller-post-lexical-decision-2026-09-07.md.
+
+## 2026-09-07 — EH2.6.c4.2.b.1 첫 fusion 실행
+
+- Status: APPROVE / fresh Astra first-fuse-review-1.
+- Scope: exact source pair→1회 fuse/effect/ledger3/transition3. 기존 epoch/claim/원본 수명 경계 보존.
+- Evidence: 집중12(747.497초)·관련185(289.662초)·격리197(846.583초)·전체1577(1079.654초) PASS, 실패/오류/skip0, exit0. 후보b6ba30e0·계약088d1280·최종 원시 증거 JSON 결속.
+- Decision: 구현 PASS이며 성능 우승 아님. parent c4.2.b/Controller/E2E PARTIAL, post-fusion 자격/후속 상태 별도.
+- Review: fivecircles/work/review/review-controller-first-fusion-transition-2026-09-07.md.

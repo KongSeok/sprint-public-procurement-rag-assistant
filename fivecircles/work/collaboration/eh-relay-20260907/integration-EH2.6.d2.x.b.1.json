@@ -1,0 +1,44 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.d2.x.b.1",
+  "status": "CLOSED",
+  "commit_sha": "05eb878bd0ed16e534d5a6d32a1ec8a4f1f8552a",
+  "parent_sha": "57df8e428ac4df5b6096451874f39b68fa28f49a",
+  "branch": "feat/total-integration",
+  "remote": "origin",
+  "remote_url": "https://github.com/KongSeok/sprint-public-procurement-rag-assistant.git",
+  "push": {
+    "command": "git push origin HEAD:refs/heads/feat/total-integration",
+    "exit_code": 0,
+    "remote_verified_sha": "05eb878bd0ed16e534d5a6d32a1ec8a4f1f8552a",
+    "verified_at": "2026-09-07T04:38:04.585Z"
+  },
+  "review_message_id": "post-lexical-review-1",
+  "candidate_id": "sha256:0bf15494c562e632a378b6eeffe7e905a3d86bb5db7b246299f8060bb27364f5",
+  "contract_id": "sha256:a94c4e18105b63e71d93164ef7976c82bf0a2809adb2b06877e8691f67baa4ed",
+  "test_evidence_id": "sha256:0b905e12be93d4fea487a2ae2d5cefddd958e67f846f5225d81092d438bacaf1",
+  "committed_file_count": 31,
+  "validation": {
+    "focused": 11,
+    "adjacent": 105,
+    "isolated_candidate": 132,
+    "full": 1545,
+    "full_failures": 0,
+    "full_errors": 0,
+    "full_skipped": 0,
+    "full_exit_code": 0,
+    "safety_scanned": 1003,
+    "report_browser": "PASS desktop/mobile; images2, tables8, page_errors0, external_requests0"
+  },
+  "worktree": {
+    "status": "existing unrelated dirty preserved",
+    "status_entry_count": 221,
+    "index_empty": true,
+    "resources_tracked": false
+  },
+  "continuation": "CONTINUE_WITH_NEXT_FORM",
+  "next_batch_id": "EH2.6.c4.2.b.1",
+  "next_design_agent": "/root/lexical_design",
+  "note": "Post-integration receipt; not included in its own commit. Independent retrieval comparison belongs to a separate user-approved thread."
+}

@@ -1,0 +1,40 @@
+{
+  "base": "05eb878bd0ed16e534d5a6d32a1ec8a4f1f8552a",
+  "mode": "isolated",
+  "cwd": "/private/tmp/eh-first-fuse-isolated.ZpoqNv",
+  "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src /Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/bin/python3 -m unittest tests.test_controller_first_fusion_transition tests.test_controller_step_history tests.test_e0_fusion tests.test_retrieval_obligations tests.test_controller_source_outcome_resolver tests.test_controller_structural_effect_bridge tests.test_controller_initial_transition tests.test_controller_lexical_transition tests.test_controller_post_lexical_decision tests.test_controller_next_decision tests.test_execution_contracts",
+  "files": [
+    {
+      "path": "src/midprojectrag/orchestration/execution_contracts.py",
+      "sha256": "f2a9638c4f116d1bfdf2e9d186252ef5b78034d189fda88d8de73156a4278b33"
+    },
+    {
+      "path": "tests/test_controller_first_fusion_transition.py",
+      "sha256": "222c7c84174bcda1d50b4b4e77e9875a0a3c24ec39606a4652c0fa461adc0018"
+    },
+    {
+      "path": "tests/test_controller_step_history.py",
+      "sha256": "31ae080edeb8c7e38beae8509d0c4c4562016d3bab1a52a4720f5b442f6b53a5"
+    },
+    {
+      "path": "tests/test_e0_fusion.py",
+      "sha256": "26d931d74927ca003a1a95ef58c5fefaabbf9d245ea1c130f4de4e1bb87c5dbb"
+    },
+    {
+      "path": "src/midprojectrag/orchestration/module-contract.md",
+      "sha256": "727631b70fde93bb33ceabc49829ce675b1bc310d028b8affc29c1ab8da6fb7a"
+    },
+    {
+      "path": "fivecircles/architecture/specs/controller-first-fusion-transition.md",
+      "sha256": "088d1280b7ccae54370aeb5d5fbcb648d4eea857ee8b1663e8d228a8efd06d7c"
+    }
+  ],
+  "recorded_at": "2026-09-07T05:34:15.233Z",
+  "exit_code": 0,
+  "signal": null,
+  "elapsed_seconds": 850.981,
+  "files_unchanged": true,
+  "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-isolated-main.log",
+  "artifact_sha256": "efb2956aa3923e72a8ce86ca93f5eda6a3f1b5494cfa0ae61bc751131fb3f982",
+  "unittest_summary": "Ran 197 tests in 846.583s\n\nOK"
+}

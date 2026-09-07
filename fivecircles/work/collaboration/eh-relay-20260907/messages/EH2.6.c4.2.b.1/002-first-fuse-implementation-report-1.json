@@ -1,0 +1,147 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.c4.2.b.1",
+  "message_id": "first-fuse-implementation-report-1",
+  "in_reply_to": "first-fuse-directive-1",
+  "sender": "CODER",
+  "kind": "IMPLEMENTATION_REPORT",
+  "body": {
+    "status": "REVIEW_READY",
+    "directive_id": "first-fuse-directive-1",
+    "contract_id": "sha256:088d1280b7ccae54370aeb5d5fbcb648d4eea857ee8b1663e8d228a8efd06d7c",
+    "candidate_id": "sha256:b6ba30e02e09b6090f7ec1c17315cbe316ceefd1dc31544a352251c55cbcf17b",
+    "test_evidence_id": "sha256:f1a433dbec5603855a6a418a17711589361d57a963b8d9a31bc66a66a657b03a",
+    "changed_files": [
+      "src/midprojectrag/orchestration/execution_contracts.py",
+      "tests/test_controller_first_fusion_transition.py"
+    ],
+    "implementation_summary": [
+      "Extended the existing shared controller source-attempt registry, rather than adding another authority framework, so exact lane and fusion executor/minter code pairs share one monotonic epoch and carry an authenticated lane_search or fusion source-kind binding. Fusion attempts are discarded on failed execution or issuance and successful FusionReceipts are recorded only by the existing authenticated fusion minter.",
+      "Extended the existing controller source preparation gate to accept only exact LaneSearchReceipt or FusionReceipt instances for nonterminal work. The existing resolver still binds action kind, obligation, root source, store/config/runtime, outcome and call-performed rows; the shared claim cutoff rejects pre-claim fusion attempts even when their receipts finish later.",
+      "Added private _execute_controller_first_fusion_step with no caller-supplied obligation, receipts, outcome, evidence or hashes. It validates the exact revision-2/ordinal-3 selected fuse and remaining budget, recursively reads the retained lexical and dense transition records, recovers their one exact first obligation and same-round applied/empty lane receipts, requires pristine child fusion consumption, then claims the controller step before invoking the existing fusion executor.",
+      "Reused the existing fusion executor, source projection/preparation/binding, structural effect bridge, ActionEffectReceipt authority and controller claim history. Failure after claim tombstones the controller step; child fusion failure or completed computation remains consumed, sanitized fusion_contract_error behavior is preserved, and no error receipt, partial effect or revision-3 successor is manufactured.",
+      "Extended the existing bounded transition/successor factory to revision 3. The fusion effect is sourced from the exact FusionReceipt with action fuse, source fusion, call_performed true and step 3; the copied ledger appends only the fuse action and count 3 while preserving the dense/lexical lane tuple, round indexes, unavailable actions, no-progress streaks and sibling obligations. The semantic state and progress fingerprint remain unchanged.",
+      "Added the private revision-3-only transition reader and recursive public execution validation while leaving the revision-1 and revision-2 readers restricted. Revision-3 authority retains the immediate revision-2 predecessor and stable initial root, and readback revalidates the fusion source plus both prior lane sources and transitions.",
+      "Added synthetic focused coverage for fact and compare across all four applied/empty pairs, lexical-only rescue, both-empty, budget/error preflight, clone/mixed/wrong-snapshot inputs, concurrency, temporal pre-claim admission, wrong-source binding, post-dispatch and sanitized failures, exact ledger/effect/transition fields, GC retention, drift rejection, reader bounds and private API containment. Existing step-history and E0 fusion tests remained byte-identical and passed in adjacent, isolated and full regression."
+    ],
+    "tests": [
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest tests.test_controller_first_fusion_transition",
+        "workdir": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
+        "exit_code": 0,
+        "candidate_id": "sha256:b6ba30e02e09b6090f7ec1c17315cbe316ceefd1dc31544a352251c55cbcf17b",
+        "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-focused-3.log",
+        "artifact_sha256": "1bcfab1a539b6833999a7245258b7c8e20eb0c67a01ba2a1b55ed0a0463ac979",
+        "result": "12 tests passed in 747.497s; failures=0, errors=0, skips=0."
+      },
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest tests.test_controller_step_history tests.test_e0_fusion tests.test_retrieval_obligations tests.test_controller_source_outcome_resolver tests.test_controller_structural_effect_bridge tests.test_controller_initial_transition tests.test_controller_lexical_transition tests.test_controller_post_lexical_decision tests.test_controller_next_decision tests.test_execution_contracts",
+        "workdir": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
+        "exit_code": 0,
+        "candidate_id": "sha256:b6ba30e02e09b6090f7ec1c17315cbe316ceefd1dc31544a352251c55cbcf17b",
+        "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-adjacent-1.log",
+        "artifact_sha256": "c3401fc32758e1608ee4ddac0ec3e10c91bec6afc52bec40e83be658d5372b41",
+        "result": "185 tests passed in 289.662s; failures=0, errors=0, skips=0."
+      },
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src /Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/bin/python3 -m unittest tests.test_controller_first_fusion_transition tests.test_controller_step_history tests.test_e0_fusion tests.test_retrieval_obligations tests.test_controller_source_outcome_resolver tests.test_controller_structural_effect_bridge tests.test_controller_initial_transition tests.test_controller_lexical_transition tests.test_controller_post_lexical_decision tests.test_controller_next_decision tests.test_execution_contracts",
+        "workdir": "/private/tmp/eh-first-fuse-isolated.ZpoqNv",
+        "executor": "MAIN_COORDINATOR",
+        "exit_code": 0,
+        "candidate_id": "sha256:b6ba30e02e09b6090f7ec1c17315cbe316ceefd1dc31544a352251c55cbcf17b",
+        "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-isolated-main.log",
+        "artifact_sha256": "efb2956aa3923e72a8ce86ca93f5eda6a3f1b5494cfa0ae61bc751131fb3f982",
+        "result_manifest": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-isolated-result.json",
+        "result_manifest_sha256": "a1cfd2ca3252b48caa607be0a54c416fa495bd6fa63387653de042072f21c5cc",
+        "result": "197 tests passed in 846.583s (850.981s wall) against base 05eb878bd0ed16e534d5a6d32a1ec8a4f1f8552a plus the exact four owned files and two review documents; failures=0, errors=0, skips=0; all six fingerprints unchanged."
+      },
+      {
+        "command": "PATH=\"$PWD/.venv/bin:$PATH\" PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest discover -s tests -t . -p 'test*.py'",
+        "workdir": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
+        "executor": "MAIN_COORDINATOR",
+        "exit_code": 0,
+        "candidate_id": "sha256:b6ba30e02e09b6090f7ec1c17315cbe316ceefd1dc31544a352251c55cbcf17b",
+        "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-full-main.log",
+        "artifact_sha256": "a949241e61cc777dfdba8d27d0b3dc9fa7f5f9779aade6a2de9225e72e0204c0",
+        "result_manifest": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-full-result.json",
+        "result_manifest_sha256": "095beb0c65fc4fff8669b780e2d95d79cba169a3ef70138d5193ec21a340cc6e",
+        "result": "Current worktree collection: 1577 tests passed in 1079.654s (1085.833s wall); failures=0, errors=0, skips=0; all six recorded fingerprints unchanged. The collection includes unrelated user-owned tests, so its total increase is not attributed wholly to this 12-test batch."
+      },
+      {
+        "command": "git diff --check -- src/midprojectrag/orchestration/execution_contracts.py tests/test_controller_step_history.py tests/test_e0_fusion.py",
+        "workdir": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
+        "exit_code": 0,
+        "candidate_id": "sha256:b6ba30e02e09b6090f7ec1c17315cbe316ceefd1dc31544a352251c55cbcf17b",
+        "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-diff-check.log",
+        "artifact_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "result": "No whitespace or conflict-marker diagnostics."
+      },
+      {
+        "command": "git diff --no-index --check -- /dev/null tests/test_controller_first_fusion_transition.py",
+        "workdir": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
+        "exit_code": 1,
+        "expected_exit_code": 1,
+        "candidate_id": "sha256:b6ba30e02e09b6090f7ec1c17315cbe316ceefd1dc31544a352251c55cbcf17b",
+        "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-new-test-check.log",
+        "artifact_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "result": "No diagnostics; exit 1 is the expected no-index difference status for the new test file."
+      }
+    ],
+    "development_evidence": [
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest tests.test_controller_first_fusion_transition",
+        "candidate_stage": "pre-implementation behavioral RED",
+        "exit_code": 1,
+        "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-focused-red.log",
+        "artifact_sha256": "2d56982dc0ba9788b36a7d45f9833f40bac5e6164b852123c31a260813faa6f2",
+        "result": "The initial focused test produced two fact/compare subtest errors at the exact missing _execute_controller_first_fusion_step boundary; 1 test ran in 6.451s with no unrelated failure."
+      },
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest tests.test_controller_first_fusion_transition",
+        "candidate_stage": "expanded focused test before test-contract repair",
+        "exit_code": 1,
+        "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-focused-2.log",
+        "artifact_sha256": "56fe83897b4f69edddc5a1f38c155805cbd26416127f6edea0cb3abcf3d2d36e",
+        "result": "12 tests ran in 439.790s with failures=0 and errors=6. All six errors were the same new-test assertion against nonexistent StableEvidenceAnchor.evidence_id in nonempty matrix subtests; this was a test-contract mismatch, not a product regression. The test-only repair replaced it with the schema-valid anchor/evidence cardinality assertion while retaining validate_fusion_receipt authority validation; product code did not change before the final focused PASS."
+      }
+    ],
+    "candidate_manifest": {
+      "path": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-candidate.json",
+      "sha256": "0353adb58013c7f830f5328aaaac5640ab086260a7d50a37fc5344dd57dc6569",
+      "owned_files_manifest": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-owned-files.sha256",
+      "owned_files_manifest_sha256": "b6ba30e02e09b6090f7ec1c17315cbe316ceefd1dc31544a352251c55cbcf17b",
+      "snapshot_tar": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-owned.tar",
+      "snapshot_tar_sha256": "4b10f3a79d022bb6c8aabb50a7af6d2a28d6c3bb55a25fa5940a8bfdfed5d89a",
+      "tracked_diff": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-tracked.diff",
+      "tracked_diff_sha256": "656042b52aba7c68d43a10f8afff3e7d847c758e794528316777d01b4dcdf72d",
+      "new_test_diff": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-new-test.diff",
+      "new_test_diff_sha256": "70e3944627d870cc2de67c0c9e0066703510c5846770327727e1217d992766f0"
+    },
+    "additional_review_files": [
+      {
+        "path": "src/midprojectrag/orchestration/module-contract.md",
+        "sha256": "727631b70fde93bb33ceabc49829ce675b1bc310d028b8affc29c1ab8da6fb7a"
+      },
+      {
+        "path": "fivecircles/architecture/specs/controller-first-fusion-transition.md",
+        "sha256": "088d1280b7ccae54370aeb5d5fbcb648d4eea857ee8b1663e8d228a8efd06d7c"
+      }
+    ],
+    "test_evidence_manifest": {
+      "path": "/private/tmp/eh-relay-20260907.GNy8vE/first-fuse-final-test-evidence.sha256",
+      "sha256": "f1a433dbec5603855a6a418a17711589361d57a963b8d9a31bc66a66a657b03a",
+      "entry_count": 11
+    },
+    "deviations": [
+      "No contract, scope, public API, provider, model, VLM, Langfuse, runtime clock, private-data, baseline, corpus, gold, evaluation, configuration, Git or integration deviation was taken.",
+      "The first focused run was intentional behavioral RED against the unsupported private revision-3 boundary. The only unexpected focused failure was an invalid assertion introduced in the new test; it was corrected within the same test file without weakening receipt validation or changing product code.",
+      "The allowed existing tests/test_controller_step_history.py and tests/test_e0_fusion.py remained byte-identical. Their fingerprints are included in the four-file candidate manifest and their compatibility is covered by adjacent, isolated and full PASS evidence.",
+      "Per the directive, the main coordinator ran isolated and full regression only after candidate freeze. Both result manifests confirm that the four owned files and two behavior-affecting review documents remained unchanged. The full-suite total is the actual current worktree collection and is not represented as a batch-owned test-count delta."
+    ],
+    "unresolved_questions": [],
+    "proposed_next_steps": [
+      "Dispatch the frozen six-file review packet, this report, the exact candidate snapshot/diffs and the 11-entry evidence manifest to a fresh deep Philosopher/Critic; do not integrate unless its bound REVIEW verdict is PASS."
+    ]
+  }
+}

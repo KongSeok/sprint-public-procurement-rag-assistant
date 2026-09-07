@@ -87,3 +87,11 @@
 - 다음: 첫 obligation fuse 실행 Design. parent d2.x.b/Controller/E2E GAP/PARTIAL 유지; 구현 PASS를 검색 품질 우승으로 해석하지 않는다.
 
 - 최종 문서 gate: 안전 검사1003 PASS, scoped diff --check PASS. Chrome1440×1000/390×844, images2/tables8/page errors0/external requests0 PASS. 변경 없는 그림은 재생성하지 않았다.
+
+## 통합 완료·재진입 — 2026-09-07 13:38 KST
+
+- Commit/push 05eb878bd0ed16e534d5a6d32a1ec8a4f1f8552a, origin/feat/total-integration. 원격 직접 조회 및 커밋31파일 hash 일치, index empty.
+- 검수 후보/계약과 이번 문서·로그만 선택 통합. 타인 수정/resources 제외·보존.
+- 실제 영수증: collaboration/eh-relay-20260907/integration-EH2.6.d2.x.b.1.json.
+- Doc/Implementation/Validation/Review/Report/Logall/Push=COMPLETED. 전체 Controller/E2E는 GAP/PARTIAL.
+- Relay=CONTINUE_WITH_NEXT_FORM. /root/lexical_design에게 첫 fuse EH2.6.c4.2.b.1 Design 실제 전달. 후속 구현은 아직 미시작.

@@ -1,0 +1,155 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.c4.2.b.1",
+  "message_id": "first-fuse-directive-1",
+  "in_reply_to": null,
+  "sender": "PHILOSOPHER",
+  "kind": "DIRECTIVE",
+  "body": {
+    "mode": "DESIGN",
+    "contract_id": "sha256:088d1280b7ccae54370aeb5d5fbcb648d4eea857ee8b1663e8d228a8efd06d7c",
+    "objective": "Execute the exact revision2 ordinal3 selected first-obligation fuse once through existing fusion/source/claim machinery, producing an authenticated same-semantic-state revision3 successor.",
+    "authority_assessment": {
+      "status": "WITHIN_EXISTING_AUTHORITY",
+      "needs_new_authority": false,
+      "reason": "Approved relay and c4.2.b cover the selected fusion vertical slice. The necessary existing source-epoch admission extension is explicitly included. No external evaluation, later obligations or semantic changes are selected."
+    },
+    "contract_proposal": {
+      "target": "fivecircles/architecture/specs/controller-first-fusion-transition.md",
+      "draft": "/private/tmp/eh-relay-20260907.GNy8vE/controller-first-fusion-transition.md",
+      "sha256": "088d1280b7ccae54370aeb5d5fbcb648d4eea857ee8b1663e8d228a8efd06d7c",
+      "format": "UTF-8 LF, exactly one final newline",
+      "rationale": "One focused fusion-transition contract matches existing initial/lexical transition names and makes the necessary fusion temporal-source extension explicit. Appending this execution protocol to decision-only or lexical-only specifications would obscure their distinct input and consumption boundaries.",
+      "installation": "Main installs identical bytes, verifies actual hash and records existing TODO child/form before dispatch. Main aligns module-contract and includes behavior-affecting docs in candidate review."
+    },
+    "direction_assessment": {
+      "target": "Existing selected ordinal3 fuse -> authenticated first fusion/effect/ledger3/transition3, enabling later bounded post-fusion decisions.",
+      "current": "05eb878bd0ed16e534d5a6d32a1ec8a4f1f8552a integrated d2.x.b.1; exact applied/empty lane pairs select fuse, errors/budget select abstain. Public child fusion and generic source resolver already exist. Controller source prepare and shared epoch registry remain lane-only; successor/readback supports steps1/2 only.",
+      "gap": "Extend existing temporal receipt admission to fusion, then reuse existing structural bridge, effect, bounded transition registry and root/predecessor preservation for step3. Do not merely whitelist FusionReceipt and bypass claim cutoff.",
+      "selection_reason": "This is the first executable downstream edge after the reviewed ordinal3 decision. Later eligibility/semantic work depends on an authentic fusion successor; compare sibling lifetime is unnecessary for this first obligation.",
+      "score": {
+        "upstream_weight": 3,
+        "connection_value": 3,
+        "safety_value": 2,
+        "validation_value": 1,
+        "risk_penalty": -2,
+        "connection_score": 7
+      },
+      "score_rationale": "High upstream reach and safety value; extra risk for shared fusion/E0/epoch changes. Existing 7-point c4.2/d2.x flow priority remains appropriate.",
+      "prior_review": "fivecircles/work/collaboration/eh-relay-20260907/messages/EH2.6.d2.x.b.1/004-post-lexical-review-1.json"
+    },
+    "selected_task_ref": {
+      "path": "fivecircles/architecture/todolist.md",
+      "parent_task": "EH2.6.c4.2.b",
+      "task_id": "EH2.6.c4.2.b.1",
+      "label": "First-obligation selected fuse -> live effect/ledger3/transition3",
+      "status": "Proposed child; main records before dispatch"
+    },
+    "execution_scheme": {
+      "coder_count": 1,
+      "model": "gpt-5.6-sol",
+      "reasoning_effort": "ultra",
+      "separate_test_coder_worthwhile": false,
+      "reason": "Fusion temporal admission, claim behavior and successor wiring are tightly coupled in the same module; synthetic concurrency/failure tests depend on those pinned boundaries. One Coder avoids fixture/interface contention. Main closeout and later read-only Design may proceed independently. The already-running approved 131 comparison remains a separate user-owned task; do not duplicate it."
+    },
+    "scope": {
+      "repository": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
+      "branch": "feat/total-integration",
+      "base_commit": "05eb878bd0ed16e534d5a6d32a1ec8a4f1f8552a",
+      "allowed_files": [
+        "src/midprojectrag/orchestration/execution_contracts.py",
+        "tests/test_controller_first_fusion_transition.py",
+        "tests/test_controller_step_history.py",
+        "tests/test_e0_fusion.py"
+      ],
+      "ownership": "Recheck hashes/status before edits. Product changes stay in the established execution module; new test belongs to this batch. Existing step-history/E0 test edits are restricted to fusion epoch admission and preserved compatibility. Main owns contracts/module-contract/TODO/form/state/reports/logs/integration. Preserve all unrelated dirty work.",
+      "prohibited_actions": [
+        "No writes outside allowed_files without complete updated DIRECTIVE; do not edit action_effects.py merely to invent failure outcomes.",
+        "No new authority framework, parallel epoch registry, broad restructuring or weakening code/module/type/identity gates.",
+        "No ordinal4 decision, context/rerank/verify/semantic reducer, semantic promotion, follow-up, deadline, terminal result or public start/step/run.",
+        "No later compare obligations or canonical tuple remint; sibling lifetime contract remains deferred.",
+        "No real model/API/provider/Langfuse/VLM/clock/private-data calls or baseline/corpus/gold/evaluation/runtime dependency/config changes.",
+        "No duplicate 131 evaluation; no staging/Git mutation, operating-record edits or nested agents by Coder."
+      ]
+    },
+    "acceptance_criteria": [
+      "Only exact live revision2 fact/compare first-obligation execution plus its exact ordinal3 selected fuse passes. Validate before consuming; current budget/error decision precedence remains intact. Wrong/clone/mixed/snapshot/abstain/budget/error cases dispatch fusion0.",
+      "Obligation and dense/lexical receipts come from retained authenticated transitions/source authorities; exact same obligation round1/query/scope/store/config/runtime and applied|empty outcomes are required. No caller receipt/obligation/outcome/hash input and no compare tuple remint.",
+      "Extend existing shared temporal attempt epoch and claim fence to exact fusion executor/minter/receipt with appropriate source-kind binding. Reject attempts begun before controller claim even if receipt is minted later; preserve existing lane fences and E0/public fusion behavior.",
+      "Reuse existing child fusion executor and source resolver/preparer/binder/structural bridge, preserving exact source/effect binding. Dense and lexical never rerun. All four normal applied/empty pairs, including lexical-only rescue and both-empty, execute one synthetic fusion.",
+      "At most one controller claim winner, one fusion computation and one authentic successor under duplicate/concurrency. Post-claim failure consumes controller claim; post-dispatch failure preserves child consumption, returns no partial successor and cannot retry. Keep sanitized fusion_contract_error; no manufactured error receipt/effect/revision3.",
+      "Effect derives outcome/call_performed/evidence/hash from exact FusionReceipt, action fuse/source fusion/step3/stable execution identity/decision/before-state. Successful pure fusion has call_performed=true as existing schema defines; this does not denote a model call.",
+      "Ledger revision3 links revision2 and appends one fuse action with count3; consumed_lane_keys remains exactly dense+lexical. Round/no-progress/unavailable/sibling values remain unchanged. Semantic state and progress fingerprint are unchanged.",
+      "Transition3 links exact transition2 and seals effect/decision/before-after state/ledger/fingerprint; stable root and immediate predecessor remain distinct. Revision0/1/2/3 and prior decisions remain valid, retaining/revalidating all three source receipts across GC.",
+      "New private revision3 reader accepts only revision3; old readers remain restricted. Ordinal4/public mint remains unavailable. Clone/mixed/drift/source/effect/ledger/transition and non-authorizing serialized inputs fail closed.",
+      "Focused and impacted adjacent tests pass; main obtains fixed-candidate isolated/full evidence once at integration boundary. Fresh candidate review includes temporal authority and contract changes; regression pass is not measured retrieval superiority."
+    ],
+    "required_tests": [
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest tests.test_controller_first_fusion_transition",
+        "purpose": "New source-derived revision3 acceptance, normal four-pair fact/compare matrix, budget/error preflight, exact once/failure/GC/drift/private surface; expected baseline RED before new behavior."
+      },
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest tests.test_controller_step_history tests.test_e0_fusion tests.test_retrieval_obligations tests.test_controller_source_outcome_resolver tests.test_controller_structural_effect_bridge tests.test_controller_initial_transition tests.test_controller_lexical_transition tests.test_controller_post_lexical_decision tests.test_controller_next_decision tests.test_execution_contracts",
+        "purpose": "Shared fusion/E0, lane temporal claim and prior decision/transition authority regression. Run affected subsets while implementing; final adjacent candidate evidence covers the full listed set."
+      },
+      {
+        "command": "PATH=\"$PWD/.venv/bin:$PATH\" PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest discover -s tests -t . -p 'test*.py'",
+        "purpose": "Main may execute once after final freeze, together with same-candidate isolated selection. Record real collection/errors/failures/skips/exit; no forced historical test count."
+      },
+      {
+        "command": "git diff --check -- src/midprojectrag/orchestration/execution_contracts.py tests/test_controller_step_history.py tests/test_e0_fusion.py",
+        "purpose": "Owned tracked patch validation; candidate manifest also includes entire new untracked test."
+      }
+    ],
+    "prior_next_batch_constraints": [
+      "Keep EH2.6.d2.x.b, its controller parents and E2E status PARTIAL. Select first-obligation fuse execution through a separate complete Design directive; this PASS does not approve revision3 execution or a terminal result.",
+      "Before fusion dispatch, require the exact revision2 snapshot and ordinal3 selected fuse permit, the retained first obligation, and both authenticated same-round source receipts. Reject error-derived abstain permits before dispatch; preserve budget precedence and dense diagnostic error lineage.",
+      "Define fusion claim consumption, exact-once dispatch, source/effect binding, failed-dispatch behavior and revision3 ledger/transition readback using the existing machinery. Preserve immutable predecessor/root history and previous decision validity.",
+      "Cover all four applied/empty lane pairs, including lexical-only rescue and both-empty, with synthetic execution evidence. Fusion completion alone must not assert semantic readiness, verified absence or answerability.",
+      "Do not expand later compare obligations until full canonical sibling-obligation lifetime is separately specified and verified. Do not remint the compare tuple to recover the first obligation.",
+      "Keep context, rerank, verify, semantic reducer, follow-up, deadline and public start/step/run work outside the next batch unless its authorized directive explicitly selects them.",
+      "Continue synthetic/offline validation with no real provider/model/clock/private-data activity or changes to baseline, corpus, gold, evaluation or runtime configuration. Keep measured quality and implementation acceptance separate.",
+      "Integrate only the reviewed candidate and its bound contract documents, preserving unrelated dirty files. Any behavior, contract or required-evidence change requires a new candidate and review; closeout-only records may remain separate."
+    ],
+    "constraints": [
+      "Read applicable project implementation/testing skills and relevant learn-from-log; main handles their log-file duties. Run explicit real root and project .venv Python3.12, synthetic fixtures only.",
+      "Add only the bounded fusion source-type/temporal extension. Existing resolver supports FusionReceipt, but source prepare, registry record type and caller seals currently do not. This is selected work, not permission to admit context/rerank/semantic/terminal sources.",
+      "Preserve source attempt epoch vs claim ordering, exact code and module-global namespace checks, weak cleanup, shadow identity, direct/copy caller exclusion and prior lane semantics. Do not replace execution-start ordering with receipt-creation timestamps.",
+      "Retain existing public fusion once-only child ledger. Unexpected failure after child computation must not make the same child action available again. Authenticated historical records remain readback-only, not new mint authority.",
+      "Fusion adds an action consumption, never a consumed_lane_key. No semantic state updates or verifier-context expansion is selected.",
+      "Same first obligation suffices; full compare sibling lifetime remains deferred and must precede later obligation execution.",
+      "Main carries all eight prior REVIEW constraints verbatim in this directive and records new child under c4.2.b. Parent c4.2.b/d2.x.b/controller/E2E remain PARTIAL.",
+      "Updated collaboration risk triggers apply: security/multi-layer authority contract -> deep regardless of score; final candidate review mandatory. Intermediate risk3-5 quick, >=6 deep unless mandatory deep. 3 leaves/30min is reassessment only; do not require a preimplementation candidate PASS or redo prior PASS.",
+      "Stop for QUESTION/NEEDS_GUIDANCE if an actual contract conflict, unsupported ownership boundary, unapproved file or need for external authority arises. Do not silently broaden or invent new failure receipt schemas.",
+      "Main owns module-contract alignment, flow/report, safety, same-candidate isolated/full validation, closeout/logall and permitted commit/push. Freeze behavior-affecting docs with product candidate for fresh review.",
+      "Coordinate heavy regression timing with the independent user-approved 131 comparison to avoid contaminating CPU/performance intervals; do not acquire that thread's evaluation responsibility or touch its inputs/artifacts.",
+      "Return complete IMPLEMENTATION_REPORT bound to first-fuse-directive-1 and contract_id with actual files/hashes/commands/exit/artifacts/deviations/questions. Candidate/test evidence do not exist at Design time. Freeze at REVIEW_READY."
+    ],
+    "source_refs": [
+      "fivecircles/agent/authority.md",
+      "fivecircles/requirements/current.md §1.1 and §8",
+      "fivecircles/requirements/decisions.md D-024",
+      "fivecircles/architecture/specs/bidfit-evidence-harness-v1-rc0.md §16.10",
+      "fivecircles/architecture/specs/controller-initial-transition.md",
+      "fivecircles/architecture/specs/controller-lexical-transition.md",
+      "fivecircles/architecture/specs/controller-next-decision.md d2.x.b.1",
+      "fivecircles/architecture/specs/controller-first-fusion-transition.md (main installation required)",
+      "src/midprojectrag/orchestration/module-contract.md",
+      "fivecircles/architecture/todolist.md EH2.6.c4.2.b",
+      "fivecircles/architecture/specs/evidence-harness-progress-flow-validation.md",
+      "fivecircles/work/collaboration/eh-relay-20260907/messages/EH2.6.d2.x.b.1/004-post-lexical-review-1.json",
+      "src/midprojectrag/orchestration/execution_contracts.py:9062",
+      "src/midprojectrag/orchestration/execution_contracts.py:16354",
+      "src/midprojectrag/orchestration/execution_contracts.py:16895",
+      "src/midprojectrag/orchestration/execution_contracts.py:17531",
+      "src/midprojectrag/orchestration/execution_contracts.py:19451",
+      "src/midprojectrag/orchestration/action_effects.py:137",
+      "fivecircles/agent/skills/collaboration/SKILL.md",
+      "fivecircles/agent/skills/collaboration/references/messages.md",
+      "fivecircles/agent/skills/collaboration/references/relay-cycle.md"
+    ],
+    "resolution": null
+  }
+}
