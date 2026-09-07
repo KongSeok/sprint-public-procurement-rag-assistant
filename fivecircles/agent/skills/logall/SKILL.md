@@ -5,6 +5,25 @@ description: Update project logs per policy without scoring. Use when asked to w
 
 # logall
 
+## Philosopher / Coder relay mode
+
+Apply this section only when the user or active flow form selected
+`philosopher-coder`; standalone/solo behavior is unchanged.
+Resolve `fivecircles/agent/skills/collaboration/SKILL.md` from the verified
+project root first, otherwise use the installed sibling collaboration skill.
+Read that entrypoint and its `references/relay-cycle.md` before this phase.
+That reference owns collaborative role routing, closeout order, and re-entry;
+the ordinary lifecycle below applies outside this mode. Higher-priority
+instructions, project authority, required validation, and user scope still win.
+If the dependency is unavailable, report the gap; do not silently run solo.
+
+The main coordinator owns this mode's closeout. Key the record by run_id and
+batch_id, reuse an existing same-batch entry, and update it with final review and
+test evidence before commit. Standalone logall still logs immediately as usual.
+Never prefill successful commit/push results. Actual integration receipts are
+recorded afterward without recursively committing a log's own commit hash.
+Error evidence remains recorded promptly even if review or integration is blocked.
+
 ## Scope
 - Maintain project documentation under `fivecircles/` (excluding scoring):
   - Test policy: `fivecircles/test/testpolicy.md`

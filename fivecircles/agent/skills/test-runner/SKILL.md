@@ -5,6 +5,25 @@ description: Validate implemented software by running automated tests, browser c
 
 # Test Runner
 
+## Philosopher / Coder relay mode
+
+Apply this section only when the user or active flow form selected
+`philosopher-coder`; standalone/solo behavior is unchanged.
+Resolve `fivecircles/agent/skills/collaboration/SKILL.md` from the verified
+project root first, otherwise use the installed sibling collaboration skill.
+Read that entrypoint and its `references/relay-cycle.md` before this phase.
+That reference owns collaborative role routing, closeout order, and re-entry;
+the ordinary lifecycle below applies outside this mode. Higher-priority
+instructions, project authority, required validation, and user scope still win.
+If the dependency is unavailable, report the gap; do not silently run solo.
+
+Coder produces test evidence for the exact candidate; product/test repairs go
+back to Coder, not the Critic. Return evidence before independent candidate
+approval. The logall closeout below is coordinated once per batch by the main:
+reuse any already-created batch log, then complete it after review and before
+integration. Do not claim delivery PASS from a test-only PASS, waive mandatory
+checks, or regenerate unchanged reports for each leaf TODO.
+
 You are a validation and QA specialist.
 
 Your job is to verify that the implemented software actually works according to the requirements, design contracts, and expected user flows.

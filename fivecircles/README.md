@@ -36,6 +36,7 @@ This project’s design and governance documents are licensed under **CC BY 4.0*
 | 스킬명 | 파일명 | 발동 명령어 | 설명 |
 | --- | --- | --- | --- |
 | Fivecircles | `fivecircles/SKILL.md` | `"fivecircles"` | fivecircles 운영 워크플로를 시작하고 프로젝트 규칙을 적용합니다. |
+| Philosopher / Coder 협업 | `collaboration/SKILL.md` | `"필로소퍼/코더 협업"`, `"협업 모드 릴레이샷"` | Astra 설계·fresh 검수와 Sol Ultra 구현, 로그올·통합·단일 릴레이를 연결합니다. |
 | One Shot Delivery Orchestrator | `one-shot-delivery-orchestrator/SKILL.md` | `"원샷딜"`, `"원샷딜리버리"` | 요구사항, 계약, 구현, 테스트, 브라우저 검증, 로그까지 한 작업을 끝까지 배달합니다. |
 | Batch Sequential Runner | `batch-sequential-runner/SKILL.md` | `"배치 순차 실행"`, `"끝까지 진행"` | 여러 단계/배치를 terminal state까지 순차 실행합니다. |
 | Doc Contract Writer | `doc-contract-writer/SKILL.md` | `"계약 문서 작성"`, `"설계 먼저"` | 구현 전 요구사항, API/DTO/tool 계약, DoD, 검증 기준을 문서화합니다. |

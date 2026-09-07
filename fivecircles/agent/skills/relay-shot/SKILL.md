@@ -30,6 +30,22 @@ Use this skill when the user says or implies:
 - 원샷딜 마지막 릴레이
 - 테스트/푸시 끝나고 남은 TODO 계속
 
+## Philosopher / Coder relay mode
+
+Apply this section only when the user or active flow form selected
+`philosopher-coder`; standalone/solo behavior is unchanged.
+Resolve `fivecircles/agent/skills/collaboration/SKILL.md` from the verified
+project root first, otherwise use the installed sibling collaboration skill.
+Read that entrypoint and its `references/relay-cycle.md` before this phase.
+That reference owns collaborative role routing, closeout order, and re-entry;
+the ordinary lifecycle below applies outside this mode. Higher-priority
+instructions, project authority, required validation, and user scope still win.
+If the dependency is unavailable, report the gap; do not silently run solo.
+
+The same main coordinator returns to DESIGN after closeout. Opening direction
+assessment produces a DIRECTIVE, not a candidate PASS. Fresh candidate approval
+is a later, separate gate. Do not recursively invoke another relay/root.
+
 ## Core Rule
 
 Relay has two one-shot delivery roles:
@@ -136,6 +152,7 @@ should have a useful value or an explicit `SKIPPED_WITH_REASON`.
 
 ```md
 0. Scope Intake
+- 협업 선택 시: philosopher-coder / run_id / batch_id / 실제 역할 agent/model/effort:
 - 요청 범위:
 - 브랜치:
 - 사용자 제약:
@@ -143,6 +160,7 @@ should have a useful value or an explicit `SKIPPED_WITH_REASON`.
 - 위험/확인 필요:
 
 1. Start Report / Target Check
+- 협업 선택 시: Design 방향 판단 / selected_task_ref / DIRECTIVE / 보고 재사용 fingerprint:
 - 사용할 스킬: mermaid-flow-report
 - 기준 타겟 플로우:
 - 현재 플로우:
@@ -171,6 +189,7 @@ should have a useful value or an explicit `SKIPPED_WITH_REASON`.
 - 상태:
 
 5. Validation + Report
+- 협업 선택 시: candidate_id / contract_id / test_evidence_id:
 - 사용할 스킬: test-runner
 - 필수 리포트 스킬: mermaid-flow-report
 - 자동 테스트:
@@ -184,12 +203,15 @@ should have a useful value or an explicit `SKIPPED_WITH_REASON`.
 - 결과:
 
 6. Repair Loop
+- 협업 선택 시: fresh REVIEW 참조 / 동일 후보 결속 / 미해결 QUESTION / 재검수:
 - 실패 원인:
 - 수리 배치:
 - 재테스트:
 - 상태:
 
 7. Push / Publication
+- 협업 선택 시 선행 마감: closeout report + logall 참조(batch_id 중복 확인):
+- 협업 선택 시 통합 권한·실제 receipt 참조 또는 SKIPPED/BLOCKED 이유:
 - git status 확인:
 - 커밋 범위:
 - 커밋:
@@ -197,6 +219,7 @@ should have a useful value or an explicit `SKIPPED_WITH_REASON`.
 - 상태:
 
 8. Closeout Report
+- 협업 선택 시: 통합 전 보고 확인·사후 receipt 연결(중복 생성/자기 SHA 커밋 금지):
 - 사용할 스킬: mermaid-flow-report
 - 시작 타겟 대비 최종 현재 플로우:
 - 남은 GAP/PARTIAL:
@@ -204,6 +227,7 @@ should have a useful value or an explicit `SKIPPED_WITH_REASON`.
 - 상태:
 
 9. Relay Shot
+- 협업 선택 시: CONTINUE_WITH_NEXT_FORM / STOP_WITH_REASON 및 실제 다음 dispatch 참조:
 - 사용할 스킬: relay-shot
 - 확인한 TODO source:
 - 다음 후보:

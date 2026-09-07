@@ -5,6 +5,24 @@ description: End-to-end project execution workflow for Codex. Use when the user 
 
 # One Go
 
+## Philosopher / Coder relay mode
+
+Apply this section only when the user or active flow form selected
+`philosopher-coder`; standalone/solo behavior is unchanged.
+Resolve `fivecircles/agent/skills/collaboration/SKILL.md` from the verified
+project root first, otherwise use the installed sibling collaboration skill.
+Read that entrypoint and its `references/relay-cycle.md` before this phase.
+That reference owns collaborative role routing, closeout order, and re-entry;
+the ordinary lifecycle below applies outside this mode. Higher-priority
+instructions, project authority, required validation, and user scope still win.
+If the dependency is unavailable, report the gap; do not silently run solo.
+
+Act as Coder only for the accepted DIRECTIVE's bounded implementation scope.
+Return IMPLEMENTATION_REPORT and QUESTION to the main coordinator; REVIEW_READY
+does not authorize integration or the next batch. Route design changes to
+Philosopher. Do not independently spawn a relay, redefine the contract, write
+duplicate closeout logs, or treat this handoff as the user's whole-goal result.
+
 ## Core Workflow
 
 Use this skill to move a project batch from intent to verified outcome without stopping at a proposal.

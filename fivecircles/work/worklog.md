@@ -144,3 +144,11 @@
   - Evidence: 신규11·인접79·전체1522 PASS(186.315초), 독립 APPROVE; Chrome desktop/mobile 보고서 PASS.
   - Boundary: 실제 두 번째 실행·terminal result는 없음. API/model/clock0, baseline/index/golden 불변.
   - Next: c4.2.a lexical 실행/전이2 뒤 d2.x.b를 연결해 전체 매트릭스와 reducer의 순환 선행을 풀어간다.
+
+## 2026-09-07 — 협업 릴레이 스킬 저장소 동기화
+
+- Scope: 협업/릴레이 관련 스킬과 연결 참조만 반영. 제품 코드·데이터·기존 타인 수정은 제외.
+- Intent: 프로젝트 설치본에서도 Astra Design → Sol Ultra → fresh Astra → 로그올/허용 통합 → 재진입 규칙 사용.
+- Method: CUSTOM, 스킬 형식·JSON·참조·경로/미러 검사 및 scoped diff 검수 후 현재 브랜치에 커밋/푸시.
+- Rollback: 이번 커밋의 지정 스킬 변경만 역적용. 기존 작업 트리 전체 reset/삭제 금지.
+- Evidence: `fivecircles/work/2026-09-07-collaboration-skill-sync.md`.

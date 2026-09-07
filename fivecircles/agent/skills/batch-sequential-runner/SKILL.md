@@ -5,6 +5,25 @@ description: Drive a multi-step or multi-batch coding plan to completion. Use th
 
 # Batch Sequential Runner
 
+## Philosopher / Coder relay mode
+
+Apply this section only when the user or active flow form selected
+`philosopher-coder`; standalone/solo behavior is unchanged.
+Resolve `fivecircles/agent/skills/collaboration/SKILL.md` from the verified
+project root first, otherwise use the installed sibling collaboration skill.
+Read that entrypoint and its `references/relay-cycle.md` before this phase.
+That reference owns collaborative role routing, closeout order, and re-entry;
+the ordinary lifecycle below applies outside this mode. Higher-priority
+instructions, project authority, required validation, and user scope still win.
+If the dependency is unavailable, report the gap; do not silently run solo.
+
+The requested batch list is the current DIRECTIVE's assigned units, not every
+open TODO in the repository. Return evidence at each required review boundary;
+REVIEW_READY is a handoff, not approved delivery. The main owns remaining batches,
+fresh review, closeout and re-entry. Do not start dependent units while review or
+guidance is pending. A REPLAN does not erase failed tests or reset the retry
+budget for the same unresolved finding.
+
 You are the lead orchestrator and implementation owner.
 
 Your job is to drive the user's requested batches, phases, or implementation steps to completion.

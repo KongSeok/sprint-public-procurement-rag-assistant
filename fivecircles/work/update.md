@@ -1029,3 +1029,10 @@ This file summarizes recent updates so other agents can continue without re‑di
 - 신규11·인접79·전체1522 PASS(186.315초, 오류/실패/skip0), 독립 APPROVE·Chrome desktop/mobile PASS. 모델0.
 ### Next
 - c4.2.a 실제 lexical/전이2 → d2.x.b 후속 자격 순으로 분할. refs: `2026-09-06-controller-next-decision-relay.md`.
+
+## Addendum (2026-09-07) - 협업 릴레이 스킬 동기화
+### Operations
+- 프로젝트 협업 스킬·관련 훅 동기화, 독립/내장 fivecircles 루트와 spec/specs 경로 보존.
+- 제품·기존 변경 제외, 현재 브랜치의 지정 파일만 커밋/푸시. refs: `2026-09-07-collaboration-skill-sync.md`.
+### Tests
+- 후보 스킬23·JSON6·참조19 통과, 한글명3 예외 유지. 독립 Astra의 세 프로젝트 경로/변경 보존 검수 PASS.

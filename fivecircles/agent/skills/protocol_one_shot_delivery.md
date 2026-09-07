@@ -1,5 +1,16 @@
 # Skill: Protocol for One-Shot Delivery
 
+## Philosopher / Coder mode
+
+When the active flow selects `philosopher-coder`, resolve the project's
+`fivecircles/agent/skills/collaboration/SKILL.md` first; otherwise use the
+installed `collaboration/SKILL.md` beside this protocol. Read its relay-cycle
+reference. It owns role routing, pre-commit closeout/logall, receipt handling,
+and single-main re-entry instead of the ordinary sequence below in that mode.
+Opening Design is not candidate PASS. The same main returns to DESIGN;
+neither downstream workers nor this protocol start a nested relay/root.
+Solo behavior and higher-priority scope, authority and required gates remain.
+
 ## Purpose
 Run software work end to end through this fixed flow: start flow report,
 relay unit selection, doc-write, implementation, test/report validation,
@@ -44,6 +55,7 @@ Template:
 [원샷딜 플로우폼]
 
 0. Scope Intake
+- 협업 선택 시: philosopher-coder / run_id / batch_id / 실제 역할 agent/model/effort:
 - 요청 범위:
 - 브랜치:
 - 사용자 제약:
@@ -52,6 +64,7 @@ Template:
 - 상태:
 
 1. Start Report / Target Check
+- 협업 선택 시: Design 방향 판단 / selected_task_ref / DIRECTIVE / 보고 재사용 fingerprint:
 - 사용할 스킬: mermaid-flow-report
 - 기준 타겟 플로우:
 - 현재 플로우:
@@ -80,6 +93,7 @@ Template:
 - 상태:
 
 5. Validation + Report
+- 협업 선택 시: candidate_id / contract_id / test_evidence_id:
 - 사용할 스킬: test-runner
 - 필수 리포트 스킬: mermaid-flow-report
 - 자동 테스트:
@@ -91,12 +105,15 @@ Template:
 - 결과:
 
 6. Repair Loop
+- 협업 선택 시: fresh REVIEW 참조 / 동일 후보 결속 / 미해결 QUESTION / 재검수:
 - 실패 원인:
 - 수리 배치:
 - 재테스트:
 - 상태:
 
 7. Push / Publication
+- 협업 선택 시 선행 마감: closeout report + logall 참조(batch_id 중복 확인):
+- 협업 선택 시 통합 권한·실제 receipt 참조 또는 SKIPPED/BLOCKED 이유:
 - git status 확인:
 - 커밋 범위:
 - 커밋:
@@ -104,6 +121,7 @@ Template:
 - 상태:
 
 8. Closeout Report
+- 협업 선택 시: 통합 전 보고 확인·사후 receipt 연결(중복 생성/자기 SHA 커밋 금지):
 - 사용할 스킬: mermaid-flow-report
 - 시작 타겟 대비 최종 현재 플로우:
 - 남은 GAP/PARTIAL:
@@ -111,6 +129,7 @@ Template:
 - 상태:
 
 9. Relay Shot
+- 협업 선택 시: CONTINUE_WITH_NEXT_FORM / STOP_WITH_REASON 및 실제 다음 dispatch 참조:
 - 사용할 스킬: relay-shot
 - 확인한 TODO source:
 - 다음 후보:
