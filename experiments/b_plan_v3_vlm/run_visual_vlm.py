@@ -110,6 +110,7 @@ def run(
                             "bbox",
                             "coordinate_space",
                             "image_sha256",
+                            "source_image_sha256s",
                             "provenance_level",
                         )
                     }

@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import Any
 
 import fitz
-from PIL import Image
+from PIL import Image, ImageDraw, ImageOps
 
 
 DEFAULT_ARCHIVE = Path("denoising-dirty-documents.Zip")
@@ -140,7 +140,35 @@ def _extract_hwp_candidates(source: Path, output: Path, limit: int) -> list[dict
                 "provenance_level": "document_candidate_only",
             }
         )
-    return selected
+    if not selected:
+        return []
+
+    cell_width, cell_height = 700, 520
+    columns = 2
+    rows = (len(selected) + columns - 1) // columns
+    sheet = Image.new("RGB", (cell_width * columns, cell_height * rows), "white")
+    draw = ImageDraw.Draw(sheet)
+    for index, record in enumerate(selected, start=1):
+        with Image.open(record["path"]) as source_image:
+            image = ImageOps.exif_transpose(source_image).convert("RGB")
+            image.thumbnail((cell_width - 20, cell_height - 50))
+            x = ((index - 1) % columns) * cell_width + 10
+            y = ((index - 1) // columns) * cell_height + 35
+            sheet.paste(image, (x, y))
+            draw.text((x, y - 25), f"CANDIDATE {index:02d}", fill="black")
+    sheet_path = output / "hwp-candidate-contact-sheet.jpg"
+    sheet.save(sheet_path, format="JPEG", quality=92, optimize=True)
+    return [
+        {
+            "path": str(sheet_path.resolve()),
+            "page": None,
+            "bbox": None,
+            "coordinate_space": None,
+            "image_sha256": _sha256(sheet_path),
+            "source_image_sha256s": [record["image_sha256"] for record in selected],
+            "provenance_level": "document_candidate_contact_sheet",
+        }
+    ]
 
 
 def prepare(
@@ -170,7 +198,7 @@ def prepare(
                     preparation_status = "exact_pdf_region"
                 elif source.suffix.lower() == ".hwp":
                     images = _extract_hwp_candidates(source, case_root, max_hwp_candidates)
-                    preparation_status = "ranked_hwp_image_candidates"
+                    preparation_status = "hwp_candidate_contact_sheet"
             manifest.append(
                 {
                     "case_id": case_id,
