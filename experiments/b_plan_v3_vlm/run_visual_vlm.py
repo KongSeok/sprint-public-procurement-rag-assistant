@@ -20,6 +20,7 @@ SYSTEM_PROMPT = """당신은 공공 입찰 문서의 시각 근거 판독기다.
 제공된 이미지에 실제로 보이는 글자, 표 구조, 화살표와 연결 관계만 사용한다.
 질문에 필요한 내용을 찾지 못하면 추측하지 말고 evidence_text를 빈 문자열로 반환한다.
 후보 이미지가 여러 장이면 질문에 해당하는 이미지를 스스로 골라야 한다.
+근거는 500자 이내로 간결하게 쓴다.
 반드시 JSON 객체 하나만 반환한다: {\"evidence_text\": \"판독한 근거\"}"""
 SELECTION_PROMPT = """후보 이미지 시트에서 질문의 답이 실제로 적힌 후보 하나를 고른다.
 추측하지 말고 반드시 JSON 객체 하나만 반환한다: {\"candidate_number\": 정수 또는 null}"""
@@ -75,7 +76,8 @@ def _complete(
             {"role": "user", "content": content},
         ],
         temperature=0,
-        max_tokens=800,
+        max_tokens=600,
+        response_format={"type": "json_object"},
     )
     return response.choices[0].message.content
 

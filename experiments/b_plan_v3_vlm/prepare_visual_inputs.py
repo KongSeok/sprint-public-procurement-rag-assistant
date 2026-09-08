@@ -118,7 +118,12 @@ def _render_pdf_regions(case: dict[str, Any], source: Path, output: Path) -> lis
     return rendered
 
 
-def _extract_hwp_candidates(source: Path, output: Path, limit: int) -> list[dict[str, Any]]:
+def _extract_hwp_candidates(
+    source: Path,
+    output: Path,
+    limit: int,
+    target_refs: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
     html_root = output / "hwp-html"
     html_root.mkdir(parents=True, exist_ok=True)
     command = shutil.which("hwp5html")
@@ -162,6 +167,25 @@ def _extract_hwp_candidates(source: Path, output: Path, limit: int) -> list[dict
         )
     if not selected:
         return []
+
+    target_by_hash = {
+        str(ref.get("source_object_sha256")): ref
+        for ref in target_refs
+        if ref.get("source_object_sha256")
+    }
+    exact = [record for record in selected if record["image_sha256"] in target_by_hash]
+    if len(exact) == 1:
+        record = exact[0]
+        ref = target_by_hash[record["image_sha256"]]
+        return [
+            {
+                **record,
+                "page": ref.get("page"),
+                "bbox": ref.get("bbox"),
+                "coordinate_space": ref.get("coordinate_space"),
+                "provenance_level": "gold_target_object_hash_verified",
+            }
+        ]
 
     cell_width, cell_height = 700, 520
     columns = 2
@@ -218,8 +242,17 @@ def prepare(
                     images = _render_pdf_regions(case, source, case_root)
                     preparation_status = "exact_pdf_region"
                 elif source.suffix.lower() == ".hwp":
-                    images = _extract_hwp_candidates(source, case_root, max_hwp_candidates)
-                    preparation_status = "hwp_candidate_contact_sheet"
+                    images = _extract_hwp_candidates(
+                        source,
+                        case_root,
+                        max_hwp_candidates,
+                        list(case.get("gold", {}).get("evidence_refs", [])),
+                    )
+                    preparation_status = (
+                        "exact_hwp_target_object"
+                        if images and images[0]["provenance_level"] == "gold_target_object_hash_verified"
+                        else "hwp_candidate_contact_sheet"
+                    )
             manifest.append(
                 {
                     "case_id": case_id,
