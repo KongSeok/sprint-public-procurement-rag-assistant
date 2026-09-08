@@ -30,10 +30,11 @@ DEFAULT_OUTPUT = Path("output/experiments/b_plan_v3_vlm")
 
 
 class _InjectingCompletions:
-    def __init__(self, delegate: Any, evidence: str, doc_id: str):
+    def __init__(self, delegate: Any, evidence: str, doc_id: str, citation_label: str):
         self._delegate = delegate
         self.evidence = evidence
         self.doc_id = doc_id
+        self.citation_label = citation_label
         self.last_prompt = ""
 
     def create(self, **kwargs: Any) -> Any:
@@ -41,7 +42,10 @@ class _InjectingCompletions:
         if messages and self.evidence:
             prompt = str(messages[-1].get("content", ""))
             marker = "## 질문"
-            visual = f"[문서: {self.doc_id}]\n[검증 대상 시각 근거]\n{self.evidence}\n\n"
+            visual = (
+                f"[문서: {self.doc_id}]\n"
+                f"[검증 대상 시각 근거: {self.citation_label}]\n{self.evidence}\n\n"
+            )
             prompt = prompt.replace(marker, visual + marker, 1)
             messages[-1]["content"] = prompt
             kwargs["messages"] = messages
@@ -51,8 +55,10 @@ class _InjectingCompletions:
 
 
 class InjectingOpenAI:
-    def __init__(self, client: Any, evidence: str, doc_id: str):
-        self.completions = _InjectingCompletions(client.chat.completions, evidence, doc_id)
+    def __init__(self, client: Any, evidence: str, doc_id: str, citation_label: str):
+        self.completions = _InjectingCompletions(
+            client.chat.completions, evidence, doc_id, citation_label
+        )
         self.chat = SimpleNamespace(completions=self.completions)
 
     @property
@@ -110,7 +116,17 @@ def main() -> int:
         evidence_text = str(visual.get("evidence_text") or "")
         expected = set(item["expected_doc_id"])
         evidence_doc = str(visual.get("doc_id") or next(iter(expected), ""))
-        client = InjectingOpenAI(base_client, evidence_text, evidence_doc)
+        refs = visual.get("evidence_refs") or []
+        verified_refs = [ref for ref in refs if ref.get("provenance_level") == "page_bbox_verified"]
+        if verified_refs:
+            pages = sorted({int(ref["page"]) for ref in verified_refs})
+            citation_label = f"{visual.get('evidence_id', 'visual-evidence')}, page={pages}"
+        else:
+            citation_label = (
+                f"{visual.get('evidence_id', 'visual-evidence')}, "
+                "HWP document candidate; page/bbox unverified"
+            )
+        client = InjectingOpenAI(base_client, evidence_text, evidence_doc, citation_label)
         answer = None
         error = None
         try:
@@ -136,6 +152,9 @@ def main() -> int:
                 "context_doc_ids": " | ".join(context_docs),
                 "retrieval_recall": len(context_set & expected) / len(expected) if expected else None,
                 "visual_evidence_used": bool(evidence_text),
+                "visual_evidence_id": visual.get("evidence_id"),
+                "visual_provenance_verified": bool(verified_refs),
+                "visual_evidence_refs": json.dumps(refs, ensure_ascii=False),
                 "visual_evidence_text": evidence_text,
                 "context_fact_coverage": context_matched / context_total if context_total else None,
                 "generated_answer": answer,
@@ -158,6 +177,7 @@ def main() -> int:
         "version": VERSION,
         "cases": len(result),
         "visual_evidence_used_rate": _mean(result["visual_evidence_used"]),
+        "visual_provenance_verified_rate": _mean(result["visual_provenance_verified"]),
         "generation_success_rate": _mean(result["generation_error"].isna()),
         "retrieval_recall": _mean(result["retrieval_recall"]),
         "context_fact_coverage": _mean(result["context_fact_coverage"]),

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import base64
+import hashlib
 import json
 import mimetypes
 import time
@@ -41,6 +42,16 @@ def _parse_answer(text: str | None) -> str:
     return evidence.strip()
 
 
+def _evidence_id(case_id: str, model: str, evidence: str, refs: list[dict[str, Any]]) -> str:
+    payload = json.dumps(
+        {"case_id": case_id, "model": model, "evidence": evidence, "refs": refs},
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return "vle_" + hashlib.sha256(payload).hexdigest()[:24]
+
+
 def run(
     manifest_path: Path,
     output_path: Path,
@@ -54,7 +65,8 @@ def run(
     for item in manifest:
         if item["evidence_type"] != "figure":
             continue
-        images = [Path(value) for value in item["images"]]
+        image_records = list(item["images"])
+        images = [Path(value["path"]) for value in image_records]
         started = time.perf_counter()
         error = None
         evidence = ""
@@ -84,10 +96,25 @@ def run(
             {
                 "case_id": item["case_id"],
                 "doc_id": item["doc_id"],
+                "source_sha256": item.get("source_sha256"),
                 "preparation_status": item["preparation_status"],
                 "image_count": len(images),
                 "model": model,
                 "evidence_text": evidence,
+                "evidence_id": _evidence_id(item["case_id"], model, evidence, image_records),
+                "evidence_refs": [
+                    {
+                        key: record.get(key)
+                        for key in (
+                            "page",
+                            "bbox",
+                            "coordinate_space",
+                            "image_sha256",
+                            "provenance_level",
+                        )
+                    }
+                    for record in image_records
+                ],
                 "error": error,
                 "latency_seconds": round(time.perf_counter() - started, 3),
             }

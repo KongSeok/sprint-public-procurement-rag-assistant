@@ -8,6 +8,7 @@ manifest consumed by the VLM.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import shutil
 import subprocess
@@ -57,8 +58,16 @@ def _extract_source(archive: zipfile.ZipFile, member: str, destination: Path) ->
     return target
 
 
-def _render_pdf_regions(case: dict[str, Any], source: Path, output: Path) -> list[Path]:
-    rendered: list[Path] = []
+def _sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as source:
+        for block in iter(lambda: source.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def _render_pdf_regions(case: dict[str, Any], source: Path, output: Path) -> list[dict[str, Any]]:
+    rendered: list[dict[str, Any]] = []
     document = fitz.open(source)
     try:
         for index, ref in enumerate(case.get("gold", {}).get("evidence_refs", []), start=1):
@@ -74,13 +83,22 @@ def _render_pdf_regions(case: dict[str, Any], source: Path, output: Path) -> lis
             pixmap = page.get_pixmap(matrix=fitz.Matrix(2, 2), clip=clip, alpha=False)
             path = output / f"region-{index:02d}-page-{page_number}.png"
             pixmap.save(path)
-            rendered.append(path)
+            rendered.append(
+                {
+                    "path": str(path.resolve()),
+                    "page": page_number,
+                    "bbox": {key: float(bbox[key]) for key in ("x", "y", "w", "h")},
+                    "coordinate_space": str(ref.get("coordinate_space") or "pdf_points_top_left"),
+                    "image_sha256": _sha256(path),
+                    "provenance_level": "page_bbox_verified",
+                }
+            )
     finally:
         document.close()
     return rendered
 
 
-def _extract_hwp_candidates(source: Path, output: Path, limit: int) -> list[Path]:
+def _extract_hwp_candidates(source: Path, output: Path, limit: int) -> list[dict[str, Any]]:
     html_root = output / "hwp-html"
     html_root.mkdir(parents=True, exist_ok=True)
     command = shutil.which("hwp5html")
@@ -108,11 +126,20 @@ def _extract_hwp_candidates(source: Path, output: Path, limit: int) -> list[Path
     ranked.sort(key=lambda item: (-item[0], item[1].as_posix()))
     candidates = output / "candidates"
     candidates.mkdir(exist_ok=True)
-    selected: list[Path] = []
+    selected: list[dict[str, Any]] = []
     for index, (_, source_image) in enumerate(ranked[:limit], start=1):
         target = candidates / f"candidate-{index:02d}{source_image.suffix.lower()}"
         shutil.copy2(source_image, target)
-        selected.append(target)
+        selected.append(
+            {
+                "path": str(target.resolve()),
+                "page": None,
+                "bbox": None,
+                "coordinate_space": None,
+                "image_sha256": _sha256(target),
+                "provenance_level": "document_candidate_only",
+            }
+        )
     return selected
 
 
@@ -135,7 +162,7 @@ def prepare(
             member = _find_member(archive, source_filename)
             source = _extract_source(archive, member, case_root / "source")
             evidence_type = str(case.get("evidence_type", ""))
-            images: list[Path] = []
+            images: list[dict[str, Any]] = []
             preparation_status = "not_required_for_structured_table"
             if evidence_type == "figure":
                 if source.suffix.lower() == ".pdf":
@@ -149,10 +176,11 @@ def prepare(
                     "case_id": case_id,
                     "question": case["question"],
                     "doc_id": case["document"]["source_filename"].removeprefix("refined_"),
+                    "source_sha256": case["document"].get("source_sha256"),
                     "evidence_type": evidence_type,
                     "source_format": case["document"]["source_format"],
                     "preparation_status": preparation_status,
-                    "images": [str(path.resolve()) for path in images],
+                    "images": images,
                 }
             )
     manifest_path = output_root / "visual_input_manifest.json"

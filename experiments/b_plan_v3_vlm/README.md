@@ -12,6 +12,8 @@ VLM을 적용하라는 `feat/vlm-visual-retrieval`의 설계를 따른다.
 - 골든 정답·필수 사실은 VLM 프롬프트에 넣지 않는다.
 - 원본, 렌더 이미지, VLM 판독문, 상세 답변은 모두 `output/` 아래에 두며 Git에 올리지 않는다.
 - PDF는 골든셋이 지정한 page/bbox만 렌더한다.
+- 각 시각 근거에 evidence ID, 원본 문서 SHA-256, 이미지 SHA-256, page/bbox와
+  provenance 수준을 함께 기록한다. 생성 프롬프트에도 같은 근거 표식을 전달한다.
 - HWP는 정확한 페이지 렌더러가 없으므로 문서에서 추출한 큰 이미지 후보를 제한적으로 비교한다.
   따라서 HWP 결과는 `ranked_hwp_image_candidates`로 표시하며 정확한 page/bbox 인용으로 간주하지 않는다.
 - 시각 브랜치의 Evidence-Harness 및 별도 평가 구조는 포함하지 않는다.
