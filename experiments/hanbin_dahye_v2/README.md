@@ -36,3 +36,15 @@ python -m experiments.hanbin_dahye_v2.run_golden_v3 --resume
 - 집계 결과: `output/experiments/hanbin_dahye_v2/summary.json`
 
 상세 CSV에는 질문과 생성 답변이 있으므로 공개 저장소에 커밋하지 않는다.
+
+## 반복 실행 재현성 분석
+
+4회 결과가 준비된 뒤 다음 명령으로 실행 간 평균·표준편차·범위와 문항별 판정
+변동 수를 계산한다.
+
+```bash
+python -m experiments.hanbin_dahye_v2.analyze_reproducibility
+```
+
+집계 결과는 `output/experiments/hanbin_dahye_v2/reproducibility_summary.json`에
+저장한다.
