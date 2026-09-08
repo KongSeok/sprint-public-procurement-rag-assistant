@@ -12,6 +12,7 @@ This file summarizes recent updates so other agents can continue without re‑di
 - 브라우저 file URL 검수는 정책 차단으로 중단했다. 우회/DOM PASS/screenshot 증거를 만들지 않았다.
 - 정적 산출물 QA PASS: 벡터 shape/norm, 원본 SHA, query occurrence, HTML PNG, 흐름 PNG 2개. 저장소 safety 581파일 PASS, 실제 private 인덱스/미리보기 ignore 확인.
 - 계약과 공개 흐름 보고: `fivecircles/architecture/specs/visual-ocr-index.md`, `visual-ocr-flow-validation.html`.
+- 구현 커밋 `a93af22`를 `feat/vlm-visual-retrieval`에 fast-forward push하고 원격 SHA 일치를 확인했다. 본 항목은 푸시 확인 후 추가한 종료 기록이다.
 
 ## Addendum (2026-08-24) - Batch 0 foundation
 
