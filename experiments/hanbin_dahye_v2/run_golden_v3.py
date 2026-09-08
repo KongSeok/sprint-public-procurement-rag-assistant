@@ -107,7 +107,21 @@ def _mean(series: pd.Series) -> float | None:
     return round(float(values.mean()), 4) if len(values) else None
 
 
+def _document_mention_coverage(row: pd.Series) -> float | None:
+    """엄격한 [근거: ...] 형식과 별개로 답변 내 문서명 언급 비율을 진단한다."""
+    expected = [
+        value.strip()
+        for value in str(row.get("expected_doc_ids", "")).split(" | ")
+        if value.strip()
+    ]
+    if not expected:
+        return None
+    answer = str(row.get("generated_answer", ""))
+    return sum(doc_id in answer for doc_id in expected) / len(expected)
+
+
 def _build_summary(result: pd.DataFrame) -> dict[str, Any]:
+    document_mentions = result.apply(_document_mention_coverage, axis=1)
     successful = result[result["generation_error"].isna()]
     gradable = result[result["facts_total"].fillna(0) > 0]
     summary: dict[str, Any] = {
@@ -123,6 +137,7 @@ def _build_summary(result: pd.DataFrame) -> dict[str, Any]:
         "answer_fact_coverage": _mean(gradable["fact_coverage"]),
         "fact_full_pass_rate": _mean(gradable["facts_pass"]),
         "citation_coverage": _mean(result["citation_coverage"]),
+        "document_mention_coverage": _mean(document_mentions),
         "abstention_match_rate": _mean(result["abstention_match"]),
         "compatible_overall_score": _mean(result["compatible_score"]),
         "lanes": {},
@@ -130,6 +145,7 @@ def _build_summary(result: pd.DataFrame) -> dict[str, Any]:
     group_column = "source_lane" if "source_lane" in result.columns else "lane"
     for lane, group in result.groupby(group_column):
         lane_gradable = group[group["facts_total"].fillna(0) > 0]
+        lane_document_mentions = group.apply(_document_mention_coverage, axis=1)
         summary["lanes"][str(lane)] = {
             "cases": int(len(group)),
             "retrieval_recall": _mean(group["retrieval_recall"]),
@@ -142,6 +158,7 @@ def _build_summary(result: pd.DataFrame) -> dict[str, Any]:
             ),
             "answer_fact_coverage": _mean(lane_gradable["fact_coverage"]),
             "citation_coverage": _mean(group["citation_coverage"]),
+            "document_mention_coverage": _mean(lane_document_mentions),
             "abstention_match_rate": _mean(group["abstention_match"]),
             "compatible_score": _mean(group["compatible_score"]),
         }
