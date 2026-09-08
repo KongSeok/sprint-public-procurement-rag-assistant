@@ -1,0 +1,87 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "QUICKQA.2",
+  "message_id": "quickqa2-final-review-1",
+  "in_reply_to": "quickqa2-actual-implementation-report-1",
+  "sender": "PHILOSOPHER",
+  "kind": "REVIEW",
+  "body": {
+    "verdict": "HALT",
+    "directive_id": "quickqa2-directive-1",
+    "contract_id": "quickqa2-combined-validation-total120-v1",
+    "candidate_id": "sha256:8b1a16e3b16a92db5d238fbcb546f760b8f15b89f481ad641447dea13e4c8b2b",
+    "test_evidence_id": "sha256:7ad2644add6474116c6667db4d99c87a08215a0ea19613c02873083d8853396a",
+    "test_evidence_scope": "기존 집중 검증 패킷의 ID이다. 실제 실행 증거는 아래 actual_evidence_binding으로 별도 결속한다.",
+    "reviewed_message_id": "quickqa2-actual-implementation-report-1",
+    "actual_evidence_binding": {
+      "report_path": "/private/tmp/quickqa2.AsL8qx/actual-report.json",
+      "report_sha256": "03e62ac486a420e81f77016533ed958ed3844e87f764c8ca841506a591c3874e",
+      "raw_evidence_directory": "resources/data_refined/private/diagnostics/controller-path/quickqa2-20260908-001",
+      "raw_sha256": {
+        "supervisor-receipt.json": "7340597b6d44c78e6dca8eec09c81db6a86ba1b9f4c284ac12d576db763d47f7",
+        "journal.jsonl": "62e0e704699de7af9efa91e1d8b48be7fa9d867747be0306d53298690d7a66a3",
+        "worker.stdout": "cc13de4751e98b123e656e8cd5a3b2584cad72fcb7dcd3213ab9aa0527f6bcb4",
+        "worker.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "direction_score": null,
+    "direction_rubric": null,
+    "direction_rationale": "중복 lane 전체 검증 제거는 승인된 좁은 설계와 일치하며 기존 검증 및 identity 비교를 보존한다. 준비 포함 120초 단일 실험은 수행됐지만 lexical 단계에서 중단되어 문답 완료나 실용 속도 달성을 입증하지 못했다.",
+    "outcome_split": {
+      "combined_implementation_validation": "PASS_WITH_SCOPED_COVERAGE",
+      "focused_tests": "core 4 + 영향 9 + runner 12 + native watchdog 3 PASS",
+      "bounded_experiment_execution": "COMPLETED_WITH_TIMEOUT",
+      "actual_question": "INCOMPLETE",
+      "performance_improvement": "NOT_ESTABLISHED",
+      "full_e1": "NOT_COMPLETED",
+      "additional_run_authority": "EXHAUSTED"
+    },
+    "findings": [
+      {
+        "id": "QUICKQA2-FINAL-1",
+        "category": "implementation",
+        "severity": "blocking_for_qa_completion",
+        "evidence": "실제 receipt는 TIMEOUT, supervisor exit 124, worker exit -9를 기록한다. initialize 50.810214초, plan_bind 1.525891초, retrieve_dense 30.062029초 PASS 후 retrieve_lexical에서 종료됐다. result.json과 답변은 없다.",
+        "action": "문답 미완료로 기록하고 추가 실행을 중단한다. 이 finding은 결합 검증 구현의 결함 판정이나 자동 수정 지시가 아니다."
+      }
+    ],
+    "verified_observations": {
+      "candidate_files_checked": 7,
+      "runtime_dependencies_checked": 5,
+      "focused_evidence_files_checked": 35,
+      "hash_mismatches": 0,
+      "source_before_after_byte_identical": true,
+      "source_manifest_sha256": "dcd3c66fedba9076929cd62a8d3d7a3f308c4090922688f3d1c70cd02174f9dd",
+      "same_request_sha256": "77ccb87f73b7faf9adfd04d3ff859fb204da12fde9e5fe48080ee05a76bc63e3",
+      "reported_runs": 1,
+      "reported_retries": 0,
+      "worker_start_events_observed": 1,
+      "generation_attempts_observed": 0,
+      "generation_calls": null,
+      "worker_elapsed_seconds": 120.06128274998628,
+      "supervisor_receipt_overhead_seconds": 0.0009430000209249556,
+      "configured_termination_grace_seconds": 0,
+      "deadline_sigkill_sent": true,
+      "shared_ollama_terminated": false
+    },
+    "limitations": [
+      "120.061283초는 worker 종료 회수 관측값이다. 정확한 SIGKILL 발송 시각이 없으므로 120.000초 이내 종료를 실측했다고 주장할 수 없다. 명목 상한 초과 약 61ms와 별도 receipt 기록 오버헤드를 그대로 보존한다.",
+      "result.json이 없으므로 generation_calls는 미확인이다. durable journal에서 생성 시도가 관측되지 않았다는 사실과 구분한다.",
+      "집중 로그는 실제 도구 반환 출력의 사본이다. 광범위한 store-payload, 호출 중 mutation, Controller concurrency 또는 전체 회귀 검증을 주장하지 않는다.",
+      "단일 실행 보고와 한 worker-start journal은 일치한다. 독립적인 시스템 전체 실행 이력 감사는 수행하지 않았다."
+    ],
+    "requested_task_changes": [],
+    "next_batch_constraints": [
+      "이번 실제 문답 또는 생성을 재실행하지 않는다.",
+      "Main은 구현 검증 통과, 제한 실험 수행 완료, 실제 문답 TIMEOUT을 분리해 로그올과 종료 기록을 작성한다.",
+      "이 HALT를 코드 검증 실패로 확대하거나 문답 PASS로 축소하지 않는다.",
+      "전체 QA 또는 E1 완료로 last-pass를 승격하지 않는다.",
+      "추가 최적화, 질문 실행, Git 변경 및 push를 이번 검수로 승인하지 않는다."
+    ],
+    "reason": "후보와 집중 검증 및 실제 증거의 해시를 원본에서 대조했고 변경된 함수·호출자·pins·runner·supervisor를 검토했다. 구현과 제한 실행 장치는 좁은 승인 범위에 적합하다. 다만 실제 문답은 완료되지 않았고 승인된 한 번의 실행을 소진했으므로 문답 진행에 한정해 HALT한다. 실패 증거를 보존한 실험 종료와 Main의 로그 마감은 가능하다.",
+    "resume_conditions": [
+      "추가 실제 실행이 필요하면 사용자가 새 실행 범위와 예산을 승인하고, 변경 후보 및 필요한 검증을 새 지시에 결속한다."
+    ]
+  }
+}

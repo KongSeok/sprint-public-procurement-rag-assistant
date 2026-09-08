@@ -1,0 +1,92 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.c4.2.b.3",
+  "message_id": "first-parent-resume-final-review-1",
+  "in_reply_to": "first-parent-resume-implementation-report-1",
+  "sender": "PHILOSOPHER",
+  "kind": "REVIEW",
+  "body": {
+    "verdict": "PASS",
+    "review_stage": "FINAL_DEEP_PRODUCT_GATE",
+    "directive_id": "first-parent-resume-directive-6",
+    "contract_id": "sha256:f8fe0041df23b81dc3e88b0138363535c504bf5e36269610af118884f72752de",
+    "candidate_id": "sha256:49ff508ff3a57822fa146f9eaed3edd5e74c86f3a83ea57e4dfb26002a5a7085",
+    "test_evidence_id": "sha256:d9f34932419dae2819c1f8631cf5ba78ad0d3c17dc9a66070cd1cc765ce8e013",
+    "reviewed_message_id": "first-parent-resume-implementation-report-1",
+    "direction_score": null,
+    "direction_rubric": null,
+    "direction_rationale": "The candidate completes the accepted first-parent edge: an authentic revision3 first-obligation fusion graph supplies the selected ordinal4 parent preparation, one selected parent effect and an exact same-state revision4. It reuses existing semantic factories, complete-context accumulation, shared temporal source fencing, claim consumption and transition authority. This remains an appropriate bounded prerequisite for later Controller work. Its implementation and regression evidence do not establish completed Controller/E2E behavior, retrieval-quality superiority or practical service latency.",
+    "findings": [],
+    "requested_task_changes": [],
+    "verified_interim_closures": [
+      {
+        "id": "FP-INTERIM-1",
+        "status": "CLOSED",
+        "evidence": "execution_contracts.py validate_record now invokes the pinned target_context_reader and checks the exact selected receipt, action and target relationship. That reader revalidates the retained semantic obligation, complete parent and bridge tuples, sibling receipt authorities, selected relationship and context cache identity. The check applies to effect/transition validation, final registration and revision4 readback. The focused native drift test passed."
+      },
+      {
+        "id": "FP-INTERIM-2",
+        "status": "CLOSED",
+        "evidence": "reserve_controller_batches checks and reserves both parent and bridge families under the existing issuance lock before accumulator acquisition. Existing issuer entry points respect those reservations and require the sealed Controller call chain. Intervening completed parent or bridge preparation rejects the reservation and consumes the Controller claim. Failure cleanup preserves completed preparation and tombstones pending work. The focused native parent/bridge race and preparation-failure tests passed."
+      },
+      {
+        "id": "FP-INTERIM-3",
+        "status": "CLOSED",
+        "evidence": "Read all twelve focused test bodies covering the private surface, same-state revision4, original fact/compare source graph, lane variants, linked complete batches, owner/config bounds, refusal, prior preparation, source/dependency drift, concurrent winner, registration failure, preparation failure and complete-context drift. Current focused, adjacent, isolated and full native gates are complete."
+      }
+    ],
+    "architecture_assessment": [
+      "Admission retains the original retrieval obligation and dense, lexical and fusion receipt identities. Compare ownership and its first projected query are validated through existing authorities without reminting the compare retrieval tuple.",
+      "The bounded sorted prefix determines context preparation only. Fusion/state candidate order remains intact; complete parent and bridge tuples are retained, while only the selected ParentContextReceipt supplies the ordinal4 effect.",
+      "Parent source attempts extend the existing monotonic claim fence with sealed issuer/minter/module and Controller-origin checks. Bridge preparation does not become an admitted executed Controller source.",
+      "Revision4 retains revision3's exact state, initial root and immediate predecessor, appends one action/count/transition, and preserves lane, round, sibling and no-progress fields. Equal semantic fingerprints reflect the absence of semantic evidence promotion.",
+      "The previously approved predecessor optimization retains exact predecessor/claim/projection binding before delegated live validation. The approved immutable code representation cache and combined attestation reuse remain separately attributable derivatives; they are not new resumed B3 implementation."
+    ],
+    "evidence_verification": {
+      "main_manifest": "/private/tmp/b3-closeout-evidence-20260908.JdmzBI/test-evidence.sha256",
+      "manifest_entries": 90,
+      "unique_manifest_paths": 90,
+      "manifest_hash_mismatches": 0,
+      "additional_input_and_addon_hash_checks": 2003,
+      "additional_hash_mismatches": 0,
+      "candidate_owned_files": 2,
+      "integration_closure": "Exact eleven bound files: nine changed/new files and two unchanged behavior references relative to base 233addfa5dfb1be43417cb13cc99863d52372e96.",
+      "coder_report_sha256": "6605ba10240b55f201efd803d89bc3bf2653c14bf3e4311e479c88059f2a00b5",
+      "workform_sha256_read_before_closeout": "f3b12964d3f56403836d7b5cd417b21c3fcbfdfd365a5948f652d4ed9d0c7b71",
+      "native_gates": [
+        "Focused: 12 PASS, 2520.028 seconds, exit0.",
+        "Adjacent: 246 PASS, 1146.929 seconds, exit0.",
+        "ISOLATED_BASE_PLUS_B3_PLUS_APPROVED_PREREQUISITE_PASS: 258 tests, 4992.118 seconds, exit0.",
+        "SUPPLEMENTAL_EXACT_INTEGRATION_TEST_CLOSURE_PASS: 14 tests, 7.722 seconds, exit0.",
+        "Real PDF spawn preflight: 2 PASS, 0.578 seconds, exit0.",
+        "RESOLVED_INPUT_FULL_PASS: 1765 tests, 3866.491 seconds, exit0."
+      ],
+      "full_discovery": "1765 unique discovered IDs and 1765 unique native test-start IDs; no missing IDs. Exactly one raw resolver-start and one raw resolver-result. All four combined runtime validation IDs are present.",
+      "full_result_sha256": "a8e2b087ce4d1b9dbfec440b7fcb170934b53232499b5de9cd1c1495f58a4107",
+      "full_native_sha256": "0059b131ce82f16f0c20e5357be7da22d285a1988e2c0432a328ab2378fee3fe",
+      "mandatory_result_counters": "Zero failures, errors, skips, expected failures and unexpected successes; no postflight issues.",
+      "reviewer_actions": "Read-only static and artifact verification. No file edits, tests, benchmarks, models, external execution, Git mutation or child delegation."
+    },
+    "limitations": [
+      "Full validation explicitly uses the approved existing HB add-on path and pinned frozen-input resolver. It is not standard unwrapped full validation, and its environment is not identical to the source-only gates.",
+      "The canonical CSV remains UNREPAIRED_FROZEN_HASH_MISMATCH. Passing full validation uses the exact approved archival CSV without changing canonical data, loader, assertions or expected hashes.",
+      "Endpoint module observations are not complete import history. Resolver restoration is supported by pinned finally control flow and child exit, not direct post-finally variable readback.",
+      "Focused, adjacent, isolated, supplemental and full counts overlap and must not be summed as distinct coverage.",
+      "Original discovery failure, duplicated-spawn interruption, supplemental failed preflight, historical implementation failures and interim PATCH remain preserved. Current PASS does not rewrite those outcomes.",
+      "The benchmark helper belongs to the approved derivative test closure because its fixed code corpus is imported. No benchmark execution or performance approval follows."
+    ],
+    "next_batch_constraints": [
+      "This PASS approves only the bound B3 product candidate, contract and Main evidence manifest. Complete Main-owned report/browser QA, closeout/logall and exact ownership reconciliation before separately authorized integration.",
+      "Preserve native repository safety FAIL as a separate publication gate. Hash-pattern findings and any prior limited adjudication must not be converted into a global safety PASS or blanket publication clearance.",
+      "Keep the exact changed-nine and unchanged-reference-two closure identifiable. Exclude unrelated dirty files and resources from any integration payload; do not attribute approved cache, predecessor or QUICKQA changes to new resumed B3 work.",
+      "Preserve source-only versus full-only environment distinctions, unchanged add-on identities and multiplicities, frozen input bindings, unresolved canonical CSV status and historical failed receipts.",
+      "Keep Controller/E1/E2E and parent TODOs incomplete where their remaining behavior is unimplemented. Baseline remains the immutable control; challenger quality superiority and practical latency are unproven.",
+      "Any later parent/compare target, bridge execution, semantic verification, absence handling, ordinal5 or terminal path requires a separate complete Design and appropriate evidence. This review grants no such expansion.",
+      "Do not recreate denied LATENCY.FIX or infer new hotline, model, API, HB, VLM, GPU, GCP, benchmark, profiling or publication authority.",
+      "A material change to product bytes, behavior contract, dependencies or required validation inputs invalidates reuse of this exact PASS."
+    ],
+    "reason": "Independent deep review found no blocking defect within the accepted B3 product boundary. Both original P1 repairs and the completed acceptance matrix are supported by current code and native evidence. Recomputed all ninety Main-manifest entries with zero mismatches, verified exact candidate and closure hashes, checked native logs and full discovery/run counters, and independently checked 2003 listed input/add-on hashes without mismatch. Directive v6 explicitly preserves the unchanged v4/v5 source-only evidence; its full-only launcher correction, real PDF preflight and complete resolved-input full result satisfy the remaining product gate. Publication clearance and broader Controller completion remain separate.",
+    "resume_conditions": []
+  }
+}

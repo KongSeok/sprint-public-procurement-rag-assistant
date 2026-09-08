@@ -73,6 +73,8 @@ _BRIDGE_CONTEXT_RECEIPT_TOKEN = object()
 _RERANK_RECEIPT_TOKEN = object()
 _RERANK_REQUEST_TOKEN = object()
 _ABSENCE_CONFIRMATION_TOKEN = object()
+_CODE_PAYLOAD_CACHE_MAX_ENTRIES = 128
+_CODE_PAYLOAD_CACHE_MAX_CANONICAL_BYTES = 4 * 1024 * 1024
 _ISSUED_VALIDATE_EVIDENCE_STORE_SNAPSHOT = validate_evidence_store_snapshot
 _ISSUED_HYBRID_SEARCH_LANE = type.__getattribute__(
     object.__getattribute__(_FUSION_RUNTIME_MODULE, "HybridChildRetriever"),
@@ -997,6 +999,44 @@ def _class_and_function_behavior_sha256(
     )
 
 
+def _code_payload_cache_safe_value(
+    value: Any,
+    seen: frozenset[int],
+) -> bool:
+    if value is None or type(value) in {str, bool, int, float, bytes}:
+        return True
+    if type(value) is tuple:
+        return all(
+            _code_payload_cache_safe_value(item, seen) for item in value
+        )
+    if type(value) is CodeType:
+        identity = id(value)
+        if identity in seen:
+            return False
+        nested_seen = seen | {identity}
+        return all(
+            _code_payload_cache_safe_value(item, nested_seen)
+            for item in value.co_consts
+        )
+    return False
+
+
+def _code_payload_cache_safe(code: CodeType) -> bool:
+    return type(code) is CodeType and _code_payload_cache_safe_value(
+        code, frozenset()
+    )
+
+
+def _canonical_code_payload_bytes(payload: dict[str, Any]) -> bytes:
+    return json.dumps(
+        payload,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+        allow_nan=False,
+    ).encode("utf-8")
+
+
 def _code_payload(code: CodeType) -> dict[str, Any]:
     return {
         "argcount": code.co_argcount,
@@ -1012,6 +1052,183 @@ def _code_payload(code: CodeType) -> dict[str, Any]:
         "freevars": list(code.co_freevars),
         "cellvars": list(code.co_cellvars),
     }
+
+
+def _validated_code_payload_cache_entry(
+    entry: object,
+    code: CodeType,
+) -> tuple[CodeType, bytes, int]:
+    if type(entry) is not tuple or len(entry) != 3:
+        raise ValueError("harness_runtime_validation_dependency_drift")
+    retained_code, encoded, size = entry
+    if (
+        type(retained_code) is not CodeType
+        or retained_code is not code
+        or type(encoded) is not bytes
+        or type(size) is not int
+        or size != len(encoded)
+    ):
+        raise ValueError("harness_runtime_validation_dependency_drift")
+    return retained_code, encoded, size
+
+
+def _build_code_payload_cache_accessors():
+    cache: dict[int, tuple[CodeType, bytes, int]] = {}
+    mirror: dict[int, tuple[CodeType, bytes, int]] = {}
+    state = {
+        "retained_bytes": 0,
+        "hits": 0,
+        "misses": 0,
+        "evictions": 0,
+        "bypasses": 0,
+    }
+    lock = Lock()
+
+    def read(code: CodeType) -> bytes | None:
+        key = id(code)
+        with lock:
+            entry = dict.get(cache, key)
+            mirrored = dict.get(mirror, key)
+            present = key in cache
+            if present is not (key in mirror) or entry is not mirrored:
+                raise ValueError("harness_runtime_validation_dependency_drift")
+            if entry is None:
+                if present:
+                    raise ValueError("harness_runtime_validation_dependency_drift")
+                state["misses"] += 1
+                return None
+            _, encoded, _ = _validated_code_payload_cache_entry(entry, code)
+            dict.pop(cache, key)
+            dict.pop(mirror, key)
+            dict.__setitem__(cache, key, entry)
+            dict.__setitem__(mirror, key, entry)
+            state["hits"] += 1
+        return encoded
+
+    def store(code: CodeType) -> bytes | None:
+        if not _code_payload_cache_safe(code):
+            with lock:
+                state["bypasses"] += 1
+            return None
+        payload = _code_payload(code)
+        try:
+            encoded = _canonical_code_payload_bytes(payload)
+        except (TypeError, ValueError, OverflowError, UnicodeError, RecursionError):
+            with lock:
+                state["bypasses"] += 1
+            return None
+        size = len(encoded)
+        if size > _CODE_PAYLOAD_CACHE_MAX_CANONICAL_BYTES:
+            with lock:
+                state["bypasses"] += 1
+            return None
+        key = id(code)
+        with lock:
+            existing = dict.get(cache, key)
+            existing_mirror = dict.get(mirror, key)
+            present = key in cache
+            if present is not (key in mirror) or existing is not existing_mirror:
+                raise ValueError("harness_runtime_validation_dependency_drift")
+            if existing is not None:
+                _, encoded, _ = _validated_code_payload_cache_entry(
+                    existing, code
+                )
+                dict.pop(cache, key)
+                dict.pop(mirror, key)
+                dict.__setitem__(cache, key, existing)
+                dict.__setitem__(mirror, key, existing)
+            else:
+                if present:
+                    raise ValueError("harness_runtime_validation_dependency_drift")
+                while cache and (
+                    len(cache) >= _CODE_PAYLOAD_CACHE_MAX_ENTRIES
+                    or state["retained_bytes"] + size
+                    > _CODE_PAYLOAD_CACHE_MAX_CANONICAL_BYTES
+                ):
+                    oldest_key = next(iter(cache))
+                    oldest = dict.pop(cache, oldest_key)
+                    oldest_mirror = dict.get(mirror, oldest_key)
+                    if (
+                        oldest_key not in mirror
+                        or oldest is not oldest_mirror
+                    ):
+                        raise ValueError(
+                            "harness_runtime_validation_dependency_drift"
+                        )
+                    dict.pop(mirror, oldest_key)
+                    _, _, oldest_size = _validated_code_payload_cache_entry(
+                        oldest, oldest[0]
+                    )
+                    state["retained_bytes"] -= oldest_size
+                    state["evictions"] += 1
+                entry = (code, encoded, size)
+                dict.__setitem__(cache, key, entry)
+                dict.__setitem__(mirror, key, entry)
+                state["retained_bytes"] += size
+        return encoded
+
+    def snapshot() -> dict[str, int]:
+        with lock:
+            if len(cache) != len(mirror) or any(
+                dict.get(mirror, key) is not entry
+                for key, entry in dict.items(cache)
+            ):
+                raise ValueError("harness_runtime_validation_dependency_drift")
+            return {
+                "entries": len(cache),
+                **state,
+            }
+
+    def clear() -> None:
+        with lock:
+            if len(cache) != len(mirror) or any(
+                dict.get(mirror, key) is not entry
+                for key, entry in dict.items(cache)
+            ):
+                raise ValueError("harness_runtime_validation_dependency_drift")
+            dict.clear(cache)
+            dict.clear(mirror)
+            for name in tuple(state):
+                state[name] = 0
+
+    return read, store, snapshot, clear
+
+
+(
+    _read_code_payload_cache,
+    _store_code_payload_cache,
+    _code_payload_cache_snapshot,
+    _clear_code_payload_cache,
+) = _build_code_payload_cache_accessors()
+del _build_code_payload_cache_accessors
+
+
+def _canonical_function_sha256_bytes(
+    *,
+    code: bytes,
+    defaults: Any,
+    kwdefaults: Any,
+    module: str,
+    qualname: str,
+) -> bytes:
+    if type(code) is not bytes:
+        raise ValueError("harness_runtime_validation_dependency_drift")
+    suffix = json.dumps(
+        {
+            "defaults": defaults,
+            "kwdefaults": kwdefaults,
+            "module": module,
+            "qualname": qualname,
+            "schema_version": SCHEMA_VERSION,
+        },
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+        allow_nan=False,
+    ).encode("utf-8")
+    if not suffix.startswith(b'{"defaults":') or not suffix.endswith(b"}"):
+        raise ValueError("harness_runtime_validation_dependency_drift")
+    return b'{"code":' + code + b"," + suffix[1:]
 
 
 def _function_sha256(function: FunctionType) -> str:
@@ -1031,23 +1248,45 @@ def _function_sha256(function: FunctionType) -> str:
         or any(type(key) is not str for key in kwdefaults)
     ):
         raise ValueError("harness_runtime_method_override")
-    return _canonical_sha256(
-        {
-            "schema_version": SCHEMA_VERSION,
-            "module": module,
-            "qualname": qualname,
-            "code": _code_payload(code),
-            "defaults": _stable_code_value(defaults),
-            "kwdefaults": (
-                None
-                if kwdefaults is None
-                else {
-                    key: _stable_code_value(value)
-                    for key, value in sorted(dict.items(kwdefaults))
-                }
-            ),
+    code_bytes = _read_code_payload_cache(code)
+    if code_bytes is None:
+        code_bytes = _store_code_payload_cache(code)
+    if code_bytes is None:
+        return _canonical_sha256(
+            {
+                "schema_version": SCHEMA_VERSION,
+                "module": module,
+                "qualname": qualname,
+                "code": _code_payload(code),
+                "defaults": _stable_code_value(defaults),
+                "kwdefaults": (
+                    None
+                    if kwdefaults is None
+                    else {
+                        key: _stable_code_value(value)
+                        for key, value in sorted(dict.items(kwdefaults))
+                    }
+                ),
+            }
+        )
+    defaults_payload = _stable_code_value(defaults)
+    kwdefaults_payload = (
+        None
+        if kwdefaults is None
+        else {
+            key: _stable_code_value(value)
+            for key, value in sorted(dict.items(kwdefaults))
         }
     )
+    return sha256(
+        _canonical_function_sha256_bytes(
+            code=code_bytes,
+            defaults=defaults_payload,
+            kwdefaults=kwdefaults_payload,
+            module=module,
+            qualname=qualname,
+        )
+    ).hexdigest()
 
 
 def _instance_dict(component: object) -> dict[str, Any]:
@@ -1780,12 +2019,14 @@ def _bind_harness_runtime(
     lexical_attestation = None
     if execution_kind == "production":
         try:
-            production_hybrid = require_hybrid(retriever, store)
-            dense_attestation = require_dense(
-                dense, store, production=True
-            )
-            lexical_attestation = require_lexical(
-                lexical, store, production=True
+            (
+                production_hybrid,
+                dense_attestation,
+                lexical_attestation,
+            ) = require_hybrid(
+                retriever,
+                store,
+                include_attestations=True,
             )
         except ValueError as exc:
             raise ValueError("harness_runtime_attestation_drift") from exc
@@ -2217,12 +2458,14 @@ def _validate_harness_runtime_binding(
             raise ValueError("harness_runtime_authority_drift")
     else:
         try:
-            current_hybrid = require_hybrid(retriever, store)
-            current_dense = require_dense(
-                authority.dense, store, production=True
-            )
-            current_lexical = require_lexical(
-                authority.lexical, store, production=True
+            (
+                current_hybrid,
+                current_dense,
+                current_lexical,
+            ) = require_hybrid(
+                retriever,
+                store,
+                include_attestations=True,
             )
         except ValueError as exc:
             raise ValueError("harness_runtime_attestation_drift") from exc
@@ -3088,11 +3331,11 @@ def _build_harness_execution_authority_accessors(
         before_authority = require(before)
         state_is_valid = (
             state is before.state
-            if before.step_index in {0, 1}
+            if before.step_index in {0, 1, 3}
             else state is not before.state
         )
         if (
-            before.step_index not in {0, 1, 2}
+            before.step_index not in {0, 1, 2, 3}
             or type(state) is not state_cls
             or (before_authority[8] is None) != (before.step_index == 0)
             or ledger.revision != before.step_index + 1
@@ -3435,6 +3678,10 @@ def _build_harness_execution_public_api(
             )
         elif execution.step_index == 3:
             _require_controller_first_fusion_transition(
+                execution=execution, store=store, config=config, runtime=runtime
+            )
+        elif execution.step_index == 4:
+            _require_controller_first_parent_transition(
                 execution=execution, store=store, config=config, runtime=runtime
             )
         elif execution.step_index != 0:
@@ -11532,15 +11779,13 @@ def _issue_retrieval_semantic_verification_obligation(
         target_doc_id = object.__getattribute__(raw_target, "doc_id")
         field = object.__getattribute__(raw_target, "field")
     anchors = object.__getattribute__(fusion_receipt, "ordered_stable_anchors")
-    issuance_key = (
-        "semantic-v1",
-        expected_source_kind,
-        id(object.__getattribute__(retrieval_authority, "source")),
-        ordinal,
-        id(fusion_receipt),
-        id(store),
-        id(config),
-        id(runtime),
+    issuance_key = _retrieval_semantic_issuance_key(
+        expected_source_kind=expected_source_kind,
+        retrieval_authority=retrieval_authority,
+        fusion_receipt=fusion_receipt,
+        store=store,
+        config=config,
+        runtime=runtime,
     )
     return _create_semantic_verification_obligation(
         source_kind=expected_source_kind,
@@ -11574,6 +11819,29 @@ def _issue_retrieval_semantic_verification_obligation(
         config=config,
         runtime=runtime,
         verifier_authority=object.__getattribute__(runtime_authority, "verifier"),
+    )
+
+
+def _retrieval_semantic_issuance_key(
+    *,
+    expected_source_kind: str,
+    retrieval_authority: _RetrievalObligationAuthority,
+    fusion_receipt: FusionReceipt,
+    store: EvidenceStore,
+    config: HarnessExecutionConfig,
+    runtime: HarnessRuntimeBinding,
+) -> tuple[object, ...]:
+    """Return the exact base-semantic cache key without issuing its object."""
+
+    return (
+        "semantic-v1",
+        expected_source_kind,
+        id(object.__getattribute__(retrieval_authority, "source")),
+        object.__getattribute__(retrieval_authority, "projection_ordinal"),
+        id(fusion_receipt),
+        id(store),
+        id(config),
+        id(runtime),
     )
 
 
@@ -12328,20 +12596,95 @@ def _build_context_receipt_accessors(
 )
 
 
-def _build_context_issuance_accessors() -> tuple[
-    FunctionType,
-    FunctionType,
-    FunctionType,
-    FunctionType,
-    FunctionType,
-]:
+class _ControllerContextBatchPermit:
+    """Private capability reserving both complete context batches."""
+
+    __slots__ = ("__weakref__",)
+
+    def __init__(self) -> None:
+        raise TypeError("controller_context_batch_permit_factory_required")
+
+
+def _build_context_issuance_accessors(
+    *,
+    permit_cls: type,
+    parent_receipt_cls: type,
+    bridge_receipt_cls: type,
+) -> tuple[FunctionType, ...]:
     history: dict[tuple[object, ...], object] = {}
     history_shadow: dict[tuple[object, ...], object] = {}
     cache: dict[tuple[object, ...], tuple[object, ...]] = {}
     cache_shadow: dict[tuple[object, ...], tuple[object, ...]] = {}
     source_refs: dict[int, ReferenceType[object]] = {}
     source_keys: dict[int, set[tuple[object, ...]]] = {}
+    reservations: dict[tuple[object, ...], tuple[object, ...]] = {}
+    reservations_shadow: dict[tuple[object, ...], tuple[object, ...]] = {}
+    permits: dict[int, tuple[object, ...]] = {}
+    permits_shadow: dict[int, tuple[object, ...]] = {}
     issuance_lock = Lock()
+    get_frame = _GET_FRAME
+    parent_issuer_code: CodeType | None = None
+    bridge_issuer_code: CodeType | None = None
+    complete_context_validator_code: CodeType | None = None
+    accumulator_code: CodeType | None = None
+    executor_code: CodeType | None = None
+
+    def validate_reservation_unlocked(
+        execution_key: tuple[object, ...],
+    ) -> tuple[object, ...] | None:
+        current = dict.get(reservations, execution_key)
+        mirror = dict.get(reservations_shadow, execution_key)
+        if current is None and mirror is None:
+            return None
+        if (
+            type(current) is not tuple
+            or len(current) != 3
+            or mirror is not current
+            or type(tuple.__getitem__(current, 0)) is not permit_cls
+            or tuple.__getitem__(current, 1) not in {"parent", "bridge"}
+            or tuple.__getitem__(current, 2)
+            not in {"reserved", "acquired", "completed", "failed"}
+        ):
+            raise ValueError("controller_context_batch_reservation_drift")
+        return current
+
+    def require_controller_caller(
+        *,
+        family: str | None = None,
+        issuer_depth: bool = False,
+        validator_depth: bool = False,
+    ) -> None:
+        caller = get_frame(2)
+        if issuer_depth or validator_depth:
+            accumulator = get_frame(3)
+            executor = get_frame(4)
+            expected_issuer = (
+                complete_context_validator_code
+                if validator_depth
+                else parent_issuer_code
+                if family == "parent"
+                else bridge_issuer_code
+            )
+            valid = (
+                family in {"parent", "bridge"}
+                and object.__getattribute__(caller, "f_code")
+                is expected_issuer
+                and object.__getattribute__(caller, "f_globals") is globals()
+                and object.__getattribute__(accumulator, "f_code")
+                is accumulator_code
+                and object.__getattribute__(accumulator, "f_globals")
+                is globals()
+                and object.__getattribute__(executor, "f_code")
+                is executor_code
+                and object.__getattribute__(executor, "f_globals") is globals()
+            )
+        else:
+            valid = (
+                object.__getattribute__(caller, "f_code") is executor_code
+                and object.__getattribute__(caller, "f_globals") is globals()
+            )
+        if not valid:
+            raise ValueError("controller_context_batch_reservation_required")
 
     def drop_source(
         identity: int,
@@ -12351,11 +12694,19 @@ def _build_context_issuance_accessors() -> tuple[
             if dict.get(source_refs, identity) is not dead:
                 return
             keys = dict.pop(source_keys, identity, set())
+            dead_permits: set[int] = set()
             for key in tuple(keys):
                 dict.pop(history, key, None)
                 dict.pop(history_shadow, key, None)
                 dict.pop(cache, key, None)
                 dict.pop(cache_shadow, key, None)
+                reservation = dict.pop(reservations, key, None)
+                dict.pop(reservations_shadow, key, None)
+                if type(reservation) is tuple and reservation:
+                    dead_permits.add(id(tuple.__getitem__(reservation, 0)))
+            for permit_identity in dead_permits:
+                dict.pop(permits, permit_identity, None)
+                dict.pop(permits_shadow, permit_identity, None)
             dict.pop(source_refs, identity, None)
 
     def begin(
@@ -12377,6 +12728,40 @@ def _build_context_issuance_accessors() -> tuple[
                 dict.__setitem__(source_keys, source_identity, set())
             elif source_weak() is not source:
                 raise ValueError("context_receipt_source_history_drift")
+            reservation = validate_reservation_unlocked(execution_key)
+            if reservation is not None:
+                family = tuple.__getitem__(execution_key, 1)
+                expected_receipt_type = (
+                    parent_receipt_cls
+                    if family == "parent"
+                    else bridge_receipt_cls
+                    if family == "bridge"
+                    else None
+                )
+                reservation_status = tuple.__getitem__(reservation, 2)
+                if receipt_type is not expected_receipt_type or tuple.__getitem__(
+                    reservation, 1
+                ) != family:
+                    raise ValueError(
+                        "controller_context_batch_reservation_required"
+                    )
+                if reservation_status == "reserved":
+                    require_controller_caller(
+                        family=family,
+                        issuer_depth=True,
+                    )
+                    acquired = reservation[:2] + ("acquired",)
+                    dict.__setitem__(reservations, execution_key, acquired)
+                    dict.__setitem__(reservations_shadow, execution_key, acquired)
+                elif reservation_status == "completed":
+                    require_controller_caller(
+                        family=family,
+                        validator_depth=True,
+                    )
+                else:
+                    raise ValueError(
+                        "controller_context_batch_reservation_required"
+                    )
             current = dict.get(history, execution_key)
             mirror = dict.get(history_shadow, execution_key)
             if current is not mirror:
@@ -12406,10 +12791,24 @@ def _build_context_issuance_accessors() -> tuple[
                 or dict.get(history_shadow, execution_key) is not _CONTEXT_PENDING
             ):
                 raise ValueError("context_receipt_issuance_history_drift")
+            reservation = validate_reservation_unlocked(execution_key)
+            if reservation is not None:
+                require_controller_caller(
+                    family=tuple.__getitem__(reservation, 1),
+                    issuer_depth=True,
+                )
+                if tuple.__getitem__(reservation, 2) != "acquired":
+                    raise ValueError(
+                        "controller_context_batch_reservation_drift"
+                    )
             dict.__setitem__(cache, execution_key, receipts)
             dict.__setitem__(cache_shadow, execution_key, receipts)
             dict.__setitem__(history, execution_key, _CONTEXT_COMPLETED)
             dict.__setitem__(history_shadow, execution_key, _CONTEXT_COMPLETED)
+            if reservation is not None:
+                completed = reservation[:2] + ("completed",)
+                dict.__setitem__(reservations, execution_key, completed)
+                dict.__setitem__(reservations_shadow, execution_key, completed)
 
     def fail(execution_key: tuple[object, ...]) -> None:
         with issuance_lock:
@@ -12418,8 +12817,18 @@ def _build_context_issuance_accessors() -> tuple[
                 or dict.get(history_shadow, execution_key) is not _CONTEXT_PENDING
             ):
                 raise ValueError("context_receipt_issuance_history_drift")
+            reservation = validate_reservation_unlocked(execution_key)
+            if reservation is not None:
+                require_controller_caller(
+                    family=tuple.__getitem__(reservation, 1),
+                    issuer_depth=True,
+                )
             dict.__setitem__(history, execution_key, _CONTEXT_FAILED)
             dict.__setitem__(history_shadow, execution_key, _CONTEXT_FAILED)
+            if reservation is not None:
+                failed = reservation[:2] + ("failed",)
+                dict.__setitem__(reservations, execution_key, failed)
+                dict.__setitem__(reservations_shadow, execution_key, failed)
 
     def status(execution_key: tuple[object, ...]) -> object | None:
         with issuance_lock:
@@ -12429,7 +12838,199 @@ def _build_context_issuance_accessors() -> tuple[
                 raise ValueError("context_receipt_issuance_history_drift")
             return current
 
-    return begin, complete, fail, status, drop_source
+    def batches_pristine(
+        semantic_issuance_key: tuple[object, ...],
+        store: EvidenceStore,
+        config: HarnessExecutionConfig,
+        runtime: HarnessRuntimeBinding,
+    ) -> bool:
+        """Report whether neither complete-context batch has ever started."""
+
+        with issuance_lock:
+            keys = (
+                set(dict.keys(history))
+                | set(dict.keys(history_shadow))
+                | set(dict.keys(reservations))
+                | set(dict.keys(reservations_shadow))
+            )
+            for key in keys:
+                current = dict.get(history, key)
+                mirror = dict.get(history_shadow, key)
+                if current is not mirror:
+                    raise ValueError("context_receipt_issuance_history_drift")
+                validate_reservation_unlocked(key)
+                if (
+                    type(key) is tuple
+                    and len(key) == 7
+                    and tuple.__getitem__(key, 0) == "semantic-context-v1"
+                    and tuple.__getitem__(key, 1) in {"parent", "bridge"}
+                    and tuple.__getitem__(key, 2) == semantic_issuance_key
+                    and tuple.__getitem__(key, 4) == id(store)
+                    and tuple.__getitem__(key, 5) == id(config)
+                    and tuple.__getitem__(key, 6) == id(runtime)
+                ):
+                    return False
+            return True
+
+    def reserve_controller_batches(
+        *,
+        source: object,
+        semantic_issuance_key: tuple[object, ...],
+        semantic_obligation_sha256: str,
+        store: EvidenceStore,
+        config: HarnessExecutionConfig,
+        runtime: HarnessRuntimeBinding,
+    ) -> object:
+        require_controller_caller()
+        keys = tuple(
+            (
+                "semantic-context-v1",
+                family,
+                semantic_issuance_key,
+                semantic_obligation_sha256,
+                id(store),
+                id(config),
+                id(runtime),
+            )
+            for family in ("parent", "bridge")
+        )
+        with issuance_lock:
+            source_identity = id(source)
+            source_weak = dict.get(source_refs, source_identity)
+            if source_weak is None:
+                source_weak = ref(
+                    source,
+                    lambda dead, source_identity=source_identity: drop_source(
+                        source_identity, dead
+                    ),
+                )
+                dict.__setitem__(source_refs, source_identity, source_weak)
+                dict.__setitem__(source_keys, source_identity, set())
+            elif source_weak() is not source:
+                raise ValueError("context_receipt_source_history_drift")
+            for key in keys:
+                current = dict.get(history, key)
+                mirror = dict.get(history_shadow, key)
+                if current is not mirror:
+                    raise ValueError("context_receipt_issuance_history_drift")
+                if current is not None or validate_reservation_unlocked(key) is not None:
+                    raise ValueError(
+                        "controller_context_batch_already_started"
+                    )
+            permit = object.__new__(permit_cls)
+            permit_record = (permit, keys, source_identity)
+            dict.__setitem__(permits, id(permit), permit_record)
+            dict.__setitem__(permits_shadow, id(permit), permit_record)
+            for family, key in zip(("parent", "bridge"), keys):
+                reservation = (permit, family, "reserved")
+                dict.__setitem__(reservations, key, reservation)
+                dict.__setitem__(reservations_shadow, key, reservation)
+                dict.__getitem__(source_keys, source_identity).add(key)
+            return permit
+
+    def finish_controller_reservation(*, permit: object) -> None:
+        require_controller_caller()
+        with issuance_lock:
+            record = dict.get(permits, id(permit))
+            if (
+                type(permit) is not permit_cls
+                or type(record) is not tuple
+                or len(record) != 3
+                or dict.get(permits_shadow, id(permit)) is not record
+                or tuple.__getitem__(record, 0) is not permit
+            ):
+                raise ValueError("controller_context_batch_permit_required")
+            for key in tuple.__getitem__(record, 1):
+                reservation = validate_reservation_unlocked(key)
+                cached = dict.get(cache, key)
+                if (
+                    reservation is None
+                    or tuple.__getitem__(reservation, 0) is not permit
+                    or tuple.__getitem__(reservation, 2) != "completed"
+                    or dict.get(history, key) is not _CONTEXT_COMPLETED
+                    or dict.get(history_shadow, key) is not _CONTEXT_COMPLETED
+                    or type(cached) is not tuple
+                    or dict.get(cache_shadow, key) is not cached
+                ):
+                    raise ValueError(
+                        "controller_context_batch_reservation_incomplete"
+                    )
+            for key in tuple.__getitem__(record, 1):
+                dict.pop(reservations, key, None)
+                dict.pop(reservations_shadow, key, None)
+            dict.pop(permits, id(permit), None)
+            dict.pop(permits_shadow, id(permit), None)
+
+    def fail_controller_reservation(*, permit: object) -> None:
+        require_controller_caller()
+        with issuance_lock:
+            record = dict.get(permits, id(permit))
+            if (
+                type(permit) is not permit_cls
+                or type(record) is not tuple
+                or len(record) != 3
+                or dict.get(permits_shadow, id(permit)) is not record
+                or tuple.__getitem__(record, 0) is not permit
+            ):
+                return
+            for key in tuple.__getitem__(record, 1):
+                reservation = validate_reservation_unlocked(key)
+                if reservation is None or tuple.__getitem__(reservation, 0) is not permit:
+                    raise ValueError("controller_context_batch_reservation_drift")
+                current = dict.get(history, key)
+                mirror = dict.get(history_shadow, key)
+                if current is not mirror:
+                    raise ValueError("context_receipt_issuance_history_drift")
+                if current is None or current is _CONTEXT_PENDING:
+                    dict.__setitem__(history, key, _CONTEXT_FAILED)
+                    dict.__setitem__(history_shadow, key, _CONTEXT_FAILED)
+                dict.pop(reservations, key, None)
+                dict.pop(reservations_shadow, key, None)
+            dict.pop(permits, id(permit), None)
+            dict.pop(permits_shadow, id(permit), None)
+
+    def seal_controller_codes(
+        *,
+        issued_parent_issuer_code: CodeType,
+        issued_bridge_issuer_code: CodeType,
+        issued_complete_context_validator_code: CodeType,
+        issued_accumulator_code: CodeType,
+        issued_executor_code: CodeType,
+    ) -> None:
+        nonlocal parent_issuer_code, bridge_issuer_code
+        nonlocal complete_context_validator_code
+        nonlocal accumulator_code, executor_code
+        if (
+            type(issued_parent_issuer_code) is not CodeType
+            or type(issued_bridge_issuer_code) is not CodeType
+            or type(issued_complete_context_validator_code) is not CodeType
+            or type(issued_accumulator_code) is not CodeType
+            or type(issued_executor_code) is not CodeType
+            or parent_issuer_code is not None
+            or bridge_issuer_code is not None
+            or complete_context_validator_code is not None
+            or accumulator_code is not None
+            or executor_code is not None
+        ):
+            raise ValueError("controller_context_batch_codes_already_sealed")
+        parent_issuer_code = issued_parent_issuer_code
+        bridge_issuer_code = issued_bridge_issuer_code
+        complete_context_validator_code = issued_complete_context_validator_code
+        accumulator_code = issued_accumulator_code
+        executor_code = issued_executor_code
+
+    return (
+        begin,
+        complete,
+        fail,
+        status,
+        batches_pristine,
+        reserve_controller_batches,
+        finish_controller_reservation,
+        fail_controller_reservation,
+        seal_controller_codes,
+        drop_source,
+    )
 
 
 (
@@ -12437,8 +13038,17 @@ def _build_context_issuance_accessors() -> tuple[
     _complete_context_receipt_issuance,
     _fail_context_receipt_issuance,
     _context_receipt_issuance_status,
+    _context_receipt_batches_pristine,
+    _reserve_controller_context_batches,
+    _finish_controller_context_batch_reservation,
+    _fail_controller_context_batch_reservation,
+    _seal_controller_context_batch_codes,
     _drop_context_receipt_source_history,
-) = _build_context_issuance_accessors()
+) = _build_context_issuance_accessors(
+    permit_cls=_ControllerContextBatchPermit,
+    parent_receipt_cls=ParentContextReceipt,
+    bridge_receipt_cls=BridgeContextReceipt,
+)
 
 
 def _context_seed_evidence_ids(
@@ -12495,6 +13105,7 @@ def _mint_parent_context_receipt(
     config: HarnessExecutionConfig,
     runtime: HarnessRuntimeBinding,
     execution_key: tuple[object, ...],
+    source_attempt: object,
 ) -> ParentContextReceipt:
     seed_anchor = _stable_anchor(seed)
     payload = {
@@ -12557,6 +13168,10 @@ def _mint_parent_context_receipt(
             execution_key=execution_key,
             issued_payload_sha256=_canonical_sha256(receipt.to_dict()),
         ),
+    )
+    _record_controller_source_attempt(
+        permit=source_attempt,
+        receipt=receipt,
     )
     return receipt
 
@@ -12815,9 +13430,13 @@ def issue_parent_context_receipts(
                 runtime=runtime,
             )
         return cached
+    attempts: list[object | None] = []
     try:
-        receipts = tuple(
-            _mint_parent_context_receipt(
+        for _seed_id in seed_ids:
+            attempts.append(_begin_controller_source_attempt())
+        issued: list[ParentContextReceipt] = []
+        for index, seed_id in enumerate(seed_ids):
+            receipt = _mint_parent_context_receipt(
                 obligation=obligation,
                 semantic_authority=semantic_authority,
                 seed=EvidenceStore.get(store, seed_id),
@@ -12831,12 +13450,20 @@ def issue_parent_context_receipts(
                 config=config,
                 runtime=runtime,
                 execution_key=execution_key,
+                source_attempt=attempts[index],
             )
-            for seed_id in seed_ids
-        )
+            attempts[index] = None
+            issued.append(receipt)
+        receipts = tuple(issued)
         _complete_context_receipt_issuance(execution_key, receipts)
         return receipts
     except Exception:
+        for attempt in attempts:
+            if attempt is not None:
+                try:
+                    _discard_controller_source_attempt(permit=attempt)
+                except (TypeError, ValueError):
+                    pass
         _fail_context_receipt_issuance(execution_key)
         raise
 
@@ -17195,7 +17822,11 @@ class _ControllerSourceAttemptPermit:
 
 
 def _build_controller_source_attempt_registry(
-    *, permit_cls: type, lane_receipt_cls: type, fusion_receipt_cls: type
+    *,
+    permit_cls: type,
+    lane_receipt_cls: type,
+    fusion_receipt_cls: type,
+    parent_receipt_cls: type,
 ):
     """Linearize admitted source dispatch starts and controller claims."""
 
@@ -17212,7 +17843,9 @@ def _build_controller_source_attempt_registry(
     begin_codes: tuple[tuple[CodeType, str], ...] | None = None
     record_codes: tuple[tuple[CodeType, str], ...] | None = None
     claim_code: CodeType | None = None
-    source_kinds = frozenset({"lane_search", "fusion"})
+    parent_accumulator_code: CodeType | None = None
+    parent_executor_code: CodeType | None = None
+    source_kinds = frozenset({"lane_search", "fusion", "parent_context"})
 
     def source_kind_for_code(
         code: object,
@@ -17242,13 +17875,14 @@ def _build_controller_source_attempt_registry(
                 if (
                     type(identity) is not int
                     or type(current) is not tuple
-                    or len(current) != 3
+                    or len(current) != 4
                     or sealed is not current
                     or type(tuple.__getitem__(current, 0))
                     is not ReferenceType
                     or type(tuple.__getitem__(current, 1)) is not int
                     or type(tuple.__getitem__(current, 2)) is not str
                     or tuple.__getitem__(current, 2) not in source_kinds
+                    or type(tuple.__getitem__(current, 3)) is not bool
                 ):
                     raise ValueError("controller_source_attempt_registry_drift")
                 if tuple.__getitem__(current, 0)() is None:
@@ -17264,6 +17898,23 @@ def _build_controller_source_attempt_registry(
             begin_codes,
             "controller_source_attempt_begin_authority_required",
         )
+        controller_dispatched = source_kind != "parent_context"
+        if source_kind == "parent_context":
+            try:
+                accumulator_frame = get_frame(2)
+                executor_frame = get_frame(3)
+                controller_dispatched = (
+                    object.__getattribute__(accumulator_frame, "f_code")
+                    is parent_accumulator_code
+                    and object.__getattribute__(accumulator_frame, "f_globals")
+                    is globals()
+                    and object.__getattribute__(executor_frame, "f_code")
+                    is parent_executor_code
+                    and object.__getattribute__(executor_frame, "f_globals")
+                    is globals()
+                )
+            except ValueError:
+                controller_dispatched = False
         with issuance_lock:
             prune_unlocked()
             current_epoch = dict.get(epoch_state, "current")
@@ -17281,7 +17932,12 @@ def _build_controller_source_attempt_registry(
             permit = object.__new__(permit_cls)
             identity = id(permit)
             permit_weak = ref(permit)
-            attempt = (permit_weak, next_epoch, source_kind)
+            attempt = (
+                permit_weak,
+                next_epoch,
+                source_kind,
+                controller_dispatched,
+            )
             dict.__setitem__(attempts, identity, attempt)
             dict.__setitem__(attempts_shadow, identity, attempt)
             return permit
@@ -17299,6 +17955,8 @@ def _build_controller_source_attempt_registry(
             lane_receipt_cls
             if source_kind == "lane_search"
             else fusion_receipt_cls
+            if source_kind == "fusion"
+            else parent_receipt_cls
         )
         if type(receipt) is not expected_receipt_cls:
             raise TypeError("controller_source_attempt_receipt_kind_mismatch")
@@ -17310,11 +17968,12 @@ def _build_controller_source_attempt_registry(
             if (
                 type(permit) is not permit_cls
                 or type(current_attempt) is not tuple
-                or len(current_attempt) != 3
+                or len(current_attempt) != 4
                 or sealed_attempt is not current_attempt
                 or tuple.__getitem__(current_attempt, 0)() is not permit
                 or type(tuple.__getitem__(current_attempt, 1)) is not int
                 or tuple.__getitem__(current_attempt, 2) != source_kind
+                or type(tuple.__getitem__(current_attempt, 3)) is not bool
             ):
                 raise ValueError("controller_source_attempt_permit_required")
             started_epoch = tuple.__getitem__(current_attempt, 1)
@@ -17325,7 +17984,12 @@ def _build_controller_source_attempt_registry(
             ):
                 raise ValueError("controller_source_attempt_receipt_reuse")
             receipt_weak = ref(receipt)
-            entry = (receipt_weak, started_epoch, source_kind)
+            entry = (
+                receipt_weak,
+                started_epoch,
+                source_kind,
+                tuple.__getitem__(current_attempt, 3),
+            )
             dict.pop(attempts, permit_identity, None)
             dict.pop(attempts_shadow, permit_identity, None)
             dict.__setitem__(receipts, identity, entry)
@@ -17350,7 +18014,7 @@ def _build_controller_source_attempt_registry(
             if (
                 type(permit) is not permit_cls
                 or type(current) is not tuple
-                or len(current) != 3
+                or len(current) != 4
                 or sealed is not current
                 or tuple.__getitem__(current, 0)() is not permit
                 or tuple.__getitem__(current, 2) != source_kind
@@ -17365,6 +18029,8 @@ def _build_controller_source_attempt_registry(
             if type(receipt) is lane_receipt_cls
             else "fusion"
             if type(receipt) is fusion_receipt_cls
+            else "parent_context"
+            if type(receipt) is parent_receipt_cls
             else None
         )
         with issuance_lock:
@@ -17373,11 +18039,16 @@ def _build_controller_source_attempt_registry(
             sealed = dict.get(receipts_shadow, id(receipt))
             if (
                 type(current) is not tuple
-                or len(current) != 3
+                or len(current) != 4
                 or sealed is not current
                 or tuple.__getitem__(current, 0)() is not receipt
                 or type(tuple.__getitem__(current, 1)) is not int
                 or tuple.__getitem__(current, 2) != expected_source_kind
+                or type(tuple.__getitem__(current, 3)) is not bool
+                or (
+                    expected_source_kind == "parent_context"
+                    and tuple.__getitem__(current, 3) is not True
+                )
             ):
                 raise ValueError("controller_source_attempt_authority_required")
             return tuple.__getitem__(current, 1)
@@ -17433,6 +18104,38 @@ def _build_controller_source_attempt_registry(
         )
         claim_code = issued_claim_code
 
+    def seal_parent(
+        *,
+        issued_parent_begin_code: CodeType,
+        issued_parent_record_code: CodeType,
+        issued_parent_accumulator_code: CodeType,
+        issued_parent_executor_code: CodeType,
+    ) -> None:
+        nonlocal begin_codes, record_codes
+        nonlocal parent_accumulator_code, parent_executor_code
+        if (
+            type(issued_parent_begin_code) is not CodeType
+            or type(issued_parent_record_code) is not CodeType
+            or type(issued_parent_accumulator_code) is not CodeType
+            or type(issued_parent_executor_code) is not CodeType
+            or type(begin_codes) is not tuple
+            or type(record_codes) is not tuple
+            or claim_code is None
+            or parent_accumulator_code is not None
+            or parent_executor_code is not None
+            or any(source_kind == "parent_context" for _code, source_kind in begin_codes)
+            or any(source_kind == "parent_context" for _code, source_kind in record_codes)
+        ):
+            raise ValueError("controller_parent_source_attempt_seal_forbidden")
+        begin_codes = begin_codes + (
+            (issued_parent_begin_code, "parent_context"),
+        )
+        record_codes = record_codes + (
+            (issued_parent_record_code, "parent_context"),
+        )
+        parent_accumulator_code = issued_parent_accumulator_code
+        parent_executor_code = issued_parent_executor_code
+
     return (
         begin,
         record,
@@ -17441,6 +18144,7 @@ def _build_controller_source_attempt_registry(
         discard,
         prune_unlocked,
         seal,
+        seal_parent,
     )
 
 
@@ -17452,10 +18156,12 @@ def _build_controller_source_attempt_registry(
     _discard_controller_source_attempt,
     _prune_controller_source_attempt_registry,
     _seal_controller_source_attempt_registry,
+    _seal_controller_parent_source_attempt_registry,
 ) = _build_controller_source_attempt_registry(
     permit_cls=_ControllerSourceAttemptPermit,
     lane_receipt_cls=LaneSearchReceipt,
     fusion_receipt_cls=FusionReceipt,
+    parent_receipt_cls=ParentContextReceipt,
 )
 del _build_controller_source_attempt_registry
 
@@ -17505,6 +18211,7 @@ def _build_controller_step_history_accessors(
     projection_cls: type,
     lane_receipt_cls: type,
     fusion_receipt_cls: type,
+    parent_receipt_cls: type,
     store_cls: type,
     config_cls: type,
     runtime_cls: type,
@@ -17926,6 +18633,7 @@ def _build_controller_step_history_accessors(
         if not is_terminal_decision and type(source_receipt) not in {
             lane_receipt_cls,
             fusion_receipt_cls,
+            parent_receipt_cls,
         }:
             raise ValueError("controller_step_source_receipt_not_ready")
         if not is_terminal_decision:
@@ -18522,6 +19230,7 @@ def _build_controller_step_history_accessors(
     projection_cls=_ControllerSourceOutcomeProjection,
     lane_receipt_cls=LaneSearchReceipt,
     fusion_receipt_cls=FusionReceipt,
+    parent_receipt_cls=ParentContextReceipt,
     store_cls=EvidenceStore,
     config_cls=HarnessExecutionConfig,
     runtime_cls=HarnessRuntimeBinding,
@@ -19752,7 +20461,7 @@ del _build_controller_structural_effect_bridge_accessors
 
 @dataclass(frozen=True, slots=True, weakref_slot=True, repr=False, init=False)
 class HarnessTransitionReceipt:
-    """Bounded dense/lexical/first-fusion transition; no public mint authority."""
+    """Bounded first-path transition receipt; no public mint authority."""
 
     stage: str
     execution_identity_sha256: str
@@ -19805,14 +20514,14 @@ class HarnessTransitionReceipt:
         )
         if (
             self.stage != "harness_transition" or type(self.step_index) is not int
-            or self.step_index not in {1, 2, 3}
+            or self.step_index not in {1, 2, 3, 4}
             or (self.step_index == 1 and self.previous_transition_sha256 is not None)
             or self.operational_progress is not True
-            or (self.step_index in {1, 2} and not state_and_progress_match)
+            or (self.step_index in {1, 2, 4} and not state_and_progress_match)
             or (self.step_index == 3 and not state_and_progress_change)
         ):
             raise ValueError("invalid_initial_harness_transition")
-        if self.step_index in {2, 3}:
+        if self.step_index in {2, 3, 4}:
             _require_hash(self.previous_transition_sha256, "invalid_previous_harness_transition")
         for name in self.__dataclass_fields__:
             if name.endswith("sha256") and name != "previous_transition_sha256":
@@ -19827,6 +20536,7 @@ class HarnessTransitionReceipt:
 
 def _build_initial_controller_transition_accessors(
     *, bridge_reader: FunctionType, projection_reader: FunctionType,
+    target_context_reader: FunctionType,
     execution_validator: FunctionType, execution_authority_reader: FunctionType,
     successor_issuer: FunctionType, effect_binder: FunctionType,
     step_completer: FunctionType, step_failure: FunctionType,
@@ -19843,8 +20553,21 @@ def _build_initial_controller_transition_accessors(
     state_reducer: FunctionType,
     state_validator: FunctionType,
     state_revoker: FunctionType,
+    fusion_authority_reader: FunctionType,
+    retrieval_authority_reader: FunctionType,
+    semantic_key_builder: FunctionType,
+    context_batches_pristine: FunctionType,
+    fact_semantic_issuer: FunctionType,
+    compare_semantic_issuer: FunctionType,
+    context_accumulator: FunctionType,
+    context_seed_reader: FunctionType,
+    semantic_authority_reader: FunctionType,
+    source_plan_budget_reader: FunctionType,
+    context_batch_reserver: FunctionType,
+    context_batch_finisher: FunctionType,
+    context_batch_failer: FunctionType,
 ):
-    """Preserve one root's first two lanes and first fusion lineage."""
+    """Preserve one root's first two lanes, fusion, and parent lineage."""
 
     transition_lock = Lock()
     records: dict[tuple[object, ...], tuple[object, ...]] = {}
@@ -19911,6 +20634,24 @@ def _build_initial_controller_transition_accessors(
         ):
             raise ValueError("controller_initial_transition_claim_identity_drift")
         projection_reader(projection=bridge.projection, store=store, config=config, runtime=runtime)
+        target_context = bridge.target_context
+        if target_context is not None:
+            target_context_reader(
+                context=target_context,
+                store=store,
+                config=config,
+                runtime=runtime,
+            )
+            if (
+                bridge.projection.source_receipt
+                is not target_context.selected_receipt
+                or bridge.action_kind != target_context.action_kind
+                or bridge.target_evidence_id
+                != target_context.target_evidence_id
+            ):
+                raise ValueError(
+                    "controller_initial_transition_complete_context_drift"
+                )
         effect_validator(receipt=effect)
         require_values(effect, effect_fields, record[7])
         if transition is not None:
@@ -19979,23 +20720,34 @@ def _build_initial_controller_transition_accessors(
             else None
         )
         expected_action_kind = (
-            "fuse" if expected_lane is None else f"retrieve_{expected_lane}"
+            "fuse"
+            if before.step_index == 2
+            else "expand_parent"
+            if before.step_index == 3
+            else f"retrieve_{expected_lane}"
         )
         expected_receipt_kind = (
-            "fusion" if expected_lane is None else "lane_search"
+            "fusion"
+            if before.step_index == 2
+            else "parent_context"
+            if before.step_index == 3
+            else "lane_search"
         )
         allowed_outcomes = (
-            {"applied", "empty"}
-            if expected_lane is None
+            {"applied"}
+            if before.step_index == 3
+            else {"applied", "empty"}
+            if before.step_index == 2
             else {"applied", "empty", "provider_error", "contract_error"}
         )
+        expected_target_context = before.step_index == 3
         if (
-            before.step_index not in {0, 1, 2} or before.source_kind not in {"fact", "compare"}
+            before.step_index not in {0, 1, 2, 3} or before.source_kind not in {"fact", "compare"}
             or action.kind != expected_action_kind or action is not decision.selected_action
             or action.obligation_key != before.ledger.obligation_keys[0]
             or bridge.source_receipt_kind != expected_receipt_kind
             or bridge.outcome not in allowed_outcomes
-            or bridge.target_context is not None
+            or (bridge.target_context is not None) is not expected_target_context
         ):
             raise ValueError("controller_bounded_transition_step_required")
         key = claim.step_key
@@ -20013,7 +20765,8 @@ def _build_initial_controller_transition_accessors(
                 "step_index": decision.decision_ordinal,
                 "controller_decision_sha256": decision.decision_sha256,
                 "action_kind": action.kind, "action_sha256": action.action_sha256,
-                "obligation_key": action.obligation_key, "target_evidence_id": None,
+                "obligation_key": action.obligation_key,
+                "target_evidence_id": action.target_evidence_id,
                 "before_state_sha256": before.state.state_sha256, "source_kind": before.source_kind,
                 "source_receipt_kind": bridge.source_receipt_kind,
                 "source_receipt_sha256": bridge.source_receipt_sha256, "outcome": bridge.outcome,
@@ -20032,7 +20785,7 @@ def _build_initial_controller_transition_accessors(
             replace_record(key, record)
             effect_binder(claim=claim, effect=effect, store=store, config=config, runtime=runtime)
             after_state = before.state
-            if expected_lane is None:
+            if before.step_index == 2:
                 after_state = state_reducer(
                     before_state=before.state,
                     effect=effect,
@@ -20072,7 +20825,7 @@ def _build_initial_controller_transition_accessors(
             context_ids = tuple(() for _ in before.state.belief.evidence_map)
             before_fingerprint = progress_fingerprint(before.state, context_ids)
             after_fingerprint = progress_fingerprint(after_state, context_ids)
-            if expected_lane is None:
+            if before.step_index == 2:
                 first_streak = (
                     0
                     if before_fingerprint != after_fingerprint
@@ -20142,7 +20895,8 @@ def _build_initial_controller_transition_accessors(
         before = authority[11]
         if authority[5] is not store or authority[6] is not config or authority[7] is not runtime:
             raise ValueError("controller_initial_transition_dependency_identity_mismatch")
-        execution_validator(execution=before, store=store, config=config, runtime=runtime)
+        if type(before) is not HarnessExecution:
+            raise TypeError("harness_execution_required")
         with transition_lock:
             prune_unlocked()
             matching = tuple(record for record in records.values() if record[8] is not None and record[8]() is execution)
@@ -20151,15 +20905,37 @@ def _build_initial_controller_transition_accessors(
         record = matching[0]
         if (
             record[2] is not transition or record[9][0] is not before
-            or before.step_index + 1 != revision
-            or transition.previous_transition_sha256 != before.last_transition_sha256
+        ):
+            raise ValueError("controller_initial_transition_authority_drift")
+        bridge = record[0]
+        require_values(bridge, bridge_fields, record[6])
+        claim = bridge.claim
+        if (
+            claim.execution is not record[9][0]
+            or claim.decision is not record[9][1]
+            or claim.selected_action is not record[9][2]
+            or claim.step_key is not record[9][3]
+        ):
+            raise ValueError("controller_initial_transition_claim_identity_drift")
+        projection = bridge.projection
+        if type(projection) is not _ControllerSourceOutcomeProjection:
+            raise TypeError("controller_source_outcome_projection_required")
+        if (
+            projection.execution is not before
+            or projection.decision is not record[9][1]
         ):
             raise ValueError("controller_initial_transition_authority_drift")
         validate_record(record, store=store, config=config, runtime=runtime)
+        if (
+            before.step_index + 1 != revision
+            or transition.previous_transition_sha256
+            != before.last_transition_sha256
+        ):
+            raise ValueError("controller_initial_transition_authority_drift")
         execution._validate_payload()
         expected_state_identity = (
             execution.state is before.state
-            if revision in {1, 2}
+            if revision in {1, 2, 4}
             else execution.state is not before.state
         )
         if (
@@ -20176,7 +20952,7 @@ def _build_initial_controller_transition_accessors(
             or status_reader(execution=before, decision=record[9][1], store=store, config=config, runtime=runtime) != "transitioned"
         ):
             raise ValueError("controller_initial_transition_successor_drift")
-        if revision == 3:
+        if revision in {3, 4}:
             state_validator(state=execution.state, store=store)
         return record
 
@@ -20201,6 +20977,18 @@ def _build_initial_controller_transition_accessors(
             config=config,
             runtime=runtime,
             revision=3,
+        )
+        return record[1], record[2]
+
+    def require_controller_first_parent_transition(
+        *, execution, store, config, runtime
+    ):
+        record = require_successor_record(
+            execution=execution,
+            store=store,
+            config=config,
+            runtime=runtime,
+            revision=4,
         )
         return record[1], record[2]
 
@@ -20394,6 +21182,237 @@ def _build_initial_controller_transition_accessors(
                 pass
             raise
 
+    def execute_controller_first_parent_step(
+        *, execution, decision, store, config, runtime
+    ):
+        """Execute the selected ordinal-four parent source exactly once."""
+
+        validate_dependencies()
+        execution_validator(
+            execution=execution,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+        decision_validator(
+            receipt=decision,
+            execution=execution,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+        action = decision.selected_action
+        if (
+            execution.step_index != 3
+            or execution.ledger.revision != 3
+            or execution.ledger.nonterminal_action_count != 3
+            or decision.decision_ordinal != 4
+            or action.kind != "expand_parent"
+            or action.obligation_key != execution.ledger.obligation_keys[0]
+            or type(action.target_evidence_id) is not str
+            or not action.target_evidence_id
+            or execution.ledger.nonterminal_action_count
+            >= config.max_nonterminal_actions
+            or config.max_retrieval_rounds_per_obligation != 1
+        ):
+            raise ValueError("controller_first_parent_step_permit_required")
+
+        fusion_record = require_successor_record(
+            execution=execution,
+            store=store,
+            config=config,
+            runtime=runtime,
+            revision=3,
+        )
+        fusion_bridge, fusion_effect = fusion_record[:2]
+        fusion_receipt = fusion_bridge.projection.source_receipt
+        fusion_authority = fusion_authority_reader(fusion_receipt)
+        obligation = object.__getattribute__(fusion_authority, "obligation")
+        dense_receipt = object.__getattribute__(
+            fusion_authority, "dense_receipt"
+        )
+        lexical_receipt = object.__getattribute__(
+            fusion_authority, "lexical_receipt"
+        )
+        obligation_validator(
+            obligation=obligation,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+        fusion_inputs_validator(
+            obligation=obligation,
+            dense_receipt=dense_receipt,
+            lexical_receipt=lexical_receipt,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+        retrieval_authority = retrieval_authority_reader(obligation)
+        (
+            _owner_plan_sha256,
+            _owner_plan_config_sha256,
+            rerank_k,
+            final_evidence_budget,
+        ) = source_plan_budget_reader(
+            object.__getattribute__(retrieval_authority, "source")
+        )
+        candidates = object.__getattribute__(
+            fusion_receipt, "ordered_evidence_ids"
+        )
+        target_quota = min(
+            config.max_context_targets_per_obligation,
+            final_evidence_budget,
+            rerank_k,
+            len(candidates),
+        )
+        bounded_seed_ids = tuple(sorted(candidates)[:target_quota])
+        obligation_key = execution.ledger.obligation_keys[0]
+        if (
+            type(fusion_receipt) is not FusionReceipt
+            or fusion_bridge.source_receipt_kind != "fusion"
+            or fusion_effect.action_kind != "fuse"
+            or fusion_effect.source_receipt_kind != "fusion"
+            or fusion_effect.outcome != "applied"
+            or fusion_effect.source_receipt_sha256
+            != object.__getattribute__(fusion_receipt, "receipt_sha256")
+            or fusion_effect.ordered_evidence_ids is not candidates
+            or object.__getattribute__(fusion_receipt, "outcome") != "applied"
+            or not candidates
+            or object.__getattribute__(obligation, "obligation_key")
+            != obligation_key
+            or object.__getattribute__(obligation, "round_index") != 1
+            or execution.state.belief.evidence_map[0].candidate_evidence_ids
+            is not candidates
+            or not bounded_seed_ids
+            or action.target_evidence_id != bounded_seed_ids[0]
+            or execution.ledger.round_indexes
+            != (1,) + (0,) * (len(execution.ledger.obligation_keys) - 1)
+            or execution.ledger.consumed_lane_keys
+            != (
+                (obligation_key, 1, "dense"),
+                (obligation_key, 1, "lexical"),
+            )
+            or execution.ledger.unavailable_action_sha256s
+            or any(execution.ledger.no_progress_streaks)
+        ):
+            raise ValueError("controller_first_parent_step_source_required")
+
+        semantic_key = semantic_key_builder(
+            expected_source_kind=execution.source_kind,
+            retrieval_authority=retrieval_authority,
+            fusion_receipt=fusion_receipt,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+        if not context_batches_pristine(
+            semantic_key,
+            store,
+            config,
+            runtime,
+        ):
+            raise ValueError("controller_first_parent_context_already_started")
+
+        claim = claim_issuer(
+            execution=execution,
+            decision=decision,
+            store=store,
+            config=config,
+            runtime=runtime,
+        )
+        batch_permit = None
+        batch_reservation_finished = False
+        try:
+            semantic_issuer = (
+                fact_semantic_issuer
+                if execution.source_kind == "fact"
+                else compare_semantic_issuer
+            )
+            semantic_obligation = semantic_issuer(
+                obligation=obligation,
+                fusion_receipt=fusion_receipt,
+                store=store,
+                config=config,
+                runtime=runtime,
+            )
+            semantic_authority = semantic_authority_reader(
+                semantic_obligation
+            )
+            if (
+                object.__getattribute__(semantic_authority, "issuance_key")
+                != semantic_key
+                or context_seed_reader(
+                    semantic_obligation, semantic_authority, config
+                )
+                != bounded_seed_ids
+            ):
+                raise ValueError(
+                    "controller_first_parent_semantic_source_required"
+                )
+            batch_permit = context_batch_reserver(
+                source=object.__getattribute__(semantic_authority, "source"),
+                semantic_issuance_key=semantic_key,
+                semantic_obligation_sha256=object.__getattribute__(
+                    semantic_obligation, "obligation_sha256"
+                ),
+                store=store,
+                config=config,
+                runtime=runtime,
+            )
+            target_context = context_accumulator(
+                obligation=semantic_obligation,
+                action_kind="expand_parent",
+                target_evidence_id=action.target_evidence_id,
+                store=store,
+                config=config,
+                runtime=runtime,
+            )
+            context_batch_finisher(permit=batch_permit)
+            batch_reservation_finished = True
+            source_receipt = object.__getattribute__(
+                target_context, "selected_receipt"
+            )
+            projection = source_preparer(
+                claim=claim,
+                source_receipt=source_receipt,
+                store=store,
+                config=config,
+                runtime=runtime,
+            )
+            source_binder(
+                claim=claim,
+                projection=projection,
+                store=store,
+                config=config,
+                runtime=runtime,
+            )
+            bridge = bridge_issuer(
+                claim=claim,
+                projection=projection,
+                target_context=target_context,
+                store=store,
+                config=config,
+                runtime=runtime,
+            )
+            return advance_lane_step(
+                bridge=bridge,
+                store=store,
+                config=config,
+                runtime=runtime,
+            )
+        except BaseException:
+            if batch_permit is not None and not batch_reservation_finished:
+                try:
+                    context_batch_failer(permit=batch_permit)
+                except (TypeError, ValueError):
+                    pass
+            try:
+                step_failure(claim=claim)
+            except (TypeError, ValueError):
+                pass
+            raise
+
     helper_pins: tuple[tuple[object, ...], ...] | None = None
 
     def validate_dependencies() -> None:
@@ -20426,7 +21445,10 @@ def _build_initial_controller_transition_accessors(
                 require_controller_lexical_transition, execute_controller_lexical_step,
                 require_controller_first_fusion_transition,
                 execute_controller_first_fusion_step,
-                bridge_reader, projection_reader, execution_validator,
+                require_controller_first_parent_transition,
+                execute_controller_first_parent_step,
+                bridge_reader, projection_reader, target_context_reader,
+                execution_validator,
                 execution_authority_reader, successor_issuer, effect_binder,
                 step_completer, step_failure, status_reader, effect_validator,
                 canonical_sha256, decision_validator, claim_issuer, source_preparer,
@@ -20434,6 +21456,13 @@ def _build_initial_controller_transition_accessors(
                 obligation_validator, fusion_executor, fusion_inputs_validator,
                 fusion_pristine_reader, obligation_authority_reader,
                 state_reducer, state_validator, state_revoker,
+                fusion_authority_reader, retrieval_authority_reader,
+                semantic_key_builder, context_batches_pristine,
+                fact_semantic_issuer, compare_semantic_issuer,
+                context_accumulator, context_seed_reader,
+                semantic_authority_reader, source_plan_budget_reader,
+                context_batch_reserver, context_batch_finisher,
+                context_batch_failer,
             )
         )
 
@@ -20444,6 +21473,8 @@ def _build_initial_controller_transition_accessors(
         require_controller_lexical_transition,
         execute_controller_first_fusion_step,
         require_controller_first_fusion_transition,
+        execute_controller_first_parent_step,
+        require_controller_first_parent_transition,
         require_effect,
         require_transition,
         validate_dependencies,
@@ -20459,6 +21490,8 @@ def _build_initial_controller_transition_accessors(
     _require_controller_lexical_transition,
     _execute_controller_first_fusion_step,
     _require_controller_first_fusion_transition,
+    _execute_controller_first_parent_step,
+    _require_controller_first_parent_transition,
     _initial_controller_effect_authority_reader,
     _initial_controller_transition_authority_reader,
     _validate_controller_initial_transition_dependencies,
@@ -20467,6 +21500,7 @@ def _build_initial_controller_transition_accessors(
 ) = _build_initial_controller_transition_accessors(
     bridge_reader=_require_controller_structural_effect_bridge,
     projection_reader=_require_controller_source_outcome_projection,
+    target_context_reader=_require_controller_target_context,
     execution_validator=validate_harness_execution,
     execution_authority_reader=_require_harness_execution_authority,
     successor_issuer=_register_harness_execution_successor,
@@ -20495,7 +21529,53 @@ def _build_initial_controller_transition_accessors(
     state_reducer=_reduce_controller_first_fusion_state,
     state_validator=_require_controller_first_fusion_state_authority,
     state_revoker=_discard_controller_first_fusion_state,
+    fusion_authority_reader=_read_fusion_receipt_authority,
+    retrieval_authority_reader=_require_retrieval_obligation_authority,
+    semantic_key_builder=_retrieval_semantic_issuance_key,
+    context_batches_pristine=_context_receipt_batches_pristine,
+    fact_semantic_issuer=issue_fact_semantic_verification_obligation,
+    compare_semantic_issuer=issue_compare_semantic_verification_obligation,
+    context_accumulator=_accumulate_controller_target_context,
+    context_seed_reader=_context_seed_evidence_ids,
+    semantic_authority_reader=_read_semantic_obligation_authority,
+    source_plan_budget_reader=_source_owner_plan_budget,
+    context_batch_reserver=_reserve_controller_context_batches,
+    context_batch_finisher=_finish_controller_context_batch_reservation,
+    context_batch_failer=_fail_controller_context_batch_reservation,
 )
+_seal_controller_context_batch_codes(
+    issued_parent_issuer_code=object.__getattribute__(
+        issue_parent_context_receipts, "__code__"
+    ),
+    issued_bridge_issuer_code=object.__getattribute__(
+        issue_bridge_context_receipts, "__code__"
+    ),
+    issued_complete_context_validator_code=object.__getattribute__(
+        _validate_complete_context_receipts, "__code__"
+    ),
+    issued_accumulator_code=object.__getattribute__(
+        _accumulate_controller_target_context, "__code__"
+    ),
+    issued_executor_code=object.__getattribute__(
+        _execute_controller_first_parent_step, "__code__"
+    ),
+)
+del _seal_controller_context_batch_codes
+_seal_controller_parent_source_attempt_registry(
+    issued_parent_begin_code=object.__getattribute__(
+        issue_parent_context_receipts, "__code__"
+    ),
+    issued_parent_record_code=object.__getattribute__(
+        _mint_parent_context_receipt, "__code__"
+    ),
+    issued_parent_accumulator_code=object.__getattribute__(
+        _accumulate_controller_target_context, "__code__"
+    ),
+    issued_parent_executor_code=object.__getattribute__(
+        _execute_controller_first_parent_step, "__code__"
+    ),
+)
+del _seal_controller_parent_source_attempt_registry
 _seal_harness_execution_successor_issuer(_controller_lane_successor_issuer_code)
 _seal_controller_step_completion_authorities(
     effect_reader=_initial_controller_effect_authority_reader,
@@ -20667,6 +21747,21 @@ _RUNTIME_GATE_FUNCTION_PINS = tuple(
         ("_stable_code_value", _stable_code_value),
         ("_stable_state_value", _stable_state_value),
         ("_class_behavior_payload", _class_behavior_payload),
+        ("_code_payload_cache_safe_value", _code_payload_cache_safe_value),
+        ("_code_payload_cache_safe", _code_payload_cache_safe),
+        ("_canonical_code_payload_bytes", _canonical_code_payload_bytes),
+        (
+            "_validated_code_payload_cache_entry",
+            _validated_code_payload_cache_entry,
+        ),
+        ("_read_code_payload_cache", _read_code_payload_cache),
+        ("_store_code_payload_cache", _store_code_payload_cache),
+        ("_code_payload_cache_snapshot", _code_payload_cache_snapshot),
+        ("_clear_code_payload_cache", _clear_code_payload_cache),
+        (
+            "_canonical_function_sha256_bytes",
+            _canonical_function_sha256_bytes,
+        ),
         ("_behavior_dependency_payload", _behavior_dependency_payload),
         ("_function_behavior_payload", _function_behavior_payload),
         ("_code_global_names", _code_global_names),
@@ -20979,6 +22074,10 @@ _RUNTIME_GATE_FUNCTION_PINS = tuple(
             _issue_retrieval_semantic_verification_obligation,
         ),
         (
+            "_retrieval_semantic_issuance_key",
+            _retrieval_semantic_issuance_key,
+        ),
+        (
             "issue_fact_semantic_verification_obligation",
             issue_fact_semantic_verification_obligation,
         ),
@@ -21041,6 +22140,22 @@ _RUNTIME_GATE_FUNCTION_PINS = tuple(
         ),
         ("_fail_context_receipt_issuance", _fail_context_receipt_issuance),
         ("_context_receipt_issuance_status", _context_receipt_issuance_status),
+        (
+            "_context_receipt_batches_pristine",
+            _context_receipt_batches_pristine,
+        ),
+        (
+            "_reserve_controller_context_batches",
+            _reserve_controller_context_batches,
+        ),
+        (
+            "_finish_controller_context_batch_reservation",
+            _finish_controller_context_batch_reservation,
+        ),
+        (
+            "_fail_controller_context_batch_reservation",
+            _fail_controller_context_batch_reservation,
+        ),
         (
             "_drop_context_receipt_source_history",
             _drop_context_receipt_source_history,
@@ -21274,6 +22389,14 @@ _RUNTIME_GATE_FUNCTION_PINS = tuple(
             _require_controller_first_fusion_transition,
         ),
         (
+            "_execute_controller_first_parent_step",
+            _execute_controller_first_parent_step,
+        ),
+        (
+            "_require_controller_first_parent_transition",
+            _require_controller_first_parent_transition,
+        ),
+        (
             "_reduce_controller_first_fusion_state",
             _reduce_controller_first_fusion_state,
         ),
@@ -21293,6 +22416,16 @@ _RUNTIME_GATE_FUNCTION_PINS = tuple(
 _ISSUED_RUNTIME_GATE_FUNCTION_PINS = _RUNTIME_GATE_FUNCTION_PINS
 _RUNTIME_GATE_OBJECT_PINS = (
     ("SCHEMA_VERSION", SCHEMA_VERSION, str),
+    (
+        "_CODE_PAYLOAD_CACHE_MAX_ENTRIES",
+        _CODE_PAYLOAD_CACHE_MAX_ENTRIES,
+        int,
+    ),
+    (
+        "_CODE_PAYLOAD_CACHE_MAX_CANONICAL_BYTES",
+        _CODE_PAYLOAD_CACHE_MAX_CANONICAL_BYTES,
+        int,
+    ),
     ("FunctionType", FunctionType, type),
     ("CodeType", CodeType, type),
     ("_RUNTIME_AUTHORITIES", _ISSUED_RUNTIME_AUTHORITIES, dict),
@@ -21402,6 +22535,11 @@ _RUNTIME_GATE_OBJECT_PINS = (
     (
         "_ControllerSourceAttemptPermit",
         _ControllerSourceAttemptPermit,
+        type,
+    ),
+    (
+        "_ControllerContextBatchPermit",
+        _ControllerContextBatchPermit,
         type,
     ),
     ("_ControllerStepClaim", _ControllerStepClaim, type),
@@ -22104,6 +23242,10 @@ _RUNTIME_GATE_CLASS_PINS = (
     ),
     _runtime_gate_class_pin(
         _ControllerSourceAttemptPermit,
+        ("__init__",),
+    ),
+    _runtime_gate_class_pin(
+        _ControllerContextBatchPermit,
         ("__init__",),
     ),
     _runtime_gate_class_pin(

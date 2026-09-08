@@ -1,0 +1,136 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "PERF-CONTROLLER.2.1",
+  "message_id": "controller-predecessor-implementation-report-1",
+  "in_reply_to": "controller-traversal-directive-2",
+  "sender": "CODER",
+  "kind": "IMPLEMENTATION_REPORT",
+  "body": {
+    "status": "REVIEW_READY",
+    "directive_id": "controller-traversal-directive-2",
+    "contract_id": "controller-predecessor-validation-edge-v2",
+    "candidate_id": "controller-predecessor-edge-687e5b6f-3ad04e65",
+    "test_evidence_id": "controller-predecessor-edge-evidence-d0e8fe35-61f84bf0-6984ee56",
+    "recorded_at": "2026-09-08T02:50:05Z",
+    "implementation": {
+      "starting_source_sha256": "2cf02cda4ae5b1fb43da6e65d9054dc133ab92cb92bf6916f2b2cfd50ae9fc57",
+      "final_source_sha256": "687e5b6f26e121f944015e4700d95b24bc2c8b09d260c4ed08c4cc9a9e3dbebe",
+      "final_test_sha256": "3ad04e65605dd45859a894c04bf4a80fd48c617dd14782590451a34595beb098",
+      "structural_improvement": "Removed the one early execution_validator recursion from require_successor_record. Exact predecessor, retained record, claim and projection identity guards now precede unchanged validate_record; predecessor payload fields are consumed only after its two unchanged projection-driven live validation paths complete.",
+      "performance_claim": null
+    },
+    "changed_files": [
+      "src/midprojectrag/orchestration/execution_contracts.py",
+      "tests/test_controller_predecessor_validation_edge.py",
+      "resources/data_refined/private/diagnostics/controller-path/controller-predecessor-edge-20260908-001/candidate-manifest.json",
+      "resources/data_refined/private/diagnostics/controller-path/controller-predecessor-edge-20260908-001/focused-correctness.json",
+      "resources/data_refined/private/diagnostics/controller-path/controller-predecessor-edge-20260908-001/focused-native-tool-output.json",
+      "resources/data_refined/private/diagnostics/controller-path/controller-predecessor-edge-20260908-001/implementation-report.json"
+    ],
+    "tests": [
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest tests.test_controller_predecessor_validation_edge",
+        "exit_code": 1,
+        "candidate_id": "pre-repair-test-payload-7d1aed18-source-687e5b6f",
+        "artifact": "resources/data_refined/private/diagnostics/controller-path/controller-predecessor-edge-20260908-001/focused-native-tool-output.json",
+        "result": "FAIL: unintended 29-test collection; one test-helper KeyError. Preserved and repaired test-only."
+      },
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -c 'import unittest; suite = unittest.defaultTestLoader.loadTestsFromName(\"tests.test_controller_predecessor_validation_edge\"); print(suite.countTestCases())'",
+        "exit_code": 0,
+        "candidate_id": "controller-predecessor-edge-687e5b6f-3ad04e65",
+        "artifact": "resources/data_refined/private/diagnostics/controller-path/controller-predecessor-edge-20260908-001/focused-native-tool-output.json",
+        "result": "PASS: exact focused discovery count 4."
+      },
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest tests.test_controller_predecessor_validation_edge",
+        "exit_code": 0,
+        "candidate_id": "controller-predecessor-edge-687e5b6f-3ad04e65",
+        "artifact": "resources/data_refined/private/diagnostics/controller-path/controller-predecessor-edge-20260908-001/focused-native-tool-output.json",
+        "result": "PASS: 4 tests in 3.283s, zero skips."
+      },
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest -v tests.test_controller_initial_transition",
+        "exit_code": 0,
+        "candidate_id": "controller-predecessor-edge-687e5b6f-3ad04e65",
+        "artifact": "resources/data_refined/private/diagnostics/controller-path/traversal-opt2-20260908-001/existing-checks/initial-transition/result.json",
+        "result": "PASS: 13 tests, zero skips; source stable."
+      },
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest -v tests.test_execution_contracts",
+        "exit_code": 0,
+        "candidate_id": "controller-predecessor-edge-687e5b6f-3ad04e65",
+        "artifact": "resources/data_refined/private/diagnostics/controller-path/traversal-opt2-20260908-001/existing-checks/execution-contracts/result.json",
+        "result": "PASS: 17 tests, zero skips; source stable."
+      },
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest -v tests.test_controller_lexical_transition.ControllerLexicalTransitionTests.test_revision_chain_and_both_sources_survive_gc_and_revalidate tests.test_controller_lexical_transition.ControllerLexicalTransitionTests.test_lexical_source_effect_transition_and_ledger_drift_fail_closed tests.test_controller_lexical_transition.ControllerLexicalTransitionTests.test_serialized_clone_and_dependency_drift_are_non_authorizing",
+        "exit_code": 0,
+        "candidate_id": "controller-predecessor-edge-687e5b6f-3ad04e65",
+        "artifact": "resources/data_refined/private/diagnostics/controller-path/traversal-opt2-20260908-001/existing-checks/lexical-selected/result.json",
+        "result": "PASS: 3 tests, zero skips; source stable."
+      },
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest -v tests.test_controller_first_fusion_transition.ControllerFirstFusionTransitionTests.test_all_predecessors_decisions_and_three_sources_survive_gc tests.test_controller_first_fusion_transition.ControllerFirstFusionTransitionTests.test_source_effect_ledger_and_transition_drift_fail_readback",
+        "exit_code": 0,
+        "candidate_id": "controller-predecessor-edge-687e5b6f-3ad04e65",
+        "artifact": "resources/data_refined/private/diagnostics/controller-path/traversal-opt2-20260908-001/existing-checks/fusion-selected/result.json",
+        "result": "PASS: 2 tests, zero skips; source stable."
+      },
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest -v tests.test_controller_first_parent_transition.ControllerFirstParentTransitionTests.test_readback_rejects_unselected_and_complete_context_drift",
+        "exit_code": 0,
+        "candidate_id": "controller-predecessor-edge-687e5b6f-3ad04e65",
+        "artifact": "resources/data_refined/private/diagnostics/controller-path/traversal-opt2-20260908-001/existing-checks/parent-selected/result.json",
+        "result": "PASS: 1 test, zero skips; source stable."
+      }
+    ],
+    "evidence_bindings": {
+      "candidate_manifest": {
+        "path": "resources/data_refined/private/diagnostics/controller-path/controller-predecessor-edge-20260908-001/candidate-manifest.json",
+        "sha256": "087578177e2383437706c6bd64d92acab9f070970bd323ed6bc9719a3b79e1c1"
+      },
+      "focused_correctness": {
+        "path": "resources/data_refined/private/diagnostics/controller-path/controller-predecessor-edge-20260908-001/focused-correctness.json",
+        "sha256": "d0e8fe35d44ee9e3e2e4998043efe190078d436c93040921228799bff24e2d34"
+      },
+      "focused_tool_output": {
+        "path": "resources/data_refined/private/diagnostics/controller-path/controller-predecessor-edge-20260908-001/focused-native-tool-output.json",
+        "sha256": "6984ee56a578cd7689345c5b8adb2ebd288b92818df0707d7b90de06f5454451"
+      },
+      "existing_regression_summary": {
+        "path": "resources/data_refined/private/diagnostics/controller-path/traversal-opt2-20260908-001/existing-checks/summary.json",
+        "sha256": "61f84bf05237e185826822358e2af14321afd5eb28f1c359bc38cb7fbe53e1d4"
+      },
+      "existing_group_raw_logs": {
+        "initial-transition/stderr.log": "3f0961ad8d8cb40a9ac303d348d70172b66be2bef29e6dca946e8394f36a4eea",
+        "execution-contracts/stderr.log": "1ad7268e1d70cf056ed55ae249c94574187a798614ca426d4d84905bc8059eaa",
+        "lexical-selected/stderr.log": "e13a526d7ca62cdc1f79a67fc7b4c5c8f8f1df690b75816e558b934bd98b3b37",
+        "fusion-selected/stderr.log": "c2b679d453b7e57734e6529277e35d8a464382becfedb29cd451ad3b3be66798",
+        "parent-selected/stderr.log": "e7da2dd247c71fc878b27497e1da98420b20a73788fa01119cadf666dbff99eb",
+        "all_stdout_logs_empty_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "root": "resources/data_refined/private/diagnostics/controller-path/traversal-opt2-20260908-001/existing-checks"
+      }
+    },
+    "results_summary": {
+      "final_focused_passed": 4,
+      "affected_existing_passed": 36,
+      "final_candidate_total_passed": 40,
+      "final_candidate_failed": 0,
+      "final_candidate_skipped": 0,
+      "source_stable_during_existing_groups": true
+    },
+    "deviations": [
+      "controller-traversal-directive-1 was superseded by the complete v2 directive; its interrupted benchmark was neither created nor run.",
+      "The first focused attempt collected imported fixture TestCases and exposed a test-helper closure lookup error. Both were repaired only in the new test file; the product source stayed at 687e5b6f. Exact tool-returned output strings are preserved.",
+      "A separate read-only runner executed the listed existing regressions with -v for raw case-level evidence; it ran the same required test targets and observed the frozen source before and after each group.",
+      "No performance measurement was completed and no latency reduction is claimed."
+    ],
+    "unresolved_questions": [],
+    "proposed_next_steps": [
+      "Fresh Critic reviews this exact candidate and evidence binding.",
+      "Main records the verdict and resumes the original integration flow only after a valid PASS."
+    ]
+  }
+}

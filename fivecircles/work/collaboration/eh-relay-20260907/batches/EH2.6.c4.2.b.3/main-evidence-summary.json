@@ -1,0 +1,77 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.c4.2.b.3",
+  "candidate_id": "sha256:49ff508ff3a57822fa146f9eaed3edd5e74c86f3a83ea57e4dfb26002a5a7085",
+  "contract_id": "sha256:f8fe0041df23b81dc3e88b0138363535c504bf5e36269610af118884f72752de",
+  "directive_id": "first-parent-resume-directive-6",
+  "reviewed_message_id": "first-parent-resume-implementation-report-1",
+  "test_evidence_id": "sha256:d9f34932419dae2819c1f8631cf5ba78ad0d3c17dc9a66070cd1cc765ce8e013",
+  "gate_results": [
+    {
+      "name": "focused",
+      "result_path": "/private/tmp/b3-resume-coder-20260908.JthYV9/first-parent-resume-focused-current-1-result.json",
+      "result_sha256": "051012758416fc7f3585149a7657609a76d853399427bb8ceb3d6f125723f94f",
+      "status": "PASS",
+      "count": 12,
+      "native_seconds": 2520.028,
+      "elapsed_seconds": null,
+      "native_sha256": "1abb6f70753c1c79a13e080778a9c68d0126284e038249d8791683e27b7cb824",
+      "directive_id": "first-parent-resume-directive-5"
+    },
+    {
+      "name": "adjacent",
+      "result_path": "/private/tmp/b3-resume-coder-20260908.JthYV9/first-parent-resume-adjacent-current-1-result.json",
+      "result_sha256": "259db3daf9533807d0024fe0e1276193516bbbf20449422cd4443a89f6de75d0",
+      "status": "PASS",
+      "count": 246,
+      "native_seconds": 1146.929,
+      "elapsed_seconds": null,
+      "native_sha256": "d68802b190b38051067233f53eea6a9ba1769ec050b4d116ae0267aef1fcdbac",
+      "directive_id": "first-parent-resume-directive-5"
+    },
+    {
+      "name": "isolated",
+      "result_path": "/private/tmp/b3-resume-20260908.uNltdg/first-parent-resume-isolated-result.json",
+      "result_sha256": "ff64ce11e5912c1aee0b751125cca455224479bb963349874217b2a0d23a4167",
+      "status": "ISOLATED_BASE_PLUS_B3_PLUS_APPROVED_PREREQUISITE_PASS",
+      "count": 258,
+      "native_seconds": 4992.118,
+      "elapsed_seconds": 4996.173,
+      "native_sha256": "48fb9c491f85de65417903cf3f6dff33f2bb8cf1b1431cebb193783b4a2e686d",
+      "directive_id": "first-parent-resume-directive-4"
+    },
+    {
+      "name": "full",
+      "result_path": "/private/tmp/b3-resume-full-v6-20260908.76Hj46/first-parent-resume-full-result.json",
+      "result_sha256": "a8e2b087ce4d1b9dbfec440b7fcb170934b53232499b5de9cd1c1495f58a4107",
+      "status": "RESOLVED_INPUT_FULL_PASS",
+      "count": 1765,
+      "native_seconds": 3866.491,
+      "elapsed_seconds": 3869.65,
+      "native_sha256": "0059b131ce82f16f0c20e5357be7da22d285a1988e2c0432a328ab2378fee3fe",
+      "directive_id": "first-parent-resume-directive-6"
+    },
+    {
+      "name": "supplemental_closure",
+      "result_path": "/private/tmp/b3-closure-fixed-20260908.SEAYC6/closure-result.json",
+      "result_sha256": "c109e21915ae3e222525fc19b355b2b634199d5fd8127ec6c457bac888d99b76",
+      "status": "SUPPLEMENTAL_EXACT_INTEGRATION_TEST_CLOSURE_PASS",
+      "count": 14,
+      "native_seconds": 7.722,
+      "elapsed_seconds": 11.57,
+      "native_sha256": "ea4763b5d74993a17ad0335aec4635e7bc60f04ee7069a68b59ede8467ed5fd1",
+      "directive_id": "first-parent-integration-test-closure-decision-1"
+    }
+  ],
+  "interpretation": [
+    "Completed native evidence consolidation only; not Critic PASS or integration approval.",
+    "Focused/adjacent/isolated/full counts overlap and must not be added.",
+    "Full uses existing approved HB add-ons and pinned frozen-input resolver; canonical CSV remains UNREPAIRED.",
+    "Source-only gates and full-only add-on environment remain separately bound.",
+    "Interrupted duplicated suite and discovery failure remain FAIL; no executed count inferred.",
+    "Supplemental14 proves exact approved derivative import/test closure, not new B3 tests."
+  ],
+  "manifest_entries": 90,
+  "created_at": "2026-09-08T11:33:59.910Z"
+}

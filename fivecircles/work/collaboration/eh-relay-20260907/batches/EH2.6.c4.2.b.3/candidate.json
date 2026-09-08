@@ -1,0 +1,48 @@
+{
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.c4.2.b.3",
+  "directive_id": "first-parent-resume-directive-6",
+  "contract_id": "sha256:f8fe0041df23b81dc3e88b0138363535c504bf5e36269610af118884f72752de",
+  "candidate_id": "sha256:49ff508ff3a57822fa146f9eaed3edd5e74c86f3a83ea57e4dfb26002a5a7085",
+  "base_head": "233addfa5dfb1be43417cb13cc99863d52372e96",
+  "files": [
+    {
+      "path": "src/midprojectrag/orchestration/execution_contracts.py",
+      "sha256": "a8e38f2877b7deaa46483256a65390b72cade1460ced9728027d9168bcc61737"
+    },
+    {
+      "path": "tests/test_controller_first_parent_transition.py",
+      "sha256": "e09a80310b3c4ea9e38b9c6f48caf0aa54deedd48297b255926388565e92020b"
+    }
+  ],
+  "additional_review_files": [
+    {
+      "path": "fivecircles/architecture/specs/controller-first-parent-transition.md",
+      "sha256": "f8fe0041df23b81dc3e88b0138363535c504bf5e36269610af118884f72752de"
+    },
+    {
+      "path": "src/midprojectrag/orchestration/module-contract.md",
+      "sha256": "8274b320135669176cafab7af59bebdac0cb8b17aeadacfd2f2b1fbad2f043b3"
+    },
+    {
+      "path": "fivecircles/architecture/specs/controller-next-decision.md",
+      "sha256": "6d80a97e9261b359ad3d80fa05f986f19340c9b905b737c5714183511ba512a4"
+    },
+    {
+      "path": "fivecircles/architecture/specs/controller-first-fusion-transition.md",
+      "sha256": "1b92dbdf8d116e3812a1e27181e431a9aef39f6e0c70996a70e59dadd3a4c3e8"
+    }
+  ],
+  "validation_only_prerequisites": [
+    {
+      "path": "src/midprojectrag/retrieval/fusion.py",
+      "sha256": "32445fa6a7d3d59949f4a01646c69473d03321ded64d15ae3805738b36a2e356"
+    }
+  ],
+  "directive": {
+    "path": "fivecircles/work/collaboration/eh-relay-20260907/messages/EH2.6.c4.2.b.3/006-first-parent-resume-directive-5.json"
+  },
+  "captured_at": "2026-09-08T09:55:19.631Z",
+  "status": "FROZEN_NO_OP_CANDIDATE_FULL_ENVIRONMENT_REPAIR_NOT_PASS",
+  "ownership_note": "core contains prior B3 plus later approved scoped changes; prerequisite is QUICKQA.2, not new B3 work"
+}

@@ -1,0 +1,182 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "PERF-CONTROLLER.2.1",
+  "message_id": "controller-traversal-directive-1",
+  "in_reply_to": null,
+  "sender": "PHILOSOPHER",
+  "kind": "DIRECTIVE",
+  "body": {
+    "mode": "DESIGN",
+    "contract_id": "controller-predecessor-validation-edge-v1",
+    "objective": "Remove the redundant early predecessor recursion in require_successor_record while preserving exact retained provenance, live recursive validation, dependency integrity, mutation rejection, lifetime, history, and concurrency semantics.",
+    "selected_task_ref": {
+      "existing_authority": "fivecircles/architecture/todolist.md — PERF-CONTROLLER.1.OPT1 and PERF-CONTROLLER.1 completed diagnosis",
+      "approved_followup": "fivecircles/work/2026-09-08-controller-bottleneck-cause.md section 5, item 2; user-approved Controller structural optimization",
+      "dispatcher_batch": "PERF-CONTROLLER.2.1",
+      "note": "Main owns recording the approved follow-up in the existing TODO. This message does not create a separate task authority."
+    },
+    "direction_assessment": {
+      "target": "Reduce overlapping predecessor traversal without introducing a PASS cache or parallel authority system.",
+      "current": "require_successor_record validates before explicitly, then validate_record validates the retained projection. The projection resolver validates the projection execution through both validate_controller_decision_receipt and _require_controller_source_owner. These calls recursively revisit earlier transitions.",
+      "gap": "The explicit predecessor recursion is redundant only if the retained projection execution is proved to be the exact authority[11] predecessor. Existing claim bindings alone should not be relied upon as an implicit substitute for that explicit edge check.",
+      "selected_change": "Replace the early recursive predecessor validation with exact type and identity guards; delegate the full predecessor graph validation to the unchanged retained projection reader, before consuming predecessor payload fields.",
+      "reason": "This removes one recursive entry per successor readback and therefore removes its nested ancestor work as well. It is one local edge change, and retains both existing projection-driven predecessor validations. The magnitude must be measured; no numerical speedup is promised.",
+      "concurrency_limit": "Neither the current code nor this design holds a lock across the complete mutable graph. Preserve live validation at the delegated handoff and all existing registry locks and dispatch boundaries. Do not claim atomic snapshot isolation or detection of every arbitrary transient mutation between checks."
+    },
+    "scope": {
+      "allowed_files": [
+        "src/midprojectrag/orchestration/execution_contracts.py — require_successor_record inside _build_initial_controller_transition_accessors; an adjacent private helper only if necessary for exact guards",
+        "tests/test_controller_predecessor_validation_edge.py — new focused regression tests",
+        "scripts/benchmark_controller_predecessor_validation_edge.py — new bounded, synthetic benchmark",
+        "resources/data_refined/private/diagnostics/controller-path/controller-predecessor-edge-20260908-001/ — new append-only evidence artifacts"
+      ],
+      "prohibited_actions": [
+        "Git mutations, commit, push, branch or worktree changes",
+        "API, model, GPU, VM, cloud, deployment, provider, dependency or environment changes",
+        "Changes to fixtures, golden data, corpus, qrels, baselines, existing diagnostic driver or notebooks",
+        "Changes to existing source-outcome, decision, execution, source-owner, runtime or state validator semantics",
+        "Request-wide, thread-local, context-variable or process-wide validation-result caching",
+        "Skip-validation flags, trusted caller booleans, public bypasses or caller-supplied validation tokens",
+        "Changes to claim, source-attempt, transition, failure, lifetime, rollback or locking protocols",
+        "Changes to other workers' files",
+        "Documentation, TODO, collaboration message or state edits; these belong to Main",
+        "Nested delegation or expansion to additional optimization edges"
+      ]
+    },
+    "implementation_contract": {
+      "starting_source_sha256": "2cf02cda4ae5b1fb43da6e65d9054dc133ab92cb92bf6916f2b2cfd50ae9fc57",
+      "starting_driver_sha256": "437c6eee0ce5397cadf01f631f0b810d39545eed4effde50deb286680894ce49",
+      "preserve": [
+        "The completed immutable code JSON cache and all pre-existing dirty-worktree changes.",
+        "require_successor_record signature and every exported/public signature and return value.",
+        "validate_dependencies and exact successor type/revision rejection at entry.",
+        "execution_authority_reader and store/config/runtime exact identity checks.",
+        "Locked prune_unlocked, unique live matching record lookup and all record/shadow history checks.",
+        "Exact transition and predecessor identities; revision, previous-transition, state, ledger, tuple, payload/hash and transitioned-status checks.",
+        "Unchanged validate_record, projection reader, source resolver, decision validator, source-owner reader, complete target-context reader and effect/transition validation.",
+        "Fresh validation on every independent readback and all validations around external work."
+      ],
+      "required_sequence": [
+        "Authenticate the successor authority as today and obtain transition and before from that authority.",
+        "Require exact HarnessExecution type for before before accessing its attributes. Preserve TypeError('harness_execution_required') for a wrong predecessor type.",
+        "Find the unique live retained record under the existing transition lock and retain existing history validation.",
+        "Before delegating validation, prove record[2] is transition and record[9][0] is before. Prove the retained bridge claim execution/decision/action/key identities agree with record[9], using the existing checks without weakening them.",
+        "Explicitly require the retained projection to have the exact projection type, projection.execution is before, and projection.decision is record[9][1]. Use identity comparisons and safe attribute access after the applicable dependency/type checks. Equal payloads or hashes are insufficient.",
+        "Call unchanged validate_record(record, store=store, config=config, runtime=runtime). Its authenticated projection reader re-resolves the exact projection, and its decision and source-owner paths each perform full live validation of the exact before graph.",
+        "Only after delegated validation succeeds, consume before.step_index and before.last_transition_sha256 for the predecessor relation checks and continue the existing successor checks.",
+        "Remove only the former explicit execution_validator(execution=before, ...) call. Do not remove either recursive validation inside the projection path."
+      ],
+      "error_semantics": [
+        "All previously invalid graphs must still reject without dispatch, issuance or an authentic return.",
+        "Retain existing error strings for unchanged guards and existing regression expectations.",
+        "Where the early full validator and record validation previously could both fail, their first observed error can change because the traversal order changes. Do not silently broaden exception classes or introduce AttributeError/IndexError as the normal malformed-input rejection.",
+        "If an authoritative existing contract or affected regression requires a specific earlier error precedence that cannot be retained with a small guard, send QUESTION before proceeding."
+      ],
+      "mutation_and_lifetime_semantics": [
+        "A predecessor, decision, source, runtime or retained registry mutation that remains present at the delegated validation point must reject.",
+        "No earlier successful check may authorize a later independent read or a read after dispatch.",
+        "No new persistent graph references, cache entries, lock scopes, GC callbacks or registry cleanup behavior.",
+        "Do not treat a separately authentic projection for another predecessor or decision as covering the required relation.",
+        "Do not restore a failed claim, remint an expired source or discard history to make validation succeed."
+      ]
+    },
+    "acceptance_criteria": [
+      "The product change is confined to the selected local edge and its necessary exact guards.",
+      "Focused regression tests prove the same valid transition identities and failure behavior, including mutation at the delegated handoff.",
+      "The fixed edge benchmark shows fewer validate_harness_execution calls on the same authenticated retained chain, with both projection-driven predecessor validations still present.",
+      "Unprofiled paired edge timing shows a useful reduction, or the Coder reports NEEDS_GUIDANCE before running expensive additional validation or expanding scope.",
+      "Affected existing regressions pass on the frozen candidate with no skipped required tests.",
+      "A representative revision4 diagnostic, if run, retains step4/revision4/same-state, action/lifecycle counts and valid readback. Its time is identified as synthetic Controller diagnostic time, not UI latency.",
+      "All measured failures, neutral results and regressions are preserved honestly; neither old cProfile timings nor benchmark instrumentation overhead is used as an unprofiled comparison."
+    ],
+    "required_tests": [
+      {
+        "name": "Focused exact-edge regressions",
+        "command": ".venv/bin/python -m unittest tests.test_controller_predecessor_validation_edge",
+        "requirements": [
+          "Valid revision1 and revision2 retained records return the exact original effect/transition objects and preserve public execution validation.",
+          "Repeated readback observes predecessor/source/runtime mutation after an earlier successful read; there is no retained PASS.",
+          "Wrong predecessor type and equal-payload clones fail closed without unsafe attribute access.",
+          "Projection execution and decision must match the retained predecessor/decision by identity; a different authentic graph must not satisfy the edge.",
+          "Deterministically inject persistent predecessor or source drift at the call into validate_record, using a temporary trace hook with finally restoration rather than altering production callable pins; rejection and zero extra work are required.",
+          "Deterministically inject retained-record or registry-shadow drift around the handoff and verify rejection through the unchanged readers.",
+          "Use real existing synthetic fixtures and authorities. Do not mock validators into success."
+        ]
+      },
+      {
+        "name": "Initial edge, concurrency, failure and lifetime coverage",
+        "command": ".venv/bin/python -m unittest tests.test_controller_initial_transition",
+        "reason": "This existing bounded suite directly exercises the changed accessor, cloned/mixed identities, source/tuple drift, concurrent advancement, registration failure and retained provenance lifetime."
+      },
+      {
+        "name": "Runtime and dependency defenses",
+        "command": ".venv/bin/python -m unittest tests.test_execution_contracts",
+        "reason": "Preserves existing live code/default/closure/global, exact identity and armed-access rejection checks."
+      },
+      {
+        "name": "Revision2 retained ancestry",
+        "command": ".venv/bin/python -m unittest tests.test_controller_lexical_transition.ControllerLexicalTransitionTests.test_revision_chain_and_both_sources_survive_gc_and_revalidate tests.test_controller_lexical_transition.ControllerLexicalTransitionTests.test_lexical_source_effect_transition_and_ledger_drift_fail_closed tests.test_controller_lexical_transition.ControllerLexicalTransitionTests.test_serialized_clone_and_dependency_drift_are_non_authorizing"
+      },
+      {
+        "name": "Revision3 retained ancestry",
+        "command": ".venv/bin/python -m unittest tests.test_controller_first_fusion_transition.ControllerFirstFusionTransitionTests.test_all_predecessors_decisions_and_three_sources_survive_gc tests.test_controller_first_fusion_transition.ControllerFirstFusionTransitionTests.test_source_effect_ledger_and_transition_drift_fail_readback"
+      },
+      {
+        "name": "Revision4 complete retained context",
+        "command": ".venv/bin/python -m unittest tests.test_controller_first_parent_transition.ControllerFirstParentTransitionTests.test_readback_rejects_unselected_and_complete_context_drift",
+        "reason": "Exercises the unchanged complete sibling parent/bridge context validation through the modified ancestry traversal."
+      }
+    ],
+    "benchmark_plan": {
+      "first_gate": [
+        "Before editing product code, create and freeze a short driver using existing ControllerInitialTransitionTests and ControllerLexicalTransitionTests fixtures without changing them.",
+        "Measure one authentic revision1 and one authentic revision2 retained chain. Separate setup from a fixed small number of transition readbacks, such as three. Freeze those counts before the baseline.",
+        "Record source, benchmark, fixture and relevant contract hashes; interpreter path/version; imported module origins; environment receipt; wall/CPU; revision/state identity; exact readback identity; source call logs; native exit status.",
+        "Run unprofiled timing and call counting separately. For counting, use cProfile over only the readback phase, not patched validator wrappers. Report validate_harness_execution, require_successor_record, decision/source-owner reader, projection reader and runtime dependency checker calls.",
+        "Run the same fixed driver and counts after the product change in a fresh process with the same environment and no overlapping task benchmarks.",
+        "Do not choose a different fixture, fewer iterations or a different phase boundary after seeing results."
+      ],
+      "representative_check": [
+        "After the focused correctness and edge-efficiency gates succeed, Main may run the unchanged scripts/profile_controller_path.py once with profile=false on the final candidate.",
+        "The prior 190.294565-second run may be used as the representative baseline only if Main verifies the exact current source2cf02cda..., unchanged driver437c6eee..., fixture hashes, interpreter/import origins, environment receipt, instrumentation=false and the same driver phase boundaries.",
+        "If that proof is incomplete, describe the old time as historical context. The newly paired short edge benchmark remains the valid before/after comparison; do not automatically add two expensive full diagnostic runs.",
+        "Report setup, execution and readback independently, preserve outcome/call-count comparisons, and explicitly identify a one-run shared-host comparison as an observation."
+      ],
+      "stop_conditions": [
+        "No reduction in recursive calls: send QUESTION with the actual call graph; do not add a cache or another edge.",
+        "Neutral or worse fixed edge timing: preserve results and send NEEDS_GUIDANCE before expensive affected suites or scope expansion.",
+        "A required defense fails: repair only within this edge or send QUESTION. Do not weaken the test or contract.",
+        "Freeze source/test/benchmark hashes before final required regression evidence and bind the implementation report to that exact candidate."
+      ]
+    },
+    "constraints": [
+      "Use the actual repository /Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG and its existing .venv; do not accidentally use the similarly named workspace root.",
+      "Preserve branch feat/total-integration, HEAD 233addfa and unrelated dirty worktree content; this is read-only Git context, not authorization for Git operations.",
+      "Do not claim every validation sampling instant is unchanged. The approved structural change consolidates an overlapping recursive entry while retaining full live graph validation and explicit relation checks.",
+      "No full-suite execution per internal leaf. The listed affected tests are required; existing B3 full, isolation and integration gates remain separate and are not waived.",
+      "If correct handling requires modifying an existing validator, registry, locking protocol, public signature or historical contract, stop with a complete QUESTION rather than broadening this directive.",
+      "Main records docs/TODO/state and obtains fresh independent review after the Coder reports the frozen candidate and actual evidence."
+    ],
+    "source_refs": [
+      "fivecircles/agent/skills/collaboration/references/messages.md",
+      "fivecircles/work/2026-09-08-controller-bottleneck-cause.md",
+      "fivecircles/work/2026-09-08-controller-code-cache.md",
+      "fivecircles/architecture/specs/controller-first-parent-transition.md",
+      "src/midprojectrag/orchestration/module-contract.md",
+      "src/midprojectrag/orchestration/execution_contracts.py:3581",
+      "src/midprojectrag/orchestration/execution_contracts.py:3797",
+      "src/midprojectrag/orchestration/execution_contracts.py:5079",
+      "src/midprojectrag/orchestration/execution_contracts.py:17203",
+      "src/midprojectrag/orchestration/execution_contracts.py:17737",
+      "src/midprojectrag/orchestration/execution_contracts.py:20619",
+      "src/midprojectrag/orchestration/execution_contracts.py:20885",
+      "tests/test_controller_initial_transition.py",
+      "tests/test_controller_lexical_transition.py",
+      "tests/test_controller_first_fusion_transition.py",
+      "tests/test_controller_first_parent_transition.py",
+      "scripts/profile_controller_path.py"
+    ],
+    "resolution": null
+  }
+}

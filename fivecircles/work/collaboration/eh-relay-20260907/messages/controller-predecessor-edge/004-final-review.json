@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "PERF-CONTROLLER.2.1",
+  "message_id": "controller-predecessor-edge-final-review-1",
+  "in_reply_to": "controller-predecessor-implementation-report-1",
+  "sender": "PHILOSOPHER",
+  "kind": "REVIEW",
+  "body": {
+    "verdict": "PASS",
+    "directive_id": "controller-traversal-directive-2",
+    "contract_id": "controller-predecessor-validation-edge-v2",
+    "candidate_id": "controller-predecessor-edge-687e5b6f-3ad04e65",
+    "test_evidence_id": "controller-predecessor-edge-evidence-d0e8fe35-61f84bf0-6984ee56",
+    "reviewed_message_id": "controller-predecessor-implementation-report-1",
+    "direction_score": null,
+    "direction_rubric": null,
+    "direction_rationale": "The bounded change implements the accepted structural optimization without extending scope. Compared against the designated 2cf02cda baseline, it removes only the early predecessor validation call. Exact predecessor, retained record, claim and projection bindings precede unchanged validate_record, whose projection resolver still fully validates the same predecessor through both decision and source-owner paths before predecessor payload consumption. Dependency pins, locking, pruning, successor integrity, complete target context, failure protocols and provenance lifetime remain intact.",
+    "findings": [],
+    "requested_task_changes": [],
+    "next_batch_constraints": [
+      "Close this optimization leaf and resume the original integration flow under its existing authority and required checks.",
+      "This PASS applies only to the bound source 687e5b6f26e121f944015e4700d95b24bc2c8b09d260c4ed08c4cc9a9e3dbebe and test 3ad04e65605dd45859a894c04bf4a80fd48c617dd14782590451a34595beb098 candidate.",
+      "Report removal of the redundant recursive entry without a measured latency or performance claim.",
+      "B3 and full integration remain separate outstanding gates; this review grants no Git, model, API, golden-data, UI or performance promotion."
+    ],
+    "reason": "Independently inspected the narrow source diff, delegated validation paths and final four-test file. Recomputed final source, test, implementation-report, manifest, focused evidence, regression summary and raw regression-log hashes; all matched the report bindings. Read focused tool-output strings and all five existing regression groups' commands, results, source-before/source-after records and raw logs. Final evidence supports 4 focused plus 36 affected existing tests passing, with zero failures or skips. The earlier 29-test collection/helper failure is preserved and resolved by the final test-only repair. Focused output is accurately labeled as tool-returned text rather than a separately redirected byte transcript. No unresolved blocker remains for this leaf.",
+    "resume_conditions": []
+  }
+}

@@ -1246,10 +1246,30 @@ def require_production_hybrid(
     _external_function_pins=_FUSION_REQUIRE_EXTERNAL_FUNCTION_PINS,
     _object_pins=_FUSION_PREFLIGHT_OBJECT_PINS,
     _module_attribute_pins=_FUSION_PREFLIGHT_MODULE_ATTRIBUTE_PINS,
-) -> HybridProductionBinding:
+    *,
+    include_attestations: bool = False,
+) -> HybridProductionBinding | tuple[HybridProductionBinding, object, object]:
     """Revalidate a factory-issued binding immediately before production use."""
 
     module_namespace = globals()
+    current_require = dict.get(module_namespace, "require_production_hybrid")
+    current_kwdefaults = (
+        None
+        if type(current_require) is not FunctionType
+        else object.__getattribute__(current_require, "__kwdefaults__")
+    )
+    if (
+        current_require
+        is not dict.get(module_namespace, "_ISSUED_REQUIRE_PRODUCTION_HYBRID")
+        or current_require
+        is not dict.get(module_namespace, "_PINNED_REQUIRE_PRODUCTION_HYBRID")
+        or type(current_kwdefaults) is not dict
+        or set(current_kwdefaults) != {"include_attestations"}
+        or dict.get(current_kwdefaults, "include_attestations") is not False
+    ):
+        raise ValueError("hybrid_production_validation_dependency_drift")
+    if type(include_attestations) is not bool:
+        raise ValueError("invalid_hybrid_attestation_option")
     if (
         _helper_pins
         is not dict.get(
@@ -1399,6 +1419,8 @@ def require_production_hybrid(
         for name, value in checks.items()
     ):
         raise ValueError("hybrid_production_binding_drift")
+    if include_attestations:
+        return binding, dense, lexical
     return binding
 
 

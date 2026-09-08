@@ -1,0 +1,71 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.c4.2.b.3",
+  "message_id": "first-parent-publication-review-1",
+  "in_reply_to": "first-parent-resume-implementation-report-1",
+  "sender": "PHILOSOPHER",
+  "kind": "REVIEW",
+  "body": {
+    "verdict": "PASS",
+    "review_stage": "PUBLICATION_ONLY",
+    "directive_id": "first-parent-resume-directive-6",
+    "contract_id": "sha256:f8fe0041df23b81dc3e88b0138363535c504bf5e36269610af118884f72752de",
+    "candidate_id": "sha256:49ff508ff3a57822fa146f9eaed3edd5e74c86f3a83ea57e4dfb26002a5a7085",
+    "test_evidence_id": "sha256:d9f34932419dae2819c1f8631cf5ba78ad0d3c17dc9a66070cd1cc765ce8e013",
+    "reviewed_message_id": "first-parent-resume-implementation-report-1",
+    "direction_score": null,
+    "direction_rubric": null,
+    "direction_rationale": "Publication-only approval of the exact reviewed 60-file payload under existing security policy. Product acceptance remains the separate first-parent-resume-final-review-1 decision. Native repository safety remains FAIL. Future reconciliation records have not yet been reviewed.",
+    "findings": [
+      {
+        "id": "B3-PUB-1",
+        "category": "contract",
+        "severity": "informational",
+        "evidence": "Independently verified branch feat/total-integration and HEAD233addfa5dfb1be43417cb13cc99863d52372e96. Proposed manifest SHA256 is 7eb4584822e5b5cd55a4617b1948073a79d1aadb666e1e88b57e95fa83198836; audit SHA256 is 7a113f40fc10ff4b4a883d2edd338f6123c9ebcef109f7a4bf28d5d692fc6099. All 60 payload hashes match, inventory contains exactly those 60 files, and no payload symlink or prohibited artifact path was found. The nine changed/new product/test/contract files match the approved eleven-file closure; both unchanged behavior references match HEAD. Exact-copy payload files match their worktree sources.",
+        "action": "Retain this exact selected payload and its binding. Do not replace it with broad dirty-worktree staging or follow private evidence references into the publication package."
+      },
+      {
+        "id": "B3-PUB-2",
+        "category": "contract",
+        "severity": "informational",
+        "evidence": "Independently reconstructed update.md, learn-from-log.md and debate.md from the specified HEAD plus their exact owned B3 appendices and obtained identical payload bytes. TODO changes are confined to the c4.2.b subtree. State excludes current_hotline, current_latency_fix, historical_quickqa2_priority, previous_user_priority and previous_quickqa_priority; gcp_coordination and optional_coordination_notice match HEAD. No restricted source contents, raw model evidence, credentials or access-granting identifier was identified in the reviewed publication material.",
+        "action": "Preserve these projections and independent local work. Local receipt paths and integrity hashes are references, not permission to package the referenced private/native artifacts."
+      },
+      {
+        "id": "B3-PUB-3",
+        "category": "contract",
+        "severity": "informational",
+        "evidence": "Independent application of the scanner content patterns to the 58 non-image payload files reproduced exactly one matched line and zero secret matches: messages/QUICKQA.2/002-combined-implementation-report.json, line158, /body/evidence_files/22/sha256. The complete field equals the independently recomputed SHA256 of /private/tmp/quickqa2.AsL8qx/timer/initial/run_controller_quick_qa.py. The detected substring is inside that full code digest. Reading the referenced runner and surrounding immutable derivative report establishes that this is a code-integrity identifier, not personal contact data. It is necessary to preserve the original implementation-input provenance for the approved QUICKQA.2 derivative included in this closure.",
+        "action": "Under existing security.md §4, retain only this exact necessary non-personal field in its reviewed provenance context. This is not a generic hash exception and does not authorize including QUICKQA.1, the original timer code or actual private receipts. Avoid duplicating the detected digest in new prose."
+      },
+      {
+        "id": "B3-PUB-4",
+        "category": "contract",
+        "severity": "informational",
+        "evidence": "The audit preserves native safety FAIL/exit1, PII_PATTERN_FOUND and the four worktree matched lines. Current scanner bytes independently match e4659b0685809777be9bbbaf1c771c4afb61696e72025696025d405e5c3668d2. Both old c4.2.b.2 files and historical messages/EH2.6.d2.x.b.2/012-post-fusion-publication-review-1.json remain byte-identical to HEAD. That historical review remains scoped to its original exact fields and payload.",
+        "action": "Record this bounded policy adjudication separately from the native FAIL. Do not suppress detections, modify scanner/policy, claim native safety PASS or expand the historical two-field decision."
+      },
+      {
+        "id": "B3-PUB-5",
+        "category": "contract",
+        "severity": "informational",
+        "evidence": "Viewed the packaged report screenshot and current diagram and inspected report text and diagram source. The current report presents B3 implementation verification while preserving incomplete Controller/E2E and unselected quality winner status. Target MMD/PNG and the browser checker are unchanged from HEAD. The audit and frontend error record distinguish the initial missing-default-Chromium launch FAIL from the subsequent Chrome152 desktop1440x1000/mobile390x844 exit0, images2, tables8, page errors0, external requests0 and no mobile overflow.",
+        "action": "Keep this as a pre-integration closeout report. Browser evidence validates report presentation only; it does not establish runtime quality, model latency or RAG E2E. Preserve the initial browser failure and existing source/report meaning."
+      }
+    ],
+    "requested_task_changes": [],
+    "next_batch_constraints": [
+      "Preserve all constraints of first-parent-resume-final-review-1, stored at messages/EH2.6.c4.2.b.3/011-first-parent-resume-final-review-1.json, SHA256 fcb4e1abd5e451c1f3f2951132fd2b2507aa8e81ab3acb2e6137f702265371c7. This review does not repeat or broaden product acceptance.",
+      "Prospective additions are limited to fivecircles/work/collaboration/eh-relay-20260907/messages/EH2.6.c4.2.b.3/012-first-parent-publication-review-1.json and fivecircles/work/collaboration/eh-relay-20260907/batches/EH2.6.c4.2.b.3/publication-clearance.json.",
+      "Prospective updates are limited to fivecircles/work/collaboration/eh-relay-20260907/state.json, fivecircles/work/2026-09-07-controller-first-parent-relay.md and fivecircles/test/errorlogs/backend/2026-09-08-b3-publication-preflight.md. They may record only the actual returned adjudication, native FAIL, references and final reconciliation facts. No product, contract, evidence or report meaning changes are covered.",
+      "Future bytes are not reviewed or preapproved. Before recording final policy clearance or staging, Main must validate this returned REVIEW and its identifiers, inspect every actual prospective addition/update, recompute the final exact path/hash inventory and content detections, and confirm all prior product/contract/required-evidence bindings remain unchanged.",
+      "Preserve native focused12, adjacent246, isolated258, supplemental14 and resolved full1765 as overlapping counts, not summed unique coverage. Keep full-only HB add-on/resolver distinctions, canonical CSV UNREPAIRED, original failure history and bounded evidence limitations.",
+      "Keep raw private/native evidence under ignored resources and outside the payload. Preserve unrelated worktree changes and the reviewed shared-file projections; do not stage whole shared working files.",
+      "Any additional path, broader edit, unexpected detection, restricted content, access-granting identifier or altered product/contract/required-evidence binding blocks publication and requires renewed bounded review.",
+      "No Git mutation, commit, push, external sharing, data change, model/API/GPU/GCP execution, benchmark or next-product-batch authority is granted. Denied LATENCY.FIX remains denied; no new actual calls are authorized."
+    ],
+    "reason": "No blocking publication defect was identified in the exact 60-file payload. Its hashes, inventory, ownership projections and approved product bindings were independently verified. Existing security §4 supports the one precisely identified non-personal code digest because its immutable derivative-provenance role is necessary. Native safety remains FAIL/exit1. Final applicability requires the explicitly bounded future-byte reconciliation; it is not presumed approval of unseen additions. Reviewer performed read-only inspection and content/hash checks, without edits, tests, model/network calls, Git mutations or child delegation.",
+    "resume_conditions": []
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "PERF-CONTROLLER.1.OPT1",
+  "message_id": "controller-code-cache-implementation-report-4",
+  "in_reply_to": "controller-code-cache-implementation-report-3",
+  "sender": "CODER",
+  "kind": "IMPLEMENTATION_REPORT",
+  "body": {
+    "status": "REVIEW_READY",
+    "directive_id": "controller-code-cache-directive-3",
+    "contract_id": "controller-code-representation-cache-v2",
+    "candidate_id": "sha256:bc3146a2b8e5076d22df6bbf0f59a702cc410c292b90c4cc37684ea8c721514c",
+    "test_evidence_id": "sha256:3acdf99af34b58d010c31a8add3152886acdb141b3477ca31944e7c53abbf1e8",
+    "provenance_correction": "This supersedes implementation-report-3 metadata only. Candidate and evidence bytes are unchanged. Commands now reproduce each receipt's exact interpreter and args, and candidate1 retention wording now matches the archived packet.",
+    "changed_files": [
+      "src/midprojectrag/orchestration/execution_contracts.py",
+      "tests/test_controller_code_representation_cache.py",
+      "scripts/benchmark_controller_code_representation.py"
+    ],
+    "implementation_summary": "Restored the original fresh-dict _code_payload path and limited caching to exact-identity immutable canonical code JSON bytes used only by _function_sha256. The bounded cache retains mirrored entry identity, one-lock accounting, 128-entry/4-MiB eviction, code-only production, original fallback for ineligible or unencodable code, live non-code fields, fixed canonical outer encoding, and existing dependency pins.",
+    "tests": [
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src /Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/bin/python3 -m unittest tests.test_controller_code_representation_cache -v",
+        "exit_code": 0,
+        "candidate_id": "sha256:bc3146a2b8e5076d22df6bbf0f59a702cc410c292b90c4cc37684ea8c721514c",
+        "artifact": "resources/data_refined/private/diagnostics/controller-path/code-cache-opt1-20260908-001/focused-3-capture/receipt.json",
+        "result": "PASS; 6 tests; 0 skips"
+      },
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src /Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/bin/python3 scripts/benchmark_controller_code_representation.py --output-json /Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/resources/data_refined/private/diagnostics/controller-path/code-cache-opt1-20260908-001/candidate3-micro.json",
+        "exit_code": 0,
+        "candidate_id": "sha256:bc3146a2b8e5076d22df6bbf0f59a702cc410c292b90c4cc37684ea8c721514c",
+        "artifact": "resources/data_refined/private/diagnostics/controller-path/code-cache-opt1-20260908-001/candidate3-micro-capture/receipt.json"
+      },
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src /Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/bin/python3 scripts/profile_controller_path.py --output-dir /Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/resources/data_refined/private/diagnostics/controller-path/code-cache-opt1-20260908-001/candidate3-trajectory",
+        "exit_code": 0,
+        "candidate_id": "sha256:bc3146a2b8e5076d22df6bbf0f59a702cc410c292b90c4cc37684ea8c721514c",
+        "artifact": "resources/data_refined/private/diagnostics/controller-path/code-cache-opt1-20260908-001/candidate3-trajectory-capture/receipt.json"
+      },
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src /Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/bin/python3 -m unittest tests.test_execution_contracts -v",
+        "exit_code": 0,
+        "candidate_id": "sha256:bc3146a2b8e5076d22df6bbf0f59a702cc410c292b90c4cc37684ea8c721514c",
+        "artifact": "resources/data_refined/private/diagnostics/controller-path/code-cache-opt1-20260908-001/affected-runtime3-capture/receipt.json",
+        "result": "PASS; 17 tests; 0 skips"
+      },
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src /Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/bin/python3 -m unittest tests.test_controller_first_parent_transition.ControllerFirstParentTransitionTests.test_fact_parent_seals_exact_same_state_revision_four tests.test_controller_first_parent_transition.ControllerFirstParentTransitionTests.test_readback_rejects_unselected_and_complete_context_drift -v",
+        "exit_code": 0,
+        "candidate_id": "sha256:bc3146a2b8e5076d22df6bbf0f59a702cc410c292b90c4cc37684ea8c721514c",
+        "artifact": "resources/data_refined/private/diagnostics/controller-path/code-cache-opt1-20260908-001/affected-parent3-capture/receipt.json",
+        "result": "PASS; 2 tests; 0 skips; sys.settrace-instrumented duration is not performance evidence"
+      },
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src /Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/bin/python3 -m unittest tests.test_controller_source_authority.ControllerSourceAuthorityContractTests.test_c40_state_source_reader_dependencies_are_closed tests.test_controller_source_authority.ControllerSourceAuthorityContractTests.test_c40_source_validation_alias_drift_precedes_source_dereference tests.test_controller_step_history.ControllerStepHistoryTests.test_preflight_rejection_does_not_create_history tests.test_controller_step_history.ControllerStepHistoryTests.test_dependency_drift_after_child_dispatch_tombstones_claim tests.test_controller_step_history.ControllerStepHistoryTests.test_dependency_drift_during_prepare_tombstones_claim -v",
+        "exit_code": 0,
+        "candidate_id": "sha256:bc3146a2b8e5076d22df6bbf0f59a702cc410c292b90c4cc37684ea8c721514c",
+        "artifact": "resources/data_refined/private/diagnostics/controller-path/code-cache-opt1-20260908-001/affected-history3-capture/receipt.json",
+        "result": "PASS; 5 tests; 0 skips"
+      }
+    ],
+    "measurements": {
+      "canonical_and_semantic_comparison": "PASS",
+      "candidate3_micro_repeated": "16.38% lower wall time; cold sample 27% higher",
+      "candidate3_trajectory": "wall 199.451119s to 190.294565s (-4.59%); CPU 198.289415s to 189.374029s (-4.50%); readback subphase 2.26% higher",
+      "interpretation": "One paired shared-host sample is preliminary and is not a statistical or production speed claim."
+    },
+    "deviations": [
+      "Candidate1's exact standalone source file was not retained; its recorded source hash and candidate1 micro artifact remain preserved.",
+      "Candidate2 was rejected after a 7.03% wall and 7.27% CPU regression; its exact source/test and evidence remain archived.",
+      "No broad full-suite or B3 isolated/full integration run was performed under this optimization directive; original B3 remains unapproved.",
+      "The user now prioritizes diagnosis of dominant repeated calls and the actual service path; no follow-on optimization is authorized by this report."
+    ],
+    "unresolved_questions": [],
+    "proposed_next_steps": [
+      "Run a fresh deep review against candidate3-review-manifest.json (SHA c2e7f9fb39eb674dac7bf1f9f510a5ecd97b9fa1861d72edca1ec2207226430f).",
+      "After review, keep B3 integration gates separate and scope any dominant-cause/service-path diagnosis without treating this single timing pair as proof of production impact."
+    ]
+  }
+}

@@ -1,0 +1,122 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "QUICKQA.2",
+  "message_id": "quickqa2-actual-implementation-report-1",
+  "in_reply_to": "quickqa2-directive-1",
+  "sender": "CODER",
+  "kind": "IMPLEMENTATION_REPORT",
+  "body": {
+    "status": "REVIEW_READY",
+    "directive_id": "quickqa2-directive-1",
+    "contract_id": "quickqa2-combined-validation-total120-v1",
+    "candidate_id": "sha256:8b1a16e3b16a92db5d238fbcb546f760b8f15b89f481ad641447dea13e4c8b2b",
+    "test_evidence_id": "sha256:7ad2644add6474116c6667db4d99c87a08215a0ea19613c02873083d8853396a",
+    "preflight_review": {
+      "message_id": "quickqa2-preflight-review-1",
+      "verdict": "PASS",
+      "path": "/private/tmp/quickqa2.AsL8qx/preflight-review.json",
+      "sha256": "d8dee03f743465a15d31692fad1a623c310aafef3a4dc3f1b4067975a8394d3f"
+    },
+    "actual_run": {
+      "runs": 1,
+      "retries": 0,
+      "outcome": "TIMEOUT",
+      "question_completed": false,
+      "completed_e1": false,
+      "verifier_executed": false,
+      "budget_seconds": 120.0,
+      "worker_elapsed_seconds": 120.06128274998628,
+      "supervisor_receipt_overhead_seconds": 0.0009430000209249556,
+      "configured_termination_grace_seconds": 0,
+      "supervisor_native_exit_code": 124,
+      "worker_native_exit_code": -9,
+      "deadline_sigkill_sent": true,
+      "owned_process_group": 87800,
+      "shared_ollama_terminated": false,
+      "server_inference_cancellation": "not_applicable_no_attempt_observed",
+      "worker_result_present": false,
+      "result_path": null,
+      "generation_calls": null,
+      "generation_attempts_observed": 0,
+      "generation_observation_source": "durable_journal",
+      "last_confirmed_phase": "retrieve_lexical",
+      "phase_evidence": [
+        {
+          "name": "initialize",
+          "status": "PASS",
+          "wall_seconds": 50.810214125027414
+        },
+        {
+          "name": "plan_bind",
+          "status": "PASS",
+          "wall_seconds": 1.5258911249693483
+        },
+        {
+          "name": "retrieve_dense",
+          "status": "PASS",
+          "wall_seconds": 30.06202916597249
+        },
+        {
+          "name": "retrieve_lexical",
+          "status": "INCOMPLETE_AT_FORCED_TIMEOUT",
+          "wall_seconds": null
+        }
+      ],
+      "interpretation": "The 120-second supervised run did not complete the question. The receipt observed worker reaping 0.061283 seconds beyond the nominal deadline; the supervisor configured no grace and sent SIGKILL to only its owned process group on TimeoutExpired. No exact kill-dispatch timestamp was recorded, so the small excess is retained as scheduling/reap observation rather than counted as successful work.",
+      "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src PYTORCH_ENABLE_MPS_FALLBACK=0 HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 TOKENIZERS_PARALLELISM=false .venv/bin/python3 /private/tmp/quickqa2.AsL8qx/timer/supervise_quick_qa.py --worker scripts/run_controller_quick_qa.py --request resources/data_refined/private/diagnostics/controller-path/quickqa-20260908-001/request.json --output-dir resources/data_refined/private/diagnostics/controller-path/quickqa2-20260908-001 --budget-seconds 120"
+    },
+    "request": {
+      "path": "resources/data_refined/private/diagnostics/controller-path/quickqa-20260908-001/request.json",
+      "sha256": "77ccb87f73b7faf9adfd04d3ff859fb204da12fde9e5fe48080ee05a76bc63e3",
+      "content_reproduced": false
+    },
+    "source_integrity": {
+      "before": {
+        "path": "/private/tmp/quickqa2.AsL8qx/timer/actual-source-before.sha256",
+        "sha256": "dcd3c66fedba9076929cd62a8d3d7a3f308c4090922688f3d1c70cd02174f9dd"
+      },
+      "after": {
+        "path": "/private/tmp/quickqa2.AsL8qx/timer/actual-source-after.sha256",
+        "sha256": "dcd3c66fedba9076929cd62a8d3d7a3f308c4090922688f3d1c70cd02174f9dd"
+      },
+      "byte_identical": true,
+      "native_cmp_exit_code": 0
+    },
+    "raw_evidence": [
+      {
+        "path": "resources/data_refined/private/diagnostics/controller-path/quickqa2-20260908-001/supervisor-receipt.json",
+        "sha256": "7340597b6d44c78e6dca8eec09c81db6a86ba1b9f4c284ac12d576db763d47f7"
+      },
+      {
+        "path": "resources/data_refined/private/diagnostics/controller-path/quickqa2-20260908-001/journal.jsonl",
+        "sha256": "62e0e704699de7af9efa91e1d8b48be7fa9d867747be0306d53298690d7a66a3"
+      },
+      {
+        "path": "resources/data_refined/private/diagnostics/controller-path/quickqa2-20260908-001/worker.stdout",
+        "sha256": "cc13de4751e98b123e656e8cd5a3b2584cad72fcb7dcd3213ab9aa0527f6bcb4"
+      },
+      {
+        "path": "resources/data_refined/private/diagnostics/controller-path/quickqa2-20260908-001/worker.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "changed_files": [],
+    "tests": [
+      {
+        "command": "single released production question via reviewed supervisor",
+        "exit_code": 124,
+        "candidate_id": "sha256:8b1a16e3b16a92db5d238fbcb546f760b8f15b89f481ad641447dea13e4c8b2b",
+        "artifact": "resources/data_refined/private/diagnostics/controller-path/quickqa2-20260908-001/supervisor-receipt.json"
+      }
+    ],
+    "deviations": [
+      "The run timed out during retrieve_lexical; no answer, result.json, generation call count, or E1 completion is claimed."
+    ],
+    "unresolved_questions": [],
+    "proposed_next_steps": [
+      "Obtain the required fresh final review against this exact candidate and actual-run evidence.",
+      "Do not retry the question under this authorization."
+    ]
+  }
+}

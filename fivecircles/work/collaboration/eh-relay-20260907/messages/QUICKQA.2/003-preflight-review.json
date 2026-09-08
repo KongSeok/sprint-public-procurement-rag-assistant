@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "QUICKQA.2",
+  "message_id": "quickqa2-preflight-review-1",
+  "in_reply_to": "quickqa2-combined-implementation-report-1",
+  "sender": "PHILOSOPHER",
+  "kind": "REVIEW",
+  "body": {
+    "verdict": "PASS",
+    "directive_id": "quickqa2-directive-1",
+    "contract_id": "quickqa2-combined-validation-total120-v1",
+    "candidate_id": "sha256:8b1a16e3b16a92db5d238fbcb546f760b8f15b89f481ad641447dea13e4c8b2b",
+    "test_evidence_id": "sha256:7ad2644add6474116c6667db4d99c87a08215a0ea19613c02873083d8853396a",
+    "reviewed_message_id": "quickqa2-combined-implementation-report-1",
+    "direction_score": null,
+    "direction_rubric": null,
+    "direction_rationale": "동일 hybrid 검증에서 얻은 정확한 attestation 객체를 두 runtime 호출부가 재사용한다. 기존 전체 검증·identity 비교·dependency pins를 보존하면서 즉시 중복만 제거했다. 초기화를 포함한 외부 watchdog과 durable journal은 승인된 단일 120초 실험에 적합하다.",
+    "findings": [],
+    "requested_task_changes": [],
+    "next_batch_constraints": [
+      "이 PASS는 실행 전 후보 승인이다. 실제 문답 성공, 성능 향상 또는 전체 E1 완료를 승인하지 않는다.",
+      "지정 timer coder만 동일 request 바이트·기존 데이터와 아티팩트·MPS·offline/local Ollama 조건으로 supervisor를 통해 최대 한 번 실행한다.",
+      "worker 시작부터 결과 처리까지 120초 예산을 유지한다. timeout 후 실제 질문이나 생성을 재시도하지 않는다.",
+      "실행 전후 후보와 runtime dependency SHA를 대조한다. 변경되면 해당 PASS를 재사용하지 않는다.",
+      "결과 판정은 supervisor receipt·durable journal·존재하는 worker result를 함께 사용한다. native exit code 0만으로 PASS를 판단하지 않는다.",
+      "result가 없으면 generation_calls는 미확인으로 유지하고 관측된 generation_attempt를 별도 보고한다. worker 종료를 공유 Ollama 추론 취소로 해석하지 않는다.",
+      "실제 결과와 동일 후보를 결속한 별도 fresh 최종 검수가 필요하다."
+    ],
+    "reason": "최종 packet SHA와 포함된 모든 candidate·dependency·evidence 파일 해시를 직접 대조해 일치했다. 변경 함수·runtime 호출자·pins·테스트 코드와 core 4+9, runner 12, native watchdog 3건의 PASS 증거를 확인했다. 초기 config 예산 노후화 및 leader 조기 종료 시 소유 child 잔존 문제는 수정된 후보에서 해소됐다. Core 로그는 도구 출력 사본이며, 광범위한 store-payload·in-call mutation·Controller concurrency 회귀를 실행했다고 주장하지 않는다. 해당 경계의 코드가 유지된 좁은 변경에 대한 사전 검수이며 전체 회귀 승인이 아니다.",
+    "resume_conditions": []
+  }
+}

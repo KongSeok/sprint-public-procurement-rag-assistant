@@ -1,7 +1,7 @@
 # Local RAG Baseline → Evidence-Harness Challenger 평가 진행 보고서
 
 
-기준: 2026-09-07 · 현재 작업대 `feat/total-integration` · EH2.6.d2.x.b.2 자동 검증·fresh 검수 PASS
+기준: 2026-09-08 · 현재 작업대 `feat/total-integration` · EH2.6.c4.2.b.3 구현·fresh 검수 PASS · 통합 대조 중
 최종 통합 대상: `feat/local-qwen-mini131-eval`
 
 > **고정된 목적:** 기존 local KURE page-v1 RAG baseline은 최종 구조가 아니라 비교를 위한 control이다. GPT retrieval 연구,
@@ -20,7 +20,7 @@
 | --- | --- | --- | --- |
 | 주 비교 통제군 B0 | KURE page-v1 + local Qwen 계열 | Mac-equivalent 측정 완료·provisional | local-first retrieval 비교의 authoritative control. 계속 보존한다. |
 | 별도 API arm | `text-embedding-3-small` + `gpt-5-nano` + Streamlit | 사용자-facing 호환 경로 | API-first는 과거 구현 순서이며 local control을 대체하지 않는다. |
-| 현재 개발 대상 | `feat/total-integration`의 Evidence-Harness challenger | EH2.6.d2.x.b.2 구현·독립 검수 완료 | fusion 뒤 후보가 있으면 첫 원문 문맥 확장, empty면 제한된 결측 확인, 예산 소진이면 기권을 선택한다. 선택만 연결했으며 실제 네 번째 실행·정답/부재 확정·생성 E2E는 미완성이다. |
+| 현재 개발 대상 | `feat/total-integration`의 Evidence-Harness challenger | EH2.6.c4.2.b.3 구현·독립 검수 완료 | fusion 뒤 첫 원문 문맥의 실제 실행과 revision4 전이를 연결했다. 준비된 전체 문맥을 보존하고 선택된 parent 하나만 소비한다. 후속 문맥 소비·정답/부재 확정·생성 E2E는 미완성이다. |
 | 최종 전달 대상 | `feat/local-qwen-mini131-eval` | 병합·선택 전 | 같은 Evidence Pack 뒤에서 local/API generator를 갈아 끼운다. |
 | 최종 선택 | baseline 대 assembled challenger | **미실행·미선정** | 동일 골든셋 A/B와 gate/Pareto 판정 뒤 결정한다. |
 
@@ -54,6 +54,8 @@
 | EH2.6.c4.2.b.1 첫 fuse | 7 | DONE | source-derived effect/ledger3/transition3. 선행 전체1577·fresh Astra PASS |
 | EH2.6.c4.2.b.2 첫 상태 투영 | 7 | DONE | candidate/provisional_missing·effect 근거·형제 보존. 전체1611·fresh Astra PASS |
 | EH2.6.d2.x.b.2 ordinal4 선택 | 8 | DONE | 적용 결과→첫 bounded parent / empty→결측 확인 의도 / 예산 소진→기권. post-fusion-review-1 PASS |
+| EH2.6.c4.2.b.3 첫 parent 실행 | 9 | DONE(구현) | revision4 연결. 집중12·주변246·격리258·통합 보충14·resolved full1765 PASS, fresh deep PASS |
+| 후속 context 선택·소비 | 7 | DESIGN 후보 | B3 통합 후 남은 준비 문맥을 실제로 소비하는 경로. 4+3+2+1−3의 잠정 점수이며 정식 Design에서 확정 |
 | EH2.6.d2.x | 8 | PARTIAL | ordinal2/3/4 선택·첫 fusion/상태 투영 완료, 후속 실행과 full matrix는 미완성 |
 | EH2.6.d2 | 8 | PARTIAL | initial slice 완료, cross-state slice와 full matrix 미완성 |
 | EH2.6.c4 | 7 | PARTIAL | c4.0→c4.1→d2.x→c4.2 순서로 진행 |
@@ -65,7 +67,7 @@
 | --- | --- | --- | --- |
 | baseline의 의미 | 먼저 만든 동작 경로 | 재현 가능한 immutable control로 명시 | 모든 후보의 공정한 비교·rollback 기준 |
 | 연구 문서의 의미 | 좋은 구성의 참고안 | GPT/EvoHarness/통합안을 challenger 가설로 명시 | 실측에서 이긴 구성만 채택 |
-| 구현 | page-only baseline + 분리된 실험 섬 | EvidenceStore, KURE child, Kiwi, RRF, QueryPlan, 첫 dense·lexical·fusion·후보 상태 전이 및 ordinal4 선택 | bounded controller·전문 lane·교체형 generation E2E |
+| 구현 | page-only baseline + 분리된 실험 섬 | EvidenceStore, KURE child, Kiwi, RRF, QueryPlan, dense·lexical·fusion·ordinal4 선택 및 첫 parent 실행·revision4 완료 | bounded controller·전문 lane·교체형 generation E2E |
 | 평가 | 각 실험의 부분 지표가 혼재 | 구현 PASS와 품질 우승을 분리 | 같은 frozen golden에서 component ablation + assembled A/B |
 | 전달 | API UI와 local 실험 경로가 혼재 | 통합 작업대와 최종 local branch의 역할 분리 | local-first 기본 profile, API는 교체형 보조 arm |
 | 선택 | 추천 스택을 바로 목표처럼 읽을 여지 | winner 미선정으로 고정 | 품질·효율·guardrail gate 및 Pareto 판정 |
@@ -175,7 +177,8 @@ Mini131 결과와 unit/full regression은 출발점·안전성 증거지만 새 
 | DONE | ordinal3 후속 선택 | exact 두 결과의 budget/error/fuse 분기. 실행·의미 상태 불변 | 첫 fuse 실행 |
 | DONE | 첫 fusion 실행·상태 전이 | exact 원본 기반 1회 fuse→effect/전이3. 첫 항목 candidate/provisional_missing, lane·형제 보존 | post-fusion 자격/context |
 | DONE | ordinal4 후속 선택 | exact fusion/state와 owner 예산에서 첫 parent/empty 확인 의도/기권 선택, 추가 작업·상태 변경0 | 선택된 행동의 실제 실행 |
-| NOT DONE | 후속 상태 전이·종료 | 선택된 context/결측 확인 실제 실행, semantic 검증·후속 상태/종료 reducer, bounded controller 미완성 | 후속 c4.2→d3~d4 |
+| DONE | 첫 parent 실제 실행 | claim 이후 전체 parent/bridge 준비·선택 parent 소비·revision4 전이. 의미 상태는 candidate 유지 | 통합 후 다음 context Design |
+| NOT DONE | 후속 상태 전이·종료 | 남은 context 소비·결측 확인 실제 실행, semantic 검증·후속 상태/종료 reducer, bounded controller 미완성 | 후속 c4.2→d3~d4 |
 | NOT DONE | 전문 lane E2E | analytics/list/table/figure가 controller 밖 | EH3.1~EH3.G |
 | NOT DONE | 생성·평가 조립 | reranker/generator/CLI/layer evaluator 미완성 | EH4.1~EH4.G |
 | NOT DONE | 공정 비교 동결 | 공통 freeze receipt와 threshold 미동결 | EXP-SELECT.2 |
@@ -184,7 +187,7 @@ Mini131 결과와 unit/full regression은 출발점·안전성 증거지만 새 
 
 ## 다음 실행 순서
 
-1. 같은 검수 후보를 선택 통합한 뒤 ordinal4의 실제 parent-context 실행을 다음 bounded Design 후보로 검토한다. empty 결측 확인 실행·semantic 검증·후속 항목·종료는 별도 계약을 유지한다.
+1. B3의 보고·로그올·선택 통합을 마감한 뒤 남은 준비 문맥의 실제 소비를 다음 Design 후보로 검토한다. 준비 시점과 소비 시점의 권한을 구분해야 하며, [사전 검토 메모](../../work/2026-09-08-controller-next-context-design-preview.md)는 아직 다음 구현 승인이 아니다. empty 결측 확인 실행·semantic 검증·후속 항목·종료는 별도 계약을 유지한다.
 2. EH3에서 catalog/analytics/list/table/figure specialist를 같은 evidence contract에 연결한다.
 3. EH4에서 identity/reranker, local/API generator adapter, CLI와 계층별 evaluator를 완성한다.
 4. baseline·local control·challenger의 corpus/gold/qrels/judge/budget/hash와 metric threshold를 동결한다.
@@ -193,6 +196,16 @@ Mini131 결과와 unit/full regression은 출발점·안전성 증거지만 새 
 7. gate/Pareto 판정과 사람 리뷰 뒤에만 local branch 기본 profile을 전환한다. baseline은 rollback용으로 남긴다.
 
 ## 검증 상태
+
+### 현재 B3 — 구현 검증·fresh deep PASS
+
+- 현재 후보 집중12/12·주변246/246·정확한 통합 의존성 보충14/14 PASS. 보충14는 기존 승인된 cache/predecessor/combined-validation 테스트이며 B3 신규 문항으로 세지 않는다.
+- 격리258/258 및 현재 worktree 전체1765/1765 PASS, 실패·오류·skip0·입력/환경 postflight 이슈0. 서로 중복되는 검사 수는 합산하지 않는다. fresh `first-parent-resume-final-review-1` PASS이며 통합 대조는 별도다.
+- 전체 첫 시도는 기존 HB 패키지 경로 누락으로 수집 실패(실제 테스트0), 둘째는 PDF worker의 실행기 재진입으로 중단했다. 임시 실행기 수정 후 실제 PDF2 사전 PASS와 원시 resolver 시작/완료 각1회의 단일 전체 PASS를 확인했다. 실패 이력·제품 코드·assertion·패키지는 그대로다.
+- canonical CSV 해시 불일치는 UNREPAIRED다. 전체는 기존 HB 추가 패키지 경로와 승인된 동결 사본 resolver를 사용한 RESOLVED_INPUT_FULL_PASS이며, source-only 환경의 일반 실행·canonical 복구 PASS가 아니다. finally 제어 흐름+자식 종료와 실제 사후 변수 readback도 구분한다.
+- [Cycle25 작업 원장](../../work/2026-09-07-controller-first-parent-relay.md), [독립 검수](../../work/review/review-controller-first-parent-final-2026-09-08.md). 후보 `49ff508f…`, 계약 `f8fe0041…`, 증거 `d9f34932…`. changed9+unchanged참조2. 실제 검색 품질·모델 응답시간·assembled E2E 우승 판정이 아니다.
+
+### 선행 d2.x.b.2 검증
 
 - 현재 d2.x.b.2: 집중11·관련205·격리216 PASS. 원래 전체1657은 CSV 동결 해시 오류1로 FAIL; 동결 사본 analytics5 재검증 PASS 및 fresh deep의 증거 결합 승인.
 - COMPOSED_VALIDATION_PASS는 단일 전체 실행 PASS가 아니다. canonical CSV는 UNREPAIRED이며, 중복 검사를 더해1662개로 세지 않는다. 과거 metadata probe의 상속 PYTHONPATH는 UNKNOWN으로 보존하고 현재 관측 재현의 한계를 독립 검수했다.

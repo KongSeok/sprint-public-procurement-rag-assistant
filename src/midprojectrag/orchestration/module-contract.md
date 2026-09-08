@@ -601,3 +601,7 @@ after a dense provider error is diagnostic only and never authorizes fusion.
 ## EH2.6.d2.x.b.2 — first post-fusion decision
 
 EH2.6.d2.x.b.2 selects only the exact first-fusion revision3 ordinal4 decision described in controller-next-decision.md. Applied fusion selects the first sorted bounded parent seed without changing source candidate order; normal-empty fusion selects zero-provider exhaustion-check intent; budget exhaustion selects abstain. This issues no context/semantic/absence receipt, executes no fourth action and changes no state. Existing b.2 provenance, predecessor and sibling boundaries remain unchanged.
+
+## EH2.6.c4.2.b.3 — first parent execution
+
+C4.2.b.3 prospectively connects only the exact revision3 first-obligation ordinal4 expand_parent permit to a complete-batch-backed parent source and same-state revision4. See fivecircles/architecture/specs/controller-first-parent-transition.md. The existing target accumulator retains complete parent and bridge tuples; only its selected ParentContextReceipt becomes this Controller effect. Parent temporal admission extends the shared claim fence without admitting bridge Controller execution. Prior readback and source lifetimes remain valid; ordinal5, semantic/absence promotion and public execution remain excluded. Historical earlier slice descriptions retain their original scope.

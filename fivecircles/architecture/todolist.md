@@ -321,9 +321,11 @@ runtime은 local profile 기본·LLM provider 교체형으로 유지하며 새 �
           계약: `specs/controller-initial-transition.md`; 원장: `../work/2026-09-06-controller-initial-transition-relay.md`.
       - [ ] **EH2.6.c4.2** `[VERTICAL_SLICES]` 실제 발급 가능한 successor부터 d2.x와 교대로 full action matrix/reducer를 연결한다.
         - [x] **EH2.6.c4.2.a** `[COMPLETED 2026-09-07]` ordinal2 lexical→exact dense obligation 실행/effect/ledger2/전이2. 집중36·관련98·격리134·전체1534 PASS, fresh Astra PASS.
-        - [ ] **EH2.6.c4.2.b** `[PARTIAL / B.2_PASS]` 첫 fusion 실행·candidate/provisional 상태·revision3 완료. post-fusion 자격/context·semantic 검증/후속 reducer·terminal은 후속이다.
+        - [ ] **EH2.6.c4.2.b** `[PARTIAL / B.3_PASS]` 첫 fusion·후보 상태·첫 parent 실행/revision4 완료. 남은 context·semantic 검증/후속 reducer·terminal은 후속이다.
           - [x] **EH2.6.c4.2.b.1** `[COMPLETED 2026-09-07]` 첫 obligation fuse 1회→effect/ledger3/transition3. shared epoch·실패 소비·이전 chain, lane/의미 상태 불변. 집중12·관련185·격리197·전체1577 PASS, fresh Astra PASS.
           - [x] **EH2.6.c4.2.b.2** `[COMPLETED 2026-09-07]` 첫 fusion exact effect→candidate/provisional_missing→전이3. 계보/형제·open progress·fingerprint/no-progress·실패 소비 보존. 집중25·관련202·격리227·전체1611 PASS, fresh Astra PASS. ordinal4/context/verify/terminal 제외.
+          - [x] **EH2.6.c4.2.b.3** `[IMPLEMENTED_REVIEWED 2026-09-08 / INTEGRATION_PENDING]` ordinal4 첫 expand_parent→전체 context batch 기반 parent source/effect/ledger4/transition4. 동일 state·계보·한 번 실행, semantic/absence/ordinal5 제외. 계약: `specs/controller-first-parent-transition.md`.
+            - 현재49ff508f… 집중12·주변246·격리258·통합 보충14·resolved full1765 PASS, fresh deep PASS. 재개 코드 수정0. CSV는 UNREPAIRED·전체는 승인된 동결 사본/HB add-on 환경, 실패 이력 보존·중복 검사 합산 금지. 보고/로그올 완료·선택 공개/통합 대조 중. 원장: `../work/2026-09-07-controller-first-parent-relay.md`.
         - [ ] 실제 verifier-context ID fingerprint와 successor GC 후 passive registry 정리 회귀를 포함한다.
     - [ ] **EH2.6.c5** verified/contradicted/confirmed-missing·raw bool/ID 공격 focused gate를 통과한다.
   - [ ] **EH2.6.d** bounded E1 controller와 replay를 구현한다.

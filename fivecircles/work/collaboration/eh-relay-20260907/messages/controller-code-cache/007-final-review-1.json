@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "PERF-CONTROLLER.1.OPT1",
+  "message_id": "controller-code-cache-final-review-1",
+  "in_reply_to": "controller-code-cache-implementation-report-4",
+  "sender": "PHILOSOPHER",
+  "kind": "REVIEW",
+  "body": {
+    "verdict": "PASS",
+    "directive_id": "controller-code-cache-directive-3",
+    "contract_id": "controller-code-representation-cache-v2",
+    "candidate_id": "sha256:bc3146a2b8e5076d22df6bbf0f59a702cc410c292b90c4cc37684ea8c721514c",
+    "test_evidence_id": "sha256:3acdf99af34b58d010c31a8add3152886acdb141b3477ca31944e7c53abbf1e8",
+    "reviewed_message_id": "controller-code-cache-implementation-report-4",
+    "direction_score": null,
+    "direction_rubric": null,
+    "direction_rationale": "The bounded candidate preserves original code-payload construction and limits reuse to immutable canonical code fragments inside _function_sha256. Exact code identity, mirrored entries, locking, representation bounds, fallback behavior and existing helper pins are maintained. Mutable behavior dependencies and live authority checks remain active. The observed 4.59% diagnostic wall reduction supports retaining this narrow candidate provisionally; it does not establish that the dominant slowdown is solved.",
+    "findings": [],
+    "requested_task_changes": [],
+    "next_batch_constraints": [
+      "This PASS applies only to the bound OPT1 candidate and evidence. Original B3 full, isolated and integration gates remain incomplete and are not waived.",
+      "Report the single shared-host comparison as preliminary: wall 199.451119 to 190.294565 seconds and CPU 198.289415 to 189.374029 seconds. Preserve the slower cold micro sample, slower readback subphase and rejected candidate evidence.",
+      "The 190.294565 seconds covers diagnostic setup, execution, readback and cleanup; do not present it as measured production service latency or RAG response time.",
+      "The cache removes only code-fragment work. Recursive behavior dependencies and repeated live graph validation remain unchanged; dominant-cause and service-path diagnosis must establish their actual contribution separately.",
+      "The 128-entry and 4-MiB limits bound retained canonical representation bytes, not total resident memory including retained code objects.",
+      "Do not infer Git, push, deployment, retrieval-quality approval or authorization for another optimization or measurement from this review.",
+      "Any change to candidate code, contract or required evidence requires renewed candidate binding and appropriate review."
+    ],
+    "reason": "Fresh read-only review compared the derivative against the preserved pre-optimization dirty B3 source, inspected affected implementation and tests, verified all 79 manifest-bound files and recomputed both binding IDs. Report4's SHA and identifiers match the packet. Native receipts and logs establish 30 selected tests passing with zero skips on unchanged candidate bytes. Baseline/candidate micro canonical observations and consumed digests match exactly; unchanged-driver trajectory evidence preserves the specified numeric, lifecycle and same-state observations. No blocking defect was identified within this bounded optimization scope. No tests or benchmarks were rerun by the reviewer.",
+    "resume_conditions": []
+  }
+}

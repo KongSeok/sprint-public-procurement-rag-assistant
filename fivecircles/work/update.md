@@ -1092,3 +1092,12 @@ This file summarizes recent updates so other agents can continue without re‑di
 - 집중11·관련205·격리216 PASS. 전체1657 오류1은 analytics5 재검증 후 결합 승인; 원래 FAIL 보존.
 ### Relay
 - Cycle24 로그올 후 선택 통합, 다음 실제 context 연결 Design. Controller/E2E는 PARTIAL.
+
+## Addendum (2026-09-08) - EH2.6.c4.2.b.3 재개 마감 로그올
+### Backend
+- 첫 parent 실행·revision4 후보49ff508f 독립 PASS. 기존 보완 이력 분리, 재개 코드 수정0.
+### Tests
+- 집중12·주변246·격리258·보충14·resolved full1765 PASS. CSV UNREPAIRED·실패 이력 보존·중복 합산 금지.
+- Chrome 보고 검사 PASS. refs: review/review-controller-first-parent-final-2026-09-08.md.
+### Handoff
+- 보고/로그올 완료, 선택 공개·통합 대조 중. 이후 남은 context Design. refs: 2026-09-07-controller-first-parent-relay.md.

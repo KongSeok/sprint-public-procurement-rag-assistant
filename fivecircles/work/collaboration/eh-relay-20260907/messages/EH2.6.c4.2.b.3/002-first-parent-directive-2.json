@@ -1,0 +1,278 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.c4.2.b.3",
+  "message_id": "first-parent-directive-2",
+  "in_reply_to": null,
+  "sender": "PHILOSOPHER",
+  "kind": "DIRECTIVE",
+  "body": {
+    "mode": "DESIGN",
+    "contract_id": "sha256:f8fe0041df23b81dc3e88b0138363535c504bf5e36269610af118884f72752de",
+    "resolution": null,
+    "objective": "Cycle25: connect the exact revision3 first-obligation ordinal4 expand_parent permit to its live complete-batch-backed parent receipt, one effect and same-state revision4 successor, without widening Controller execution.",
+    "selected_task_ref": {
+      "path": "fivecircles/architecture/todolist.md",
+      "existing_parent": "EH2.6.c4.2.b",
+      "proposed_child": "EH2.6.c4.2.b.3",
+      "cycle": 25,
+      "main_todo_amendment": "Under EH2.6.c4.2.b, append unchecked EH2.6.c4.2.b.3 [IN_PROGRESS after dispatch only]: exact ordinal4 first expand_parent -> complete context-batch-backed parent source/effect/ledger4/transition4; same-state, no semantic/absence/ordinal5 execution. Keep parent PARTIAL. Do not mark tests or child complete before actual evidence and fresh review."
+    },
+    "direction_assessment": {
+      "target": "Local-first, source-authentic bounded Controller that eventually connects retrieval, context, verification and honest abstention.",
+      "current": "233addfa5dfb1be43417cb13cc99863d52372e96 integrates first fusion state and ordinal4 selection. No fourth executor exists. Existing accumulator already preserves complete parent/bridge tuples and exact selected receipt.",
+      "gap": "A selected first parent action cannot yet dispatch under the Controller claim or produce a source-bound revision4.",
+      "selection": "First applied-fusion parent execution is the smallest actual connection under c4.2.b. Complete bounded context preparation is necessary existing machinery, not a new general context matrix.",
+      "alternatives_rejected": [
+        "Full context/rerank/verify/absence pipeline is unnecessarily broad.",
+        "Empty exhaustion would require a separate proof matrix and does not close the selected applied-parent path.",
+        "Durable corpus locator repair is validation infrastructure/data ownership work, not Controller progress."
+      ],
+      "connection_score": 9,
+      "connection_rationale": "Target/current flow rows 176–178 identify selected ordinal4 action -> actual context execution as the earliest remaining Controller edge after integrated revision3/fusion and ordinal4 selection. First-parent scores9 and is the highest safe bounded candidate: it connects the selected permit to existing complete-batch source/effect/successor machinery without semantic or terminal expansion. Full context scores7 but is not one bounded dispatchable slice; empty exhaustion scores6 and requires a distinct absence proof matrix; durable locator scores3 and repairs validation infrastructure rather than the Controller target edge. The already explicit process-local exact-hash locator handles this batch's required full gate separately. These are task-selection estimates, not measured performance, test results or REVIEW/PASS scores.",
+      "parallelism": "One gpt-5.6-sol Coder with ultra and fork none. Shared core, source fence and tests are tightly coupled; do not add a second test-file Coder. Main handles validation/records only. No duplicate DIAG131, GPU or profiling work.",
+      "connection_scoring": {
+        "source": "relay-shot SKILL.md — Target Flow Node Connection Scoring",
+        "flow_reference": "fivecircles/architecture/specs/evidence-harness-progress-flow-validation.md:176",
+        "target_edge": "Authenticated ordinal4 first expand_parent decision -> exact store-backed parent source/effect -> same-state revision4",
+        "rubric": {
+          "upstream_weight": "0..4; earlier unmatched target nodes higher",
+          "connection_value": "0..3; downstream target connections opened",
+          "safety_value": "0..2; source/permission boundary value",
+          "validation_value": "0..2; bounded focused validation feasibility",
+          "risk_penalty": "-3..0; additive negative penalty for broad or uncertain scope"
+        },
+        "formula": "upstream_weight + connection_value + safety_value + validation_value + risk_penalty",
+        "candidates": [
+          {
+            "candidate": "EH2.6.c4.2.b.3 first selected parent execution",
+            "upstream_weight": 4,
+            "connection_value": 2,
+            "safety_value": 2,
+            "validation_value": 2,
+            "risk_penalty": -1,
+            "connection_score": 9,
+            "safe_to_start": "Yes after accepted contract installation and normal dispatch; existing two-file scope unchanged.",
+            "rationale": "First unmatched selected-action edge; closes source temporal admission plus effect/successor path. Existing full-batch accumulator and parent same-state rule bound validation; shared authority extension retains nonzero risk."
+          },
+          {
+            "candidate": "EH2.6.c4.2.b full context/bridge/rerank/verify pipeline",
+            "upstream_weight": 4,
+            "connection_value": 3,
+            "safety_value": 2,
+            "validation_value": 1,
+            "risk_penalty": -3,
+            "connection_score": 7,
+            "safe_to_start": "No as a single current slice; broader contracts and successive permissions are not selected.",
+            "rationale": "Connects more downstream edges but conflates multiple source/admission/state/semantic boundaries and increases unknown scope; cannot replace the smallest current action."
+          },
+          {
+            "candidate": "EH2.6.c4.2.b empty-fusion exhaustion execution",
+            "upstream_weight": 3,
+            "connection_value": 2,
+            "safety_value": 2,
+            "validation_value": 1,
+            "risk_penalty": -2,
+            "connection_score": 6,
+            "safe_to_start": "Only after a separate exact exhaustion directive; not authorized here.",
+            "rationale": "Important sibling branch, but provisional empty is not absence and proof completeness must be designed independently; does not close the applied-parent edge."
+          },
+          {
+            "candidate": "Durable frozen analytics input locator repair",
+            "upstream_weight": 1,
+            "connection_value": 1,
+            "safety_value": 1,
+            "validation_value": 2,
+            "risk_penalty": -2,
+            "connection_score": 3,
+            "safe_to_start": "Not as current Controller product work; durable loader/data ownership requires a separate bounded decision.",
+            "rationale": "Reduces recurrence and validation overhead, not a missing Controller runtime edge. Existing exact-hash process-local validation decision avoids canonical edits without granting durable repair."
+          }
+        ],
+        "selection_rule": "Highest score that is safe to start; ties prefer earlier target-flow node then smallest verifiable patch.",
+        "selected_candidate": "EH2.6.c4.2.b.3 first selected parent execution",
+        "scope_note": "Scoring correction only. No new implementation, test, contract, runtime or data authority."
+      }
+    },
+    "baseline": {
+      "root": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
+      "branch": "feat/total-integration",
+      "commit": "233addfa5dfb1be43417cb13cc99863d52372e96",
+      "integration_receipt": "fivecircles/work/collaboration/eh-relay-20260907/integration-EH2.6.d2.x.b.2.json",
+      "previous_candidate": "sha256:8d3172b1ec96ce2d11a1892d41cd2a8d3dddc9aa83dc6c050df72b0f401fba24",
+      "prior_review": "fivecircles/work/collaboration/eh-relay-20260907/messages/EH2.6.d2.x.b.2/011-post-fusion-review-1.json",
+      "prior_publication_review": "fivecircles/work/collaboration/eh-relay-20260907/messages/EH2.6.d2.x.b.2/012-post-fusion-publication-review-1.json",
+      "new_candidate_id": null,
+      "new_test_evidence_id": null
+    },
+    "scope": {
+      "allowed_files": [
+        "src/midprojectrag/orchestration/execution_contracts.py",
+        "tests/test_controller_first_parent_transition.py"
+      ],
+      "main_owned_behavior_files": [
+        "fivecircles/architecture/specs/controller-first-parent-transition.md",
+        "src/midprojectrag/orchestration/module-contract.md"
+      ],
+      "read_only_behavior_references": [
+        "fivecircles/architecture/specs/controller-next-decision.md",
+        "fivecircles/architecture/specs/controller-first-fusion-transition.md"
+      ],
+      "in": [
+        "Private first-parent executor and revision4 reader; exact source temporal admission; complete accumulator provenance; same-state effect/ledger/transition/live readback; focused synthetic regressions."
+      ],
+      "prohibited_actions": [
+        "No repository product/test writes by Design or main; Coder edits only the two allowed product files.",
+        "No harness_state/action_effects/public API/schema/config/dependency edits without QUESTION; existing parent schemas and same-state authority suffice.",
+        "No later compare/retrieval tuple remint, empty verify_slot/absence execution, bridge Controller action, rerank/verifier/derived semantic obligation, ordinal5, terminal/start/step/run.",
+        "No model/API/provider/clock/Langfuse/VLM/GCP/network/GPU/DIAG131/profiling/benchmark; synthetic stub lanes for existing prerequisite tests only.",
+        "No canonical CSV, EXPECTED_HASHES, baseline config, gold, corpus, private artifact bytes, scanner or policy modification. The expressly authorized full-test frozen-input read/locator below is the only bounded validation exception to synthetic-only product work.",
+        "No dirty-worktree cleanup, unrelated code attribution, Git mutation by Coder, external messages, nested delegation or additional task selection."
+      ]
+    },
+    "contract_proposal": {
+      "path": "fivecircles/architecture/specs/controller-first-parent-transition.md",
+      "draft_path": "/private/tmp/eh-relay-20260907.GNy8vE/first-parent-contract.md",
+      "sha256": "f8fe0041df23b81dc3e88b0138363535c504bf5e36269610af118884f72752de",
+      "encoding": "UTF-8 LF, exactly one final LF",
+      "module_contract_append": "C4.2.b.3 prospectively connects only the exact revision3 first-obligation ordinal4 expand_parent permit to a complete-batch-backed parent source and same-state revision4. See fivecircles/architecture/specs/controller-first-parent-transition.md. The existing target accumulator retains complete parent and bridge tuples; only its selected ParentContextReceipt becomes this Controller effect. Parent temporal admission extends the shared claim fence without admitting bridge Controller execution. Prior readback and source lifetimes remain valid; ordinal5, semantic/absence promotion and public execution remain excluded. Historical earlier slice descriptions retain their original scope.",
+      "historical_supersession": "Only the new contract's selected parent dispatch, base semantic/context preparation, effect/ledger4/transition4 permission prospectively extends earlier no-fourth-execution exclusions. Parent same-state is existing technical section16.10, not a rewrite of fusion-state history. No broad semantic/context/bridge or later-obligation permission follows."
+    },
+    "acceptance_criteria": [
+      "Exact contract bytes installed and main module-contract appendix reviewed before Coder dispatch; source/input ownership and start manifest captured. Candidate is derived only from actual two owned product files; four behavior refs are separately bound.",
+      "Authentic fact and first compare revision3 applied fusion execute selected first bounded parent once; original dense+lexical+fusion graph and full candidate order remain bound. No reminted compare retrieval tuple.",
+      "Base semantic obligation is the existing source-derived factory product. Both complete parent/bridge batches retain exact identities/order, and the selected parent receipt alone supplies one effect. Include more than one seed and bridge applied/empty rows so selected-only shortcut cannot pass.",
+      "Parent batch attempt begins after atomic claim cutoff and binds exact admitted issuer/minter/module/source kind. Prestarted/precompleted/cached old sources cannot be admitted by late stamping. Existing lane/fusion fence remains unchanged in meaning.",
+      "Budget3, round-cap2, empty/error/abstain or wrong target/source reject without context dispatch; admitted parent with missing model capability still makes no model/rerank/verifier/clock call and invents no capability outcome.",
+      "Exactly one effect/count4/transition4/successor, same before/after state identity and equal semantic fingerprints, unchanged no-progress/round/lane/sibling fields. Parent auxiliary context never becomes support or verifier context. Existing source normalization call_performed=true is not a provider-call claim.",
+      "Duplicate/concurrent calls produce at most one complete preparation and successor; pre/post-child failure, authority drift, registration failure and GC do not allow retry or partial successor. Retain and validate predecessor/root/source/context graphs; readback is zero-work.",
+      "Ordinal5 decision and unsupported later execution remain rejected. No new public export. Focused and affected adjacent checks pass on frozen candidate; base-plus-owned isolated and one exact-locator full pass with full test-ID and environment accounting; fresh deep Critic assesses source/claim/context/state/readback and validation applicability.",
+      "All historical native FAIL and composed limitations remain attached only to their original batch. New statuses are actual, never borrowed. Fresh publication review/reconciliation and existing safety gate remain required independently."
+    ],
+    "required_tests": {
+      "environment": "Actual repository cwd; pinned .venv/bin/python3 (Python3.12 as confirmed baseline); explicit PYTHONPATH=src and PYTHONDONTWRITEBYTECODE=1 for BOTH probes and test children. Record interpreter/version/platform, metadata tuples with multiplicities, actual source/test origins, cwd/sys.path and a nonsecret environment allowlist before/after. Never inspect .env/key values or normalize arbitrary duplicates.",
+      "focused_command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest tests.test_controller_first_parent_transition -v",
+      "focused_plan": "One intended RED proving absent first-parent executor, then concentrated matrix described by contract; reuse fixture helpers without modifying their authority. Native command/status/counters for actual assertions; no repeated full per leaf.",
+      "adjacent_command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest tests.test_controller_post_fusion_decision tests.test_controller_first_fusion_transition tests.test_controller_first_fusion_state tests.test_controller_post_lexical_decision tests.test_controller_lexical_transition tests.test_controller_next_decision tests.test_controller_initial_transition tests.test_controller_decision_receipt tests.test_controller_source_authority tests.test_controller_source_outcome_resolver tests.test_controller_step_history tests.test_controller_target_context_accumulator tests.test_controller_structural_effect_bridge tests.test_action_effect_receipts tests.test_action_effect_receipt_contract tests.test_action_effect_non_authority tests.test_rerank_derived_semantic tests.test_semantic_verification tests.test_retrieval_obligations -v",
+      "integration_isolated": "Once final candidate freezes, main constructs isolated root from exact base233addfa plus owned2 and behavior refs4, excluding unrelated dirty files. Run focused+all adjacent modules using original pinned .venv interpreter, explicit isolated cwd and PYTHONPATH=src. Capture exact source origins and same six candidate/ref hashes before/after. No private analytics data needed for this synthetic isolated gate.",
+      "integration_full": "Once final candidate freezes, main runs one complete discovered suite using validation_input_locator below, not an intentionally repeated unwrapped command known to fail. All discovered test IDs must execute with no added skips/expected failures, missing modules or relaxed assertions. A required failure yields QUESTION, not automatic scope narrowing/recovery retries.",
+      "review": "Fresh gpt-6-astra deep final review, explicit cross-module source/claim/complete-context/parent-state/public-readback and test-helper/input applicability. It must review actual frozen candidate, contract refs and native evidence; Design is not PASS. No second identical review of previous candidate.",
+      "publication": "Preserve native repository safety result and exact existing two-field historical adjudication only. New files/findings require new bounded review; main report/browser QA and final exact owned payload reconciliation follow existing policy.",
+      "evidence": "One final candidate manifest plus one final evidence manifest, referencing native artifacts. Bind six candidate/ref files, actual changed diff, test commands/IDs/exits, selected frozen5/config and canonical hashes, runtime probes and full listed input manifest. Include src/tests/scripts/apps/configs/contracts/requirements/evaluation/packaging/README inputs as applicable, with full nonignored path inventory before/after. Do not claim this inventories all private filesystem content. Failed/preflight/exploratory records remain immutable."
+    },
+    "validation_input_locator": {
+      "decision": "Explicit prospective validation-only location selection for this batch's full suite is accepted within approved local validation scope; no durable loader or data repair. It does not need data-write authority because only existing exact pinned artifact bytes are read. Main must install/acknowledge this separate validation decision before dispatch and verify all preconditions before launching the full child.",
+      "scope": "full",
+      "resolver_path": "/private/tmp/eh-relay-20260907.GNy8vE/run-post-fusion-frozen-analytics-check.py",
+      "resolver_sha256": "9cd31699b714ec0c207c1cd063a3d8352a539751d7536ae8efa0d559ad7847db",
+      "patched_symbol": "midprojectrag.corpus_analytics_baseline.CSV_PATH",
+      "canonical_path": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/resources/data_refined/refined_data_list.csv",
+      "canonical_status": "UNREPAIRED_FROZEN_HASH_MISMATCH; record actual before/after hash without overwriting it.",
+      "archive_path": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/resources/data_refined/share/2026-08-31/MidProjectRAG_refined98_catalog_csv/refined_data_list.csv",
+      "archive_sha256": "cef0a27602976af468206ad2fa855027cb6f686fc877a52ce8fb191c57cd7e5b",
+      "unchanged_expectations": "All five baseline.EXPECTED_HASHES and config.input_sha256 must exactly equal the pinned baseline, including archive as refined_csv and original cases/targets/categories/manifest paths. Reader/calculator/test/assertions/testcases remain unchanged. Preflight/postflight hashes must match; no alternative artifact search/fallback.",
+      "invocation": {
+        "executable": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/bin/python3",
+        "argv": [
+          "-c",
+          "import importlib.util,json,runpy,sys\nfrom pathlib import Path\nroot=Path(\"/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG\")\nresolver=\"/private/tmp/eh-relay-20260907.GNy8vE/run-post-fusion-frozen-analytics-check.py\"\nif Path.cwd().resolve()!=root or not sys.path or sys.path[0]!=\"\":\n    raise RuntimeError(\"exact_cwd_minus_c_import_context_required\")\ntests_spec=importlib.util.find_spec(\"tests\")\nproduct_spec=importlib.util.find_spec(\"midprojectrag\")\norigins={\"tests\":None if tests_spec is None else tests_spec.origin,\"midprojectrag\":None if product_spec is None else product_spec.origin}\nif origins[\"tests\"] is None or Path(origins[\"tests\"]).resolve()!=root/\"tests/__init__.py\":\n    raise RuntimeError(\"exact_tests_package_origin_required\")\nif origins[\"midprojectrag\"] is None or Path(origins[\"midprojectrag\"]).resolve()!=root/\"src/midprojectrag/__init__.py\":\n    raise RuntimeError(\"exact_product_package_origin_required\")\nsys.argv=[resolver,\"--scope\",\"full\"]\nprint(json.dumps({\"event\":\"frozen_analytics_launcher_context\",\"cwd\":str(Path.cwd().resolve()),\"executable\":sys.executable,\"sys_path\":list(sys.path),\"import_origins\":origins,\"resolver_path\":resolver,\"argv\":list(sys.argv)},sort_keys=True),flush=True)\nrunpy.run_path(resolver,run_name=\"__main__\")\n"
+        ],
+        "cwd": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
+        "env_overrides": {
+          "PYTHONPATH": "src",
+          "PYTHONDONTWRITEBYTECODE": "1"
+        },
+        "launcher_program_utf8": "import importlib.util,json,runpy,sys\nfrom pathlib import Path\nroot=Path(\"/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG\")\nresolver=\"/private/tmp/eh-relay-20260907.GNy8vE/run-post-fusion-frozen-analytics-check.py\"\nif Path.cwd().resolve()!=root or not sys.path or sys.path[0]!=\"\":\n    raise RuntimeError(\"exact_cwd_minus_c_import_context_required\")\ntests_spec=importlib.util.find_spec(\"tests\")\nproduct_spec=importlib.util.find_spec(\"midprojectrag\")\norigins={\"tests\":None if tests_spec is None else tests_spec.origin,\"midprojectrag\":None if product_spec is None else product_spec.origin}\nif origins[\"tests\"] is None or Path(origins[\"tests\"]).resolve()!=root/\"tests/__init__.py\":\n    raise RuntimeError(\"exact_tests_package_origin_required\")\nif origins[\"midprojectrag\"] is None or Path(origins[\"midprojectrag\"]).resolve()!=root/\"src/midprojectrag/__init__.py\":\n    raise RuntimeError(\"exact_product_package_origin_required\")\nsys.argv=[resolver,\"--scope\",\"full\"]\nprint(json.dumps({\"event\":\"frozen_analytics_launcher_context\",\"cwd\":str(Path.cwd().resolve()),\"executable\":sys.executable,\"sys_path\":list(sys.path),\"import_origins\":origins,\"resolver_path\":resolver,\"argv\":list(sys.argv)},sort_keys=True),flush=True)\nrunpy.run_path(resolver,run_name=\"__main__\")\n"
+      },
+      "runner_requirement": "Existing pinned resolver bytes remain unchanged. Main temp-only outer capture is permitted for this batch with fresh manifest paths/prefix first-parent-full and code/hash recorded before launch. Do not reuse old-candidate-pinned outer gates or overwrite prior artifacts. Record three ordered launcher/start/result events, scope full, exact discovery IDs, actual count and zero loader errors. Outer gate requires exit0 plus errors/failures/skips/expectedFailures/unexpectedSuccesses0, testsRun equal discovered IDs, all bindings unchanged. Capture finally-restoration evidence without patching any additional product/test symbol.",
+      "runtime_boundary": "Do not replay historical unknown probe environments or silently deduplicate metadata. Use one explicitly recorded source-enabled probe/test environment now; distributions and multiplicities and actual import origins match before/after each root. Historical UNKNOWN limitation stays historical. Unexpected difference blocks evidence reuse and requires QUESTION.",
+      "status_labels": "New result may be RESOLVED_INPUT_FULL_PASS only after actual successful full and valid postflight; include actual invocation/count and UNREPAIRED canonical status. It is not standard_unwrapped_full PASS or a reused COMPOSED_VALIDATION_PASS. Original full1657/exit1, recovery1 actual0/exit1, bounded recovery2 and old composition remain immutable historical receipts.",
+      "no_preapproval": "No current full evidence or new candidate exists. No automatic retry/analytics-only downgrade/full gate waiver is authorized. Unexpected input/loader/environment/test failure requires complete QUESTION and decision."
+    },
+    "constraints": [
+      "Current complete directive authorizes only the explicit prospective slice and validation locator. Historical lists below remain verbatim, with their original batch/candidate/payload applicability; none grants future execution/publication clearance.",
+      "Keep immutable local-first control baseline, no API compatibility change, no production quality/speed claim, no separate profiling task.",
+      "Before later compare work specify full canonical sibling lifetime; this child touches only original first obligation and preserves siblings.",
+      "Existing edits belong to their owner. Main owns contract/TODO/form/state/logs/validation helpers and selective integration, Coder owns product2 only. No autonomous expansion of allowed files.",
+      "Stop for QUESTION if complete context source admission cannot obey exact post-claim temporal provenance or needs wider reducer/public/config/data authority."
+    ],
+    "inherited_constraints_verbatim": {
+      "first_fuse_state_and_publication": [
+        "Keep EH2.6.c4.2.b, EH2.6.d2.x.b, Controller and E2E PARTIAL. This PASS approves only the bound first-obligation fusion candidate and its frozen contracts and required evidence.",
+        "Select post-fusion eligibility/state handling through a separate complete Design directive. Revision3 fusion leaves semantic state unchanged; both-empty is neither confirmed absence nor answerability.",
+        "Preserve the shared attempt-start epoch and atomic claim cutoff, exact executor/minter/module/source-kind binding, child and controller once-only consumption, source-derived effects and failure-without-retry behavior.",
+        "Preserve all predecessor executions, prior decisions and three source lineages. Historical readback must remain non-authorizing and must not redispatch fusion or either retrieval lane.",
+        "Specify and verify complete canonical sibling-obligation lifetime before executing later compare obligations; do not remint the tuple to recover expired siblings.",
+        "Keep ordinal4, context, rerank, verify, semantic reducer, follow-up, deadline, terminal and public start/step/run outside this PASS and outside subsequent implementation unless explicitly selected by its authorized directive.",
+        "Continue synthetic/offline implementation validation without real model/API/provider/Langfuse/VLM/private-data activity or baseline/corpus/gold/evaluation/runtime configuration changes. Keep DIAG131 independently owned and its shared-host diagnostic latency distinct from controlled performance evidence.",
+        "Any later profiling or optimization selection must follow existing measured-improvement selection authority, potentially EXP-SELECT.3.b. Current test durations do not establish production hotspots or retrieval superiority.",
+        "Integrate only the reviewed files and bound behavior-affecting documents. Preserve unrelated dirty work and exclude resources from Git. Product, contract or required-evidence changes require a new candidate and review; closeout-only records may remain separate.",
+        "The preceding nine constraints are retained verbatim from the prior review. Their historical same-state and semantic-reducer exclusions are superseded only by the explicit b.2 prospective amendment: future first fusion now changes the first unsearched obligation to candidate or provisional_missing. All remaining exclusions continue unchanged; historical b.1 artifacts and acceptance must not be rewritten.",
+        "For subsequent Design, use the exact derived state and authenticated predecessor/source graph. Preserve candidate ordering, untouched sibling identities, effect provenance, open progress, coverage 0.0, in_progress and false terminal gates. Empty fusion must not become confirmed absence or verification readiness.",
+        "Preserve the reported focused-start fingerprint limitation and development evidence provenance. Final isolated/full evidence provides the authoritative same-candidate binding; do not relabel exploratory transcriptions as native final logs or attribute the full shared-worktree collection wholly to this batch.",
+        "The accelerator-preflight and impact-based-validation policy additions do not waive this DIRECTIVE's gates or authorize external/model runs. GCP measurements remain separately owned; optional blocked cross-task notices must not be retried without authorization.",
+        "Preserve all 13 next_batch_constraints from first-fuse-state-review-1, recorded in fivecircles/work/collaboration/eh-relay-20260907/messages/EH2.6.c4.2.b.2/003-first-fuse-state-review-1.json at SHA256 616886f94d9c71a968a7a662a3d3ad94b59afbddc92ceaff0fc348e3bf0fe945. This reference incorporates every constraint, including its explicit prospective b.2 amendment, without alteration or contradiction.",
+        "This clearance binds only the two specified JSON pointers, their unchanged complete values, their equality to the recomputed synthetic diff hash, audit SHA256 145064e4edcef93499184d4c8a51a3ccf4ad5589def6b0ddf7ba132049464934 and proposed publication manifest SHA256 be38311a1ceda3f84a3288f136c353d1fd3959e978202039c1e6253099cbfb4b. It grants no exception for any other field, artifact or future finding.",
+        "Keep the exact 38 reviewed payload files and their hashes fixed except for the narrowly enumerated pending_closeout_only additions and updates in that manifest. Integrate reconstructed mixed files from the reviewed payload; do not substitute whole dirty-worktree files.",
+        "The two prospective new files and seven prospective mutable files listed in pending_closeout_only are not preapproved bytes. After recording this actual response, main must inspect every actual addition/update, reconcile the final path/hash manifest, check actual content and images, and verify that changes concern only this review and its specified status/error/learning/report metadata.",
+        "Preserve the native automated FAIL, immutable candidate/report/product review and native failure artifact. Do not mask binding hashes, suppress scanner findings, change scanner scope and call it the native result, or include unrelated scanner/.gitignore/security edits.",
+        "Final validation must use and report its actual coverage. The preserved historical native enumeration is 1056; the read-only current worktree enumeration was 1059. This review covers the exact supplied 38-file payload, not unknown worktree additions or future publication bytes.",
+        "Any unexpected path, extra detection, restricted content, access-granting identifier, unreviewed payload change or unexplained coverage gap blocks publication and requires renewed bounded review. Any changed product, behavior contract or required evidence invalidates evidence reuse and requires appropriate candidate validation.",
+        "Keep resources and independently owned DIAG131 changes excluded. This REVIEW provides no commit, push, external-sharing, model/API, private-data or next-batch execution authority.",
+        "Main must validate this complete returned JSON and all binding identifiers before recording it. Only after actual final payload reconciliation and applicable authorized integration checks may main record publication clearance or advance closeout; do not describe this response as an automated safety PASS."
+      ],
+      "post_fusion_product": [
+        "Incorporate all 13 next_batch_constraints from first-fuse-state-review-1 at fivecircles/work/collaboration/eh-relay-20260907/messages/EH2.6.c4.2.b.2/003-first-fuse-state-review-1.json, SHA256 616886f94d9c71a968a7a662a3d3ad94b59afbddc92ceaff0fc348e3bf0fe945. Preserve their historical wording and prospective first-fusion state amendment. This reviewed directive adds only the explicitly selected ordinal4 decision permission.",
+        "Incorporate all nine next_batch_constraints from first-fuse-state-publication-review-1 at fivecircles/work/collaboration/eh-relay-20260907/messages/EH2.6.c4.2.b.2/005-first-fuse-state-publication-review-1.json. Its prior payload and exact-two-field exception provide no clearance for new bytes or findings.",
+        "Keep EH2.6.c4.2.b, EH2.6.d2.x.b, Controller and E2E PARTIAL. No fourth execution, revision4 successor, semantic/context/absence minting, claim consumption, state/progress/ledger mutation, later compare execution or whole Controller completion is approved.",
+        "Preserve exact predecessor/source-owner identity, source candidate order, sibling identity, open progress, coverage0.0, in_progress, false terminal gates, round1 and rejection of round-cap2 before dispatch. Specify complete canonical sibling-obligation lifetime before later compare execution.",
+        "Main may record the accepted composed gate only while retaining native_full_status=FAIL, native_full_exit_code=1 and canonical_input_status=UNREPAIRED_FROZEN_HASH_MISMATCH. Unique effective coverage remains1657. Preserve original v3 manifests, native failure, recovery1 discovery failure with zero required tests, intermediate unknown exit and every other failed/preflight diagnostic artifact.",
+        "Preserve the accepted runtime and input limitations explicitly. Current probes are not historical environment reconstruction; listed nonignored inputs are not a private whole-filesystem inventory. Changes affecting candidate, contract, required evidence, dependencies or evaluation inputs require renewed applicability assessment and review.",
+        "Complete actual report/browser validation, closeout/log records, safety review and final scoped Git/publication reconciliation separately. This product/composition PASS is not publication clearance, automated safety PASS, commit/push permission or acceptance of future closeout bytes.",
+        "Integrate only reviewed product and bound behavior-reference bytes with separately reconciled closeout records. Preserve unrelated dirty work; do not attribute shared-worktree changes or the full collection wholly to this batch. Keep resources and independently owned measurement changes excluded.",
+        "Continue the authorized local-first implementation path and preserve the authoritative control baseline and API compatibility boundary. Code regression PASS does not establish retrieval superiority; same-golden controlled comparison remains a separate required outcome.",
+        "No duplicated GCP/DIAG131 measurement, model/API/Langfuse/VLM execution, profiling, benchmark or baseline/corpus/gold/configuration change follows from this review. Carry canonical-locator recurrence and the actual context-execution gap into the next complete Design directive."
+      ],
+      "post_fusion_publication": [
+        "Preserve all ten next_batch_constraints of post-fusion-review-1 at messages/EH2.6.d2.x.b.2/011-post-fusion-review-1.json, SHA256 c73701c8c00b14615659c41d2caa4badf32ef11e473a4a605aa3676a11320e32, including its incorporated historical constraints.",
+        "This approval binds the exact 46-file manifest and audit identified above. Prospective scope is solely post-fusion-publication-request.json, SHA256 8e5319829cbbc8be2a4bb3afc0032f74e1a644c3e99b22eb60bde2e37c749ce3: add messages/EH2.6.d2.x.b.2/012-post-fusion-publication-review-1.json and batches/EH2.6.d2.x.b.2/publication-clearance.json under the current collaboration run.",
+        "The only prospective mutable files are current run state.json; fivecircles/work/2026-09-07-controller-post-fusion-decision-relay.md; fivecircles/test/errorlogs/backend/2026-09-07-controller-post-fusion-decision.md; fivecircles/architecture/specs/evidence-harness-progress-flow-validation.md and .html; and fivecircles/test/playwright-screenshots/controller-post-fusion-decision-2026-09-07.png. Changes may record only the actual returned review, native FAIL, bounded publication adjudication and their references.",
+        "Future bytes are not reviewed or preapproved. Main must validate this returned JSON, inspect every actual closeout addition/update and resulting image, reconcile the final exact paths/hashes, check final actual detections and confirm unchanged product/contract/required-evidence bindings before recording final publication clearance.",
+        "Keep native_full_status=FAIL, native_full_exit_code=1, canonical_input_status=UNREPAIRED_FROZEN_HASH_MISMATCH and effective unique coverage1657. Preserve accepted composition and historical runtime limitations; do not claim1662 tests, a successful single native full invocation or repaired canonical input.",
+        "Keep Controller/E2E and parent items PARTIAL, ordinal4 selected but unexecuted, and assembled comparison/winner selection incomplete. Report QA is not RAG E2E or retrieval-quality evidence.",
+        "Any unexpected path, wider edit, new detection, restricted content, access-granting identifier, unexplained coverage gap or changed product/behavior contract/required evidence blocks publication and requires renewed bounded review. Do not substitute whole dirty-worktree files for reconstructed shared files.",
+        "Keep resources, private data and independently owned measurement changes excluded. This review grants no Git mutation, commit, push, external sharing, model/API/VM/profiling execution or next-batch authority."
+      ]
+    },
+    "source_refs": [
+      "fivecircles/agent/authority.md",
+      "fivecircles/requirements/decisions.md",
+      "fivecircles/requirements/current.md",
+      "fivecircles/agent/skills/collaboration/SKILL.md",
+      "fivecircles/agent/skills/collaboration/references/messages.md",
+      "fivecircles/agent/skills/collaboration/references/relay-cycle.md",
+      "fivecircles/architecture/todolist.md:343",
+      "fivecircles/architecture/specs/bidfit-evidence-harness-v1-rc0.md:1110",
+      "src/midprojectrag/orchestration/module-contract.md",
+      "fivecircles/architecture/specs/controller-next-decision.md",
+      "fivecircles/architecture/specs/controller-first-fusion-transition.md",
+      "fivecircles/architecture/specs/controller-structural-effect-bridge.md",
+      "src/midprojectrag/orchestration/execution_contracts.py:11464",
+      "src/midprojectrag/orchestration/execution_contracts.py:12444",
+      "src/midprojectrag/orchestration/execution_contracts.py:12784",
+      "src/midprojectrag/orchestration/execution_contracts.py:13610",
+      "src/midprojectrag/orchestration/execution_contracts.py:16690",
+      "src/midprojectrag/orchestration/execution_contracts.py:17215",
+      "src/midprojectrag/orchestration/execution_contracts.py:18965",
+      "src/midprojectrag/orchestration/execution_contracts.py:20040",
+      "src/midprojectrag/orchestration/harness_state.py",
+      "tests/test_controller_target_context_accumulator.py",
+      "tests/test_controller_post_fusion_decision.py",
+      "fivecircles/test/testpolicy.md:71",
+      "src/midprojectrag/corpus_analytics_baseline.py:36",
+      "fivecircles/work/collaboration/eh-relay-20260907/messages/EH2.6.d2.x.b.2/011-post-fusion-review-1.json",
+      "fivecircles/work/collaboration/eh-relay-20260907/messages/EH2.6.d2.x.b.2/012-post-fusion-publication-review-1.json"
+    ],
+    "handoff": "Main validates full draft and exact-byte contract, installs owned contract/module append/TODO child, checks integration receipt and actual file ownership, records active contract SHA, then dispatches one Sol Ultra Coder. Prior report sections may be reused only with their original fingerprint and explicit new delta. No candidate/review PASS is invented. If main cannot approve the validation locator or required full input access within existing authority, resolve that before WORK rather than accepting a known-failing full plan."
+  }
+}

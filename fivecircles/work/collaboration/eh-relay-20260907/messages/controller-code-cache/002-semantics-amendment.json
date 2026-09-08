@@ -1,0 +1,43 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "PERF-CONTROLLER.1.OPT1",
+  "message_id": "controller-code-cache-semantics-amendment-1",
+  "in_reply_to": "controller-code-cache-directive-1",
+  "sender": "PHILOSOPHER",
+  "kind": "DIRECTIVE",
+  "body": {
+    "mode": "DESIGN",
+    "contract_id": "controller-code-representation-cache-v1",
+    "resolution": null,
+    "objective": "Replace only the original cross-run full-graph comparison requirement with evidence supported by the unchanged diagnostic driver and existing regressions.",
+    "scope": {
+      "allowed_files": [],
+      "prohibited_actions": [
+        "Modify the frozen diagnostic driver or add graph-comparison tooling.",
+        "Relax existing regression assertions or live integrity checks.",
+        "Claim literal full-graph bijection from summary hashes."
+      ]
+    },
+    "supersedes": "controller-code-cache-directive-1 body.measurement_plan.semantic_comparison only",
+    "replacement": "Compare the two unchanged-driver runs' numeric step_index and ledger_revision, lifecycle call counts and same_state_as_predecessor relation. Preserve actual hashes as provenance, without treating matching or differing hashes alone as proof of cross-run graph equivalence. Require the original affected first-parent regression assertions and live source/effect/transition integrity checks to pass on the candidate. Separately require exact canonical payload-byte and hash equality on the fixed original-versus-candidate microbenchmark corpus.",
+    "acceptance_criteria": [
+      "Comparable driver fields and expected lifecycle counts agree.",
+      "Original affected first-parent regressions and live integrity checks pass without weakened assertions.",
+      "Microbenchmark canonical payload bytes and hashes match exactly.",
+      "Report this combined assurance accurately; do not claim literal cross-run full-graph bijection."
+    ],
+    "required_tests": [
+      "The original directive's bounded before/after runs, focused and affected regressions remain unchanged; this amendment adds no execution."
+    ],
+    "constraints": [
+      "Preserve the original directive and all historical artifacts.",
+      "Only the identified semantic-comparison clause is replaced. All other scope, measurement, safety and review requirements remain active.",
+      "This is Design guidance, not implementation approval or REVIEW PASS."
+    ],
+    "source_refs": [
+      "controller-code-cache-directive-1",
+      "scripts/profile_controller_path.py:220"
+    ]
+  }
+}

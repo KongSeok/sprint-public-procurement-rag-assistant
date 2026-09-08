@@ -1,0 +1,124 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "PERF-CONTROLLER.1.OPT1",
+  "message_id": "controller-code-cache-directive-2",
+  "in_reply_to": "controller-code-cache-boundary-question-1",
+  "sender": "PHILOSOPHER",
+  "kind": "DIRECTIVE",
+  "body": {
+    "mode": "DESIGN",
+    "contract_id": "controller-code-representation-cache-v1",
+    "resolution": {
+      "question_id": "controller-code-cache-boundary-question-1",
+      "decision": "ACCEPT",
+      "reason": "Static inspection found that outer closure pins retain nested helper function identity without separately pinning their code/defaults, and cache entry shape checks do not independently bind cached bytes to the entry originally installed for that exact CodeType. Use existing helper-pin and bounded identical-entry mirror mechanisms, not a new framework. Consolidate the accepted semantic-evidence amendment and order fast focused correctness before one same-driver candidate timing, with affected regressions still mandatory before final review. This is implementation/scheduling guidance, not product approval."
+    },
+    "objective": "Reduce repeated immutable CodeType representation work while preserving exact canonical payloads, fingerprints and live integrity checks.",
+    "selected_task_ref": {
+      "path": "fivecircles/architecture/todolist.md",
+      "parent": "PERF-CONTROLLER.1",
+      "proposed_child": "PERF-CONTROLLER.1.OPT1",
+      "authority": "Latest explicit user approval to implement the measured optimization."
+    },
+    "direction_assessment": {
+      "current": "CLI profiling measured 10,498,508 _code_payload calls and 125,850,867 _stable_code_value calls. Canonical encoding and repeated validation are substantial measured costs.",
+      "selection": "Optimize immutable code representation first; do not redesign validation or cache successful authority checks.",
+      "limitation": "Reducing representation construction does not necessarily eliminate JSON encoding or graph traversal costs. Improvement must be measured.",
+      "ownership": "One Sol Ultra Coder; main owns scheduling, evidence and documentation. Fresh deep review before closeout."
+    },
+    "scope": {
+      "root": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
+      "branch": "feat/total-integration",
+      "base_head": "233addfa5dfb1be43417cb13cc99863d52372e96",
+      "derivative_source_sha256": "d1363959a942e4347622792c1ea86c411d3a6d8639ca7f5d60d69d58757d59c4",
+      "allowed_files": [
+        "src/midprojectrag/orchestration/execution_contracts.py",
+        "tests/test_controller_code_representation_cache.py",
+        "scripts/benchmark_controller_code_representation.py"
+      ],
+      "prohibited_actions": [
+        "Modify existing B3 tests, behavior contracts, diagnostic driver, notebook, golden data or expectations.",
+        "Modify .venv, dependencies, runtime configuration or public API.",
+        "Cache validation PASS, entire function behavior, mutable defaults, closure/global state, source-owner validation or retained-graph validity.",
+        "Change canonical serialization/schema/hash meaning, weaken code/module identity checks or alter source temporal/lifetime rules.",
+        "Run model/API/GPU/GCP, install packages, mutate Git or start unrelated optimizations."
+      ]
+    },
+    "implementation_contract": [
+      "Add one small private bounded cache at the immutable code-representation boundary. Preserve _code_payload return shape and every existing canonical hash byte.",
+      "Key by exact CodeType identity, not structural equality. A dict keyed directly by CodeType or WeakKeyDictionary is insufficient unless identity behavior is independently guaranteed. Retain and compare the exact code object to prevent id reuse.",
+      "Cache only recursively safe immutable constants: supported primitive values, bytes, tuples of safe values and nested CodeType. Custom or mutable constants remain on the original uncached path; a CodeType container alone does not prove all co_consts values immutable.",
+      "Preserve distinctions including signed zero, bool versus int and existing nonfinite-float normalization. Do not use equality-based value merging.",
+      "Store an internal immutable representation and return fresh mutable dict/list containers on every call, including nested constants. Mutating one returned payload cannot affect later payloads or fingerprints.",
+      "Use bounded entry count and bounded retained representation size, bypassing oversized entries. A practical initial bound is 128 entries and 4 MiB of retained canonical representation bytes; document that this is not a total-process-RSS guarantee. No unbounded global retention.",
+      "Keep concurrency safe and cache misses/evictions semantically transparent. Avoid a generic cache framework.",
+      "Continue reading current __code__, defaults, kwdefaults, closure and globals on each existing validation path. Preserve current function/module/dependency pins and add any new helper to the existing integrity mechanism where required.",
+      "Do not cache full _function_sha256 solely by function identity. Mutable fields must continue to affect its result exactly as before.",
+      "Pin validated_entry and fresh_payload themselves through the existing function/helper pin mechanism, including current code/defaults and applicable closure/module identity. Moving these two helpers to ordinary private module-level functions registered in existing pins is acceptable. An outer closure's retention of the function object alone is not sufficient. Do not introduce generic recursive pin machinery.",
+      "Bind each installed immutable (exact CodeType, canonical bytes, size) entry to the same entry object in a separate bounded mirror. Under the same existing cache lock, insert, validate, evict and clear both maps consistently, including entry absence/membership and retained-byte accounting relevant to the bounds. A mismatched entry or one-sided state must fail closed, not become a silently repaired hit/miss. Keep both maps within the existing entry/byte limits; shared entry identity must not create an unbounded second payload store.",
+      "Only the existing code-to-canonical-payload computation path may install cache content; a matching bytes hash stored alongside arbitrary replacement bytes is not independent provenance. Preserve exact output semantics and existing trust boundaries without reserializing the entire original code on every cache hit."
+    ],
+    "acceptance_criteria": [
+      "Original frozen source and all historical B3/diagnostic evidence are preserved before edits. This is a derivative candidate, not completion or approval of B3.",
+      "Original and candidate canonical payload bytes and hashes match on the fixed microbenchmark corpus, including nested code, signed zero and cache-ineligible constants.",
+      "Returned mutable payload isolation, identity separation, eviction/bounds and concurrent access tests pass.",
+      "Existing code replacement, mutable defaults/closure/global and dependency-drift behavior remains enforced.",
+      "One comparable unprofiled baseline and candidate trajectory preserve meaningful execution/state/effect/ledger semantics.",
+      "Actual timing results are reported, including neutral or worse outcomes. No speedup threshold or successful optimization claim is invented.",
+      "Fresh deep review assesses cache correctness, integrity boundaries, memory bounds and actual evidence before closeout.",
+      "Apply controller-code-cache-semantics-amendment-1 as consolidated in measurement_plan.semantic_comparison. Comparable numeric step/revision, lifecycle counts and same-state relation plus original affected regressions/live checks support behavior assurance; do not claim literal full-graph bijection."
+    ],
+    "required_tests": {
+      "focused": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest tests.test_controller_code_representation_cache -v",
+      "cases": [
+        "Byte-for-byte canonical output/hash equality against the original implementation on a fixed small corpus.",
+        "Equal-looking distinct CodeType identities, signed zero, nested constants and unknown/mutable constant bypass.",
+        "Mutation of returned top-level and nested dict/list containers cannot poison cached data.",
+        "Cache capacity, oversized bypass, eviction and concurrent retrieval.",
+        "Current code replacement and mutable defaults/kwdefaults/closure/global changes remain observable.",
+        "Nested helper code/default pin coverage remains enforced, and bounded cache/mirror entry identity, membership, eviction, clear and accounting remain consistent without weakening existing checks."
+      ],
+      "adjacent": "Run existing affected runtime/fingerprint/dependency tests selected by source dependency analysis, plus existing Controller first-parent and source-history regressions affected by the shared helper. Record exact test IDs and actual results; do not weaken original tests or replace them with microbenchmark checks. Scheduling clarification: these remain mandatory before final review, but follow the repaired candidate's useful same-driver timing result rather than preceding that timing. Neutral/worse or failed representative results require QUESTION before expanding work.",
+      "integration": "Do not launch an expensive full suite automatically. Existing testpolicy and B3 integration requirements remain binding; main must determine and record required integration coverage before merge. Missing mandatory evidence is not waived.",
+      "review": "Fresh deep review of implementation, callers, dependency pins, cache lifetime and all benchmark/semantic evidence."
+    },
+    "measurement_plan": {
+      "ordering": [
+        "Main preserves original source bytes/hash and freezes the tiny benchmark script and input corpus before either measurement. Preserve all already collected baseline and candidate1 microbenchmark artifacts; do not rerun unchanged completed baseline measurements.",
+        "Before product edits, main's unchanged-source unprofiled CLI baseline remains the baseline. Reuse it only with its actual original source/driver/environment binding; no comparison to earlier profiled CLI or notebook timing.",
+        "Coder completes the minimal nested-helper pin and bounded identical-entry mirror repairs, then passes fast focused correctness, exact original/candidate payload/hash equivalence and focused integrity/bounds checks.",
+        "Main freezes the repaired candidate and runs exactly one equivalent unprofiled CLI trajectory with the same interpreter, command options, driver, fixture and environment as baseline; only candidate source and unique private output path differ. Do not run a candidate1 trajectory.",
+        "If the actual representative result is useful and semantics remain supported, run the original required affected runtime/fingerprint/dependency and first-parent/source-history regressions before final review. A timing result cannot replace these regressions.",
+        "If the actual representative result is neutral/worse, semantically inconsistent or failed, issue QUESTION before broadening or further expensive attempts. Do not build a larger cache framework to force a positive result."
+      ],
+      "microbenchmark": "Use the same small fixed code corpus and fixed iteration count in original and candidate subprocesses, for example 1000 iterations over eight small functions. Verify canonical bytes/hash equality first. Record cold and repeated-call timings separately, retain results privately and prevent dead-result omission. No expensive Controller fixture in this helper.",
+      "trajectory": "Use the existing diagnostic driver with profile=false for both runs, independent fresh state and separate private output directories. Do not compare the earlier profiled CLI against the notebook as a baseline.",
+      "semantic_comparison": "Compare the two unchanged-driver runs' numeric step_index and ledger_revision, lifecycle call counts and same_state_as_predecessor relation. Preserve actual hashes as provenance, without treating matching or differing hashes alone as proof of cross-run graph equivalence. Require the original affected first-parent regression assertions and live source/effect/transition integrity checks to pass on the candidate. Separately require exact canonical payload-byte and hash equality on the fixed original-versus-candidate microbenchmark corpus.",
+      "environment": "Use project .venv without notebook fallback, unchanged inputs and no concurrent heavy work. Record actual interpreter/import origins, dependency metadata, source hashes, instrumentation absence and host activity.",
+      "interpretation": "Report wall/CPU and correctly labeled peak RSS, but one pair is preliminary rather than statistical proof. No automatic extra repetitions; unexplained semantic differences or failed runs require QUESTION."
+    },
+    "constraints": [
+      "The user authorizes this narrow optimization derivative; unrelated dirty work remains untouched.",
+      "No preimplementation PASS or existing B3 final approval is implied.",
+      "Main owns baseline collection before the first product edit and preserves both old and new candidate identities.",
+      "If bounded caching cannot retain exact semantics or measured benefit, report that outcome rather than broadening into graph-validation caching.",
+      "All failed attempts and benchmark results remain immutable; no cherry-picking or silent retries.",
+      "Preserve immutable 001-directive.json and 002-semantics-amendment.json. This complete v2 consolidates their guidance with the named boundary repair and measurement schedule; contract identity, owned file scope, cache limits and prohibited actions remain unchanged.",
+      "Candidate1's slower tiny-corpus microbenchmark remains evidence; it neither proves real Controller regression nor grants an extra trajectory run. No candidate1 trajectory is authorized.",
+      "Any source change after the measured repaired candidate invalidates attribution of that timing to the new candidate. Request bounded guidance for any needed new final measurement; no automatic repeats."
+    ],
+    "source_refs": [
+      "fivecircles/work/2026-09-08-controller-diagnostics-notebook.md",
+      "resources/data_refined/private/diagnostics/controller-path/cli-profile-20260908-cycle25-2/main-profile-summary.json",
+      "src/midprojectrag/orchestration/execution_contracts.py:653",
+      "src/midprojectrag/orchestration/execution_contracts.py:865",
+      "src/midprojectrag/orchestration/execution_contracts.py:1000",
+      "src/midprojectrag/orchestration/execution_contracts.py:1017",
+      "src/midprojectrag/orchestration/execution_contracts.py:2285",
+      "fivecircles/test/testpolicy.md:71",
+      "fivecircles/agent/skills/collaboration/references/messages.md",
+      "fivecircles/work/collaboration/eh-relay-20260907/messages/controller-code-cache/002-semantics-amendment.json"
+    ]
+  }
+}

@@ -48,7 +48,7 @@
 <body>
 <main>
   <h1>Local RAG Baseline → Evidence-Harness Challenger 평가 진행 보고서</h1>
-  <p class="sub">2026-09-07 · 작업대 feat/total-integration · EH2.6.d2.x.b.2 · 최종 통합 대상 feat/local-qwen-mini131-eval</p>
+  <p class="sub">2026-09-08 · 작업대 feat/total-integration · EH2.6.c4.2.b.3 구현·fresh 검수 PASS · 통합 대조 중 · 최종 통합 대상 feat/local-qwen-mini131-eval</p>
 
   <section class="purpose">
     <strong>목적 및 고정 방침</strong>
@@ -60,7 +60,7 @@
 
   <div class="status-grid">
     <div class="card green"><div class="label">CONTROL</div><div class="value">Local B0 측정됨</div><p>Mac-equivalent provisional. 재현·rollback 기준으로 유지.</p></div>
-    <div class="card blue"><div class="label">CHALLENGER</div><div class="value">fusion 뒤 다음 행동 선택</div><p>첫 원문 문맥 확장 / empty 확인 의도 / 예산 기권. 검증·fresh 검수 PASS. 실제 실행과 정답 확정은 후속.</p></div>
+    <div class="card blue"><div class="label">CHALLENGER</div><div class="value">첫 원문 문맥 실행 연결</div><p>revision4 구현·전체 회귀·fresh deep 검수 PASS. 후속 문맥 소비·정답 확정·생성 E2E는 후속.</p></div>
     <div class="card amber"><div class="label">SELECTION</div><div class="value">Winner 미선정</div><p>동일 골든셋 paired A/B와 gate/Pareto 판정 전.</p></div>
   </div>
 
@@ -70,12 +70,12 @@
     <tbody>
       <tr><td>주 비교 통제군 B0</td><td>KURE page-v1 + fixed local Qwen</td><td class="done">측정 완료·provisional</td><td>local-first retrieval 비교의 authoritative control</td></tr>
       <tr><td>별도 API arm</td><td>OpenAI small/nano + Streamlit</td><td>호환 경로</td><td>과거 API-first 구현. local control을 대체하지 않음</td></tr>
-      <tr><td>현재 개발 대상</td><td>feat/total-integration의 Evidence-Harness</td><td>EH2.6.d2.x.b.2 검수 완료</td><td>후보/잠정 결측으로 ordinal4 선택. 실제 context·결측 확인·semantic 검증·생성 E2E 미완성</td></tr>
+      <tr><td>현재 개발 대상</td><td>feat/total-integration의 Evidence-Harness</td><td>B3 구현·독립 검수 완료</td><td>첫 parent 실제 실행과 revision4 전이 연결. 남은 context 소비·결측 확인·semantic 검증·생성 E2E 미완성</td></tr>
       <tr><td>최종 전달 대상</td><td>feat/local-qwen-mini131-eval</td><td class="todo">병합·선택 전</td><td>local-first, generator는 local/API 교체형</td></tr>
       <tr><td>채택 구조</td><td>B0 대 assembled challenger</td><td class="todo">미선정</td><td>같은 golden의 실측 결과로만 결정</td></tr>
     </tbody>
   </table></div>
-  <p class="callout"><strong>한 문장:</strong> 현재 비교할 때 쓰는 것은 local baseline, 현재 만드는 것은 challenger, 나중에 기본으로 쓸 것은 아직 미정이다. d2.x.b.2는 fusion 이후 첫 parent 확장·empty 결측 확인 의도·예산 기권을 선택한다. 실제 네 번째 실행, verified·부재 확정·종료는 아직 하지 않는다. 실제 RAG 모델·API·Langfuse 호출 없이 synthetic lane으로 검사했으며, 코딩·검수 에이전트 호출과 구분한다. 별도 승인된 DIAG131 retrieval-only 비교는 frozen snapshot에서 병렬 진행 중이며 assembled E2E는 아니다. 지연은 shared-host 진단용이다.</p>
+  <p class="callout"><strong>한 문장:</strong> 현재 비교 기준은 local baseline이고, challenger는 첫 원문 문맥의 실제 실행까지 연결해 검증·독립 검수를 통과했다. 전체 parent/bridge 묶음에서 선택한 parent 하나를 소비하며, 검색 근거를 verified·정답으로 확정하지 않는다. 남은 문맥 소비·결측 확인·종료·생성은 후속이다. 이번 B3 재개에서는 실제 RAG 모델·API·Langfuse·골든셋 품질 실행을 하지 않았다. 별도 측정이나 과거 핫라인 결과를 B3 성능 증거로 대신하지 않는다.</p>
 
   <h2>Gap / Priority</h2>
   <p class="sub">현재 relay 판정과 다음 READY 단위의 연결 점수</p>
@@ -103,6 +103,8 @@
       <tr><td>EH2.6.c4.2.b.1 첫 fuse</td><td class="num">7</td><td class="done">DONE</td><td>effect/ledger3/transition3, 선행 전체1577·fresh Astra PASS</td></tr>
       <tr><td>EH2.6.c4.2.b.2 첫 상태 투영</td><td class="num">7</td><td class="done">DONE</td><td>candidate/provisional_missing·effect 근거·형제 보존, 전체1611·fresh Astra PASS</td></tr>
       <tr><td>EH2.6.d2.x.b.2 ordinal4 선택</td><td class="num">8</td><td class="done">DONE</td><td>첫 bounded parent / empty 결측 확인 의도 / 예산 기권. post-fusion-review-1 PASS</td></tr>
+      <tr><td>EH2.6.c4.2.b.3 첫 parent 실행</td><td class="num">9</td><td class="done">DONE(구현)</td><td>집중12·주변246·격리258·통합 보충14·resolved full1765·fresh deep PASS</td></tr>
+      <tr><td>후속 context 선택·소비</td><td class="num">7</td><td>DESIGN 후보</td><td>4+3+2+1−3 잠정 점수. B3 통합 뒤 정식 Design에서 범위·준비/소비 권한을 확정</td></tr>
       <tr><td>EH2.6.d2.x</td><td class="num">8</td><td>PARTIAL</td><td>ordinal2/3/4 선택·첫 fusion/상태 완료, 후속 실행/full matrix 미완성</td></tr>
       <tr><td>EH2.6.d2</td><td class="num">8</td><td>PARTIAL</td><td>initial slice 완료, cross-state/full matrix 미완성</td></tr>
       <tr><td>EH2.6.c4</td><td class="num">7</td><td>PARTIAL</td><td>c4.0→c4.1→d2.x→c4.2 순서</td></tr>
@@ -217,6 +219,7 @@
       <tr><td class="done">DONE</td><td>ordinal3 후속 선택</td><td>두 source outcome 기반 budget/error/fuse; 추가 실행 없음</td><td>첫 fuse 실행</td></tr>
       <tr><td class="done">DONE</td><td>첫 fusion 실행·상태 전이</td><td>exact 원본 기반 1회 fuse→effect/전이3. 첫 항목 candidate/provisional_missing, lane·형제 보존</td><td>post-fusion 자격/context</td></tr>
       <tr><td class="done">DONE</td><td>ordinal4 후속 선택</td><td>exact fusion/state·owner 예산→첫 parent/empty 확인 의도/기권. 추가 작업0</td><td>실제 선택 행동 실행</td></tr>
+      <tr><td class="done">DONE</td><td>첫 parent 실제 실행</td><td>claim 이후 전체 parent/bridge 준비·선택 parent 소비·revision4. 정답 승격 없음</td><td>통합 후 다음 context Design</td></tr>
       <tr><td class="todo">NOT DONE</td><td>후속 state/terminal</td><td>context/결측 확인 실제 실행·semantic 검증·후속 상태/종료 reducer·bounded controller 미완성</td><td>후속 c4.2→d3~d4</td></tr>
       <tr><td class="todo">NOT DONE</td><td>specialist E2E</td><td>analytics/list/table/figure controller 밖</td><td>EH3</td></tr>
       <tr><td class="todo">NOT DONE</td><td>generation/evaluator</td><td>adapter/CLI/layer evaluator 미완성</td><td>EH4</td></tr>
@@ -226,7 +229,7 @@
 
   <h2>다음 실행 순서</h2>
   <ol class="steps">
-    <li>같은 검수 후보를 선택 통합한 뒤 ordinal4의 실제 parent-context 실행을 다음 bounded Design 후보로 검토한다. empty 결측 확인 실행·semantic 검증·후속 항목·종료는 별도 계약을 유지한다.</li>
+    <li>B3의 보고·로그올·선택 통합을 마감한 뒤 남은 준비 문맥의 실제 소비를 다음 Design 후보로 검토한다. 준비 권한과 소비 권한을 구분하며, 아직 다음 구현 승인은 아니다. empty 확인·semantic·후속 항목·종료는 별도 계약이다.</li>
     <li>EH3의 catalog/analytics/list/table/figure를 같은 Evidence contract에 연결한다.</li>
     <li>EH4의 reranker, local/API generator adapter, CLI와 계층별 evaluator를 완성한다.</li>
     <li>공통 hash·budget·metric threshold를 동결하고 B0→R1→R2→R3→H1→V1 paired ablation을 실행한다.</li>
@@ -234,7 +237,12 @@
   </ol>
 
   <h2>Validation</h2>
-  <p><strong>현재 d2.x.b.2:</strong> 집중11·관련205·격리216 PASS. 원래 전체1657은 CSV 동결 해시 오류1로 FAIL; 동결 사본 analytics5 재검증 PASS 및 fresh deep의 증거 결합 승인.</p>
+  <h3>현재 B3 — 구현 검증·fresh deep PASS</h3>
+  <p>집중12·주변246·격리258·통합 보충14·전체1765 PASS. 실패·오류·skip0, 전후 입력/환경 이슈0. 보충14는 기존 승인된 cache/predecessor/combined-validation 검사다. 중복되는 검사 수는 더하지 않는다. fresh first-parent-resume-final-review-1 PASS이며 공개 대조·통합은 별도다.</p>
+  <p>전체 첫 시도는 기존 HB 경로 누락으로 수집 실패(실제 테스트0), 둘째는 PDF worker의 실행기 재진입으로 중단했다. 임시 실행기 수정 후 실제 PDF2 사전 PASS와 resolver 시작/완료 각1회의 단일 전체 PASS를 확인했다. 실패 이력·제품 코드·assertion·패키지는 그대로다.</p>
+  <p>전체는 기존 HB 추가 패키지 경로와 동결 사본 resolver를 쓴 RESOLVED_INPUT_FULL_PASS다. canonical CSV는 UNREPAIRED이며 source-only 환경의 일반 실행·원본 복구 PASS가 아니다. finally+자식 종료는 직접 사후 변수 readback이 아니다. 후보49ff508f… / 계약f8fe0041… / 증거d9f34932… · <a href="../../work/2026-09-07-controller-first-parent-relay.md">Cycle25</a> · <a href="../../work/review/review-controller-first-parent-final-2026-09-08.md">독립 검수</a>. changed9+unchanged참조2, 모델 응답속도·품질 우승의 증거가 아니다.</p>
+  <h3>선행 d2.x.b.2 검증</h3>
+  <p><strong>선행 d2.x.b.2:</strong> 집중11·관련205·격리216 PASS. 원래 전체1657은 CSV 동결 해시 오류1로 FAIL; 동결 사본 analytics5 재검증 PASS 및 fresh deep의 증거 결합 승인.</p>
   <p>COMPOSED_VALIDATION_PASS는 단일 전체 실행 PASS가 아니다. canonical CSV는 UNREPAIRED이며, 중복 검사를 더해1662개로 세지 않는다. 과거 metadata probe의 상속 PYTHONPATH는 UNKNOWN으로 보존하고 현재 관측 재현의 한계를 독립 검수했다.</p>
   <p>후보 sha256:8d3172b1ec96… / 계약 sha256:6d80a97e9261… / 증거 sha256:eaf054ab203e…. 제품/테스트3개 + 계약참조3개, post-fusion-review-1 PASS. <a href="../../work/review/review-controller-post-fusion-decision-2026-09-07.md">fresh 검수·제약</a> · <a href="../../work/2026-09-07-controller-post-fusion-decision-relay.md">Cycle24 원장</a>.</p>
   <p>전체 목표 GAP/PARTIAL. 테스트 wall time과 실제 RAG 응답시간을 구분한다. assembled E2E 비교·winner 판정은 미실행이다.</p>

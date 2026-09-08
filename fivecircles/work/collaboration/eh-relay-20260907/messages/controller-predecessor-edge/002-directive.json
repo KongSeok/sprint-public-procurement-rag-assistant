@@ -1,0 +1,103 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "PERF-CONTROLLER.2.1",
+  "message_id": "controller-traversal-directive-2",
+  "in_reply_to": null,
+  "sender": "PHILOSOPHER",
+  "kind": "DIRECTIVE",
+  "body": {
+    "mode": "DESIGN",
+    "contract_id": "controller-predecessor-validation-edge-v2",
+    "objective": "Implement the selected redundant predecessor-recursion removal now, verify affected correctness, and close this bounded optimization so the original integration work can resume.",
+    "selected_task_ref": "fivecircles/architecture/todolist.md — PERF-CONTROLLER.2.1, approved follow-up to PERF-CONTROLLER.1.OPT1; Main owns its recording.",
+    "authority": "The user explicitly reprioritized implementation and project completion over timing comparisons. This complete directive replaces controller-traversal-directive-1 and removes its benchmark and efficiency gates.",
+    "direction_assessment": {
+      "target": "Reduce repeated traversal at the identified Controller bottleneck.",
+      "current": "require_successor_record explicitly validates its predecessor, then its retained projection validates that predecessor again through decision and source-owner readers.",
+      "selected_change": "Remove only the first recursive call after adding explicit exact edge guards and ordering delegated full validation before predecessor payload consumption.",
+      "reason": "The selected local change eliminates a redundant recursive entry without a validation cache or a wider framework. No measured speedup is required or claimed."
+    },
+    "scope": {
+      "repository": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
+      "allowed_files": [
+        "src/midprojectrag/orchestration/execution_contracts.py — require_successor_record and only necessary adjacent private guards",
+        "tests/test_controller_predecessor_validation_edge.py — essential missing edge regressions",
+        "resources/data_refined/private/diagnostics/controller-path/controller-predecessor-edge-20260908-001/ — correctness evidence only"
+      ],
+      "prohibited_actions": [
+        "Further profiling, before/after benchmarks, performance thresholds or performance-harness development",
+        "Additional optimization edges or a generic traversal framework",
+        "Validation-result caches, bypass flags or caller-supplied trust tokens",
+        "Changes to existing validator semantics, public signatures, registries, locking, claim/failure protocols or lifetime rules",
+        "Changes to fixtures, golden data, baselines, existing tests, diagnostic driver or notebooks",
+        "Git mutations, API/model/GPU/VM/cloud/dependency/environment changes",
+        "Other workers' files, nested delegation, documentation/TODO/state edits"
+      ]
+    },
+    "implementation_contract": [
+      "Preserve all pre-existing dirty-worktree changes and the completed immutable code JSON cache. The previously inspected starting source hash is 2cf02cda4ae5b1fb43da6e65d9054dc133ab92cb92bf6916f2b2cfd50ae9fc57.",
+      "Keep validate_dependencies, successor type/revision checks, execution authority lookup, exact store/config/runtime bindings, locked pruning, record/shadow checks and unique live successor-record lookup.",
+      "Before attribute access, require exact HarnessExecution type for the predecessor. Retain TypeError('harness_execution_required') for a wrong predecessor type.",
+      "Retain exact record-transition-predecessor and claim execution/decision/action/key bindings. Explicitly require the retained projection's exact type, projection.execution is before, and projection.decision is the retained decision. Equal hashes or separately authentic graphs do not satisfy these edges.",
+      "Call unchanged validate_record before consuming predecessor step_index or last_transition_sha256. Its unchanged projection reader must still fully validate that exact predecessor through both decision and source-owner paths.",
+      "Remove only the early execution_validator(execution=before, ...) call. Keep all subsequent predecessor relation, successor payload/hash, state/ledger/tuple identity, transitioned-status and complete target-context checks.",
+      "Every independent readback remains live. Persistent mutation at the delegated validation boundary must reject. No earlier PASS may authorize a later read or work after dispatch.",
+      "Preserve failure histories, non-retry behavior, concurrency locks and provenance lifetime. Add no persistent graph references or cleanup behavior.",
+      "Keep existing error strings for unchanged guards and affected regression expectations. Do not introduce unsafe attribute errors as malformed-input handling. If required error precedence cannot be maintained with a narrow guard, report QUESTION.",
+      "Preserve existing partial measurement artifacts as historical. Do not complete or run the interrupted benchmark harness."
+    ],
+    "acceptance_criteria": [
+      "The selected one-edge change is implemented with explicit exact relation guards and both delegated live predecessor validations retained.",
+      "Essential new edge regressions and the listed affected existing regressions pass on the final candidate; required failures or skips are not waived.",
+      "No additional dispatch, authority issuance, retry opportunity or stale validation reuse is introduced.",
+      "Report the removed recursive entry as the structural improvement. Do not claim a measured latency reduction.",
+      "Return REVIEW_READY with final changed-file hashes and actual correctness evidence, then stop this optimization leaf for independent review and original integration continuation."
+    ],
+    "required_tests": [
+      {
+        "command": ".venv/bin/python -m unittest tests.test_controller_predecessor_validation_edge",
+        "coverage": [
+          "Exact retained predecessor/projection/decision binding; wrong type, clone and different authentic graph rejection.",
+          "Successful read followed by predecessor or source mutation rejects on the next read.",
+          "One deterministic mutation at the delegated validation handoff rejects without extra work; restore instrumentation in finally.",
+          "Valid retained readback returns the original effect/transition identities."
+        ],
+        "limit": "Add only missing edge protections. Reuse existing synthetic fixtures; do not duplicate broad existing defense suites or develop performance tooling."
+      },
+      {
+        "command": ".venv/bin/python -m unittest tests.test_controller_initial_transition",
+        "coverage": "Direct accessor behavior, concurrency, failure history, identity, mutation and GC/lifetime."
+      },
+      {
+        "command": ".venv/bin/python -m unittest tests.test_execution_contracts",
+        "coverage": "Live dependency, runtime, exact identity and safe-access defenses."
+      },
+      {
+        "command": ".venv/bin/python -m unittest tests.test_controller_lexical_transition.ControllerLexicalTransitionTests.test_revision_chain_and_both_sources_survive_gc_and_revalidate tests.test_controller_lexical_transition.ControllerLexicalTransitionTests.test_lexical_source_effect_transition_and_ledger_drift_fail_closed tests.test_controller_lexical_transition.ControllerLexicalTransitionTests.test_serialized_clone_and_dependency_drift_are_non_authorizing"
+      },
+      {
+        "command": ".venv/bin/python -m unittest tests.test_controller_first_fusion_transition.ControllerFirstFusionTransitionTests.test_all_predecessors_decisions_and_three_sources_survive_gc tests.test_controller_first_fusion_transition.ControllerFirstFusionTransitionTests.test_source_effect_ledger_and_transition_drift_fail_readback"
+      },
+      {
+        "command": ".venv/bin/python -m unittest tests.test_controller_first_parent_transition.ControllerFirstParentTransitionTests.test_readback_rejects_unselected_and_complete_context_drift"
+      }
+    ],
+    "constraints": [
+      "Implement immediately; no additional diagnosis or baseline audit is required.",
+      "Use the repository's existing .venv. Run affected correctness checks once on the final candidate; repeat only for relevant repairs.",
+      "No full B3 suite, full integration suite or representative performance rerun for this leaf. Existing integration gates remain separate and are not waived.",
+      "If the narrow implementation fails an affected defense, repair within this scope or send QUESTION; never weaken the check.",
+      "Main owns records and independent review. Coder reports actual commands, exit codes, candidate binding and any unresolved issues."
+    ],
+    "source_refs": [
+      "fivecircles/agent/skills/collaboration/references/messages.md",
+      "fivecircles/work/2026-09-08-controller-bottleneck-cause.md",
+      "fivecircles/work/2026-09-08-controller-code-cache.md",
+      "fivecircles/architecture/specs/controller-first-parent-transition.md",
+      "src/midprojectrag/orchestration/module-contract.md",
+      "src/midprojectrag/orchestration/execution_contracts.py — require_successor_record, validate_record, retained projection reader, decision validator and source-owner reader"
+    ],
+    "resolution": null
+  }
+}

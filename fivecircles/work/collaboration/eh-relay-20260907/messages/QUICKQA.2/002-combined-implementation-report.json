@@ -1,0 +1,237 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "QUICKQA.2",
+  "message_id": "quickqa2-combined-implementation-report-1",
+  "in_reply_to": "quickqa2-directive-1",
+  "sender": "MAIN",
+  "kind": "IMPLEMENTATION_REPORT",
+  "body": {
+    "status": "REVIEW_READY",
+    "directive_id": "quickqa2-directive-1",
+    "contract_id": "quickqa2-combined-validation-total120-v1",
+    "candidate_id": "sha256:8b1a16e3b16a92db5d238fbcb546f760b8f15b89f481ad641447dea13e4c8b2b",
+    "test_evidence_id": "sha256:7ad2644add6474116c6667db4d99c87a08215a0ea19613c02873083d8853396a",
+    "candidate_files": [
+      {
+        "path": "src/midprojectrag/orchestration/execution_contracts.py",
+        "sha256": "a8e38f2877b7deaa46483256a65390b72cade1460ced9728027d9168bcc61737"
+      },
+      {
+        "path": "src/midprojectrag/retrieval/fusion.py",
+        "sha256": "32445fa6a7d3d59949f4a01646c69473d03321ded64d15ae3805738b36a2e356"
+      },
+      {
+        "path": "scripts/run_controller_quick_qa.py",
+        "sha256": "1473f928af32f52e5b4d007a6bf81d10d3d4dba0173a65fc369942411612fbd4"
+      },
+      {
+        "path": "tests/test_combined_runtime_validation.py",
+        "sha256": "bf3ef3ec12b1964581df6aa00a0ecd6fd7ab38eb9c17497efc045a09abc45752"
+      },
+      {
+        "path": "tests/test_controller_quick_qa.py",
+        "sha256": "dbba3112339be25c64616ce47360d7e32855a8937c2ae1792d04307787d423a8"
+      },
+      {
+        "path": "/private/tmp/quickqa2.AsL8qx/timer/supervise_quick_qa.py",
+        "sha256": "2e2832bfd1447cba748ce7e57b866e32d3652602113283dcc308490bae612c13"
+      },
+      {
+        "path": "/private/tmp/quickqa2.AsL8qx/timer/test_supervisor.py",
+        "sha256": "0f96d74f101ef06f1ecc3c4bfa04d5eaf57ad615dcb6f1d2bc794575078f99f1"
+      }
+    ],
+    "runtime_dependencies": [
+      {
+        "path": "src/midprojectrag/evidence/store.py",
+        "sha256": "75a3a8cffba2da76ac2b2609bc0f47b52d56436256286e34f25d3b09eba03c0f"
+      },
+      {
+        "path": "src/midprojectrag/retrieval/dense.py",
+        "sha256": "514d8a6ff412f90f29b87956273cf3d3b4bcc5bcbe3f5442dfd9c665acdc6738"
+      },
+      {
+        "path": "src/midprojectrag/retrieval/kiwi_bm25.py",
+        "sha256": "b606e1144085ebb6072dcb6a4d6191533e54552ced70744037549f71b41410c7"
+      },
+      {
+        "path": "src/midprojectrag/stacks/local/generation.py",
+        "sha256": "b09f07a29b3e7b1eedcad16c7d70579ff6d023f147553be41b67ed2b75ed90ed"
+      },
+      {
+        "path": "src/midprojectrag/stacks/local/hf_embeddings.py",
+        "sha256": "dc6d641a3301fc158d9fd6632cfaa205ed88edb255fb66ab72f139c239c47e4c"
+      }
+    ],
+    "evidence_files": [
+      {
+        "path": "/private/tmp/quickqa2.AsL8qx/core/base-files.sha256",
+        "sha256": "36a448058435d7ecdf7eed19b5bc7ce10dcfeafde29a2e7fa9b8229033997dac"
+      },
+      {
+        "path": "/private/tmp/quickqa2.AsL8qx/core/base/execution_contracts.py",
+        "sha256": "687e5b6f26e121f944015e4700d95b24bc2c8b09d260c4ed08c4cc9a9e3dbebe"
+      },
+      {
+        "path": "/private/tmp/quickqa2.AsL8qx/core/base/fusion.py",
+        "sha256": "e4326d361b6d3f8a72198b20cfcb99d6315b2361d8e6af44d25070eda7f15011"
+      },
+      {
+        "path": "/private/tmp/quickqa2.AsL8qx/core/candidate-files.sha256",
+        "sha256": "547f0a6cd229de0808ca00d9658f945fc88d012fa4134a7ad5ec414f0933be1c"
+      },
+      {
+        "path": "/private/tmp/quickqa2.AsL8qx/core/candidate/execution_contracts.py",
+        "sha256": "a8e38f2877b7deaa46483256a65390b72cade1460ced9728027d9168bcc61737"
+      },
+      {
+        "path": "/private/tmp/quickqa2.AsL8qx/core/candidate/fusion.py",
+        "sha256": "32445fa6a7d3d59949f4a01646c69473d03321ded64d15ae3805738b36a2e356"
+      },
+      {
+        "path": "/private/tmp/quickqa2.AsL8qx/core/candidate/test_combined_runtime_validation.py",
+        "sha256": "bf3ef3ec12b1964581df6aa00a0ecd6fd7ab38eb9c17497efc045a09abc45752"
+      },
+      {
+        "path": "/private/tmp/quickqa2.AsL8qx/core/execution_contracts.diff",
+        "sha256": "92b8ce8db064e4b5477c80f958d554b5230f42de51b737225c99b0ef96a03453"
+      },
+      {
+        "path": "/private/tmp/quickqa2.AsL8qx/core/focused.command.txt",
+        "sha256": "d653049faa78b53d3e31d3c86c155e5a9e674c8b040cfc238a6b743d1092d32f"
+      },
+      {
+        "path": "/private/tmp/quickqa2.AsL8qx/core/focused.exit_code.txt",
+        "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+      },
+      {
+        "path": "/private/tmp/quickqa2.AsL8qx/core/focused.raw.log",
+        "sha256": "e8f8822329a512f3b41dea489d6915cd2c50d7c83f9aee09176ff325e9e62624"
+      },
+      {
+        "path": "/private/tmp/quickqa2.AsL8qx/core/fusion.diff",
+        "sha256": "fc04cf4a4c1d8e638af8ecbac86c5a6184e5be50a2e68933aeddcbbf0969b6d6"
+      },
+      {
+        "path": "/private/tmp/quickqa2.AsL8qx/core/report.json",
+        "sha256": "2bf3b37341a105f42750203adc80d59cd6d39acb72110516e0457ba0693efb64"
+      },
+      {
+        "path": "/private/tmp/quickqa2.AsL8qx/core/selected.command.txt",
+        "sha256": "6694a1f29ba3802d1f5eedf39708f5e9c9a7d26559d2c09f2da083e26fb7bc06"
+      },
+      {
+        "path": "/private/tmp/quickqa2.AsL8qx/core/selected.exit_code.txt",
+        "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+      },
+      {
+        "path": "/private/tmp/quickqa2.AsL8qx/core/selected.raw.log",
+        "sha256": "d2e9b8596334b763703a55bece655cb7e5402984eeec936fc6be6683bba33d53"
+      },
+      {
+        "path": "/private/tmp/quickqa2.AsL8qx/core/test-evidence.sha256",
+        "sha256": "8b0bedebec7fd71aff639d9de3d31dc67a44fa8f76997e1e096ee7ba655f6595"
+      },
+      {
+        "path": "/private/tmp/quickqa2.AsL8qx/timer/artifacts/runner-base.diff",
+        "sha256": "fbd25ace4ebbc82f5d5cd641f44a44307d4702601b23a6f711b983cebf22f5f6"
+      },
+      {
+        "path": "/private/tmp/quickqa2.AsL8qx/timer/artifacts/static-compile.exit",
+        "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+      },
+      {
+        "path": "/private/tmp/quickqa2.AsL8qx/timer/artifacts/static-compile.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "/private/tmp/quickqa2.AsL8qx/timer/artifacts/static-compile.stdout",
+        "sha256": "f0f0e909a18aa937c501f03ad884ac9601003b619586bbf86f2bd46696ae2c69"
+      },
+      {
+        "path": "/private/tmp/quickqa2.AsL8qx/timer/artifacts/supervisor-new.diff",
+        "sha256": "9ce6a2aaa6fe31693e30b575c5d03215f774749e74d7698a15e516552cd09ade"
+      },
+      {
+        "path": "/private/tmp/quickqa2.AsL8qx/timer/initial/run_controller_quick_qa.py",
+        "sha256": "07c70ef5886d8f33c3fc06421417818d48cc8909434e89f01380ecde7a7ab63d"
+      },
+      {
+        "path": "/private/tmp/quickqa2.AsL8qx/timer/initial/test_controller_quick_qa.py",
+        "sha256": "03ae4b0446f413fe134c108f04b6a622fd16b27c22346e10135e1c0090a12066"
+      },
+      {
+        "path": "/private/tmp/quickqa2.AsL8qx/timer/report.json",
+        "sha256": "889b01d12f4834eeb43aab9a8370a5241eaa601328af3c399152f3a93d232952"
+      },
+      {
+        "path": "/private/tmp/quickqa2.AsL8qx/timer/runner12-final.command.txt",
+        "sha256": "1dcd6a4a270e63634e27bb6988cc393d09f6c538d2de5d3a1ee0210df30f5d33"
+      },
+      {
+        "path": "/private/tmp/quickqa2.AsL8qx/timer/runner12-final.exit_code.txt",
+        "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+      },
+      {
+        "path": "/private/tmp/quickqa2.AsL8qx/timer/runner12-final.raw.log",
+        "sha256": "537937bc6c94ba61f2205090dc1f6d39a32de419bd3bb25c41ceb93b0c6b4dfa"
+      },
+      {
+        "path": "/private/tmp/quickqa2.AsL8qx/timer/supervise_quick_qa.py",
+        "sha256": "2e2832bfd1447cba748ce7e57b866e32d3652602113283dcc308490bae612c13"
+      },
+      {
+        "path": "/private/tmp/quickqa2.AsL8qx/timer/supervisor3-final.command.txt",
+        "sha256": "730add7d72a516e2703898e6e79a09f44218538bb9a8fe3a87adda2181a72c12"
+      },
+      {
+        "path": "/private/tmp/quickqa2.AsL8qx/timer/supervisor3-final.exit_code.txt",
+        "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+      },
+      {
+        "path": "/private/tmp/quickqa2.AsL8qx/timer/supervisor3-final.raw.log",
+        "sha256": "28e2c30f0641b7f48ca4a4255210312ec8be61b8e0f281b3ffd7251d31b9b1c2"
+      },
+      {
+        "path": "/private/tmp/quickqa2.AsL8qx/timer/supervisor3-sandbox-failure.exit_code.txt",
+        "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+      },
+      {
+        "path": "/private/tmp/quickqa2.AsL8qx/timer/supervisor3-sandbox-failure.raw.log",
+        "sha256": "b03af402b011ecdf2bd5e539fd0d78c95dba2eb4fe987fbe6bc6a74ae3c5bce8"
+      },
+      {
+        "path": "/private/tmp/quickqa2.AsL8qx/timer/test_supervisor.py",
+        "sha256": "0f96d74f101ef06f1ecc3c4bfa04d5eaf57ad615dcb6f1d2bc794575078f99f1"
+      }
+    ],
+    "reported_checks": {
+      "core_focused": 4,
+      "core_selected_affected": 9,
+      "runner_focused": 12,
+      "external_watchdog": 3
+    },
+    "evidence_limitations": [
+      "Core raw logs are copies of tool-returned combined output, not redirected byte-exact stdout/stderr.",
+      "Selected nine tests do not claim exhaustive store-payload, in-call lane mutation, or Controller concurrency coverage. Those boundaries are unchanged; no full regression is claimed.",
+      "Prior sandbox process-inspection failure is historical; approved native watchdog result must be inspected separately."
+    ],
+    "actual_run": {
+      "performed": false,
+      "limit_seconds": 120,
+      "includes_initialization": true,
+      "maximum_attempts": 1,
+      "execution_owner": "/root/quickqa2_timer_coder"
+    },
+    "static_review_repairs": [
+      "Controller config minted once immediately before first execution issuance; identity retained thereafter.",
+      "Owned child group cleaned after early leader exit as well as deadline; unrelated/shared services excluded."
+    ],
+    "prohibited_actions": [
+      "No Git mutation/push",
+      "No additional real QA before release",
+      "No API/GCP/download/reembedding/UI"
+    ]
+  }
+}

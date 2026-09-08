@@ -1,0 +1,127 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "PERF-CONTROLLER.1.OPT1",
+  "message_id": "controller-code-cache-directive-3",
+  "in_reply_to": "controller-code-cache-effectiveness-question-1",
+  "sender": "PHILOSOPHER",
+  "kind": "DIRECTIVE",
+  "body": {
+    "mode": "DESIGN",
+    "contract_id": "controller-code-representation-cache-v2",
+    "resolution": {
+      "question_id": "controller-code-cache-effectiveness-question-1",
+      "decision": "ACCEPT",
+      "reason": "Candidate2 preserved tested semantics but the completed same-environment representative run was slower: wall199.451119 ->213.466959 seconds and CPU198.289415 ->212.711520 seconds. comparison.json PASS establishes evidence consistency only, not optimization success. Permit one smaller candidate3 serialized-code-fragment-only trial eliminating JSON decode/re-encode; if neutral/worse, reject and restore only this optimization derivative to its preserved pre-optimization source."
+    },
+    "objective": "Test one bounded immutable canonical code-JSON fragment cache used only by _function_sha256, preserving exact fingerprint bytes and all live validation; reject the optimization if candidate3 is not useful.",
+    "selected_task_ref": {
+      "path": "fivecircles/architecture/todolist.md",
+      "parent": "PERF-CONTROLLER.1",
+      "proposed_child": "PERF-CONTROLLER.1.OPT1",
+      "authority": "Latest explicit user approval to implement the measured optimization."
+    },
+    "direction_assessment": {
+      "current": "Candidate2 same-driver trajectory is complete and slower despite exact tested hash/readback equivalence. Candidate1/2 micro and candidate2 trajectory evidence remain immutable. No adjacent regressions have run.",
+      "selection": "Restore original uncached fresh-dict _code_payload. Reuse a bounded identity/mirror code-only cache exclusively for canonical code bytes consumed by _function_sha256; no decode path or generalized serialization framework.",
+      "limitation": "This is one followup hypothesis, not a proven optimization. It can reduce code-fragment serialization work but does not eliminate other behavior-payload or retained-graph validation costs.",
+      "ownership": "One Sol Ultra Coder; main owns scheduling, evidence and documentation. Fresh deep review before closeout."
+    },
+    "scope": {
+      "root": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
+      "branch": "feat/total-integration",
+      "base_head": "233addfa5dfb1be43417cb13cc99863d52372e96",
+      "derivative_source_sha256": "d1363959a942e4347622792c1ea86c411d3a6d8639ca7f5d60d69d58757d59c4",
+      "allowed_files": [
+        "src/midprojectrag/orchestration/execution_contracts.py",
+        "tests/test_controller_code_representation_cache.py",
+        "scripts/benchmark_controller_code_representation.py"
+      ],
+      "prohibited_actions": [
+        "Modify existing B3 tests, behavior contracts, diagnostic driver, notebook, golden data or expectations.",
+        "Modify .venv, dependencies, runtime configuration or public API.",
+        "Cache validation PASS, entire function behavior, mutable defaults, closure/global state, source-owner validation or retained-graph validity.",
+        "Change canonical serialization/schema/hash meaning, weaken code/module identity checks or alter source temporal/lifetime rules.",
+        "Run model/API/GPU/GCP, install packages, mutate Git or start unrelated optimizations."
+      ]
+    },
+    "implementation_contract": [
+      "Restore _code_payload to the exact pre-optimization fresh dict/list construction behavior. Do not route it through cache reads, JSON decode or thawing. Existing callers other than _function_sha256 retain their original path.",
+      "Cache only immutable canonical JSON bytes representing the code field, used exclusively by _function_sha256. The code-only producer obtains those bytes from the original code payload semantics and exact current CodeType; callers must not inject arbitrary encoded payloads.",
+      "Use exact CodeType identity, not structural equality. Retain and compare the exact code object to prevent id reuse. Recursively safe immutable primitive/bytes/tuple/nested-CodeType constants may be cached; custom or mutable constants use the original uncached fingerprint path.",
+      "Preserve signed-zero, bool/int and existing nonfinite normalization, Unicode/escaping and nested code semantics. Each cached code fragment must be byte-identical to the existing canonical encoder output for that original code payload.",
+      "On every _function_sha256 call, retain original exact type validation and read current __code__, __module__, __qualname__, __defaults__ and __kwdefaults__. Normalize the latter fields through the original logic and freshly JSON-encode defaults, kwdefaults, module, qualname and schema_version. Assemble only this fixed six-field outer object with code first, then defaults, kwdefaults, module, qualname, schema_version, using exactly the existing canonical ordering, separators, encoding and error behavior before SHA256. No generic JSON fragment API, textual replacement in arbitrary JSON, stale mutable-field cache or nested digest substitution.",
+      "Remove the JSON.loads/fresh_payload cache path and its now-unused pins. Keep new helper code/default/module and applicable closure identity sealed through the existing pin mechanism. No generic recursive pin framework.",
+      "Reuse the bounded cache and identical immutable-entry mirror under one lock; insert/validate/evict/clear both consistently. Require matching membership and exact entry identity plus exact code/bytes/size. Preserve code-only producer provenance and fail closed on one-sided or mismatched state, without silently repairing cache corruption.",
+      "Keep 128-entry and 4-MiB retained canonical representation-byte bounds, oversized bypass and transparent eviction/concurrency behavior. The representation limit is not a total-RSS guarantee; no unbounded second payload store.",
+      "Do not cache validation PASS, full function fingerprints by function identity, globals, closures, defaults, class/instance behavior, source authority or retained graph validity. Existing live dependency/global/closure checks and source temporal/lifetime semantics remain mandatory."
+    ],
+    "acceptance_criteria": [
+      "Original frozen source and all historical B3/diagnostic evidence are preserved before edits. This is a derivative candidate, not completion or approval of B3.",
+      "Original and candidate canonical payload bytes and hashes match on the fixed microbenchmark corpus, including nested code, signed zero and cache-ineligible constants.",
+      "Original _code_payload returns independent mutable dict/list containers; exact-identity code-fragment cache, mirror/bounds, eviction and concurrency checks pass.",
+      "Existing code replacement, mutable defaults/closure/global and dependency-drift behavior remains enforced.",
+      "One comparable unprofiled baseline and candidate trajectory preserve meaningful execution/state/effect/ledger semantics.",
+      "Actual timing results are reported, including neutral or worse outcomes. No speedup threshold or successful optimization claim is invented.",
+      "Fresh deep review assesses cache correctness, integrity boundaries, memory bounds and actual evidence before closeout.",
+      "Apply controller-code-cache-semantics-amendment-1 as consolidated in measurement_plan.semantic_comparison. Comparable numeric step/revision, lifecycle counts and same-state relation plus original affected regressions/live checks support behavior assurance; do not claim literal full-graph bijection.",
+      "Candidate3 must show a useful result on the authorized same-baseline representative comparison with all semantic/canonical checks intact. Neutral/worse or failed evidence is not optimization success; follow the bounded rejection/restore branch."
+    ],
+    "required_tests": {
+      "focused": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest tests.test_controller_code_representation_cache -v",
+      "cases": [
+        "Exact original/candidate canonical code-fragment bytes and complete _function_sha256 input bytes/digests on the fixed corpus; include outer field ordering, Unicode/escaping, signed zero, bool/int, nested code and nonfinite normalization.",
+        "Original fresh _code_payload top-level/nested mutation isolation without any cache decode path.",
+        "Distinct equal-looking CodeType identities, mutable/custom constant bypass, current code replacement and defaults/kwdefaults/closure/global changes remain correctly observed.",
+        "Bounded identity/mirror cache membership, accounting, insertion/eviction/clear, oversized bypass, concurrent access and existing helper code/default pins remain enforced.",
+        "Benchmark fixtures and meaningful output assertions stay fixed; add only targeted cases needed for the candidate3 fixed outer-encoding boundary."
+      ],
+      "adjacent": "If candidate3 is useful and focused equivalence passes, run all originally required affected runtime/fingerprint/dependency and first-parent/source-history regressions before final review. Record exact test IDs/results and do not weaken existing assertions. If neutral/worse, do not spend the expensive adjacent run on a rejected derivative; restore and verify the preserved original bytes instead. This branch does not waive separate B3 integration gates.",
+      "integration": "Do not launch an expensive full suite automatically. Existing testpolicy and B3 integration requirements remain binding; main must determine and record required integration coverage before merge. Missing mandatory evidence is not waived.",
+      "review": "Fresh deep review of implementation, callers, dependency pins, cache lifetime and all benchmark/semantic evidence."
+    },
+    "measurement_plan": {
+      "ordering": [
+        "Preserve candidate1/2 sources, original baseline, micro results, candidate2 trajectory and comparison.json. Record that comparison PASS means evidence consistency only. No baseline or candidate2 rerun.",
+        "Coder implements only the candidate3 fixed serialized-code-fragment alternative and restores _code_payload original behavior; complete focused correctness and exact original/candidate byte/hash corpus checks before expensive execution.",
+        "Use the already fixed tiny benchmark corpus/script and iteration count to run exactly one candidate3 microbenchmark in a new unique private output. Preserve the original baseline and all slower candidate results. If benchmark instrumentation itself needs a change, stop for QUESTION rather than comparing altered measurement methods.",
+        "Main freezes candidate3 and performs exactly one new candidate3 unprofiled CLI representative trajectory, using the same original baseline driver, command options, fixture, interpreter and environment. Only candidate source and unique output path differ. No notebook/profile rerun.",
+        "Interpret actual candidate3 timing and semantic evidence against the preserved unchanged-source baseline. A small single-pair difference is preliminary, not a statistical or production speed claim.",
+        "If useful, complete required affected regressions and fresh deep review. If neutral/worse or the trial fails, reject the optimization, preserve all evidence and restore only execution_contracts.py's optimization derivative to the exact preserved pre-optimization d1363959a942e4347622792c1ea86c411d3a6d8639ca7f5d60d69d58757d59c4 source. Verify bytes/hash and untouched other files; do not restore repository HEAD over user-owned B3 changes.",
+        "After rejection, retain owned diagnostic benchmark/tests and historical evidence as non-integrated trial artifacts for main's disposition. Do not delete them, invent a candidate4, broaden the cache or start another expensive run."
+      ],
+      "microbenchmark": "Use the same small fixed code corpus and fixed iteration count in original and candidate subprocesses, for example 1000 iterations over eight small functions. Verify canonical bytes/hash equality first. Record cold and repeated-call timings separately, retain results privately and prevent dead-result omission. No expensive Controller fixture in this helper.",
+      "trajectory": "Use the existing diagnostic driver with profile=false for both runs, independent fresh state and separate private output directories. Do not compare the earlier profiled CLI against the notebook as a baseline.",
+      "semantic_comparison": "Compare the two unchanged-driver runs' numeric step_index and ledger_revision, lifecycle call counts and same_state_as_predecessor relation. Preserve actual hashes as provenance, without treating matching or differing hashes alone as proof of cross-run graph equivalence. Require the original affected first-parent regression assertions and live source/effect/transition integrity checks to pass on the candidate. Separately require exact canonical payload-byte and hash equality on the fixed original-versus-candidate microbenchmark corpus.",
+      "environment": "Use project .venv without notebook fallback, unchanged inputs and no concurrent heavy work. Record actual interpreter/import origins, dependency metadata, source hashes, instrumentation absence and host activity.",
+      "interpretation": "One paired candidate3 result is preliminary. Preserve actual wall/CPU/peak-RSS and all semantic observations. comparison PASS is not optimization effectiveness. Neutral/worse means rejection and bounded source restoration, not automatic optimization escalation.",
+      "output_naming": "Main chooses new previously nonexistent private paths labelled candidate3-micro and candidate3-trajectory within the existing code-cache-opt1 diagnostic namespace. Each run records exact candidate/script/input hashes and fails on existing output; never overwrite candidate1/2 artifacts."
+    },
+    "constraints": [
+      "The user authorizes this narrow optimization derivative; unrelated dirty work remains untouched.",
+      "No preimplementation PASS or existing B3 final approval is implied.",
+      "Main owns baseline collection before the first product edit and preserves both old and new candidate identities.",
+      "All failed attempts and benchmark results remain immutable; no cherry-picking or silent retries.",
+      "Candidate1's slower tiny-corpus microbenchmark remains evidence; it neither proves real Controller regression nor grants an extra trajectory run. No candidate1 trajectory is authorized.",
+      "Preserve original directive1, semantic amendment and directive2 unchanged. This full v3 prospectively replaces their caching mechanism and trial schedule only; the narrower driver-fields plus affected-regression semantic assurance remains incorporated verbatim.",
+      "Contract v2 authorizes only one candidate3 microbenchmark and one candidate3 representative trajectory after focused checks, followed by useful-result affected regressions or neutral/worse rejection/restoration. No extra representative trial, profiling or general framework is authorized.",
+      "If candidate3 needs repair after its measured trajectory, preserve the result and issue QUESTION for any new measurement; do not attribute stale timing to changed source.",
+      "Restoration is only to the preserved pre-optimization source, never git checkout/reset or whole-worktree replacement. If unrelated source edits appear, stop rather than overwrite them.",
+      "Existing no model/API/GPU/GCP/install/Git constraints, file ownership and final fresh deep review/closeout requirements remain unchanged. Rejection does not establish B3 approval."
+    ],
+    "source_refs": [
+      "fivecircles/work/2026-09-08-controller-diagnostics-notebook.md",
+      "resources/data_refined/private/diagnostics/controller-path/cli-profile-20260908-cycle25-2/main-profile-summary.json",
+      "src/midprojectrag/orchestration/execution_contracts.py:653",
+      "src/midprojectrag/orchestration/execution_contracts.py:865",
+      "src/midprojectrag/orchestration/execution_contracts.py:1000",
+      "src/midprojectrag/orchestration/execution_contracts.py:1017",
+      "src/midprojectrag/orchestration/execution_contracts.py:2285",
+      "fivecircles/test/testpolicy.md:71",
+      "fivecircles/agent/skills/collaboration/references/messages.md",
+      "fivecircles/work/collaboration/eh-relay-20260907/messages/controller-code-cache/002-semantics-amendment.json",
+      "controller-code-cache-effectiveness-question-1",
+      "resources/data_refined/private/diagnostics/controller-path/code-cache-opt1-20260908-001/comparison.json"
+    ]
+  }
+}

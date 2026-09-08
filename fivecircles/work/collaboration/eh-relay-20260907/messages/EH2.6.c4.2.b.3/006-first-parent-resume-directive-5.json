@@ -1,0 +1,188 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.c4.2.b.3",
+  "message_id": "first-parent-resume-directive-5",
+  "in_reply_to": "first-parent-resume-directive-4",
+  "sender": "PHILOSOPHER",
+  "kind": "DIRECTIVE",
+  "body": {
+    "mode": "DESIGN",
+    "contract_id": "sha256:f8fe0041df23b81dc3e88b0138363535c504bf5e36269610af118884f72752de",
+    "resolution": null,
+    "coordination_note": "Main reported native full discovery failure; Design accepted reuse of existing pinned HB add-ons as explicit full-only environment. No Coder QUESTION fabricated, no environment install/mutation. v4 isolation already running continues with its recorded source-only environment.",
+    "objective": "Complete original B3 first-parent revision4 acceptance on the current candidate; recover historical evidence first, allow no-op implementation, execute only outstanding necessary verification.",
+    "selected_task_ref": {
+      "path": "fivecircles/architecture/todolist.md",
+      "task_id": "EH2.6.c4.2.b.3",
+      "parent_id": "EH2.6.c4.2.b",
+      "parent_status": "PARTIAL"
+    },
+    "direction_assessment": {
+      "target": "Authentic ordinal4 first parent source/effect and same-state revision4 with complete retained context and once-only execution.",
+      "current": "Executor, complete-context readback, dual-family reservation and twelve focused tests exist. Historical focused12/adjacent246 passed on core d1363959. Current core a8e38f28 includes subsequent approved scoped changes; current B3 final gates remain pending.",
+      "gap": "Current-candidate applicability, required focused/adjacent/isolated/full evidence, fresh deep review and closeout/integration. Original isolation lacks the approved fusion keyword dependency.",
+      "selection_reason": "Finish this existing acceptance boundary before another Controller edge. No-op implementation is valid; no new optimization.",
+      "contract_assessment": "Original product contract unchanged. Recovery and precise isolated validation input composition only are amended.",
+      "task_selection_score": {
+        "score": 9,
+        "rubric": "Historical v2: upstream4 + connection2 + safety2 + validation2 - risk1",
+        "interpretation": "Selection estimate, not performance or review PASS."
+      }
+    },
+    "baseline": {
+      "root": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
+      "branch": "feat/total-integration",
+      "commit": "233addfa5dfb1be43417cb13cc99863d52372e96",
+      "expected_core_sha256": "a8e38f2877b7deaa46483256a65390b72cade1460ced9728027d9168bcc61737",
+      "candidate_id": null,
+      "test_evidence_id": null
+    },
+    "scope": {
+      "allowed_files": [
+        "src/midprojectrag/orchestration/execution_contracts.py",
+        "tests/test_controller_first_parent_transition.py"
+      ],
+      "main_owned_behavior_files": [
+        "fivecircles/architecture/specs/controller-first-parent-transition.md",
+        "src/midprojectrag/orchestration/module-contract.md"
+      ],
+      "read_only_behavior_references": [
+        "fivecircles/architecture/specs/controller-next-decision.md",
+        "fivecircles/architecture/specs/controller-first-fusion-transition.md"
+      ],
+      "validation_only_prerequisites": [
+        {
+          "path": "src/midprojectrag/retrieval/fusion.py",
+          "sha256": "32445fa6a7d3d59949f4a01646c69473d03321ded64d15ae3805738b36a2e356",
+          "owner": "Previously approved QUICKQA.2; not B3-owned",
+          "reason": "Current core requires include_attestations=True; original base lacks keyword.",
+          "provenance": "fivecircles/work/collaboration/eh-relay-20260907/messages/QUICKQA.2/002-combined-implementation-report.json",
+          "operation": "Read/copy exact verified bytes into disposable validation snapshot only; no new product edit or publication permission."
+        }
+      ],
+      "in": [
+        "Recover evidence; audit original acceptance including both interim findings.",
+        "Repair demonstrated B3 defects only in owned2; zero edits is acceptable.",
+        "Coder freezes current candidate and captures focused/adjacent; Main handles isolation/full, review, records and separately authorized integration."
+      ],
+      "prohibited_actions": [
+        "No denied LATENCY.FIX per-call memo/final-audit recreation, retry or workaround.",
+        "No optimization/profiling/benchmark/hotline/model/API/provider/Langfuse/VLM/HB/GPU/GCP/DIAG131 execution.",
+        "No later compare/bridge Controller/rerank/verifier/absence/semantic promotion/ordinal5/terminal/public Controller expansion.",
+        "No corpus/gold/baseline/evaluation/config/dependency/policy/scanner/canonical CSV edits.",
+        "No expanded product ownership, dirty-tree cleanup/copy, Coder Git, external messaging or nested delegation.",
+        "No weakened source/lifetime/concurrency/assertion/validation gates."
+      ]
+    },
+    "acceptance_criteria": [
+      "All substantive acceptance in immutable original v2 and unchanged first-parent contract remains required; historical exclusions retain original applicability except explicit B3 parent permission.",
+      "Authentic fact and first compare revision3 applied fusion execute selected first bounded parent once; original dense+lexical+fusion graph and full candidate order remain bound. No reminted compare retrieval tuple.",
+      "Base semantic obligation is the existing source-derived factory product. Both complete parent/bridge batches retain exact identities/order, and the selected parent receipt alone supplies one effect. Include more than one seed and bridge applied/empty rows so selected-only shortcut cannot pass.",
+      "Parent batch attempt begins after atomic claim cutoff and binds exact admitted issuer/minter/module/source kind. Prestarted/precompleted/cached old sources cannot be admitted by late stamping. Existing lane/fusion fence remains unchanged in meaning.",
+      "Budget3, round-cap2, empty/error/abstain or wrong target/source reject without context dispatch; admitted parent with missing model capability still makes no model/rerank/verifier/clock call and invents no capability outcome.",
+      "Exactly one effect/count4/transition4/successor, same before/after state identity and equal semantic fingerprints, unchanged no-progress/round/lane/sibling fields. Parent auxiliary context never becomes support or verifier context. Existing source normalization call_performed=true is not a provider-call claim.",
+      "Duplicate/concurrent calls produce at most one complete preparation and successor; pre/post-child failure, authority drift, registration failure and GC do not allow retry or partial successor. Retain and validate predecessor/root/source/context graphs; readback is zero-work.",
+      "Current candidate must satisfy focused, adjacent, explicitly amended isolation and resolved-input full. Historical core d1363959 results are not current PASS. Assess all interim findings and twelve-case matrix.",
+      "Isolation manifest separates base, B3 owned2, refs4 and exact approved fusion prerequisite; no other dirty overlay. Fresh deep binds exact directive/contract/candidate/evidence/Coder report; Risk7 mandatory depth remains.",
+      "Main report/browser QA, closeout/logall and exact publication reconciliation precede separately authorized integration. Whole Controller/E1/E2E, quality and speed remain unproven."
+    ],
+    "required_tests": {
+      "environment": "Actual repository cwd; pinned .venv/bin/python3 (Python3.12 as confirmed baseline); explicit PYTHONPATH=src and PYTHONDONTWRITEBYTECODE=1 for BOTH probes and test children. Record interpreter/version/platform, metadata tuples with multiplicities, actual source/test origins, cwd/sys.path and a nonsecret environment allowlist before/after. Never inspect .env/key values or normalize arbitrary duplicates. Explicit v5 exception: full child/probe uses required_tests.full_environment; source-only focused/adjacent/isolated retain their own actual evidence.",
+      "recovery": "Historical focused12/adjacent246 PASS recovered from first-parent-{focused,adjacent}-final-1-result.json under /private/tmp/eh-relay-20260907.GNy8vE. No repeat intended RED or old diagnostics merely to recover status.",
+      "focused_command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest tests.test_controller_first_parent_transition -v",
+      "adjacent_command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest tests.test_controller_post_fusion_decision tests.test_controller_first_fusion_transition tests.test_controller_first_fusion_state tests.test_controller_post_lexical_decision tests.test_controller_lexical_transition tests.test_controller_next_decision tests.test_controller_initial_transition tests.test_controller_decision_receipt tests.test_controller_source_authority tests.test_controller_source_outcome_resolver tests.test_controller_step_history tests.test_controller_target_context_accumulator tests.test_controller_structural_effect_bridge tests.test_action_effect_receipts tests.test_action_effect_receipt_contract tests.test_action_effect_non_authority tests.test_rerank_derived_semantic tests.test_semantic_verification tests.test_retrieval_obligations -v",
+      "execution_discipline": "Freeze actual candidate and dependencies, native IDs/counters/exits and environment before/after. No expensive duplicate suites. Unexpected required failure yields QUESTION. Static isolation preflight may overlap focused validation.",
+      "integration_isolated": {
+        "owner": "Main",
+        "recipe": "Exact base233addfa + frozen B3 owned2 + refs4 + only fusion.py at 32445fa6a7d3d59949f4a01646c69473d03321ded64d15ae3805738b36a2e356.",
+        "checks": "Run focused and full original adjacent modules; pinned interpreter, isolated cwd/PYTHONPATH, source origins, seven overlay hashes and complete listed input identities before/after.",
+        "static_preflight": "Check dependency closure before long execution. Do not run known-invalid original six-file recipe.",
+        "additional_dependency_rule": "No additional overlay without precise QUESTION and complete Design decision.",
+        "status_label": "ISOLATED_BASE_PLUS_B3_PLUS_APPROVED_PREREQUISITE_PASS"
+      },
+      "prerequisite_regression": {
+        "required_coverage": "Current-source full discovery must execute all four tests.test_combined_runtime_validation IDs.",
+        "expected_test_sha256": "bf3ef3ec12b1964581df6aa00a0ecd6fd7ab38eb9c17497efc045a09abc45752",
+        "duplication_rule": "No standalone repeat if same full executes unchanged tests on bound candidate.",
+        "isolation_rule": "Not an extra isolated overlay; original focused/adjacent there, full supplies combined prerequisite regression."
+      },
+      "integration_full": "Once final candidate freezes, main runs one complete discovered suite using validation_input_locator below, not an intentionally repeated unwrapped command known to fail. All discovered test IDs must execute with no added skips/expected failures, missing modules or relaxed assertions. A required failure yields QUESTION, not automatic scope narrowing/recovery retries.",
+      "review": "Fresh gpt-6-astra deep final review, explicit cross-module source/claim/complete-context/parent-state/public-readback and test-helper/input applicability. It must review actual frozen candidate, contract refs and native evidence; Design is not PASS. No second identical review of previous candidate.",
+      "publication": "Preserve native repository safety result and exact existing two-field historical adjudication only. New files/findings require new bounded review; main report/browser QA and final exact owned payload reconciliation follow existing policy.",
+      "evidence": "Actual candidate/evidence manifest with owned2/ref4 plus separately bound prerequisite, listed source/test/config/dependency/environment before/after, native logs/IDs/exits, full frozen5/config/canonical; preserve old failures and UNKNOWN limitations.",
+      "full_environment": {
+        "PYTHONPATH": "src:/private/tmp/hb-qwen-local-addons-20260908-001/site-packages",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "addon_root": "/private/tmp/hb-qwen-local-addons-20260908-001/site-packages",
+        "expected_packages": {
+          "langchain-core": "1.6.2",
+          "langchain-text-splitters": "0.3.11",
+          "rank-bm25": "0.2.2"
+        },
+        "provenance": [
+          "src/midprojectrag/hb_mini131.py:44",
+          "fivecircles/work/2026-09-08-hb-qwen-mini131.md:256"
+        ],
+        "authority": "Existing approved local HB add-on environment, read-only reuse. No new install/version or .venv change.",
+        "gates": "Before and after: addon file manifest, exact metadata versions/multiplicities, real module origins and explicit source-only vs full environment comparison. Base .venv stays unchanged. Missing/conflicting/changed addon yields QUESTION.",
+        "retry_authorization": "One new full invocation after observed 4.973s/exit1 discovery failure; preserve failure and zero executed count. No automatic third attempt. All original full tests/assertions/zero-skip and locator remain required.",
+        "scope_separation": "Focused/adjacent and already running v4 isolated stay PYTHONPATH=src. Do not claim full environment identical; record added package/import-path difference."
+      }
+    },
+    "validation_input_locator": {
+      "decision": "Explicit prospective validation-only location selection for this batch's full suite is accepted within approved local validation scope; no durable loader or data repair. It does not need data-write authority because only existing exact pinned artifact bytes are read. Main must install/acknowledge this separate validation decision before dispatch and verify all preconditions before launching the full child.",
+      "scope": "full",
+      "resolver_path": "/private/tmp/eh-relay-20260907.GNy8vE/run-post-fusion-frozen-analytics-check.py",
+      "resolver_sha256": "9cd31699b714ec0c207c1cd063a3d8352a539751d7536ae8efa0d559ad7847db",
+      "patched_symbol": "midprojectrag.corpus_analytics_baseline.CSV_PATH",
+      "canonical_path": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/resources/data_refined/refined_data_list.csv",
+      "canonical_status": "UNREPAIRED_FROZEN_HASH_MISMATCH; record actual before/after hash without overwriting it.",
+      "archive_path": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/resources/data_refined/share/2026-08-31/MidProjectRAG_refined98_catalog_csv/refined_data_list.csv",
+      "archive_sha256": "cef0a27602976af468206ad2fa855027cb6f686fc877a52ce8fb191c57cd7e5b",
+      "unchanged_expectations": "All five baseline.EXPECTED_HASHES and config.input_sha256 must exactly equal the pinned baseline, including archive as refined_csv and original cases/targets/categories/manifest paths. Reader/calculator/test/assertions/testcases remain unchanged. Preflight/postflight hashes must match; no alternative artifact search/fallback.",
+      "invocation": {
+        "executable": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/bin/python3",
+        "argv": [
+          "-c",
+          "import importlib.util,json,runpy,sys\nfrom pathlib import Path\nroot=Path(\"/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG\")\nresolver=\"/private/tmp/eh-relay-20260907.GNy8vE/run-post-fusion-frozen-analytics-check.py\"\nif Path.cwd().resolve()!=root or not sys.path or sys.path[0]!=\"\":\n    raise RuntimeError(\"exact_cwd_minus_c_import_context_required\")\ntests_spec=importlib.util.find_spec(\"tests\")\nproduct_spec=importlib.util.find_spec(\"midprojectrag\")\norigins={\"tests\":None if tests_spec is None else tests_spec.origin,\"midprojectrag\":None if product_spec is None else product_spec.origin}\nif origins[\"tests\"] is None or Path(origins[\"tests\"]).resolve()!=root/\"tests/__init__.py\":\n    raise RuntimeError(\"exact_tests_package_origin_required\")\nif origins[\"midprojectrag\"] is None or Path(origins[\"midprojectrag\"]).resolve()!=root/\"src/midprojectrag/__init__.py\":\n    raise RuntimeError(\"exact_product_package_origin_required\")\nsys.argv=[resolver,\"--scope\",\"full\"]\nprint(json.dumps({\"event\":\"frozen_analytics_launcher_context\",\"cwd\":str(Path.cwd().resolve()),\"executable\":sys.executable,\"sys_path\":list(sys.path),\"import_origins\":origins,\"resolver_path\":resolver,\"argv\":list(sys.argv)},sort_keys=True),flush=True)\nrunpy.run_path(resolver,run_name=\"__main__\")\n"
+        ],
+        "cwd": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
+        "env_overrides": {
+          "PYTHONPATH": "src",
+          "PYTHONDONTWRITEBYTECODE": "1"
+        },
+        "launcher_program_utf8": "import importlib.util,json,runpy,sys\nfrom pathlib import Path\nroot=Path(\"/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG\")\nresolver=\"/private/tmp/eh-relay-20260907.GNy8vE/run-post-fusion-frozen-analytics-check.py\"\nif Path.cwd().resolve()!=root or not sys.path or sys.path[0]!=\"\":\n    raise RuntimeError(\"exact_cwd_minus_c_import_context_required\")\ntests_spec=importlib.util.find_spec(\"tests\")\nproduct_spec=importlib.util.find_spec(\"midprojectrag\")\norigins={\"tests\":None if tests_spec is None else tests_spec.origin,\"midprojectrag\":None if product_spec is None else product_spec.origin}\nif origins[\"tests\"] is None or Path(origins[\"tests\"]).resolve()!=root/\"tests/__init__.py\":\n    raise RuntimeError(\"exact_tests_package_origin_required\")\nif origins[\"midprojectrag\"] is None or Path(origins[\"midprojectrag\"]).resolve()!=root/\"src/midprojectrag/__init__.py\":\n    raise RuntimeError(\"exact_product_package_origin_required\")\nsys.argv=[resolver,\"--scope\",\"full\"]\nprint(json.dumps({\"event\":\"frozen_analytics_launcher_context\",\"cwd\":str(Path.cwd().resolve()),\"executable\":sys.executable,\"sys_path\":list(sys.path),\"import_origins\":origins,\"resolver_path\":resolver,\"argv\":list(sys.argv)},sort_keys=True),flush=True)\nrunpy.run_path(resolver,run_name=\"__main__\")\n"
+      },
+      "runner_requirement": "Existing pinned resolver bytes remain unchanged. Main temp-only outer capture is permitted for this batch with fresh manifest paths/prefix first-parent-full and code/hash recorded before launch. Do not reuse old-candidate-pinned outer gates or overwrite prior artifacts. Record three ordered launcher/start/result events, scope full, exact discovery IDs, actual count and zero loader errors. Outer gate requires exit0 plus errors/failures/skips/expectedFailures/unexpectedSuccesses0, testsRun equal discovered IDs, all bindings unchanged. Capture finally-restoration evidence without patching any additional product/test symbol.",
+      "runtime_boundary": "Do not replay historical unknown probe environments or silently deduplicate metadata. Use one explicitly recorded source-enabled probe/test environment now; distributions and multiplicities and actual import origins match before/after each root. Historical UNKNOWN limitation stays historical. Unexpected difference blocks evidence reuse and requires QUESTION.",
+      "status_labels": "New result may be RESOLVED_INPUT_FULL_PASS only after actual successful full and valid postflight; include actual invocation/count and UNREPAIRED canonical status. It is not standard_unwrapped_full PASS or a reused COMPOSED_VALIDATION_PASS. Original full1657/exit1, recovery1 actual0/exit1, bounded recovery2 and old composition remain immutable historical receipts.",
+      "no_preapproval": "No current full evidence or new candidate exists. No automatic retry/analytics-only downgrade/full gate waiver is authorized. Unexpected input/loader/environment/test failure requires complete QUESTION and decision."
+    },
+    "constraints": [
+      "Original v2 substantive semantics, acceptance, locator and historically scoped constraints are incorporated unchanged except explicit recovery and seven-file isolation amendment.",
+      "QUICKQA.2 final HALT concerns consumed actual QA TIMEOUT; implementation provenance is not whole-B3 or QA PASS.",
+      "Main owns state/records/snapshot integration. One Sol Ultra Coder owns necessary two-file repair only. No-op implementation allowed.",
+      "Candidate drift, new missing prerequisites, unexpected required failures or permission denial requires guidance; no forced PASS or bypass.",
+      "No last-pass update until valid final review and required verification.",
+      "Validation copying is not Git/publication authority. Reconcile shared-file ownership separately; resources/unrelated changes excluded.",
+      "Only prospective full PYTHONPATH uses exact pre-existing HB add-on directory under this v5. This supersedes source-only wording solely for the full probe/test child; all other exclusions, v4 ongoing isolation and exact prerequisites remain unchanged."
+    ],
+    "source_refs": [
+      "fivecircles/work/collaboration/eh-relay-20260907/messages/EH2.6.c4.2.b.3/002-first-parent-directive-2.json",
+      "fivecircles/architecture/specs/controller-first-parent-transition.md",
+      "fivecircles/architecture/todolist.md",
+      "fivecircles/work/2026-09-07-controller-first-parent-relay.md",
+      "fivecircles/agent/authority.md",
+      "fivecircles/agent/skills/collaboration/references/messages.md",
+      "fivecircles/agent/skills/collaboration/references/relay-cycle.md",
+      "fivecircles/work/collaboration/eh-relay-20260907/messages/EH2.6.c4.2.b.3/004-first-parent-interim-review-1.json",
+      "fivecircles/work/collaboration/eh-relay-20260907/messages/QUICKQA.2/002-combined-implementation-report.json",
+      "fivecircles/work/collaboration/eh-relay-20260907/messages/QUICKQA.2/003-preflight-review.json",
+      "fivecircles/work/collaboration/eh-relay-20260907/messages/QUICKQA.2/005-final-review.json",
+      "fivecircles/work/2026-09-08-controller-traversal.md",
+      "fivecircles/work/2026-09-08-controller-validation-flow-fix.md"
+    ],
+    "handoff": "After Main and Design confirm this recorded operational correction, dispatch Coder for current audit/focused/adjacent; Main only amended isolation/full after readiness, fresh deep, closeout and safe next relay. No current candidate or PASS invented."
+  }
+}

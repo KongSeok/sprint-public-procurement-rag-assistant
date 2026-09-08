@@ -1,0 +1,106 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "QUICKQA.2",
+  "message_id": "quickqa2-directive-1",
+  "in_reply_to": null,
+  "sender": "PHILOSOPHER",
+  "kind": "DIRECTIVE",
+  "body": {
+    "mode": "DESIGN",
+    "contract_id": "quickqa2-combined-validation-total120-v1",
+    "objective": "동일 runtime 검증 안에서 hybrid가 이미 수행한 dense/lexical 전체 검증의 즉시 중복을 제거하고, 초기화를 포함한 총 120초 상한 아래 기존 질문 하나를 한 번 실행한다.",
+    "selected_task_ref": "fivecircles/architecture/todolist.md: QUICKQA.2; 시간 제한은 기존 EH2.6.d4 참조",
+    "direction_assessment": {
+      "goal": "검증 무결성을 보존하면서 실제 문답 처리시간을 줄이고 사용자가 지정한 2분 안에서 결과 또는 실패 증거를 확보한다.",
+      "current": "execution_contracts.py의 require_hybrid 호출 직후 require_dense/require_lexical을 다시 호출한다. fusion.py의 require_production_hybrid는 이미 두 전체 검증을 수행하며 그 반환 객체를 보유한다. QUICKQA.1 실제 문답은 fuse에서 timeout으로 종료됐다.",
+      "gap": "중복 비용 제거는 정적 개선 가설이다. 120초 안에 답변이 생성된다는 성능 보장은 없다. 기존 runner의 1200초 SIGALRM과 600000ms config는 이번 총시간 요구에 맞지 않는다.",
+      "selection_reason": "이미 검증한 객체를 같은 호출에서 반환해 사용하는 것이 가장 작은 변경이다. 전역 캐시나 새로운 검증 권위 체계가 필요하지 않다."
+    },
+    "scope": {
+      "allowed_files": [
+        "src/midprojectrag/orchestration/execution_contracts.py",
+        "src/midprojectrag/retrieval/fusion.py",
+        "scripts/run_controller_quick_qa.py",
+        "기존 집중 테스트 파일의 필요한 최소 수정 및 좁은 신규 테스트",
+        "/private/tmp/quickqa2.AsL8qx 아래 단일 실행용 supervisor와 집중 검증 증거",
+        "기존 private diagnostics 아래 새로운 QUICKQA.2 실행 출력 디렉터리"
+      ],
+      "prohibited_actions": [
+        "다른 제품 파일 변경, 신규 프레임워크, 전역 PASS 캐시, 검증 생략 또는 외부 제공 증명 토큰 수용",
+        "다운로드, 외부 API, VM, 재임베딩, 전체 테스트 모음, HTML 작성",
+        "Git 변경·커밋·push, 기존 dirty 변경 정리",
+        "질문 또는 생성 자동 재시도, 두 번째 실제 질문",
+        "공유 Ollama daemon 또는 소유하지 않은 프로세스 종료"
+      ]
+    },
+    "design": {
+      "combined_validation": [
+        "권장 최소 API: require_production_hybrid에 기본 False인 keyword-only include_attestations 옵션을 추가한다. False이면 기존 binding 반환을 유지하고, True이면 같은 호출에서 검증한 (binding, dense_attestation, lexical_attestation) built-in tuple을 반환한다. 옵션은 반환 모양만 선택하며 전체 검증 실행 여부를 바꾸지 않는다.",
+        "기존 require_production_hybrid의 dependency/function/default/object/store 검사, dense와 lexical 전체 검증, binding digest 비교를 그대로 통과한 마지막 지점에서만 반환한다. 호출자가 attestation 또는 검증 완료 토큰을 입력할 수 있는 API를 만들지 않는다.",
+        "production runtime의 현재 require_hybrid + require_dense + require_lexical 연속 호출을 require_hybrid(..., include_attestations=True)의 단일 반환 해제로 교체한다.",
+        "반환된 세 객체는 authority 및 앞선 preflight 객체와 각각 is 비교한다. 기존 예상 digest/구성/아티팩트 비교를 보존한다.",
+        "standalone public dense/lexical/hybrid 검증 계약과 호출 전후 runtime 검증 횟수, mutation 및 동시성 경계를 유지한다. 이번에는 별도 store snapshot·row hash 등의 추가 중복 최적화를 확대하지 않는다.",
+        "변경된 함수의 기존 code/default/kwdefault 및 dependency pins가 새로운 정상 후보를 정확히 결속하도록 필요한 기존 pin 선언만 수정한다. drift 검사를 완화하거나 pin 목록에서 제거하지 않는다."
+      ],
+      "timeout": [
+        "작은 OS supervisor가 worker 시작 직전 monotonic 시작시각과 deadline=start+120을 정한다. 초기화·모델 cold load·Controller·생성·worker 결과 처리가 같은 예산을 공유한다.",
+        "새 worker를 독립 process group/session으로 실행하고 deadline에 아직 살아 있으면 해당 소유 그룹만 강제 종료한다. 120초를 넘는 종료 유예를 추가하지 않는다. OS 스케줄링·receipt 기록의 작은 오버헤드와 worker 실행 상한을 구분해 보고한다.",
+        "worker는 전달받은 절대 monotonic deadline으로 SIGALRM/setitimer와 단계별 remaining-time 검사를 설정한다. 내부 타이머는 native blocking 호출을 확실히 중단한다고 주장하지 않으며 supervisor가 최종 상한을 담당한다.",
+        "Controller config와 generation HTTP timeout은 호출 시점의 남은 시간 이하로 제한한다. 예산 소진 시 새 단계 또는 POST를 시작하지 않는다.",
+        "phase-start/finish와 generation-attempt를 private durable journal에 즉시 기록한다. 단일 POST 예산 소비 및 generation-attempt 기록은 실제 POST 전에 수행한다. 실패도 예산을 소비한다.",
+        "강제 종료로 result.json이 없으면 supervisor receipt와 journal을 근거로 TIMEOUT/FAIL 및 마지막 확인 단계를 보고한다. 관측 불가를 generation_calls=0 또는 PASS로 대체하지 않는다.",
+        "공유 Ollama 서버의 진행 중 생성이 HTTP 연결 종료로 취소됐는지는 확인되지 않을 수 있다. worker 종료와 서버 추론 취소를 동일시하지 않는다."
+      ],
+      "candidate_binding": [
+        "runner의 기존 CORE_SHA 상수를 제거하거나 현재 파일을 무조건 신뢰하도록 바꾸지 않는다. 두 coder 구현이 끝난 뒤 검토할 최종 core SHA로 정확히 갱신한다.",
+        "core·fusion·runner·관련 테스트·supervisor의 파일 SHA 목록으로 단일 후보를 고정한다. 집중 검증 및 fresh review 후 제품 후보가 바뀌면 영향 검증과 review 결속을 갱신한다.",
+        "CORE_SHA 갱신은 runner 소유 coder만 수행하며 core coder가 최종 SHA를 전달한다."
+      ]
+    },
+    "split_ownership": {
+      "core_coder": "Sol ultra: execution_contracts.py, retrieval/fusion.py, 검증 결합에 필요한 좁은 테스트만 소유한다.",
+      "timer_coder": "별도 Sol ultra: scripts/run_controller_quick_qa.py, 임시 supervisor, timeout·journal 집중 테스트만 소유한다. core 파일을 수정하지 않는다.",
+      "main": "문서·상태·후보 통합·fresh Critic 인계만 소유한다. 서로의 테스트 파일이 겹치면 시작 전에 파일별 소유자를 한 명으로 확정한다.",
+      "execution_owner": "집중 검증 및 실제 실행 전 fresh 검수 통과 후 timer coder 한 명만 supervisor를 통해 실제 질문 한 번을 실행한다."
+    },
+    "acceptance_criteria": [
+      "하나의 production runtime validation에서 dense 및 lexical 전체 검증이 각각 한 번 수행되고, 결합 반환은 그 호출이 실제 검증한 정확한 객체다.",
+      "standalone 호출, 기존 attestation identity·drift·preflight·호출 전후·동시성 검증이 유지된다.",
+      "변경된 함수와 반환 경로가 기존 권위 pin 검증에 포함되고, 호출자가 제공하는 완료 토큰이나 전역 PASS 캐시가 없다.",
+      "집중 검증과 fresh 독립 코드 검수가 실제 실행 전에 완료된다.",
+      "기존 request.json 바이트와 데이터·아티팩트·MPS·local Ollama 조건으로 새 private 출력에 한 번 실행한다. 생성 시도는 최대 한 번이다.",
+      "초기화를 포함한 worker 총 120초 상한을 supervisor가 집행한다.",
+      "성공이면 기존 네 전이·parent readback·단일 답변 증거가 있어야 한다. timeout이면 정확한 실패 단계와 시각·시도 증거를 보고하며 문답 완료/PASS로 표시하지 않는다."
+    ],
+    "required_tests": [
+      "결합 반환의 세 객체가 기존 identity와 일치하고 기본 public hybrid 반환은 binding으로 유지되는 집중 테스트.",
+      "runtime 검증 한 번의 dense/lexical 전체 검증 호출 수가 각각 한 번임을 검증하는 좁은 테스트. 테스트 계측은 제품 pin/권위 검사를 무력화하지 않는 기존 fixture 방식으로 수행한다.",
+      "기존 집중 attestation, runtime identity/drift, store drift, dependency drift, 호출 전후 변경 및 관련 동시성 회귀 테스트 중 영향 사례.",
+      "짧은 축소 deadline을 사용한 supervisor 검증: 초기화 대기와 신호에 즉시 반응하지 않는 worker를 제한 내 종료하고 소유 child group을 정리하며 무관한 프로세스는 유지한다.",
+      "generation 직전 예산 소진 시 POST 없음, POST 실패 시 단일 예산 소비, 남은 시간으로 HTTP timeout 제한 검증.",
+      "강제 종료·누락된 result.json에서도 durable journal의 생성 시도와 마지막 단계가 receipt에 정확히 남는 테스트.",
+      "새 최종 core SHA와 runner pin 일치 및 후보 전후 SHA 불변 확인.",
+      "fresh Critic의 실행 전 검수 후 실제 질문 한 번. 실제 결과에 대해 동일 후보와 원시 증거를 결속한 최종 fresh 검수."
+    ],
+    "constraints": [
+      "작업 루트는 /Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG, branch feat/total-integration이다.",
+      "최신 사용자 지시가 QUICKQA.1의 추가 실행 금지를 이번 한 번에 한해 갱신하며, 총 상한은 초기화를 포함해 120초다.",
+      "request 경로: resources/data_refined/private/diagnostics/controller-path/quickqa-20260908-001/request.json. 원문을 공개 메시지나 패킷에 복제하지 않는다.",
+      "기존 evidence artifacts·MPS·loopback/proxy/redirect 차단·single POST·partial-E1 분류를 보존한다.",
+      "실제 실행 timeout은 재시도 권한이 아니다. 결과가 미완료이면 미완료로 보고한다.",
+      "각 coder는 수락 DIRECTIVE ID, 실제 변경 경로, 후보 SHA, 실행한 테스트와 결과를 보고한다. 코더 자체 승인은 없다.",
+      "평가 무결성 계약 변경이므로 fresh Critic은 dependency pin 및 호출자까지 포함해 deep 검수한다."
+    ],
+    "source_refs": [
+      "최신 사용자 지시: 그거합쳐서 돌려보고, 제한 2분으로삼고해",
+      "fivecircles/agent/authority.md",
+      "fivecircles/architecture/todolist.md: QUICKQA.2 및 EH2.6.d4",
+      "fivecircles/work/collaboration/eh-relay-20260907/messages/QUICKQA.1/003-final-review.json",
+      "src/midprojectrag/orchestration/execution_contracts.py: production runtime validation 및 runtime function pins",
+      "src/midprojectrag/retrieval/fusion.py: require_production_hybrid 및 helper/dependency pins",
+      "scripts/run_controller_quick_qa.py: main, initialize, execute_question, generation opener"
+    ],
+    "resolution": null
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.c4.2.b.3",
+  "status": "CLEARED_BY_CURRENT_BOUNDED_REVIEW_AND_FINAL_RECONCILIATION",
+  "candidate_id": "sha256:49ff508ff3a57822fa146f9eaed3edd5e74c86f3a83ea57e4dfb26002a5a7085",
+  "contract_id": "sha256:f8fe0041df23b81dc3e88b0138363535c504bf5e36269610af118884f72752de",
+  "test_evidence_id": "sha256:d9f34932419dae2819c1f8631cf5ba78ad0d3c17dc9a66070cd1cc765ce8e013",
+  "review_message_id": "first-parent-publication-review-1",
+  "review_ref": "fivecircles/work/collaboration/eh-relay-20260907/messages/EH2.6.c4.2.b.3/012-first-parent-publication-review-1.json",
+  "review_sha256": "c4878f996852877ef7f6bf11a6527e6a55b1054fad6ff67da7bcf9c02f3fc1e9",
+  "product_review_ref": "fivecircles/work/collaboration/eh-relay-20260907/messages/EH2.6.c4.2.b.3/011-first-parent-resume-final-review-1.json",
+  "reviewed_manifest_sha256": "7eb4584822e5b5cd55a4617b1948073a79d1aadb666e1e88b57e95fa83198836",
+  "reviewed_audit_sha256": "7a113f40fc10ff4b4a883d2edd338f6123c9ebcef109f7a4bf28d5d692fc6099",
+  "native_safety": {
+    "status": "FAIL",
+    "exit_code": 1,
+    "observation_ref": "/private/tmp/b3-publication-20260908.1v2FVN/publication-audit.json",
+    "scope": "Unmodified native result, separate from bounded policy adjudication."
+  },
+  "exact_adjudication": {
+    "path": "fivecircles/work/collaboration/eh-relay-20260907/messages/QUICKQA.2/002-combined-implementation-report.json",
+    "json_pointer": "/body/evidence_files/22/sha256",
+    "reason": "Independently established exact code-integrity digest, necessary immutable approved-derivative provenance; not personal contact data.",
+    "policy": "Existing security.md section 4",
+    "scope": "Only this field in reviewed context; no future or generic hash exception."
+  },
+  "final_reconciliation": {
+    "expected_path_count": 62,
+    "allowed_additions": [
+      "fivecircles/work/collaboration/eh-relay-20260907/messages/EH2.6.c4.2.b.3/012-first-parent-publication-review-1.json",
+      "fivecircles/work/collaboration/eh-relay-20260907/batches/EH2.6.c4.2.b.3/publication-clearance.json"
+    ],
+    "allowed_mutable": [
+      "fivecircles/work/collaboration/eh-relay-20260907/state.json",
+      "fivecircles/work/2026-09-07-controller-first-parent-relay.md",
+      "fivecircles/test/errorlogs/backend/2026-09-08-b3-publication-preflight.md"
+    ],
+    "manifest_ref": "/private/tmp/b3-publication-20260908.1v2FVN/final-manifest.json",
+    "receipt_ref": "/private/tmp/b3-publication-20260908.1v2FVN/final-reconciliation.json",
+    "status": "COMPLETED",
+    "observed_path_count": 62,
+    "detected_lines": 1,
+    "unexpected_detections": 0,
+    "secret_matches": 0,
+    "main_content_inspection": "Actual 2 additions and 3 closeout updates read in tool chunks 50564c and 896826; existing content preserved."
+  },
+  "limitations": [
+    "Native safety remains FAIL.",
+    "No product/contract/required evidence/report meaning changes.",
+    "No raw private/native corpus or credentials included.",
+    "No model/API/GPU/GCP/benchmark execution or new batch authority.",
+    "Pre-integration record; commit/push not yet performed."
+  ]
+}

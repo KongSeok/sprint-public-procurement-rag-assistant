@@ -1,0 +1,117 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.c4.2.b.3",
+  "message_id": "first-parent-integration-test-closure-protocol-resolution-2",
+  "in_reply_to": "first-parent-integration-test-closure-decision-1",
+  "sender": "PHILOSOPHER",
+  "kind": "DIRECTIVE",
+  "body": {
+    "mode": "DESIGN",
+    "contract_id": "sha256:f8fe0041df23b81dc3e88b0138363535c504bf5e36269610af118884f72752de",
+    "resolution": null,
+    "objective": "Additively clarify the protocol envelope and previously approved path-observation correction for the completed supplemental integration test-closure gate. This records earlier actual approval and execution; it grants no new execution or rerun permission.",
+    "clarification_only": true,
+    "active_product_directive_id": "first-parent-resume-directive-6",
+    "historical_decision_binding": {
+      "message_id": "first-parent-integration-test-closure-decision-1",
+      "path": "fivecircles/work/collaboration/eh-relay-20260907/messages/EH2.6.c4.2.b.3/008-integration-test-closure-decision-1.json",
+      "sha256": "e4f9c24f98ce18e20566be48ba94296a90f68774e13a747ce485bd7ca3b0a016",
+      "preservation": "008 remains immutable, including its incomplete original protocol envelope. This additive clarification does not pretend the missing fields were originally present."
+    },
+    "scope": {
+      "owner": "Main records only; no new product, test, environment or snapshot mutation under this message.",
+      "allowed_files": [
+        "src/midprojectrag/orchestration/execution_contracts.py",
+        "tests/test_controller_first_parent_transition.py",
+        "fivecircles/architecture/specs/controller-first-parent-transition.md",
+        "src/midprojectrag/orchestration/module-contract.md",
+        "fivecircles/architecture/specs/controller-next-decision.md",
+        "fivecircles/architecture/specs/controller-first-fusion-transition.md",
+        "src/midprojectrag/retrieval/fusion.py",
+        "tests/test_controller_code_representation_cache.py",
+        "scripts/benchmark_controller_code_representation.py",
+        "tests/test_controller_predecessor_validation_edge.py",
+        "tests/test_combined_runtime_validation.py"
+      ],
+      "allowed_files_interpretation": "Exact historical validation overlay allowlist only, not edit permission. Per-file hashes are incorporated from immutable008 body.scope.existing_overlay and additional_overlay and must match the bound result overlay.",
+      "base": "233addfa5dfb1be43417cb13cc99863d52372e96",
+      "historical_snapshot": "/private/tmp/b3-integration-isolated.zDhJ78",
+      "prohibited_actions": [
+        "No new execution, test rerun, benchmark CLI/run_benchmark or profiling.",
+        "No product/test/helper/environment/package/data changes or additional overlay.",
+        "No rewriting immutable008, original failed preflight or completed native artifacts.",
+        "No modification or cancellation of independent B3 gates or their snapshots.",
+        "No model/API/HB/VLM/GCP/Git/publication or LATENCY.FIX authority.",
+        "No B3 ownership attribution for previously approved derivative changes."
+      ]
+    },
+    "acceptance_criteria": [
+      "Historical scope remains exact base plus the eleven overlay files and hashes recorded in008.",
+      "Only the three approved derivative test modules were included in this supplemental native gate; benchmark helper usage is import/code-fixture use, not benchmark execution.",
+      "Supplemental evidence retains fourteen discovered unique test IDs, fourteen executed tests, native exit0 and the original zero-failure/error/skip requirements.",
+      "Actual source, tests, fixture and benchmark import origins belong to the snapshot; no host-source fallback is accepted.",
+      "Path comparison projects only each verified cwd-specific /src entry and compares all remaining entries in their original order and multiplicity.",
+      "Interpreter, third-party metadata with multiplicities, explicit environment and relevant file hashes remain bound before/after.",
+      "The failed legacy path-assumption preflight and its zero executed tests remain preserved separately from the corrected successful invocation.",
+      "This supplemental result does not replace focused, adjacent, original amended isolation, full, fresh final review or publication reconciliation."
+    ],
+    "required_tests": {
+      "execution_authorized_by_this_message": false,
+      "historical_modules": [
+        "tests.test_controller_code_representation_cache",
+        "tests.test_controller_predecessor_validation_edge",
+        "tests.test_combined_runtime_validation"
+      ],
+      "historical_expected_count": 14,
+      "environment": "Pinned repository .venv/bin/python3, isolated cwd, PYTHONPATH=src, PYTHONDONTWRITEBYTECODE=1; no full-only HB add-ons.",
+      "requirements": "Retain all native evidence gates from immutable008 body.required_tests. No rerun is requested or authorized."
+    },
+    "path_observation_clarification": {
+      "reason": "Legacy helper incorrectly required the host /src path to appear in the isolated sys.path. Actual root and snapshot probes instead showed clean respective source paths despite unchanged editable .pth bytes.",
+      "approved_comparison": [
+        "Verify actual root and snapshot cwd independently.",
+        "Require root/src exactly once in root sys.path and snapshot/src exactly once in snapshot sys.path.",
+        "Require host root/src zero times in snapshot sys.path.",
+        "Replace only the respective cwd/src entry with one common logical marker; compare complete lists with original ordering and multiplicities.",
+        "Do not remove, sort or deduplicate path or distribution entries.",
+        "Check actual imported module origins and interpreter/environment/third-party metadata equality separately."
+      ],
+      "pth_interpretation": "Unchanged .pth bytes are file-integrity evidence, not proof that the path is active. Preserve both file evidence and actual sys.path/import observations.",
+      "scope": "Previously approved correction to the new supplemental validation helper only; original running gate helpers and environments were not changed."
+    },
+    "completed_evidence_binding": {
+      "candidate_id": "sha256:49ff508ff3a57822fa146f9eaed3edd5e74c86f3a83ea57e4dfb26002a5a7085",
+      "result_path": "/private/tmp/b3-closure-fixed-20260908.SEAYC6/closure-result.json",
+      "result_sha256": "c109e21915ae3e222525fc19b355b2b634199d5fd8127ec6c457bac888d99b76",
+      "native_artifact": "/private/tmp/b3-closure-fixed-20260908.SEAYC6/closure.native.log",
+      "native_artifact_sha256": "ea4763b5d74993a17ad0335aec4635e7bc60f04ee7069a68b59ede8467ed5fd1",
+      "recorded_status": "SUPPLEMENTAL_EXACT_INTEGRATION_TEST_CLOSURE_PASS",
+      "recorded_exit_code": 0,
+      "recorded_test_count": 14,
+      "recorded_elapsed_seconds": 11.57,
+      "recorded_issues": [],
+      "interpretation": "Bindings and recorded supplemental outcome only; this DESIGN message is not a fresh final B3 REVIEW PASS."
+    },
+    "constraints": [
+      "Original v6 remains the active product/Coder directive; this additive record does not replace it.",
+      "No new task selection, implementation, test execution, scope expansion or gate waiver.",
+      "Keep prior derivative ownership and approved packet provenance separate from original B3 work.",
+      "Any discrepancy between these bindings and immutable artifacts requires correction through a new record, never overwriting evidence.",
+      "Main may record this clarification and reference the completed result in final review materials. No last-pass advancement follows from this message alone."
+    ],
+    "source_refs": [
+      "fivecircles/agent/skills/collaboration/references/messages.md",
+      "fivecircles/work/collaboration/eh-relay-20260907/messages/EH2.6.c4.2.b.3/007-first-parent-resume-directive-6.json",
+      "fivecircles/work/collaboration/eh-relay-20260907/messages/EH2.6.c4.2.b.3/008-integration-test-closure-decision-1.json",
+      "fivecircles/work/collaboration/eh-relay-20260907/messages/controller-code-cache/006-implementation-report-4.json",
+      "fivecircles/work/collaboration/eh-relay-20260907/messages/controller-code-cache/007-final-review-1.json",
+      "fivecircles/work/collaboration/eh-relay-20260907/messages/controller-predecessor-edge/003-implementation-report.json",
+      "fivecircles/work/collaboration/eh-relay-20260907/messages/controller-predecessor-edge/004-final-review.json",
+      "fivecircles/work/collaboration/eh-relay-20260907/messages/QUICKQA.2/002-combined-implementation-report.json",
+      "fivecircles/work/collaboration/eh-relay-20260907/messages/QUICKQA.2/003-preflight-review.json",
+      "/private/tmp/b3-closure-fixed-20260908.SEAYC6/closure-result.json",
+      "/private/tmp/b3-closure-fixed-20260908.SEAYC6/closure.native.log"
+    ]
+  }
+}

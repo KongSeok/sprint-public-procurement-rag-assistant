@@ -1,0 +1,236 @@
+{
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.d2.x.b.2",
+  "phase": "CLOSED",
+  "lifecycle_substage": "reentry",
+  "roles": {
+    "design": {
+      "agent_id": "/root/lexical_design",
+      "model": "gpt-6-astra",
+      "effort": "inherited; no override"
+    },
+    "coder": {
+      "agent_id": "/root/post_fusion_coder",
+      "model": "gpt-5.6-sol",
+      "effort": "ultra"
+    },
+    "critic": {
+      "agent_id": "/root/post_fusion_critic_1",
+      "model": "gpt-6-astra",
+      "effort": "supported default; no override",
+      "fresh": true
+    }
+  },
+  "active_directive_id": "post-fusion-directive-5",
+  "candidate_id": "sha256:8d3172b1ec96ce2d11a1892d41cd2a8d3dddc9aa83dc6c050df72b0f401fba24",
+  "contract_id": "sha256:6d80a97e9261b359ad3d80fa05f986f19340c9b905b737c5714183511ba512a4",
+  "test_evidence_id": "sha256:eaf054ab203e73671d84ba9f9b035bbcaf45027f12bb6c8c21a7e331c8366771",
+  "review_message_id": "post-fusion-review-1",
+  "waiting_for": null,
+  "last_pass_candidate_id": "sha256:8d3172b1ec96ce2d11a1892d41cd2a8d3dddc9aa83dc6c050df72b0f401fba24",
+  "resume_point": "Current batch integrated; actual next Design dispatched",
+  "closeout_ref": "../../2026-09-07-controller-post-fusion-decision-relay.md",
+  "integration_receipt_ref": "integration-EH2.6.d2.x.b.2.json",
+  "report_fingerprint": {
+    "candidate_id": "sha256:8d3172b1ec96ce2d11a1892d41cd2a8d3dddc9aa83dc6c050df72b0f401fba24",
+    "contract_id": "sha256:6d80a97e9261b359ad3d80fa05f986f19340c9b905b737c5714183511ba512a4",
+    "test_evidence_id": "sha256:eaf054ab203e73671d84ba9f9b035bbcaf45027f12bb6c8c21a7e331c8366771",
+    "full_run_files_ref": "batches/EH2.6.d2.x.b.2/full-result.json"
+  },
+  "continuation": "CONTINUE_WITH_NEXT_FORM",
+  "previous_batch": {
+    "batch_id": "EH2.6.c4.2.b.2",
+    "commit_sha": "8db05102b3c858b96f89ef62ee9a442bfe935951",
+    "receipt_ref": "integration-EH2.6.c4.2.b.2.json",
+    "closed_state_ref": "closed-EH2.6.c4.2.b.2.json"
+  },
+  "optional_coordination_notice": {
+    "status": "BLOCKED_PERMISSION",
+    "message_sent": false,
+    "reason": "Last cross-task commit/time notice rejected by auto-review for destination/data authorization; user clarification requested asynchronously. Earlier full-test completion notice was sent successfully.",
+    "effect_on_local_work": "none",
+    "retry": "do not retry without user approval or verified authority",
+    "additional_notice": {
+      "destination_thread_id": "01a07a34-4d6d-7a82-b355-822b0c8e941d",
+      "status": "BLOCKED_PERMISSION",
+      "message_sent": false,
+      "reason": "Auto-review rejected policy/GCP summary transfer because destination sharing authority was not confirmed; user approval asked in commentary. No retry.",
+      "effect_on_local_work": "none; independent Controller implementation and required validation continue"
+    }
+  },
+  "gcp_coordination": {
+    "user_authorization": "Assign migration to existing measurement task; continue Controller development here",
+    "request_delivered": true,
+    "recipient_acknowledgement": true,
+    "vm_actions_in_this_task": false,
+    "status": "Measurement owner reports old CPU partial run preserved/stopped, device-derived snapshot prepared and CUDA environment available; asset transfer/model CUDA smoke/full receipt not yet confirmed complete. No VM or model actions in this Controller task.",
+    "execution_source_ref": "../../2026-09-07-mini131-retrieval-comparison.md",
+    "report_origin": "separate measurement task, not independently reproduced here"
+  },
+  "dispatch": {
+    "directive_id": "post-fusion-directive-5",
+    "agent_id": "/root/post_fusion_coder",
+    "delivered": true,
+    "accepted": true,
+    "acceptance_source": "Actual Coder full v5 ACCEPT: 375 lines,38203 bytes,SHA ce2b1dde644e1ec1e5b536c21c038c05f87f02b5120f48df95c1c8d824c1d4a3"
+  },
+  "validation_checkpoint": {
+    "minimal_red": {
+      "tests": 1,
+      "seconds": 19.217,
+      "errors": 1,
+      "exit_code": 1,
+      "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-focused-red-1.native.log",
+      "artifact_sha256": "2d223dbf6b7d29de4adbdc92d247b6d49409df0483c8a635a992b340d6e10324",
+      "expected": true,
+      "capture": "Native output read by main; process exit reported by Coder."
+    },
+    "focused_final_1": {
+      "result_ref": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-focused-final-1-result.json",
+      "result_sha256": "403d5cff17448eb3d292ade2f00afae75cb3315ee2305f08e0c0f9d5189fb653",
+      "candidate_id": "sha256:8d3172b1ec96ce2d11a1892d41cd2a8d3dddc9aa83dc6c050df72b0f401fba24",
+      "contract_id": "sha256:6d80a97e9261b359ad3d80fa05f986f19340c9b905b737c5714183511ba512a4",
+      "test_count": 11,
+      "exit_code": 0,
+      "unittest_summary": "\nRan 11 tests in 904.510s\n\nOK",
+      "finished_at": "2026-09-07T10:52:36.573Z",
+      "files_unchanged": true,
+      "runtime_unchanged": true,
+      "scope": "Actual3 product+3 references; main final candidate not frozen yet"
+    },
+    "main_runs": {
+      "full": {
+        "start_ref": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-full-start.json",
+        "start_sha256": "3339703c0e450e5467fd5caeb75eb53edfbc438b4f5413d5cdd8e4e4e708066b",
+        "recorded_at": "2026-09-07T11:06:23.160Z",
+        "cwd": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
+        "command": "PATH=\"/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/bin:$PATH\" PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src /Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/bin/python3 -m unittest discover -s tests -t . -p 'test*.py'",
+        "status": "FAIL",
+        "tool_session_id": 31994,
+        "result_ref": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-full-result.json",
+        "exit_code": 1,
+        "test_count": 1657,
+        "unittest_summary": "\nRan 1657 tests in 1672.755s\n\nFAILED (errors=1)",
+        "finished_at": "2026-09-07T11:34:19.585Z",
+        "files_unchanged": true,
+        "test_inputs_unchanged": true,
+        "runtime_unchanged": true,
+        "sole_error": "frozen_refined98 CSV hash mismatch"
+      },
+      "isolated": {
+        "start_ref": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-isolated-start.json",
+        "start_sha256": "761d8e586f309ee11aaddbcfdc7b227a2eb71efb049e4e65d6c6b896998bed3a",
+        "recorded_at": "2026-09-07T11:06:25.581Z",
+        "cwd": "/private/tmp/eh-post-fusion-isolated.L5d8i8",
+        "command": "PATH=\"/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/bin:$PATH\" PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src /Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/bin/python3 -m unittest tests.test_controller_post_fusion_decision tests.test_controller_first_fusion_transition tests.test_controller_first_fusion_state tests.test_controller_post_lexical_decision tests.test_controller_next_decision tests.test_controller_decision_receipt tests.test_controller_source_authority tests.test_controller_step_history tests.test_controller_initial_transition tests.test_controller_lexical_transition tests.test_controller_target_context_accumulator tests.test_harness_context tests.test_absence_confirmation tests.test_execution_contracts tests.test_retrieval_obligations",
+        "status": "PASS",
+        "tool_session_id": 42393,
+        "result_ref": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-isolated-result.json",
+        "exit_code": 0,
+        "test_count": 216,
+        "unittest_summary": "\nRan 216 tests in 1843.717s\n\nOK",
+        "finished_at": "2026-09-07T11:37:12.208Z",
+        "files_unchanged": true,
+        "runtime_unchanged": true
+      }
+    },
+    "adjacent_final_1": {
+      "result_ref": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-adjacent-final-1-result.json",
+      "candidate_id": "sha256:8d3172b1ec96ce2d11a1892d41cd2a8d3dddc9aa83dc6c050df72b0f401fba24",
+      "test_count": 205,
+      "exit_code": 0,
+      "unittest_summary": "Ran 205 tests in 647.583s\n\nOK",
+      "scope": "Actual3 product+3 references/runtime start-end match"
+    },
+    "recovery_attempt_1": {
+      "result_ref": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-recovery-result.json",
+      "result_sha256": "fe6a7e7f2e3327c576b494063ce55581bbfe137465e4529d0e5ed73ba71d219b",
+      "exit_code": 1,
+      "actual_tests_run": 0,
+      "status": "DISCOVERY_FAILED",
+      "reason": "Absolute helper launch places temporary script directory at sys.path[0], so tests package is unavailable despite PYTHONPATH=src.",
+      "files_unchanged": true,
+      "listed_full_inputs_unchanged": true
+    },
+    "recovery_attempt_2": {
+      "result_ref": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-recovery-2-result.json",
+      "result_sha256": "194b83c99383ed8ca60b15233f92fd62d69525f26f08ac76147bafa91fab6da6",
+      "tests": 5,
+      "seconds": 0.073,
+      "exit_code": 0,
+      "postflight_issues": [],
+      "status": "PASS"
+    }
+  },
+  "candidate_ref": "batches/EH2.6.d2.x.b.2/candidate.json",
+  "review_dispatch": {
+    "agent_id": "/root/post_fusion_critic_1",
+    "delivered": true,
+    "accepted": null,
+    "depth": "deep",
+    "risk_score": 7,
+    "recorded_at": "2026-09-07T12:34:13.227Z",
+    "directive_id": "post-fusion-directive-5",
+    "candidate_id": "sha256:8d3172b1ec96ce2d11a1892d41cd2a8d3dddc9aa83dc6c050df72b0f401fba24",
+    "contract_id": "sha256:6d80a97e9261b359ad3d80fa05f986f19340c9b905b737c5714183511ba512a4",
+    "test_evidence_id": "sha256:eaf054ab203e73671d84ba9f9b035bbcaf45027f12bb6c8c21a7e331c8366771",
+    "implementation_message_id": "post-fusion-implementation-report-1",
+    "scope": "Read-only exact product/contract and v5 composition/runtime-limit review; no tests/Git/models or publication clearance"
+  },
+  "publication_gate": {
+    "status": "CLEARED_BY_CURRENT_BOUNDED_REVIEW",
+    "historical_exception_ref": "messages/EH2.6.c4.2.b.2/005-first-fuse-state-publication-review-1.json",
+    "scope": "Current exact48 selected payload only; two old immutable fields retain bounded adjudication",
+    "automated_status": "FAIL",
+    "automated_exit_code": 1,
+    "payload_files": 46,
+    "payload_pii_detections": 0,
+    "payload_secret_detections": 0,
+    "agent_id": "/root/post_fusion_publication_critic_1",
+    "request_ref": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-publication-request.json",
+    "request_sha256": "8e5319829cbbc8be2a4bb3afc0032f74e1a644c3e99b22eb60bde2e37c749ce3",
+    "delivered": true,
+    "accepted": true,
+    "review_message_id": "post-fusion-publication-review-1",
+    "review_sha256": "28d39782caf351fa1ec93e682ac82adb35ff844c142ca6033d885ccc077bb9ad",
+    "final_reconciliation_ref": "integration-EH2.6.d2.x.b.2.json",
+    "final_index_reconciliation": "COMPLETED",
+    "final_selected_payload_count": 48
+  },
+  "next_design_dispatch": {
+    "agent_id": "/root/lexical_design",
+    "delivered": true,
+    "accepted": true,
+    "recorded_at": "2026-09-07T08:55:37.580Z",
+    "selection_pending": true,
+    "completed": true
+  },
+  "next_coder_preflight": {
+    "agent_id": "/root/post_fusion_coder",
+    "model": "gpt-5.6-sol",
+    "effort": "ultra",
+    "delivered": true,
+    "accepted": true,
+    "implementation_authorized": true,
+    "status": "COMPLETED",
+    "recorded_at": "2026-09-07T09:03:31.088Z"
+  },
+  "active_question_id": null,
+  "guidance_resolution": {
+    "question_id": "post-fusion-recovery-launcher-question-1",
+    "directive_id": "post-fusion-directive-5",
+    "decision": "ACCEPT",
+    "choice": "UNCHANGED_RESOLVER_MINUS_C_RUNPY",
+    "behavior_contract_changed": false,
+    "recorded_at": "2026-09-07T12:15:33.867Z"
+  },
+  "validation_gate": {
+    "native_full_status": "FAIL",
+    "native_full_exit_code": 1,
+    "recovery_status": "PASS",
+    "composed_regression_gate": "COMPOSED_VALIDATION_PASS",
+    "canonical_input_status": "UNREPAIRED_FROZEN_HASH_MISMATCH",
+    "accepted_by_review": "post-fusion-review-1"
+  },
+  "reviewed_implementation_message_id": "post-fusion-implementation-report-1"
+}

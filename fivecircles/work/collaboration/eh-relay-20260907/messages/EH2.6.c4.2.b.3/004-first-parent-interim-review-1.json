@@ -1,0 +1,83 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.c4.2.b.3",
+  "message_id": "first-parent-interim-review-1",
+  "in_reply_to": "first-parent-interim-implementation-report-1",
+  "sender": "PHILOSOPHER",
+  "kind": "REVIEW",
+  "body": {
+    "verdict": "PATCH",
+    "review_stage": "INTERIM_RISK_GATE",
+    "final": false,
+    "directive_id": "first-parent-directive-2",
+    "contract_id": "sha256:f8fe0041df23b81dc3e88b0138363535c504bf5e36269610af118884f72752de",
+    "candidate_id": "sha256:83a4351856743aef0232a926f0ea2512aad7637f8dd94f89b11762dd7ad41279",
+    "test_evidence_id": "sha256:87527c7539f5148ecd070958d49d108acc5ca942f7bb16c2e6e67bd2a27a5a4a",
+    "reviewed_message_id": "first-parent-interim-implementation-report-1",
+    "direction_score": null,
+    "direction_rubric": null,
+    "direction_rationale": "The selected first-parent edge remains appropriate. The implementation connects actual complete context preparation to one selected parent effect and a same-state revision4 through existing authorities. The additional implementation size is largely attributable to exact admission, temporal provenance and reuse of the existing transition machinery; it does not justify an unrelated redesign. The separate once-only parent seal preserves the original lane/fusion seal and claim caller, and final runtime pins include the completed parent dependencies. However, complete-context live readback and bridge-batch race handling need bounded repairs before final acceptance.",
+    "findings": [
+      {
+        "id": "FP-INTERIM-1",
+        "category": "implementation",
+        "severity": "P1",
+        "evidence": [
+          "src/midprojectrag/orchestration/execution_contracts.py:20068–20082: validate_record checks the structural bridge's immediate field identities and revalidates only bridge.projection; it does not revalidate bridge.target_context or its complete parent/bridge tuple authority.",
+          "src/midprojectrag/orchestration/execution_contracts.py:16761–16828: the parent source resolver validates the selected ParentContextReceipt and base semantic obligation, not every sibling parent/bridge receipt or the accumulator's complete tuple identity.",
+          "src/midprojectrag/orchestration/execution_contracts.py:20312–20364: the new revision4 reader relies on require_successor_record and validate_record. controller_step_status does not revalidate a transitioned record's complete context graph.",
+          "fivecircles/architecture/specs/controller-first-parent-transition.md, Effect, same-state transition and live readback: readback must revalidate the retained complete context graph, not serialized fields or counts."
+        ],
+        "action": "Add a pinned, non-dispatching complete-context authority check to revision4 effect/transition/successor readback and applicable final registration validation. Validate the exact retained accumulator object, base semantic obligation, complete parent/bridge tuples and selected-receipt relationship. Do not simply call the existing structural bridge reader after completion without accounting for its sourced-only claim contract. Add focused regressions proving that drift in an unselected receipt, the retained context fields or its single authority mirror invalidates revision4 readback with no additional preparation or provider work. This is a static call-path finding; no mutation reproducer was executed."
+      },
+      {
+        "id": "FP-INTERIM-2",
+        "category": "implementation",
+        "severity": "P1",
+        "evidence": [
+          "src/midprojectrag/orchestration/execution_contracts.py:20709–20723: both-batch pristine inspection occurs before the separately locked Controller claim.",
+          "src/midprojectrag/orchestration/execution_contracts.py:19114–19213: the accumulator obtains parent and bridge batches separately and accepts the existing issuers' completed cached tuples.",
+          "src/midprojectrag/orchestration/execution_contracts.py:12935–12949: the bridge issuer returns an authentic completed cached batch without Controller-origin or temporal binding.",
+          "src/midprojectrag/orchestration/execution_contracts.py:18076–18102: post-claim temporal admission checks only the selected parent source. It cannot detect an intervening external bridge-batch completion.",
+          "fivecircles/architecture/specs/controller-first-parent-transition.md, Temporal source fence and once-only failure: available prior parent/bridge history is refused in preflight and a concurrent race after claim must fail closed."
+        ],
+        "action": "Close the gap between pristine inspection and both complete-batch acquisitions using bounded ownership or provenance checks in the existing context issuance machinery. An intervening bridge batch must not silently become the winning Controller preparation's cached prerequisite. Preserve ordinary context issuer cache behavior, original tuple identity, non-retry history and bridge_context exclusion from executed Controller sources. Add deterministic concurrency coverage for bridge preparation racing the claim/acquisition boundary as well as parent races. A second unlocked pristine check alone would still leave an acquisition race. This is a static synchronization finding; no race reproducer was executed."
+      },
+      {
+        "id": "FP-INTERIM-3",
+        "category": "missing_test",
+        "severity": "P2",
+        "evidence": [
+          "tests/test_controller_first_parent_transition.py contains the private-signature case and one fact-path case; the reported compare, lane-outcome, bounded-prefix/linked-context, refusal, temporal/concurrency, GC/remint, dependency drift and registration-failure matrix is not yet implemented.",
+          "/private/tmp/eh-relay-20260907.GNy8vE/first-parent-selected-happy-repair-1.native.log records exactly one passing test in 234.397 seconds.",
+          "The four evidence-manifest entries and six product/reference hashes were independently checked and match the supplied packet.",
+          "first-parent-interim-implementation-report-1 correctly marks final focused, adjacent, isolated and full gates as unrun."
+        ],
+        "action": "After the bounded repairs, complete the already authorized acceptance matrix, including actual parent/bridge batch and mint counters, complete tuple identity/order, selected-only effect, compare query/plan distinction, same-state semantics, rollback and old-reader boundaries. Freeze the resulting candidate and collect required focused, adjacent, isolated and full evidence before fresh final review. These are planned outstanding acceptance tasks, not repeated failed repairs; preserve the intended RED and historical generator-caller failure as historical evidence."
+      }
+    ],
+    "requested_task_changes": [
+      {
+        "proposal": "Have the same Coder repair complete-context live readback and atomic/provenance-safe acquisition of both context preparation batches within the two owned files, then finish the planned acceptance matrix.",
+        "reason": "The existing implementation preserves the selected source and state projection, but does not yet fully establish the contracted complete-context lifetime and concurrent acquisition boundaries.",
+        "requires_user_authority": false
+      }
+    ],
+    "next_batch_constraints": [
+      "This is an interim PATCH, not candidate acceptance, batch completion, integration clearance or publication permission. Keep the last valid PASS pointer on Cycle24.",
+      "Preserve the original lane/fusion begin-record-claim seal and exact module/code/default/closure checks. Keep the parent seal once-only and bind attempts before real parent work; never late-stamp cached context.",
+      "Keep complete parent and bridge tuples as bounded preparation. Only the exact selected parent receipt supplies the ordinal4 Controller effect; bridge_context remains unadmitted as an executed Controller source.",
+      "Preserve exact revision3 state identity at revision4, candidate order, sibling identity, ledger counters and source-derived effects; no semantic evidence promotion, absence, ordinal5, terminal or public execution expansion.",
+      "Preserve all predecessor/root/source authorities and consumed failure histories. Repairs must not remint obligations, clear histories or introduce callback-driven authority repair.",
+      "Any product or behavior-reference change requires a newly bound candidate and corresponding evidence. Final focused, adjacent, isolated and full gates remain required before fresh final review.",
+      "Keep resources and unrelated dirty work excluded. No real model/API/GPU/VM/provider execution, performance claim, baseline/config/data change, Git mutation or publication follows from this review."
+    ],
+    "reason": "Two concrete static implementation gaps affect the accepted complete-context contract. The dual-seal direction itself is acceptable for continued bounded work, and the same-state selected-only effect path has one verified native happy-path result. Missing final acceptance evidence independently prevents PASS. No tests, file edits, delegation, external execution or Git mutations were performed by this critic.",
+    "resume_conditions": [
+      "Main validates and records this exact review and its binding identifiers, then returns the bounded repairs to the same Coder.",
+      "Demonstrate complete-context readback rejection and bridge acquisition race refusal through focused defensive regressions without widening the authority model.",
+      "Complete the planned acceptance matrix, freeze the new candidate, collect its required native focused/adjacent/isolated/full evidence and obtain a fresh final deep review before integration."
+    ]
+  }
+}

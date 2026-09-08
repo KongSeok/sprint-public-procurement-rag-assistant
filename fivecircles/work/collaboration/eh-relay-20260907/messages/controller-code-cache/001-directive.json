@@ -1,0 +1,109 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "PERF-CONTROLLER.1.OPT1",
+  "message_id": "controller-code-cache-directive-1",
+  "in_reply_to": null,
+  "sender": "PHILOSOPHER",
+  "kind": "DIRECTIVE",
+  "body": {
+    "mode": "DESIGN",
+    "contract_id": "controller-code-representation-cache-v1",
+    "resolution": null,
+    "objective": "Reduce repeated immutable CodeType representation work while preserving exact canonical payloads, fingerprints and live integrity checks.",
+    "selected_task_ref": {
+      "path": "fivecircles/architecture/todolist.md",
+      "parent": "PERF-CONTROLLER.1",
+      "proposed_child": "PERF-CONTROLLER.1.OPT1",
+      "authority": "Latest explicit user approval to implement the measured optimization."
+    },
+    "direction_assessment": {
+      "current": "CLI profiling measured 10,498,508 _code_payload calls and 125,850,867 _stable_code_value calls. Canonical encoding and repeated validation are substantial measured costs.",
+      "selection": "Optimize immutable code representation first; do not redesign validation or cache successful authority checks.",
+      "limitation": "Reducing representation construction does not necessarily eliminate JSON encoding or graph traversal costs. Improvement must be measured.",
+      "ownership": "One Sol Ultra Coder; main owns scheduling, evidence and documentation. Fresh deep review before closeout."
+    },
+    "scope": {
+      "root": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
+      "branch": "feat/total-integration",
+      "base_head": "233addfa5dfb1be43417cb13cc99863d52372e96",
+      "derivative_source_sha256": "d1363959a942e4347622792c1ea86c411d3a6d8639ca7f5d60d69d58757d59c4",
+      "allowed_files": [
+        "src/midprojectrag/orchestration/execution_contracts.py",
+        "tests/test_controller_code_representation_cache.py",
+        "scripts/benchmark_controller_code_representation.py"
+      ],
+      "prohibited_actions": [
+        "Modify existing B3 tests, behavior contracts, diagnostic driver, notebook, golden data or expectations.",
+        "Modify .venv, dependencies, runtime configuration or public API.",
+        "Cache validation PASS, entire function behavior, mutable defaults, closure/global state, source-owner validation or retained-graph validity.",
+        "Change canonical serialization/schema/hash meaning, weaken code/module identity checks or alter source temporal/lifetime rules.",
+        "Run model/API/GPU/GCP, install packages, mutate Git or start unrelated optimizations."
+      ]
+    },
+    "implementation_contract": [
+      "Add one small private bounded cache at the immutable code-representation boundary. Preserve _code_payload return shape and every existing canonical hash byte.",
+      "Key by exact CodeType identity, not structural equality. A dict keyed directly by CodeType or WeakKeyDictionary is insufficient unless identity behavior is independently guaranteed. Retain and compare the exact code object to prevent id reuse.",
+      "Cache only recursively safe immutable constants: supported primitive values, bytes, tuples of safe values and nested CodeType. Custom or mutable constants remain on the original uncached path; a CodeType container alone does not prove all co_consts values immutable.",
+      "Preserve distinctions including signed zero, bool versus int and existing nonfinite-float normalization. Do not use equality-based value merging.",
+      "Store an internal immutable representation and return fresh mutable dict/list containers on every call, including nested constants. Mutating one returned payload cannot affect later payloads or fingerprints.",
+      "Use bounded entry count and bounded retained representation size, bypassing oversized entries. A practical initial bound is 128 entries and 4 MiB of retained canonical representation bytes; document that this is not a total-process-RSS guarantee. No unbounded global retention.",
+      "Keep concurrency safe and cache misses/evictions semantically transparent. Avoid a generic cache framework.",
+      "Continue reading current __code__, defaults, kwdefaults, closure and globals on each existing validation path. Preserve current function/module/dependency pins and add any new helper to the existing integrity mechanism where required.",
+      "Do not cache full _function_sha256 solely by function identity. Mutable fields must continue to affect its result exactly as before."
+    ],
+    "acceptance_criteria": [
+      "Original frozen source and all historical B3/diagnostic evidence are preserved before edits. This is a derivative candidate, not completion or approval of B3.",
+      "Original and candidate canonical payload bytes and hashes match on the fixed microbenchmark corpus, including nested code, signed zero and cache-ineligible constants.",
+      "Returned mutable payload isolation, identity separation, eviction/bounds and concurrent access tests pass.",
+      "Existing code replacement, mutable defaults/closure/global and dependency-drift behavior remains enforced.",
+      "One comparable unprofiled baseline and candidate trajectory preserve meaningful execution/state/effect/ledger semantics.",
+      "Actual timing results are reported, including neutral or worse outcomes. No speedup threshold or successful optimization claim is invented.",
+      "Fresh deep review assesses cache correctness, integrity boundaries, memory bounds and actual evidence before closeout."
+    ],
+    "required_tests": {
+      "focused": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest tests.test_controller_code_representation_cache -v",
+      "cases": [
+        "Byte-for-byte canonical output/hash equality against the original implementation on a fixed small corpus.",
+        "Equal-looking distinct CodeType identities, signed zero, nested constants and unknown/mutable constant bypass.",
+        "Mutation of returned top-level and nested dict/list containers cannot poison cached data.",
+        "Cache capacity, oversized bypass, eviction and concurrent retrieval.",
+        "Current code replacement and mutable defaults/kwdefaults/closure/global changes remain observable."
+      ],
+      "adjacent": "Run existing affected runtime/fingerprint/dependency tests selected by source dependency analysis, plus existing Controller first-parent and source-history regressions affected by the shared helper. Record exact test IDs and actual results; do not weaken original tests or replace them with microbenchmark checks.",
+      "integration": "Do not launch an expensive full suite automatically. Existing testpolicy and B3 integration requirements remain binding; main must determine and record required integration coverage before merge. Missing mandatory evidence is not waived.",
+      "review": "Fresh deep review of implementation, callers, dependency pins, cache lifetime and all benchmark/semantic evidence."
+    },
+    "measurement_plan": {
+      "ordering": [
+        "Main preserves original source bytes/hash and freezes the tiny benchmark script and input corpus before either measurement.",
+        "Before Coder edits execution_contracts.py, main collects one unprofiled CLI representative run on the unchanged derivative source.",
+        "Coder implements and passes focused/affected regression checks.",
+        "Main freezes the candidate and runs one equivalent unprofiled CLI trajectory with the same interpreter, command options, driver, fixture and environment; only candidate source and unique private output path differ."
+      ],
+      "microbenchmark": "Use the same small fixed code corpus and fixed iteration count in original and candidate subprocesses, for example 1000 iterations over eight small functions. Verify canonical bytes/hash equality first. Record cold and repeated-call timings separately, retain results privately and prevent dead-result omission. No expensive Controller fixture in this helper.",
+      "trajectory": "Use the existing diagnostic driver with profile=false for both runs, independent fresh state and separate private output directories. Do not compare the earlier profiled CLI against the notebook as a baseline.",
+      "semantic_comparison": "Compare exact action kinds, outcomes, targets, candidate order, ledger counters/consumed actions, same-state relation, progress flags and source lineage. Match generated identities through a bijective correspondence derived from the two graphs; verify every reference and hash-chain internally before normalization. Do not simply drop all hashes or ignore changed evidence, ordering, ownership or terminal fields.",
+      "environment": "Use project .venv without notebook fallback, unchanged inputs and no concurrent heavy work. Record actual interpreter/import origins, dependency metadata, source hashes, instrumentation absence and host activity.",
+      "interpretation": "Report wall/CPU and correctly labeled peak RSS, but one pair is preliminary rather than statistical proof. No automatic extra repetitions; unexplained semantic differences or failed runs require QUESTION."
+    },
+    "constraints": [
+      "The user authorizes this narrow optimization derivative; unrelated dirty work remains untouched.",
+      "No preimplementation PASS or existing B3 final approval is implied.",
+      "Main owns baseline collection before the first product edit and preserves both old and new candidate identities.",
+      "If bounded caching cannot retain exact semantics or measured benefit, report that outcome rather than broadening into graph-validation caching.",
+      "All failed attempts and benchmark results remain immutable; no cherry-picking or silent retries."
+    ],
+    "source_refs": [
+      "fivecircles/work/2026-09-08-controller-diagnostics-notebook.md",
+      "resources/data_refined/private/diagnostics/controller-path/cli-profile-20260908-cycle25-2/main-profile-summary.json",
+      "src/midprojectrag/orchestration/execution_contracts.py:653",
+      "src/midprojectrag/orchestration/execution_contracts.py:865",
+      "src/midprojectrag/orchestration/execution_contracts.py:1000",
+      "src/midprojectrag/orchestration/execution_contracts.py:1017",
+      "src/midprojectrag/orchestration/execution_contracts.py:2285",
+      "fivecircles/test/testpolicy.md:71",
+      "fivecircles/agent/skills/collaboration/references/messages.md"
+    ]
+  }
+}

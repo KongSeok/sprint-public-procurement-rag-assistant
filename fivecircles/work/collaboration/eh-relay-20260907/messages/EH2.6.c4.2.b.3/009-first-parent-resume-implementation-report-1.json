@@ -1,0 +1,267 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.c4.2.b.3",
+  "message_id": "first-parent-resume-implementation-report-1",
+  "in_reply_to": "first-parent-resume-directive-6",
+  "sender": "CODER",
+  "kind": "IMPLEMENTATION_REPORT",
+  "body": {
+    "status": "REVIEW_READY",
+    "review_stage": "CODER_SCOPE_COMPLETE_MAIN_GATES_SEPARATE",
+    "final": true,
+    "whole_batch_pass_claimed": false,
+    "directive_id": "first-parent-resume-directive-6",
+    "directive_sha256": "29df104782b3747092bd8dd78705ba114647285661785ac3721f9b083e5ab9fe",
+    "launch_directive": {
+      "directive_id": "first-parent-resume-directive-5",
+      "sha256": "b93b9875e2230c41cc6ecbe61762f3db262703afe87b7fd4bcf39fa30439e8d1",
+      "applicability": "Focused and adjacent were launched under v5. Directive v6 expressly preserves the unchanged source-only v4/v5 focused, adjacent and isolated evidence as applicable; v6 changes only the Main-owned full launcher/preflight boundary. No restart was permitted or needed."
+    },
+    "contract_id": "sha256:f8fe0041df23b81dc3e88b0138363535c504bf5e36269610af118884f72752de",
+    "candidate_id": "sha256:49ff508ff3a57822fa146f9eaed3edd5e74c86f3a83ea57e4dfb26002a5a7085",
+    "test_evidence_id": "sha256:59486399b21c018793c43ca05d072927c0403d2aaba5ca2fb4abffb05267415d",
+    "candidate_manifest": {
+      "path": "/private/tmp/b3-resume-20260908.uNltdg/first-parent-resume-candidate.json",
+      "sha256": "0251b2024d6b13688330b557d7a64f170584767859ea72bb3cd099a50f3b9cf8",
+      "note": "Main's immutable manifest was first recorded under v4; its exact owned2, refs4, prerequisite and candidate byte bindings are unchanged by v5/v6."
+    },
+    "evidence_manifest": {
+      "path": "/private/tmp/b3-resume-coder-20260908.JthYV9/first-parent-resume-coder-test-evidence.sha256",
+      "sha256": "59486399b21c018793c43ca05d072927c0403d2aaba5ca2fb4abffb05267415d"
+    },
+    "changed_files": [],
+    "implementation_decision": {
+      "result": "NO_OP_ACCEPTED",
+      "reason": "Read-only acceptance audit found the current frozen candidate already implements the original B3 contract and both interim corrections. Current focused and adjacent native evidence passed with all bound files and runtime inputs unchanged, so no product or test repair was warranted."
+    },
+    "bound_inputs": [
+      {
+        "path": "src/midprojectrag/orchestration/execution_contracts.py",
+        "role": "B3-owned source",
+        "sha256": "a8e38f2877b7deaa46483256a65390b72cade1460ced9728027d9168bcc61737"
+      },
+      {
+        "path": "tests/test_controller_first_parent_transition.py",
+        "role": "B3-owned focused test",
+        "sha256": "e09a80310b3c4ea9e38b9c6f48caf0aa54deedd48297b255926388565e92020b"
+      },
+      {
+        "path": "fivecircles/architecture/specs/controller-first-parent-transition.md",
+        "role": "contract",
+        "sha256": "f8fe0041df23b81dc3e88b0138363535c504bf5e36269610af118884f72752de"
+      },
+      {
+        "path": "src/midprojectrag/orchestration/module-contract.md",
+        "role": "main-owned behavior reference",
+        "sha256": "8274b320135669176cafab7af59bebdac0cb8b17aeadacfd2f2b1fbad2f043b3"
+      },
+      {
+        "path": "fivecircles/architecture/specs/controller-next-decision.md",
+        "role": "read-only behavior reference",
+        "sha256": "6d80a97e9261b359ad3d80fa05f986f19340c9b905b737c5714183511ba512a4"
+      },
+      {
+        "path": "fivecircles/architecture/specs/controller-first-fusion-transition.md",
+        "role": "read-only behavior reference",
+        "sha256": "1b92dbdf8d116e3812a1e27181e431a9aef39f6e0c70996a70e59dadd3a4c3e8"
+      },
+      {
+        "path": "src/midprojectrag/retrieval/fusion.py",
+        "role": "approved QUICKQA.2 validation-only prerequisite",
+        "sha256": "32445fa6a7d3d59949f4a01646c69473d03321ded64d15ae3805738b36a2e356",
+        "provenance": "fivecircles/work/collaboration/eh-relay-20260907/messages/QUICKQA.2/002-combined-implementation-report.json",
+        "provenance_sha256": "8b1a1d8b8ad8e6b99da062b7b87a3826d15e38e620bfba84e9f212663ba9e7ab"
+      }
+    ],
+    "validation_fixture_dependency_inputs": [
+      {"path": "tests/__init__.py", "sha256": "b82bc3a5cd56194ec9c07ff18e41be33d2f68e1badc73355475922f250e30903"},
+      {"path": "tests/test_controller_post_fusion_decision.py", "sha256": "15b689574bb2c0fdc12fa1ff95047020273793eb3e6b61456403218155f026c6"},
+      {"path": "tests/test_controller_first_fusion_transition.py", "sha256": "135645c1c8514a8ea65b456c0fa098ec7cd7d27107c9d28916abda8d95fcbe4a"},
+      {"path": "tests/test_controller_first_fusion_state.py", "sha256": "eab574ef9f24bff12faac14178086ae701cb71fc99401a6478a20fa0c54e4404"},
+      {"path": "tests/test_controller_post_lexical_decision.py", "sha256": "0bb28a7aefdffee61f1f572a7f2a10ac4d75acf09d967388c5a530620284b10c"},
+      {"path": "tests/test_controller_lexical_transition.py", "sha256": "51a287e5764a86e52e83451630b5c05a98674c37e350c47b2fc48911e963370c"},
+      {"path": "tests/test_controller_next_decision.py", "sha256": "a2d59b051eb3a75f8a5b8ab5b9cbc884222d665662f7895c71c4512c15cfb00a"},
+      {"path": "tests/test_controller_initial_transition.py", "sha256": "144c52b8d85075b1ccbce043ed6eb7004bce30c4145bd311da5437ce8239b655"},
+      {"path": "tests/test_controller_decision_receipt.py", "sha256": "aad329cb85c0376449ea0e24ebd2141a6c852759875c0057dbc9a47daa3bcd90"},
+      {"path": "tests/test_controller_source_authority.py", "sha256": "e7cc9c8a8f0834d18ecfb0722c0b3e7844ab80fbdd352545a9665d8d49b2864a"},
+      {"path": "tests/test_controller_source_outcome_resolver.py", "sha256": "80eb2087220a3fd19b5f76c236f33c65ea6d25d5752622d99d1363ae84bce1e9"},
+      {"path": "tests/test_controller_step_history.py", "sha256": "31ae080edeb8c7e38beae8509d0c4c4562016d3bab1a52a4720f5b442f6b53a5"},
+      {"path": "tests/test_controller_target_context_accumulator.py", "sha256": "2fe3c2fc3fe868486a9846813d3ae2363d39436810d000d81e3390620c53212b"},
+      {"path": "tests/test_controller_structural_effect_bridge.py", "sha256": "1ee59aed430b4060d001aae3d565fe152cd0c349a7e5e0f6e562824f6678424e"},
+      {"path": "tests/test_action_effect_receipts.py", "sha256": "26f444ffc44a613181d4daffe4880b3e2879d8d9fd8510ad6793a2bf185d3fe5"},
+      {"path": "tests/test_action_effect_receipt_contract.py", "sha256": "8be56ddfe2682f8d6eaa9d3d905639051278fa4739dc35217e0478b04f64d5ec"},
+      {"path": "tests/test_action_effect_non_authority.py", "sha256": "25b2a40cabafde28291e0f68842541e5e215f4501c587212c27712f3b00cc9fe"},
+      {"path": "tests/test_rerank_derived_semantic.py", "sha256": "bd96f5b9f3022f017d0323065af3843647692e29b0ec9304541403bd223792a6"},
+      {"path": "tests/test_semantic_verification.py", "sha256": "ecbbabeace4dd0f895b2bd01858e34059067f9916e1427be496fd3c9c7ca3e94"},
+      {"path": "tests/test_retrieval_obligations.py", "sha256": "311d1fb16195c4697034cfaf0efc1352d3f648ce86f54c3c176c40bbcb0f9238"},
+      {"path": "tests/test_execution_aggregate.py", "sha256": "989abf8abcf1d5d1d256c2b1bf3dfc580e5882baf26156e70f32bdd601fedea9"},
+      {"path": "tests/test_e1_followup_projection.py", "sha256": "2901d43263c90d7bcf2e94c94747cd010cd5b33e852f704eea796f9a0ef89258"},
+      {"path": "tests/test_harness_state.py", "sha256": "6c452c174f665cead7f531b1f47f96979b008b677e2e478ea10302cc6044eb8a"}
+    ],
+    "provenance_refs": [
+      {
+        "path": "fivecircles/work/2026-09-07-controller-first-parent-relay.md",
+        "role": "workform",
+        "sha256": "f3b12964d3f56403836d7b5cd417b21c3fcbfdfd365a5948f652d4ed9d0c7b71"
+      },
+      {
+        "path": "fivecircles/work/collaboration/eh-relay-20260907/messages/EH2.6.c4.2.b.3/002-first-parent-directive-2.json",
+        "role": "original substantive directive",
+        "sha256": "357ae34996ae11c0ebaf09de698a67f25ca5ca898344804e1e8c856115bc88f1"
+      },
+      {
+        "path": "fivecircles/work/collaboration/eh-relay-20260907/messages/EH2.6.c4.2.b.3/003-first-parent-interim-implementation-report-1.json",
+        "role": "original interim implementation provenance",
+        "sha256": "1fbf2e9978762afd20f6533c56ddaafdc809bf5320a46d28063621bfe4bfd9df"
+      },
+      {
+        "path": "fivecircles/work/collaboration/eh-relay-20260907/messages/EH2.6.c4.2.b.3/004-first-parent-interim-review-1.json",
+        "role": "interim findings under audit",
+        "sha256": "903f56f48322724fe1643e467ffcdd48f9927196444efc3375ac4d866f62acc5"
+      },
+      {
+        "path": "fivecircles/work/collaboration/eh-relay-20260907/messages/EH2.6.c4.2.b.3/006-first-parent-resume-directive-5.json",
+        "role": "native source-only launch directive",
+        "sha256": "b93b9875e2230c41cc6ecbe61762f3db262703afe87b7fd4bcf39fa30439e8d1"
+      },
+      {
+        "path": "fivecircles/work/collaboration/eh-relay-20260907/messages/EH2.6.c4.2.b.3/007-first-parent-resume-directive-6.json",
+        "role": "current complete directive",
+        "sha256": "29df104782b3747092bd8dd78705ba114647285661785ac3721f9b083e5ab9fe"
+      },
+      {
+        "path": "/private/tmp/b3-resume-coder-20260908.JthYV9/run-first-parent-resume-check.cjs",
+        "role": "temporary current-candidate capture helper",
+        "sha256": "7028e9d91250a075a2ce2141d3d637b5a21afc703a97f3fe90646bc0b4a3d49d"
+      }
+    ],
+    "historical_noncurrent_evidence": [
+      {
+        "path": "/private/tmp/eh-relay-20260907.GNy8vE/first-parent-focused-final-1-result.json",
+        "sha256": "2be297135cb07480d7fad9b2ee4719f246d641f31bc79125f2f287a4a6ddfaf0",
+        "summary": "12 PASS on historical core d1363959; provenance only, not current PASS."
+      },
+      {
+        "path": "/private/tmp/eh-relay-20260907.GNy8vE/first-parent-adjacent-final-1-result.json",
+        "sha256": "86c06c08a60332ec0a38133d3e37a6deb441cc69275a2603deea418e4085dc3f",
+        "summary": "246 PASS on historical core d1363959; provenance only, not current PASS."
+      }
+    ],
+    "static_acceptance_audit": {
+      "original_contract_gaps": [],
+      "matrix_coverage": [
+        "private executor surface and closed signature",
+        "exact same-state revision4, one effect/count4/transition4/successor, counters/history/GC",
+        "fact and compare with dense-only and lexical-rescue variants",
+        "complete linked parent/bridge batches and bounded prefix",
+        "refused permits and zero-context dispatch for budget, empty, round-cap and provider error",
+        "prestarted, precompleted and cached-source refusal",
+        "source, target, query and dependency drift",
+        "concurrent single winner",
+        "registration failure preserves original error and remains nonretrying",
+        "preparation failure tombstones reservation and claim",
+        "complete-context and unselected-row readback drift",
+        "parent and bridge acquisition races fail closed"
+      ],
+      "interim_finding_closures": [
+        {
+          "finding_id": "FP-INTERIM-1",
+          "status": "CLOSED_ON_FROZEN_CANDIDATE",
+          "evidence": [
+            "src/midprojectrag/orchestration/execution_contracts.py:20623-20654 re-enters require_successor_record/validate_record and _require_controller_target_context for revision4 readback.",
+            "src/midprojectrag/orchestration/execution_contracts.py:20983-20993 validates the selected parent relation after retained complete parent/bridge tuple checks.",
+            "tests.test_controller_first_parent_transition.ControllerFirstParentTransitionTests.test_readback_rejects_unselected_and_complete_context_drift passed in the focused receipt."
+          ]
+        },
+        {
+          "finding_id": "FP-INTERIM-2",
+          "status": "CLOSED_ON_FROZEN_CANDIDATE",
+          "evidence": [
+            "src/midprojectrag/orchestration/execution_contracts.py:12875-12929 provides atomic dual-family reservation.",
+            "src/midprojectrag/orchestration/execution_contracts.py:21317-21371 reserves after claim and before accumulator acquisition.",
+            "src/midprojectrag/orchestration/execution_contracts.py:21404-21413 tombstones both reservation and claim on failure.",
+            "tests.test_controller_first_parent_transition.ControllerFirstParentTransitionTests.test_parent_and_bridge_acquisition_races_fail_closed passed in the focused receipt."
+          ]
+        }
+      ]
+    },
+    "tests": [
+      {
+        "scope": "focused",
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest tests.test_controller_first_parent_transition -v",
+        "status": "PASS",
+        "exit_code": 0,
+        "candidate_id": "sha256:49ff508ff3a57822fa146f9eaed3edd5e74c86f3a83ea57e4dfb26002a5a7085",
+        "launched_under_directive_id": "first-parent-resume-directive-5",
+        "receipt_id": "sha256:051012758416fc7f3585149a7657609a76d853399427bb8ceb3d6f125723f94f",
+        "start_receipt": "/private/tmp/b3-resume-coder-20260908.JthYV9/first-parent-resume-focused-current-1-start.json",
+        "start_receipt_sha256": "8a6193a69aa9cb8c16231d86411ea552d0076c05b7737c791085c19f0529ab20",
+        "result_receipt": "/private/tmp/b3-resume-coder-20260908.JthYV9/first-parent-resume-focused-current-1-result.json",
+        "result_receipt_sha256": "051012758416fc7f3585149a7657609a76d853399427bb8ceb3d6f125723f94f",
+        "artifact": "/private/tmp/b3-resume-coder-20260908.JthYV9/first-parent-resume-focused-current-1.native.log",
+        "artifact_sha256": "1abb6f70753c1c79a13e080778a9c68d0126284e038249d8791683e27b7cb824",
+        "test_count": 12,
+        "test_seconds": 2520.028,
+        "started_at": "2026-09-08T10:09:38.769Z",
+        "finished_at": "2026-09-08T10:51:42.564Z",
+        "runtime_before": "/private/tmp/b3-resume-coder-20260908.JthYV9/first-parent-resume-focused-current-1-runtime-before.json",
+        "runtime_before_sha256": "cf1173d96204abec52d652d628f19bbdab425c92e50eb1a44735dfbc8630de39",
+        "runtime_after": "/private/tmp/b3-resume-coder-20260908.JthYV9/first-parent-resume-focused-current-1-runtime-after.json",
+        "runtime_after_sha256": "cf1173d96204abec52d652d628f19bbdab425c92e50eb1a44735dfbc8630de39",
+        "files_unchanged": true,
+        "runtime_unchanged": true,
+        "postflight_issues": []
+      },
+      {
+        "scope": "adjacent",
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python3 -m unittest tests.test_controller_post_fusion_decision tests.test_controller_first_fusion_transition tests.test_controller_first_fusion_state tests.test_controller_post_lexical_decision tests.test_controller_lexical_transition tests.test_controller_next_decision tests.test_controller_initial_transition tests.test_controller_decision_receipt tests.test_controller_source_authority tests.test_controller_source_outcome_resolver tests.test_controller_step_history tests.test_controller_target_context_accumulator tests.test_controller_structural_effect_bridge tests.test_action_effect_receipts tests.test_action_effect_receipt_contract tests.test_action_effect_non_authority tests.test_rerank_derived_semantic tests.test_semantic_verification tests.test_retrieval_obligations -v",
+        "status": "PASS",
+        "exit_code": 0,
+        "candidate_id": "sha256:49ff508ff3a57822fa146f9eaed3edd5e74c86f3a83ea57e4dfb26002a5a7085",
+        "launched_under_directive_id": "first-parent-resume-directive-5",
+        "receipt_id": "sha256:259db3daf9533807d0024fe0e1276193516bbbf20449422cd4443a89f6de75d0",
+        "start_receipt": "/private/tmp/b3-resume-coder-20260908.JthYV9/first-parent-resume-adjacent-current-1-start.json",
+        "start_receipt_sha256": "941b33bc30f851c35dcc378b98cf9999990c7fc74b0b62d6b6da90de5ce84ad9",
+        "result_receipt": "/private/tmp/b3-resume-coder-20260908.JthYV9/first-parent-resume-adjacent-current-1-result.json",
+        "result_receipt_sha256": "259db3daf9533807d0024fe0e1276193516bbbf20449422cd4443a89f6de75d0",
+        "artifact": "/private/tmp/b3-resume-coder-20260908.JthYV9/first-parent-resume-adjacent-current-1.native.log",
+        "artifact_sha256": "d68802b190b38051067233f53eea6a9ba1769ec050b4d116ae0267aef1fcdbac",
+        "test_count": 246,
+        "test_seconds": 1146.929,
+        "started_at": "2026-09-08T10:09:38.970Z",
+        "finished_at": "2026-09-08T10:28:49.518Z",
+        "runtime_before": "/private/tmp/b3-resume-coder-20260908.JthYV9/first-parent-resume-adjacent-current-1-runtime-before.json",
+        "runtime_before_sha256": "cf1173d96204abec52d652d628f19bbdab425c92e50eb1a44735dfbc8630de39",
+        "runtime_after": "/private/tmp/b3-resume-coder-20260908.JthYV9/first-parent-resume-adjacent-current-1-runtime-after.json",
+        "runtime_after_sha256": "cf1173d96204abec52d652d628f19bbdab425c92e50eb1a44735dfbc8630de39",
+        "files_unchanged": true,
+        "runtime_unchanged": true,
+        "postflight_issues": []
+      }
+    ],
+    "completed": [
+      "Audited the original B3 twelve-case acceptance matrix on the exact current candidate with no contract gap found.",
+      "Closed both interim review findings against current implementation and focused native test evidence.",
+      "Captured current-candidate focused 12/12 PASS and adjacent 246/246 PASS with native IDs, exact seven inputs, fixture/dependency inputs, runtime and postflight immutability.",
+      "Made zero product or test changes."
+    ],
+    "deviations": [
+      "No product, test, contract, configuration or dependency deviation.",
+      "Focused and adjacent receipts name v5 because they were already running when v6 was installed. V6 explicitly states those unchanged source-only receipts remain applicable; they were not restarted.",
+      "This report covers Coder-owned static audit and source-only focused/adjacent capture only. It does not claim Main-owned isolated, full, final review, closeout or whole-B3 PASS."
+    ],
+    "main_owned_pending_gates": [
+      "isolated base+B3+refs4+approved-fusion validation receipt",
+      "v6 resolved-input full validation receipt",
+      "fresh deep final review bound to the complete candidate and native evidence",
+      "records, closeout and separately authorized integration reconciliation"
+    ],
+    "unresolved_questions": [],
+    "proposed_next_steps": [
+      "Main completes and verifies its separately owned isolated and v6 full receipts without importing a whole-batch PASS claim from this report.",
+      "Main persists the public implementation report/state and dispatches fresh deep final review only after complete native evidence is available.",
+      "No further Coder test execution or source change is required for this unchanged candidate unless a new demonstrated B3 defect is reported under normal permission."
+    ]
+  }
+}

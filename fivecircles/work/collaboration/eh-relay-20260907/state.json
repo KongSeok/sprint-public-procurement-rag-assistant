@@ -1,48 +1,274 @@
 {
   "run_id": "eh-relay-20260907",
-  "batch_id": "EH2.6.d2.x.b.2",
+  "batch_id": "EH2.6.c4.2.b.3",
   "phase": "READY_TO_INTEGRATE",
-  "lifecycle_substage": "final_payload_reconciliation",
+  "lifecycle_substage": "closeout_publication_reconciliation",
+  "execution_mode": "philosopher-coder",
   "roles": {
     "design": {
-      "agent_id": "/root/lexical_design",
+      "agent_id": "/root/b3_resume_design",
       "model": "gpt-6-astra",
       "effort": "inherited; no override"
     },
     "coder": {
-      "agent_id": "/root/post_fusion_coder",
+      "agent_id": "/root/b3_resume_coder",
       "model": "gpt-5.6-sol",
       "effort": "ultra"
     },
     "critic": {
-      "agent_id": "/root/post_fusion_critic_1",
+      "agent_id": "/root/b3_native_final_review",
       "model": "gpt-6-astra",
       "effort": "supported default; no override",
-      "fresh": true
+      "review_stage": "FINAL_DEEP_PRODUCT_GATE_PASS"
     }
   },
-  "active_directive_id": "post-fusion-directive-5",
-  "candidate_id": "sha256:8d3172b1ec96ce2d11a1892d41cd2a8d3dddc9aa83dc6c050df72b0f401fba24",
-  "contract_id": "sha256:6d80a97e9261b359ad3d80fa05f986f19340c9b905b737c5714183511ba512a4",
-  "test_evidence_id": "sha256:eaf054ab203e73671d84ba9f9b035bbcaf45027f12bb6c8c21a7e331c8366771",
-  "review_message_id": "post-fusion-review-1",
-  "waiting_for": null,
-  "last_pass_candidate_id": "sha256:8d3172b1ec96ce2d11a1892d41cd2a8d3dddc9aa83dc6c050df72b0f401fba24",
-  "resume_point": "Closeout report/browser/safety/selective integration; then next Design",
-  "closeout_ref": "../../2026-09-07-controller-post-fusion-decision-relay.md",
-  "integration_receipt_ref": "integration-EH2.6.d2.x.b.2.json",
-  "report_fingerprint": {
-    "candidate_id": "sha256:8d3172b1ec96ce2d11a1892d41cd2a8d3dddc9aa83dc6c050df72b0f401fba24",
-    "contract_id": "sha256:6d80a97e9261b359ad3d80fa05f986f19340c9b905b737c5714183511ba512a4",
-    "test_evidence_id": "sha256:eaf054ab203e73671d84ba9f9b035bbcaf45027f12bb6c8c21a7e331c8366771",
-    "full_run_files_ref": "batches/EH2.6.d2.x.b.2/full-result.json"
+  "active_directive_id": "first-parent-resume-directive-6",
+  "contract_id": "sha256:f8fe0041df23b81dc3e88b0138363535c504bf5e36269610af118884f72752de",
+  "candidate_id": "sha256:49ff508ff3a57822fa146f9eaed3edd5e74c86f3a83ea57e4dfb26002a5a7085",
+  "test_evidence_id": "sha256:d9f34932419dae2819c1f8631cf5ba78ad0d3c17dc9a66070cd1cc765ce8e013",
+  "review_message_id": "first-parent-resume-final-review-1",
+  "waiting_for": "SELECTIVE_COMMIT_AND_PUSH",
+  "last_pass_candidate_id": "sha256:49ff508ff3a57822fa146f9eaed3edd5e74c86f3a83ea57e4dfb26002a5a7085",
+  "resume_point": "Current focused12/adjacent246/isolated258/supplemental14/resolved full1765 and fresh final deep PASS. Report/browser QA and logall complete; reconcile exact owned publication payload before commit/push, then return DESIGN. No new runtime/model authority.",
+  "current_user_priority": {
+    "batch_id": "EH2.6.c4.2.b.3",
+    "request": "릴레이샷으로 진행하자",
+    "phase": "READY_TO_INTEGRATE",
+    "objective": "Resume original Controller B3, finish scoped closeout/integration, then return to Design for the next original TODO.",
+    "historical_priority_ref": "historical_quickqa2_priority",
+    "no_new_real_model_authority": true
+  },
+  "current_validation": {
+    "status": "COMPLETE_CURRENT_CANDIDATE_NATIVE_GATES",
+    "evidence_ref": "batches/EH2.6.c4.2.b.3/main-evidence-summary.json",
+    "test_evidence_id": "sha256:d9f34932419dae2819c1f8631cf5ba78ad0d3c17dc9a66070cd1cc765ce8e013",
+    "focused": 12,
+    "adjacent": 246,
+    "isolated": 258,
+    "supplemental": 14,
+    "full": 1765,
+    "counts_overlap": true,
+    "full_status": "RESOLVED_INPUT_FULL_PASS",
+    "report_browser": "PASS_EXISTING_CHROME152_AFTER_MISSING_DEFAULT_EXECUTABLE_FAILURE"
+  },
+  "final_review_dispatch": {
+    "agent_id": "/root/b3_native_final_review",
+    "model": "gpt-6-astra",
+    "effort": "supported default; no override",
+    "fork_turns": "none",
+    "dispatch_observed_at": "2026-09-08T11:29:05Z",
+    "candidate_id": "sha256:49ff508ff3a57822fa146f9eaed3edd5e74c86f3a83ea57e4dfb26002a5a7085",
+    "implementation_report_ref": "messages/EH2.6.c4.2.b.3/009-first-parent-resume-implementation-report-1.json",
+    "input_delivery": "BOTH_DELIVERED_FIXED_CANDIDATE_CODER_REPORT_AND_COMPLETE_MAIN_EVIDENCE",
+    "verdict_received": true,
+    "review_ref": "messages/EH2.6.c4.2.b.3/011-first-parent-resume-final-review-1.json",
+    "main_evidence_ref": "batches/EH2.6.c4.2.b.3/test-evidence.sha256",
+    "prior_interim_critic": "/root/first_parent_interim_critic_1",
+    "note": "One fresh final review with two input deliveries; static read overlaps last native gate. Neither dispatch nor historical interim PATCH is final approval."
+  },
+  "closeout_ref": "../../2026-09-07-controller-first-parent-relay.md",
+  "integration_receipt_ref": null,
+  "previous_batch": {
+    "batch_id": "EH2.6.d2.x.b.2",
+    "commit_sha": "233addfa5dfb1be43417cb13cc99863d52372e96",
+    "receipt_ref": "integration-EH2.6.d2.x.b.2.json",
+    "closed_state_ref": "closed-EH2.6.d2.x.b.2.json"
   },
   "continuation": "CONTINUE_WITH_NEXT_FORM",
-  "previous_batch": {
-    "batch_id": "EH2.6.c4.2.b.2",
-    "commit_sha": "8db05102b3c858b96f89ef62ee9a442bfe935951",
-    "receipt_ref": "integration-EH2.6.c4.2.b.2.json",
-    "closed_state_ref": "closed-EH2.6.c4.2.b.2.json"
+  "next_design_dispatch": {
+    "agent_id": "/root/lexical_design",
+    "delivered": true,
+    "accepted": true,
+    "recorded_at": "2026-09-07T13:11:24.524Z",
+    "selection_pending": true,
+    "context": "Actual Cycle24 commit/push receipt and both current reviews with inherited constraints; next formal contract and validation plan requested.",
+    "completed": true
+  },
+  "dispatch": {
+    "directive_id": "first-parent-directive-2",
+    "agent_id": "/root/first_parent_coder",
+    "delivered": true,
+    "accepted": true,
+    "recorded_at": "2026-09-07T13:26:54.544Z",
+    "acceptance_source": "Actual Coder ACCEPT: complete directive357ae34996ae11c0ebaf09de698a67f25ca5ca898344804e1e8c856115bc88f1, contractf8fe0041df23b81dc3e88b0138363535c504bf5e36269610af118884f72752de, exact owned2 scope and no expansion."
+  },
+  "validation_locator": {
+    "decision": "ACCEPTED_FOR_CURRENT_FULL_ONLY",
+    "directive_id": "first-parent-resume-directive-6",
+    "status": "RESOLVED_INPUT_FULL_PASS",
+    "canonical": "UNREPAIRED_FROZEN_HASH_MISMATCH"
+  },
+  "publication_gate": {
+    "status": "CLEARED_BY_CURRENT_BOUNDED_REVIEW_AND_FINAL_RECONCILIATION",
+    "native_status": "FAIL",
+    "native_exit_code": 1,
+    "native_output": "PII_PATTERN_FOUND; Repository safety check: FAIL",
+    "review_message_id": "first-parent-publication-review-1",
+    "review_ref": "fivecircles/work/collaboration/eh-relay-20260907/messages/EH2.6.c4.2.b.3/012-first-parent-publication-review-1.json",
+    "review_sha256": "c4878f996852877ef7f6bf11a6527e6a55b1054fad6ff67da7bcf9c02f3fc1e9",
+    "reviewed_manifest_sha256": "7eb4584822e5b5cd55a4617b1948073a79d1aadb666e1e88b57e95fa83198836",
+    "reviewed_audit_sha256": "7a113f40fc10ff4b4a883d2edd338f6123c9ebcef109f7a4bf28d5d692fc6099",
+    "clearance_ref": "fivecircles/work/collaboration/eh-relay-20260907/batches/EH2.6.c4.2.b.3/publication-clearance.json",
+    "scope": "Final exact62 files reconciled: one reviewed necessary nonpersonal code-digest field, zero unexpected detections/secrets; native safety remains FAIL.",
+    "final_reconciliation_ref": "/private/tmp/b3-publication-20260908.1v2FVN/final-reconciliation.json",
+    "final_path_count": 62
+  },
+  "recorded_at": "2026-09-07T13:24:38.902Z",
+  "native_capture_runner_ref": "/private/tmp/eh-relay-20260907.GNy8vE/run-first-parent-coder-check.cjs",
+  "native_capture_runner_sha256": "d309e2729137fb7d9fd034249b75e79f88d9ce67dea71a3133ed7fe98fdac096",
+  "native_capture_scope": "Same explicit environment -c metadata probe; actual native tests run with -m unittest. Probe sys.path[0] is not asserted identical to native -m launch.",
+  "validation_checkpoint": {
+    "intended_red": {
+      "result_ref": "/private/tmp/eh-relay-20260907.GNy8vE/first-parent-focused-red-1-result.json",
+      "candidate_id": "sha256:ad9f0db47b9870d3fd41801c8ca37013d8dc3b06efbed43e53fa997d392e5c58",
+      "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/first-parent-focused-red-1.native.log",
+      "artifact_sha256": "6a10079fce9edd429c7a1b9c2cdc2c79d621e577c6bbd8163df12ca222546564",
+      "tests": 1,
+      "seconds": 0,
+      "exit_code": 1,
+      "failures": 1,
+      "expected": true,
+      "files_unchanged": true,
+      "runtime_unchanged": true,
+      "reason": "Contracted private first-parent executor not yet implemented"
+    },
+    "selected_repair": {
+      "result_ref": "/private/tmp/eh-relay-20260907.GNy8vE/first-parent-selected-happy-repair-1-result.json",
+      "candidate_id": "sha256:83a4351856743aef0232a926f0ea2512aad7637f8dd94f89b11762dd7ad41279",
+      "tests": 1,
+      "seconds": 234.397,
+      "exit_code": 0,
+      "files_unchanged": true,
+      "runtime_unchanged": true,
+      "scope": "One fact-path check, not final batch PASS"
+    }
+  },
+  "interim_review": {
+    "stage": "INTERIM_RISK_GATE",
+    "final": false,
+    "report_ref": "messages/EH2.6.c4.2.b.3/003-first-parent-interim-implementation-report-1.json",
+    "candidate_manifest": "/private/tmp/eh-relay-20260907.GNy8vE/first-parent-interim-1-candidate.json",
+    "risk": {
+      "score": 7,
+      "manual_diff_over_500": 3,
+      "architecture": 2,
+      "unexpected_implementation_failure": 2,
+      "mandatory_deep": "source/claim/context cross-contract authority boundary",
+      "scope": "risk routing, not performance scoring"
+    },
+    "dispatch_delivered": true,
+    "required_tests_pending": [
+      "final focused module",
+      "adjacent modules",
+      "isolated base plus owned",
+      "resolved-input full suite"
+    ],
+    "agent_id": "/root/first_parent_interim_critic_1",
+    "recorded_at": "2026-09-07T14:11:49.992Z",
+    "verdict": "PATCH",
+    "review_ref": "messages/EH2.6.c4.2.b.3/004-first-parent-interim-review-1.json",
+    "main_binding_verified": true,
+    "main_call_path_inspection": true,
+    "repair_dispatch_delivered": true,
+    "unresolved_findings": [
+      "FP-INTERIM-1",
+      "FP-INTERIM-2"
+    ],
+    "planned_acceptance_pending": "FP-INTERIM-3",
+    "risk_reset": false,
+    "repair_accepted": true,
+    "accepted_at": "2026-09-07T14:21:30.909Z",
+    "reviewed_candidate_id": "sha256:83a4351856743aef0232a926f0ea2512aad7637f8dd94f89b11762dd7ad41279",
+    "reviewed_test_evidence_id": "sha256:87527c7539f5148ecd070958d49d108acc5ca942f7bb16c2e6e67bd2a27a5a4a",
+    "acceptance": "Actual same Coder ACK full review and bound IDs; existing non-dispatching context reader plus claim-time atomic two-family reservation under existing context-issuance lock. Ordinary caches and bridge source exclusion retained; no current question.",
+    "focused_regressions": [
+      {
+        "finding_id": "FP-INTERIM-1",
+        "result_ref": "/private/tmp/eh-relay-20260907.GNy8vE/first-parent-selected-complete-context-drift-1-result.json",
+        "result_sha256": "aab804aa2201baa1f8d2036c56464faa0bcdc09ce5cc838b5dfd83d596fb82c1",
+        "candidate_id": "sha256:135492e729bac6330a00daf2fa337a0e87399f4fa02c9ea5594e3539d5a91f59",
+        "tests": 1,
+        "seconds": 240.45,
+        "exit_code": 0,
+        "scope": "Selected defensive regression, not full batch/final review approval"
+      },
+      {
+        "finding_id": "FP-INTERIM-2",
+        "result_ref": "/private/tmp/eh-relay-20260907.GNy8vE/first-parent-selected-context-races-1-result.json",
+        "result_sha256": "a014504fa66d1065191fe008560cdc5f029993b8c0c59d85845365f093b28462",
+        "candidate_id": "sha256:135492e729bac6330a00daf2fa337a0e87399f4fa02c9ea5594e3539d5a91f59",
+        "tests": 1,
+        "seconds": 247.784,
+        "exit_code": 0,
+        "scope": "Selected defensive regression, not full batch/final review approval"
+      }
+    ],
+    "approval_status": "PENDING_FINAL_FRESH_REVIEW"
+  },
+  "development_matrix": {
+    "result_ref": "/private/tmp/eh-relay-20260907.GNy8vE/first-parent-selected-acceptance-matrix-1-result.json",
+    "candidate_id": "sha256:a3b160d12761c3ebac5f0af73c587960fc0f0d90f329df12341d5f627815adea",
+    "actual_tests": 8,
+    "failures": 8,
+    "errors": 1,
+    "native_exit_code": 1,
+    "status": "FAIL_RETAINED",
+    "classification": "NEW_TEST_EXPECTATION_AND_FIXTURE_ERRORS",
+    "core_product_defect_established_by_this_run": false,
+    "final_approval": false
+  },
+  "historical_development_check": {
+    "start_ref": "/private/tmp/eh-relay-20260907.GNy8vE/first-parent-focused-final-1-start.json",
+    "candidate_id": "sha256:7832be7a704c5f3b8a7a4c9d53beb7d02fd973f1b6de5d38bce58cbbb670bc2b",
+    "mode": "focused",
+    "failfast": false,
+    "status": "START_OBSERVED_NO_COMPLETION_CLAIM",
+    "runner_sha256": "bea23238dcf87b283b03786de7e2d24741830a645ab1d0367a383e5131092897"
+  },
+  "development_checks": [
+    {
+      "result_ref": "/private/tmp/eh-relay-20260907.GNy8vE/first-parent-selected-matrix-repair-1-result.json",
+      "result_sha256": "ff4ddbe7ae2f6f9e26f7b12497822b32f69d82efb0f5959d0433eb76a3e35d4a",
+      "candidate_id": "sha256:fbe089c30d62d76b6f39c4aac82507bb6aadeea709e3d3bce3b601cb4f32600f",
+      "actual_tests": 2,
+      "seconds": 1077.629,
+      "native_exit_code": 0,
+      "scope": "SELECTED_DEVELOPMENT_ONLY_NOT_FINAL_APPROVAL"
+    },
+    {
+      "result_ref": "/private/tmp/eh-relay-20260907.GNy8vE/first-parent-selected-matrix-repair-2-result.json",
+      "result_sha256": "86daffa02b673d92f0e42ddf85f9414a14c2f8f48520a051a534e904f4a8f5ff",
+      "candidate_id": "sha256:fbe089c30d62d76b6f39c4aac82507bb6aadeea709e3d3bce3b601cb4f32600f",
+      "actual_tests": 3,
+      "seconds": 326.921,
+      "native_exit_code": 0,
+      "scope": "SELECTED_DEVELOPMENT_ONLY_NOT_FINAL_APPROVAL"
+    },
+    {
+      "result_ref": "/private/tmp/eh-relay-20260907.GNy8vE/first-parent-selected-reservation-cleanup-1-result.json",
+      "result_sha256": "0bbbb490295f1ea2338faed770189a04fd6fd3c98bd2a45d318215aaea6c4c07",
+      "candidate_id": "sha256:7832be7a704c5f3b8a7a4c9d53beb7d02fd973f1b6de5d38bce58cbbb670bc2b",
+      "actual_tests": 1,
+      "seconds": 99.013,
+      "native_exit_code": 0,
+      "scope": "SELECTED_DEVELOPMENT_ONLY_NOT_FINAL_APPROVAL"
+    }
+  ],
+  "historical_parallel_validation": {
+    "candidate_id": "sha256:7832be7a704c5f3b8a7a4c9d53beb7d02fd973f1b6de5d38bce58cbbb670bc2b",
+    "focused_start_ref": "/private/tmp/eh-relay-20260907.GNy8vE/first-parent-focused-final-1-start.json",
+    "adjacent_start_ref": "/private/tmp/eh-relay-20260907.GNy8vE/first-parent-adjacent-final-1-start.json",
+    "status": "BOTH_STARTS_OBSERVED_NO_COMPLETION_CLAIM",
+    "failfast": false
+  },
+  "gcp_coordination": {
+    "user_authorization": "Assign migration to existing measurement task; continue Controller development here",
+    "request_delivered": true,
+    "recipient_acknowledgement": true,
+    "vm_actions_in_this_task": false,
+    "status": "Measurement owner reports old CPU partial run preserved/stopped, device-derived snapshot prepared and CUDA environment available; asset transfer/model CUDA smoke/full receipt not yet confirmed complete. No VM or model actions in this Controller task.",
+    "execution_source_ref": "../../2026-09-07-mini131-retrieval-comparison.md",
+    "report_origin": "separate measurement task, not independently reproduced here"
   },
   "optional_coordination_notice": {
     "status": "BLOCKED_PERMISSION",
@@ -58,177 +284,17 @@
       "effect_on_local_work": "none; independent Controller implementation and required validation continue"
     }
   },
-  "gcp_coordination": {
-    "user_authorization": "Assign migration to existing measurement task; continue Controller development here",
-    "request_delivered": true,
-    "recipient_acknowledgement": true,
-    "vm_actions_in_this_task": false,
-    "status": "Measurement owner reports old CPU partial run preserved/stopped, device-derived snapshot prepared and CUDA environment available; asset transfer/model CUDA smoke/full receipt not yet confirmed complete. No VM or model actions in this Controller task.",
-    "execution_source_ref": "../../2026-09-07-mini131-retrieval-comparison.md",
-    "report_origin": "separate measurement task, not independently reproduced here"
-  },
-  "dispatch": {
-    "directive_id": "post-fusion-directive-5",
-    "agent_id": "/root/post_fusion_coder",
-    "delivered": true,
-    "accepted": true,
-    "acceptance_source": "Actual Coder full v5 ACCEPT: 375 lines,38203 bytes,SHA ce2b1dde644e1ec1e5b536c21c038c05f87f02b5120f48df95c1c8d824c1d4a3"
-  },
-  "validation_checkpoint": {
-    "minimal_red": {
-      "tests": 1,
-      "seconds": 19.217,
-      "errors": 1,
-      "exit_code": 1,
-      "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-focused-red-1.native.log",
-      "artifact_sha256": "2d223dbf6b7d29de4adbdc92d247b6d49409df0483c8a635a992b340d6e10324",
-      "expected": true,
-      "capture": "Native output read by main; process exit reported by Coder."
-    },
-    "focused_final_1": {
-      "result_ref": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-focused-final-1-result.json",
-      "result_sha256": "403d5cff17448eb3d292ade2f00afae75cb3315ee2305f08e0c0f9d5189fb653",
-      "candidate_id": "sha256:8d3172b1ec96ce2d11a1892d41cd2a8d3dddc9aa83dc6c050df72b0f401fba24",
-      "contract_id": "sha256:6d80a97e9261b359ad3d80fa05f986f19340c9b905b737c5714183511ba512a4",
-      "test_count": 11,
-      "exit_code": 0,
-      "unittest_summary": "\nRan 11 tests in 904.510s\n\nOK",
-      "finished_at": "2026-09-07T10:52:36.573Z",
-      "files_unchanged": true,
-      "runtime_unchanged": true,
-      "scope": "Actual3 product+3 references; main final candidate not frozen yet"
-    },
-    "main_runs": {
-      "full": {
-        "start_ref": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-full-start.json",
-        "start_sha256": "3339703c0e450e5467fd5caeb75eb53edfbc438b4f5413d5cdd8e4e4e708066b",
-        "recorded_at": "2026-09-07T11:06:23.160Z",
-        "cwd": "/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG",
-        "command": "PATH=\"/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/bin:$PATH\" PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src /Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/bin/python3 -m unittest discover -s tests -t . -p 'test*.py'",
-        "status": "FAIL",
-        "tool_session_id": 31994,
-        "result_ref": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-full-result.json",
-        "exit_code": 1,
-        "test_count": 1657,
-        "unittest_summary": "\nRan 1657 tests in 1672.755s\n\nFAILED (errors=1)",
-        "finished_at": "2026-09-07T11:34:19.585Z",
-        "files_unchanged": true,
-        "test_inputs_unchanged": true,
-        "runtime_unchanged": true,
-        "sole_error": "frozen_refined98 CSV hash mismatch"
-      },
-      "isolated": {
-        "start_ref": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-isolated-start.json",
-        "start_sha256": "761d8e586f309ee11aaddbcfdc7b227a2eb71efb049e4e65d6c6b896998bed3a",
-        "recorded_at": "2026-09-07T11:06:25.581Z",
-        "cwd": "/private/tmp/eh-post-fusion-isolated.L5d8i8",
-        "command": "PATH=\"/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/bin:$PATH\" PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src /Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG/.venv/bin/python3 -m unittest tests.test_controller_post_fusion_decision tests.test_controller_first_fusion_transition tests.test_controller_first_fusion_state tests.test_controller_post_lexical_decision tests.test_controller_next_decision tests.test_controller_decision_receipt tests.test_controller_source_authority tests.test_controller_step_history tests.test_controller_initial_transition tests.test_controller_lexical_transition tests.test_controller_target_context_accumulator tests.test_harness_context tests.test_absence_confirmation tests.test_execution_contracts tests.test_retrieval_obligations",
-        "status": "PASS",
-        "tool_session_id": 42393,
-        "result_ref": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-isolated-result.json",
-        "exit_code": 0,
-        "test_count": 216,
-        "unittest_summary": "\nRan 216 tests in 1843.717s\n\nOK",
-        "finished_at": "2026-09-07T11:37:12.208Z",
-        "files_unchanged": true,
-        "runtime_unchanged": true
-      }
-    },
-    "adjacent_final_1": {
-      "result_ref": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-adjacent-final-1-result.json",
-      "candidate_id": "sha256:8d3172b1ec96ce2d11a1892d41cd2a8d3dddc9aa83dc6c050df72b0f401fba24",
-      "test_count": 205,
-      "exit_code": 0,
-      "unittest_summary": "Ran 205 tests in 647.583s\n\nOK",
-      "scope": "Actual3 product+3 references/runtime start-end match"
-    },
-    "recovery_attempt_1": {
-      "result_ref": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-recovery-result.json",
-      "result_sha256": "fe6a7e7f2e3327c576b494063ce55581bbfe137465e4529d0e5ed73ba71d219b",
-      "exit_code": 1,
-      "actual_tests_run": 0,
-      "status": "DISCOVERY_FAILED",
-      "reason": "Absolute helper launch places temporary script directory at sys.path[0], so tests package is unavailable despite PYTHONPATH=src.",
-      "files_unchanged": true,
-      "listed_full_inputs_unchanged": true
-    },
-    "recovery_attempt_2": {
-      "result_ref": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-recovery-2-result.json",
-      "result_sha256": "194b83c99383ed8ca60b15233f92fd62d69525f26f08ac76147bafa91fab6da6",
-      "tests": 5,
-      "seconds": 0.073,
-      "exit_code": 0,
-      "postflight_issues": [],
-      "status": "PASS"
-    }
-  },
-  "candidate_ref": "batches/EH2.6.d2.x.b.2/candidate.json",
-  "review_dispatch": {
-    "agent_id": "/root/post_fusion_critic_1",
-    "delivered": true,
-    "accepted": null,
-    "depth": "deep",
-    "risk_score": 7,
-    "recorded_at": "2026-09-07T12:34:13.227Z",
-    "directive_id": "post-fusion-directive-5",
-    "candidate_id": "sha256:8d3172b1ec96ce2d11a1892d41cd2a8d3dddc9aa83dc6c050df72b0f401fba24",
-    "contract_id": "sha256:6d80a97e9261b359ad3d80fa05f986f19340c9b905b737c5714183511ba512a4",
-    "test_evidence_id": "sha256:eaf054ab203e73671d84ba9f9b035bbcaf45027f12bb6c8c21a7e331c8366771",
-    "implementation_message_id": "post-fusion-implementation-report-1",
-    "scope": "Read-only exact product/contract and v5 composition/runtime-limit review; no tests/Git/models or publication clearance"
-  },
-  "publication_gate": {
-    "status": "CLEARED_BY_CURRENT_BOUNDED_REVIEW",
-    "historical_exception_ref": "messages/EH2.6.c4.2.b.2/005-first-fuse-state-publication-review-1.json",
-    "scope": "Only previous exact fields; no prospective clearance",
-    "automated_status": "FAIL",
-    "automated_exit_code": 1,
-    "payload_files": 46,
-    "payload_pii_detections": 0,
-    "payload_secret_detections": 0,
-    "agent_id": "/root/post_fusion_publication_critic_1",
-    "request_ref": "/private/tmp/eh-relay-20260907.GNy8vE/post-fusion-publication-request.json",
-    "request_sha256": "8e5319829cbbc8be2a4bb3afc0032f74e1a644c3e99b22eb60bde2e37c749ce3",
-    "delivered": true,
-    "accepted": true,
-    "review_message_id": "post-fusion-publication-review-1",
-    "review_sha256": "28d39782caf351fa1ec93e682ac82adb35ff844c142ca6033d885ccc077bb9ad",
-    "final_reconciliation_ref": "integration-EH2.6.d2.x.b.2.json"
-  },
-  "next_design_dispatch": {
-    "agent_id": "/root/lexical_design",
-    "delivered": true,
-    "accepted": true,
-    "recorded_at": "2026-09-07T08:55:37.580Z",
-    "selection_pending": true,
-    "completed": true
-  },
-  "next_coder_preflight": {
-    "agent_id": "/root/post_fusion_coder",
-    "model": "gpt-5.6-sol",
-    "effort": "ultra",
-    "delivered": true,
-    "accepted": true,
-    "implementation_authorized": true,
-    "status": "COMPLETED",
-    "recorded_at": "2026-09-07T09:03:31.088Z"
-  },
-  "active_question_id": null,
-  "guidance_resolution": {
-    "question_id": "post-fusion-recovery-launcher-question-1",
-    "directive_id": "post-fusion-directive-5",
-    "decision": "ACCEPT",
-    "choice": "UNCHANGED_RESOLVER_MINUS_C_RUNPY",
-    "behavior_contract_changed": false,
-    "recorded_at": "2026-09-07T12:15:33.867Z"
-  },
-  "validation_gate": {
-    "native_full_status": "FAIL",
-    "native_full_exit_code": 1,
-    "recovery_status": "PASS",
-    "composed_regression_gate": "COMPOSED_VALIDATION_PASS",
-    "canonical_input_status": "UNREPAIRED_FROZEN_HASH_MISMATCH",
-    "accepted_by_review": "post-fusion-review-1"
-  },
-  "reviewed_implementation_message_id": "post-fusion-implementation-report-1"
+  "integration_projection": {
+    "scope": "B3 current state and original B3 history only; independent active/previous-priority worktree state remains local and unmodified.",
+    "excluded_worktree_keys": [
+      "current_hotline",
+      "current_latency_fix",
+      "historical_quickqa2_priority",
+      "previous_user_priority",
+      "previous_quickqa_priority",
+      "gcp_coordination",
+      "optional_coordination_notice"
+    ],
+    "preexisting_coordination_fields": "Kept at HEAD, not updated from parallel work."
+  }
 }

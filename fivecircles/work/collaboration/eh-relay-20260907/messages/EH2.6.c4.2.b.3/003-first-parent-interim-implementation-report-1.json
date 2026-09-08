@@ -1,0 +1,134 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eh-relay-20260907",
+  "batch_id": "EH2.6.c4.2.b.3",
+  "message_id": "first-parent-interim-implementation-report-1",
+  "in_reply_to": "first-parent-directive-2",
+  "sender": "CODER",
+  "kind": "IMPLEMENTATION_REPORT",
+  "body": {
+    "status": "NEEDS_GUIDANCE",
+    "review_stage": "INTERIM_RISK_GATE",
+    "final": false,
+    "directive_id": "first-parent-directive-2",
+    "contract_id": "sha256:f8fe0041df23b81dc3e88b0138363535c504bf5e36269610af118884f72752de",
+    "candidate_id": "sha256:83a4351856743aef0232a926f0ea2512aad7637f8dd94f89b11762dd7ad41279",
+    "test_evidence_id": "sha256:87527c7539f5148ecd070958d49d108acc5ca942f7bb16c2e6e67bd2a27a5a4a",
+    "candidate_manifest": "/private/tmp/eh-relay-20260907.GNy8vE/first-parent-interim-1-candidate.json",
+    "evidence_manifest": "/private/tmp/eh-relay-20260907.GNy8vE/first-parent-interim-1-test-evidence.sha256",
+    "changed_files": [
+      "src/midprojectrag/orchestration/execution_contracts.py",
+      "tests/test_controller_first_parent_transition.py"
+    ],
+    "source_refs": [
+      {
+        "path": "fivecircles/architecture/specs/controller-first-parent-transition.md",
+        "sha256": "f8fe0041df23b81dc3e88b0138363535c504bf5e36269610af118884f72752de"
+      },
+      {
+        "path": "src/midprojectrag/orchestration/module-contract.md",
+        "sha256": "8274b320135669176cafab7af59bebdac0cb8b17aeadacfd2f2b1fbad2f043b3"
+      },
+      {
+        "path": "fivecircles/architecture/specs/controller-next-decision.md",
+        "sha256": "6d80a97e9261b359ad3d80fa05f986f19340c9b905b737c5714183511ba512a4"
+      },
+      {
+        "path": "fivecircles/architecture/specs/controller-first-fusion-transition.md",
+        "sha256": "1b92dbdf8d116e3812a1e27181e431a9aef39f6e0c70996a70e59dadd3a4c3e8"
+      }
+    ],
+    "completed": [
+      "Added the private first-parent executor/readback closure and revision4 same-state ledger/transition path.",
+      "Connected complete parent+bridge preparation through the existing base semantic obligation and target-context accumulator.",
+      "Preserved the existing exact lane/fusion begin-record-claim seal and added a one-time exact parent issuer/minter/accumulator/executor CodeType seal.",
+      "Bound every newly minted parent receipt to a pre-work monotonic attempt; parent source admission requires controller-dispatch origin and a post-claim epoch.",
+      "Added a pre-claim scan rejecting any prior parent/bridge batch history for the exact semantic issuance key.",
+      "Meaningful fact-path revision4/readback test passes on the bound interim candidate."
+    ],
+    "incomplete": [
+      "Compare, lane-outcome matrix, bounded-prefix linked table/figure, refusal, race/concurrency, GC/remint, tamper and registration-failure cases are not yet added/run in the owned focused module.",
+      "Final focused, adjacent, main-owned isolated and full tests are unrun.",
+      "Fresh critic has not reviewed the dual seal, temporal race, rollback, or live graph retention boundaries."
+    ],
+    "failures": [
+      {
+        "kind": "INTENDED_RED",
+        "candidate_id": "sha256:ad9f0db47b9870d3fd41801c8ca37013d8dc3b06efbed43e53fa997d392e5c58",
+        "result": "/private/tmp/eh-relay-20260907.GNy8vE/first-parent-focused-red-1-result.json",
+        "exit_code": 1,
+        "summary": "Ran 1 test; expected missing _execute_controller_first_parent_step failure."
+      },
+      {
+        "kind": "IMPLEMENTATION_FAILURE",
+        "candidate_id": "sha256:3aeff009fb9815b2e729aa8914ff08847e17dfa1a001aa47a0e1671504e566c9",
+        "result": "/private/tmp/eh-relay-20260907.GNy8vE/first-parent-selected-happy-1-result.json",
+        "exit_code": 1,
+        "summary": "Ran 1 test in 45.754s; generator-expression caller failed exact source-attempt begin authority. Repaired with a direct loop; no boundary relaxation."
+      }
+    ],
+    "tests": [
+      {
+        "command": ".venv/bin/python3 -m unittest tests.test_controller_first_parent_transition -v",
+        "exit_code": 1,
+        "candidate_id": "sha256:ad9f0db47b9870d3fd41801c8ca37013d8dc3b06efbed43e53fa997d392e5c58",
+        "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/first-parent-focused-red-1.native.log"
+      },
+      {
+        "command": ".venv/bin/python3 -m unittest tests.test_controller_first_parent_transition.ControllerFirstParentTransitionTests.test_private_first_parent_executor_exists_with_closed_signature -v",
+        "exit_code": 0,
+        "candidate_id": "sha256:75da8993ceba2ed8873c9d1acf277e8c0555ce8fb7276a97c7c3134786df7c7d",
+        "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/first-parent-selected-signature-green-1.native.log"
+      },
+      {
+        "command": ".venv/bin/python3 -m unittest tests.test_controller_first_parent_transition.ControllerFirstParentTransitionTests.test_fact_parent_seals_exact_same_state_revision_four -v",
+        "exit_code": 1,
+        "candidate_id": "sha256:3aeff009fb9815b2e729aa8914ff08847e17dfa1a001aa47a0e1671504e566c9",
+        "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/first-parent-selected-happy-1.native.log"
+      },
+      {
+        "command": ".venv/bin/python3 -m unittest tests.test_controller_first_parent_transition.ControllerFirstParentTransitionTests.test_fact_parent_seals_exact_same_state_revision_four -v",
+        "exit_code": 0,
+        "candidate_id": "sha256:83a4351856743aef0232a926f0ea2512aad7637f8dd94f89b11762dd7ad41279",
+        "artifact": "/private/tmp/eh-relay-20260907.GNy8vE/first-parent-selected-happy-repair-1.native.log"
+      },
+      {
+        "command": ".venv/bin/python3 -m unittest tests.test_controller_first_parent_transition -v (final focused)",
+        "exit_code": null,
+        "candidate_id": "sha256:83a4351856743aef0232a926f0ea2512aad7637f8dd94f89b11762dd7ad41279",
+        "artifact": null
+      },
+      {
+        "command": "native adjacent-v2 suite (runner mode adjacent)",
+        "exit_code": null,
+        "candidate_id": "sha256:83a4351856743aef0232a926f0ea2512aad7637f8dd94f89b11762dd7ad41279",
+        "artifact": null
+      },
+      {
+        "command": "main-owned isolated first-parent module capture",
+        "exit_code": null,
+        "candidate_id": "sha256:83a4351856743aef0232a926f0ea2512aad7637f8dd94f89b11762dd7ad41279",
+        "artifact": null
+      },
+      {
+        "command": "main-owned full unittest discovery capture",
+        "exit_code": null,
+        "candidate_id": "sha256:83a4351856743aef0232a926f0ea2512aad7637f8dd94f89b11762dd7ad41279",
+        "artifact": null
+      }
+    ],
+    "deviations": [
+      "No scope or contract deviation. Work is intentionally paused before completing the acceptance matrix because the risk score triggered an interim fresh-critic gate.",
+      "One attempted patch that would have relocated the primary seal was rejected before execution and changed zero bytes; the applied safer design retains the original primary seal and adds a separate once-only parent seal."
+    ],
+    "unresolved_questions": [
+      "Does fresh critique accept the dual primary/parent seal and stack-authenticated parent dispatch origin as preserving all exact source-attempt/claim dependencies?",
+      "Are additional repairs required before completing the focused acceptance matrix and final focused+adjacent capture?"
+    ],
+    "proposed_next_steps": [
+      "Fresh critic inspects both existing lane/fusion and new parent seal paths, preclaim context-history scan, postclaim temporal admission, rollback, same-state revision4, and retained graph.",
+      "On PATCH/continue guidance, make only bounded owned-file repairs/tests, then run one final focused and one adjacent capture at a single unchanged candidate.",
+      "Freeze and send frozen-product-ready; main then runs isolated/full and supplies final evidence for the messages.md REVIEW_READY report."
+    ]
+  }
+}
