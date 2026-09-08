@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' file:; style-src 'unsafe-inline'">
+<title>OCR 그림 검색 연결 검증</title>
+<style>body{font:16px/1.6 system-ui;max-width:1100px;margin:24px auto;padding:16px;color:#1f2933}img{width:100%;height:auto}table{border-collapse:collapse;width:100%}th,td{border:1px solid #ccc;padding:10px;text-align:left}small{color:#555}a{color:#174e9a}</style>
+<h1>OCR 그림 검색 연결 검증</h1><p>2026-09-08 · 별도 CLI 샘플 연결 완료. 전체 RAG, VLM 해석, 생성 답변 통합 완료는 아닙니다.</p>
+<h2>목표 흐름</h2><a href="visual-ocr-target-flow.png"><img alt="목표 OCR 그림 검색 흐름" src="visual-ocr-target-flow.png"></a><a href="visual-ocr-target-flow.mmd">목표 Mermaid 원본</a>
+<h2>현재 구현 흐름</h2><a href="visual-ocr-current-flow.png"><img alt="현재 OCR 그림 검색 흐름" src="visual-ocr-current-flow.png"></a><a href="visual-ocr-current-flow.mmd">현재 Mermaid 원본</a>
+<h2>색상 범례</h2><p>초록: 검증된 경로 · 노랑: 로컬 민감 자료 · 빨강: 차단/미연결 · 회색: 결정론 제어</p>
+<h2>목표 대비 차이와 우선순위</h2><table><tr><th>항목</th><th>상태</th><th>다음 조치</th><th>점수</th></tr>
+<tr><td>OCR 임베딩·저장·reload·출처 반환</td><td>2청크 / 1그림 실측 완료</td><td>유지</td><td>0</td></tr>
+<tr><td>브라우저 이미지 표시</td><td>자동 검수 URL 정책 차단</td><td>사용자 private HTML 확인</td><td>5</td></tr>
+<tr><td>전체 그림 검색 품질</td><td>미평가</td><td>대상·평가셋 승인 후</td><td>4</td></tr>
+<tr><td>Streamlit / LLM 연결</td><td>별도 범위</td><td>통합 승인 후</td><td>3</td></tr>
+<tr><td>픽셀 임베딩 / VLM 관계 해석</td><td>별도 범위</td><td>필요성 평가 후</td><td>2</td></tr></table>
+<h2>선정 기준</h2><p>납품 확인 3 + 직접 사용자 확인 2. 후속 범위는 효과 0~3 + 검증 준비 0~2. 이 표는 후속 실행 승인이 아닙니다.</p>
+<h2>검증 근거</h2><p>합성·기존 회귀 24개 PASS. KURE 1024차원, 실제 mps:0, CPU fallback 없음, OS 네트워크 차단 상태로 실행.</p>
+<p>build 모델 로딩 4.668초 / 임베딩 0.812초. 새 프로세스 query 검색 0.454초(모델·인덱스 로딩 및 HTML 생성 제외). 원본 입력 hash 동일, 벡터와 원문은 Git 제외.</p>
+<p>두 청크가 같은 그림이므로 검색 성공은 연결 확인일 뿐 Recall/nDCG 또는 정답 품질 증거가 아닙니다. 브라우저 자동 검수 및 screenshot은 BLOCKED로 기록합니다.</p>
+<p><a href="visual-ocr-index.md">구현 계약·재실행 안내</a></p></html>

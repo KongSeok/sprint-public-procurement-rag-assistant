@@ -162,3 +162,10 @@ Cause:
 
 Preventive rule:
 - Use MAX_CSV_FIELD_BYTES for every canonical-body CSV reader and keep a greater-than-default regression case
+
+### OCR vector search is not pixel understanding (2026-09-08)
+
+- OCR/layout text embedding can return the original verified crop without embedding pixels or invoking a VLM.
+- A two-chunk, one-occurrence smoke proves persistence/query/provenance wiring only, not corpus ranking quality or diagram relationship reasoning.
+- Confirm actual encoder device and successful inference; offline flags alone do not establish no-egress. Keep private inference inside an OS network-denied subprocess.
+- Local HTML browser URL-policy rejection is a validation boundary. Do not proxy or use another browser to bypass it; record static checks separately from unperformed browser checks.

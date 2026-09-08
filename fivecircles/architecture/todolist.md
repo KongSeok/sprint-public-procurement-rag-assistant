@@ -479,3 +479,11 @@ HWP blank-crop incident: `fivecircles/test/errorlogs/backend/2026-08-31-visual-c
 - 제공된 100개 밖의 corpus 확장
 - 모든 검색 기법의 무차별 구현
 - 원문·원문 수준 청크·벡터 DB의 공개 배포
+
+## OCR 그림 샘플 임베딩 — 2026-09-08
+
+- [x] 별도 visual index build/reload/search와 crop provenance 검증 구현.
+- [x] 합성·기존 회귀 24개 PASS, KURE MPS 2청크 임베딩 및 새 프로세스 검색 1그림 반환.
+- [x] private JSON/HTML 미리보기 생성. 브라우저 자동 검수는 URL 정책 차단, 사용자 화면 확인은 별도.
+- [ ] 리소스 제외·로그올 후 feat/vlm-visual-retrieval에 관련 파일만 커밋·푸시.
+- 계약: `fivecircles/architecture/specs/visual-ocr-index.md`. Qwen 평가/기존 앱 전환 없음.

@@ -1,0 +1,9 @@
+flowchart LR
+  A["OCR/layout 청크 + PNG"]:::amber --> B["출처 계약 검증"]:::green
+  B --> C["KURE MPS / 1024차원"]:::amber --> D["별도 private 저장소"]:::amber
+  Q["질문 → 동일 KURE"]:::amber --> E["reload / cosine 검색"]:::green
+  D --> E --> F["그림 출처 + 미리보기"]:::green
+  classDef green fill:#e8f2ea,stroke:#bdd1c2,color:#1f2933,stroke-width:1.5px
+  classDef amber fill:#fff4dc,stroke:#e7c88f,color:#1f2933,stroke-width:1.5px
+  classDef red fill:#fde9e6,stroke:#e8bab5,color:#1f2933,stroke-width:1.5px
+  classDef gray fill:#eef1ed,stroke:#d8e0da,color:#1f2933,stroke-width:1.5px

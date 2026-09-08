@@ -1,0 +1,11 @@
+flowchart LR
+  A["기존 OCR/layout 2청크"]:::amber --> B["출처 hash 검증"]:::green
+  B --> C["KURE mps:0 / 2 x 1024"]:::green --> D["신규 private index"]:::amber
+  Q["새 프로세스 질문 임베딩"]:::green --> E["reload / cosine 검색"]:::green
+  D --> E --> F["중복 병합 → 그림 1개"]:::green
+  F --> G["JSON + HTML 생성"]:::green --> H["브라우저 자동 검수 차단"]:::red
+  E -. "이번 범위 제외" .-> I["Streamlit / LLM / VLM"]:::red
+  classDef green fill:#e8f2ea,stroke:#bdd1c2,color:#1f2933,stroke-width:1.5px
+  classDef amber fill:#fff4dc,stroke:#e7c88f,color:#1f2933,stroke-width:1.5px
+  classDef red fill:#fde9e6,stroke:#e8bab5,color:#1f2933,stroke-width:1.5px
+  classDef gray fill:#eef1ed,stroke:#d8e0da,color:#1f2933,stroke-width:1.5px

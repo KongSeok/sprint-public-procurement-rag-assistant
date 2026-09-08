@@ -2,6 +2,17 @@
 
 This file summarizes recent updates so other agents can continue without re‑discovering changes.
 
+## Addendum (2026-09-08) — OCR 그림 샘플 벡터 저장·검색
+
+- 별도 VLM worktree에서 opt-in `visual_ocr_index` CLI를 추가했다. 기존 visual schema/index와 고정 KURE provider를 재사용하고 OCR/layout만 허용한다.
+- 모델 identity·입력/저장 파일 SHA·PNG provenance·private 경로·덮어쓰기 금지를 검증한다. 동일 occurrence 결과는 하나로 묶는다.
+- 합성 12 + 기존 fusion/HF 12 = 24 테스트 PASS. 실제 KURE MPS 2×1024 벡터 저장 및 fresh-process 검색으로 그림 1개 반환.
+- 모델 로딩 4.668초, 2청크 임베딩 0.812초, query 검색 0.454초. 샘플 연결 검증이며 골든셋 성능 주장이 아니다.
+- 원본 입력 hash 유지, 데이터/벡터/HTML 결과는 resources/private에만 저장. Qwen 평가·기존 앱·원래 작업 트리 코드는 수정하지 않았다.
+- 브라우저 file URL 검수는 정책 차단으로 중단했다. 우회/DOM PASS/screenshot 증거를 만들지 않았다.
+- 정적 산출물 QA PASS: 벡터 shape/norm, 원본 SHA, query occurrence, HTML PNG, 흐름 PNG 2개. 저장소 safety 581파일 PASS, 실제 private 인덱스/미리보기 ignore 확인.
+- 계약과 공개 흐름 보고: `fivecircles/architecture/specs/visual-ocr-index.md`, `visual-ocr-flow-validation.html`.
+
 ## Addendum (2026-08-24) - Batch 0 foundation
 
 ### Governance
