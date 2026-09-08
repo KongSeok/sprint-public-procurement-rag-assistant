@@ -80,37 +80,26 @@ def _render_pdf_regions(case: dict[str, Any], source: Path, output: Path) -> lis
                 float(bbox["x"]) + float(bbox["w"]),
                 float(bbox["y"]) + float(bbox["h"]),
             ) & page.rect
-            pixmap = page.get_pixmap(matrix=fitz.Matrix(2, 2), clip=clip, alpha=False)
+            pixmap = page.get_pixmap(matrix=fitz.Matrix(3, 3), clip=clip, alpha=False)
             crop_path = output / f"region-{index:02d}-page-{page_number}.png"
             pixmap.save(crop_path)
             page_path = output / f"full-page-{page_number}.png"
-            page.get_pixmap(matrix=fitz.Matrix(1.25, 1.25), alpha=False).save(page_path)
-
-            with Image.open(crop_path) as crop_source, Image.open(page_path) as page_source:
-                crop_image = crop_source.convert("RGB")
-                page_image = page_source.convert("RGB")
-                crop_image.thumbnail((1200, 650))
-                page_image.thumbnail((1200, 1500))
-                width = max(crop_image.width, page_image.width) + 20
-                height = crop_image.height + page_image.height + 100
-                context_sheet = Image.new("RGB", (width, height), "white")
-                draw = ImageDraw.Draw(context_sheet)
-                draw.text((10, 10), "TARGET REGION", fill="black")
-                context_sheet.paste(crop_image, (10, 35))
-                page_label_y = crop_image.height + 55
-                draw.text((10, page_label_y), "FULL PAGE CONTEXT", fill="black")
-                context_sheet.paste(page_image, (10, page_label_y + 25))
-            path = output / f"figure-context-{index:02d}-page-{page_number}.jpg"
-            context_sheet.save(path, format="JPEG", quality=94, optimize=True)
-            rendered.append(
-                {
-                    "path": str(path.resolve()),
+            page.get_pixmap(matrix=fitz.Matrix(2, 2), alpha=False).save(page_path)
+            common = {
                     "page": page_number,
                     "bbox": {key: float(bbox[key]) for key in ("x", "y", "w", "h")},
                     "coordinate_space": str(ref.get("coordinate_space") or "pdf_points_top_left"),
-                    "image_sha256": _sha256(path),
-                    "source_image_sha256s": [_sha256(crop_path), _sha256(page_path)],
                     "provenance_level": "page_bbox_verified",
+            }
+            rendered.append(
+                {**common, "path": str(crop_path.resolve()), "image_sha256": _sha256(crop_path)}
+            )
+            rendered.append(
+                {
+                    **common,
+                    "path": str(page_path.resolve()),
+                    "image_sha256": _sha256(page_path),
+                    "provenance_level": "page_verified_full_context",
                 }
             )
     finally:

@@ -141,15 +141,20 @@ def run(
                 inference_image_count += 1
             else:
                 selected_images = images
-            evidence = _parse_answer(
-                _complete(
-                    client,
-                    model=model,
-                    system_prompt=SYSTEM_PROMPT,
-                    question=item["question"],
-                    images=selected_images,
+            evidence_parts = []
+            for selected_image in selected_images:
+                part = _parse_answer(
+                    _complete(
+                        client,
+                        model=model,
+                        system_prompt=SYSTEM_PROMPT,
+                        question=item["question"],
+                        images=[selected_image],
+                    )
                 )
-            )
+                if part and part not in evidence_parts:
+                    evidence_parts.append(part)
+            evidence = "\n".join(evidence_parts)
         except Exception as exc:  # noqa: BLE001
             error = f"{type(exc).__name__}: {exc}"
         rows.append(
