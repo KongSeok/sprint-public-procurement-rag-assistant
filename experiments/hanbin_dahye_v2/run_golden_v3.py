@@ -72,6 +72,11 @@ def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--limit", type=int, help="시험 실행할 앞쪽 문항 수")
     parser.add_argument("--resume", action="store_true", help="기존 CSV 다음부터 재개")
+    parser.add_argument(
+        "--summarize-only",
+        action="store_true",
+        help="API를 호출하지 않고 기존 상세 CSV의 요약 JSON만 다시 생성",
+    )
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
     return parser.parse_args()
 
@@ -112,7 +117,9 @@ def _build_summary(result: pd.DataFrame) -> dict[str, Any]:
         if len(result)
         else None,
         "retrieval_recall": _mean(result["retrieval_recall"]),
+        "all_required_docs_retrieved_rate": _mean(result["retrieval_recall"] == 1),
         "context_fact_coverage": _mean(gradable["context_fact_coverage"]),
+        "context_fact_full_rate": _mean(gradable["context_fact_coverage"] == 1),
         "answer_fact_coverage": _mean(gradable["fact_coverage"]),
         "fact_full_pass_rate": _mean(gradable["facts_pass"]),
         "citation_coverage": _mean(result["citation_coverage"]),
@@ -120,12 +127,19 @@ def _build_summary(result: pd.DataFrame) -> dict[str, Any]:
         "compatible_overall_score": _mean(result["compatible_score"]),
         "lanes": {},
     }
-    for lane, group in result.groupby("lane"):
+    group_column = "source_lane" if "source_lane" in result.columns else "lane"
+    for lane, group in result.groupby(group_column):
         lane_gradable = group[group["facts_total"].fillna(0) > 0]
         summary["lanes"][str(lane)] = {
             "cases": int(len(group)),
             "retrieval_recall": _mean(group["retrieval_recall"]),
+            "all_required_docs_retrieved_rate": _mean(
+                group["retrieval_recall"] == 1
+            ),
             "context_fact_coverage": _mean(lane_gradable["context_fact_coverage"]),
+            "context_fact_full_rate": _mean(
+                lane_gradable["context_fact_coverage"] == 1
+            ),
             "answer_fact_coverage": _mean(lane_gradable["fact_coverage"]),
             "citation_coverage": _mean(group["citation_coverage"]),
             "abstention_match_rate": _mean(group["abstention_match"]),
@@ -136,14 +150,25 @@ def _build_summary(result: pd.DataFrame) -> dict[str, Any]:
 
 def main() -> int:
     args = _parse_args()
+    output_csv = args.output_dir / "golden_v3_results.csv"
+    summary_json = args.output_dir / "summary.json"
+
+    if args.summarize_only:
+        if not output_csv.exists():
+            print(f"상세 결과가 없습니다: {output_csv}")
+            return 2
+        summary = _build_summary(pd.read_csv(output_csv))
+        summary_json.write_text(
+            json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+        print(json.dumps(summary, ensure_ascii=False, indent=2))
+        return 0
+
     if not os.getenv("OPENAI_API_KEY"):
         print("OPENAI_API_KEY가 없어 gpt-5-mini 평가를 실행할 수 없습니다.")
         return 2
 
     from openai import OpenAI
-
-    output_csv = args.output_dir / "golden_v3_results.csv"
-    summary_json = args.output_dir / "summary.json"
 
     golden = load_golden_set_v3()
     if args.limit:
