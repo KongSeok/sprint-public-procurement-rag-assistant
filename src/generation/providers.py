@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from typing import Any, Protocol
 
 from .generation import SYSTEM_PROMPT
+from .dahye_generation import DahyeGPT5MiniGenerator
 
 
 class AnswerGenerator(Protocol):
@@ -75,6 +76,7 @@ def create_generator(
     provider = provider.strip().lower()
     defaults = {
         "openai": ("gpt-5-mini", None),
+        "openai-dahye-v1": ("gpt-5-mini", None),
         "vllm": ("Qwen/Qwen3-8B-AWQ", "http://127.0.0.1:8001/v1"),
         "ollama": ("qwen3:8b", "http://127.0.0.1:11434/v1"),
     }
@@ -85,9 +87,11 @@ def create_generator(
     selected_model = model or default_model
     from openai import OpenAI
 
-    if provider == "openai":
+    if provider in {"openai", "openai-dahye-v1"}:
         if not api_key:
             raise ValueError("OPENAI_API_KEY가 필요합니다")
+        if provider == "openai-dahye-v1":
+            return DahyeGPT5MiniGenerator(OpenAI(api_key=api_key), model=selected_model)
         return OpenAIResponsesGenerator(OpenAI(api_key=api_key), model=selected_model)
 
     client = OpenAI(base_url=base_url or default_url, api_key=api_key or "local-not-used")

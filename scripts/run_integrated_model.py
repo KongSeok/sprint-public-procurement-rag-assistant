@@ -24,7 +24,11 @@ from src.runtime_integrity import build_runtime_manifest  # noqa: E402
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--query", required=True)
-    parser.add_argument("--provider", choices=("openai", "vllm", "ollama"), default="openai")
+    parser.add_argument(
+        "--provider",
+        choices=("openai", "openai-dahye-v1", "vllm", "ollama"),
+        default="openai",
+    )
     parser.add_argument("--model")
     parser.add_argument("--base-url")
     parser.add_argument("--org")
@@ -41,7 +45,7 @@ def main() -> None:
         args.provider,
         model=args.model,
         base_url=args.base_url,
-        api_key=os.getenv("OPENAI_API_KEY") if args.provider == "openai" else None,
+        api_key=os.getenv("OPENAI_API_KEY") if args.provider.startswith("openai") else None,
     )
     pipeline = IntegratedRAGPipeline(
         index,

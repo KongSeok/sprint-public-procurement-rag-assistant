@@ -3,6 +3,7 @@ from __future__ import annotations
 import unittest
 from types import SimpleNamespace
 
+from src.generation.dahye_generation import DahyeGPT5MiniGenerator
 from src.generation.providers import OpenAICompatibleGenerator, OpenAIResponsesGenerator
 
 
@@ -33,6 +34,20 @@ class GenerationProviderTest(unittest.TestCase):
         generator = OpenAICompatibleGenerator(client, "Qwen/Qwen3-8B-AWQ", "vllm")
         self.assertEqual(generator.generate("질문", "근거"), "로컬 답변")
         self.assertEqual(completions.kwargs["temperature"], 0)
+
+    def test_dahye_gpt5_mini_provider_preserves_generation_contract(self):
+        completions = FakeCompletions()
+        client = SimpleNamespace(chat=SimpleNamespace(completions=completions))
+        generator = DahyeGPT5MiniGenerator(client)
+
+        self.assertEqual(generator.generate("예산은?", "[출처: 문서.hwp]\n1억원"), "로컬 답변")
+        self.assertEqual(completions.kwargs["model"], "gpt-5-mini")
+        self.assertEqual(completions.kwargs["reasoning_effort"], "low")
+        self.assertEqual(completions.kwargs["max_completion_tokens"], 8000)
+        prompt = completions.kwargs["messages"][0]["content"]
+        self.assertIn("예산은?", prompt)
+        self.assertIn("[출처: 문서.hwp]", prompt)
+        self.assertIn("[근거: doc_id1, doc_id2]", prompt)
 
 
 if __name__ == "__main__":
