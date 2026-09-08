@@ -16,7 +16,10 @@ VLM을 적용하라는 `feat/vlm-visual-retrieval`의 설계를 따른다.
   provenance 수준을 함께 기록한다. 생성 프롬프트에도 같은 근거 표식을 전달한다.
 - HWP는 정확한 페이지 렌더러가 없으므로 문서에서 추출한 큰 이미지 후보를 제한적으로 비교한다.
   후보는 번호가 붙은 단일 contact sheet로 묶는다. 따라서 HWP 결과는
-  `document_candidate_contact_sheet`로 표시하며 정확한 page/bbox 인용으로 간주하지 않는다.
+  contact sheet에서 후보 하나를 고른 뒤 해당 원본 이미지를 재판독한다. 결과는
+  `document_candidate_only`로 표시하며 정확한 page/bbox 인용으로 간주하지 않는다.
+- PDF 그림은 지정 bbox의 확대본과 같은 물리 페이지 전체를 한 context sheet로 묶어,
+  잘린 영역 때문에 그림 관계의 한쪽이 사라지는 문제를 줄인다.
 - 시각 브랜치의 Evidence-Harness 및 별도 평가 구조는 포함하지 않는다.
 
 ## 실행 순서
