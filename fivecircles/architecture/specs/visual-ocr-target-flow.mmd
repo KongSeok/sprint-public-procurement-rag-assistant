@@ -2,7 +2,9 @@ flowchart LR
   A["OCR/layout 청크 + PNG"]:::amber --> B["출처 계약 검증"]:::green
   B --> C["KURE MPS / 1024차원"]:::amber --> D["별도 private 저장소"]:::amber
   Q["질문 → 동일 KURE"]:::amber --> E["reload / cosine 검색"]:::green
-  D --> E --> F["그림 출처 + 미리보기"]:::green
+  D --> E --> F["top-1 PNG + 출처 검증"]:::green
+  F --> G["로컬 VLM / 실제 픽셀 입력"]:::amber --> H["출력 계약 / 불확실하면 보류"]:::gray
+  H --> I["해석 또는 기권 + 원본 인용"]:::green
   classDef green fill:#e8f2ea,stroke:#bdd1c2,color:#1f2933,stroke-width:1.5px
   classDef amber fill:#fff4dc,stroke:#e7c88f,color:#1f2933,stroke-width:1.5px
   classDef red fill:#fde9e6,stroke:#e8bab5,color:#1f2933,stroke-width:1.5px

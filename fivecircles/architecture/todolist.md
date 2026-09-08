@@ -487,3 +487,10 @@ HWP blank-crop incident: `fivecircles/test/errorlogs/backend/2026-08-31-visual-c
 - [x] private JSON/HTML 미리보기 생성. 브라우저 자동 검수는 URL 정책 차단, 사용자 화면 확인은 별도.
 - [x] 리소스 제외·로그올 후 feat/vlm-visual-retrieval에 관련 파일만 커밋·푸시. 구현 a93af22, 원격 SHA 일치 확인.
 - 계약: `fivecircles/architecture/specs/visual-ocr-index.md`. Qwen 평가/기존 앱 전환 없음.
+
+### 후속: 검색 그림 → 로컬 VLM 답변
+
+- [x] top-1 crop 검증 → MLX 이미지 tensor → 구조화 답변/앱 인용/불확실성 기권 연결.
+- [x] 실제 Qwen3.5-9B-4bit 이미지 QA 4회. 라벨 읽기 응답·불확실성 기권 확인, 계약·검색 회귀 39개 PASS.
+- [x] private 보존·흐름 보고·로그 업데이트. 전체 corpus/Streamlit/사전 caption 인덱싱은 별도 범위.
+- [ ] 후속 별도 검수: 도식 관계 오독과 질문 범위 밖 불확실성의 과기권 평가. 기본 앱 전환·전체 품질 통과로 해석하지 않는다.

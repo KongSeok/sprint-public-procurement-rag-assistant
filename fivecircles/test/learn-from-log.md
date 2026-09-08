@@ -169,3 +169,10 @@ Preventive rule:
 - A two-chunk, one-occurrence smoke proves persistence/query/provenance wiring only, not corpus ranking quality or diagram relationship reasoning.
 - Confirm actual encoder device and successful inference; offline flags alone do not establish no-egress. Keep private inference inside an OS network-denied subprocess.
 - Local HTML browser URL-policy rejection is a validation boundary. Do not proxy or use another browser to bypass it; record static checks separately from unperformed browser checks.
+
+### VLM image input does not prove visual answer accuracy (2026-09-08)
+
+- Pixel tensors, valid JSON and exact citations prove wiring/provenance only; observed relation hallucinations remained after prompt changes.
+- Keep generation out of source truth. Withhold self-reported uncertain answers; narrow responses to the question and retain raw diagnostics privately.
+- Evaluate over-abstention separately: uncertainty about an unasked relationship must not be mistaken for unreadable labels.
+- Evidence: `errorlogs/backend/2026-09-08-visual-relation-uncertainty.md`. Actual labels and uncertainty handling were tested, not whole-corpus quality.

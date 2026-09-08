@@ -230,7 +230,7 @@ def local_provider(hf_cache, device):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("action", choices=("build", "search"))
+    parser.add_argument("action", choices=("build", "search", "answer"))
     for name in ("private-root", "index-dir", "crop-root", "hf-cache"):
         parser.add_argument("--"+name, type=Path, required=True)
     parser.add_argument("--device", choices=("mps",), default="mps")
@@ -239,11 +239,16 @@ def main():
     parser.add_argument("--query")
     parser.add_argument("--top-k", type=int, default=5)
     parser.add_argument("--result-dir", type=Path)
+    parser.add_argument("--vlm-python", type=Path)
+    parser.add_argument("--vlm-model", type=Path)
+    parser.add_argument("--vlm-manifest", type=Path)
     args = parser.parse_args()
     if args.action == "build" and (args.chunks is None or args.occurrences is None):
         parser.error("build requires --chunks and --occurrences")
-    if args.action == "search" and (args.query is None or args.result_dir is None):
-        parser.error("search requires --query and --result-dir")
+    if args.action in {"search", "answer"} and (args.query is None or args.result_dir is None):
+        parser.error("search/answer requires --query and --result-dir")
+    if args.action == "answer" and any(x is None for x in (args.vlm_python, args.vlm_model, args.vlm_manifest)):
+        parser.error("answer requires --vlm-python, --vlm-model and --vlm-manifest")
     args.private_root.mkdir(parents=True, exist_ok=True, mode=0o700)
     output = _private_path(args.index_dir if args.action == "build" else args.result_dir, args.private_root)
     if output.exists():
@@ -254,7 +259,15 @@ def main():
         result = build(chunks_path=args.chunks, occurrences_path=args.occurrences, **common)
         print(canonical_json({k: result[k] for k in ("chunk_count", "occurrence_count", "embedding", "embedding_seconds", "runtime")}))
     else:
-        result = search(query=args.query, top_k=args.top_k, **common)
+        result = search(query=args.query, top_k=1 if args.action == "answer" else args.top_k, **common)
+        if args.action == "answer":
+            from midprojectrag.stacks.local.visual_qa import answer_retrieval
+            answer = answer_retrieval(result, index_dir=args.index_dir, private_root=args.private_root,
+                crop_root=args.crop_root, output=output, python_executable=args.vlm_python,
+                model_dir=args.vlm_model, manifest_path=args.vlm_manifest)
+            print(canonical_json({"status": answer["status"], "image_count": 1,
+                                  "vlm_seconds": answer["total_vlm_seconds"], "preview_written": True}))
+            return
         document = preview_html(result)
         output.mkdir(mode=0o700, parents=True)
         _write(output / "result.json", result)

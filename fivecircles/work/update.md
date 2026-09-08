@@ -2,6 +2,18 @@
 
 This file summarizes recent updates so other agents can continue without re‑discovering changes.
 
+## Addendum (2026-09-08) — 검색 그림의 로컬 VLM 답변 연결
+
+### Backend
+- `visual_ocr_index answer`가 top-1 PNG를 Qwen3.5-9B-4bit MLX에 전달하고 인용·해석·기권을 별도 저장한다.
+- 원문/모델 SHA, GPU/pixel/token 검증과 OS network sandbox를 적용했다. 기존 앱과 부모 평가 코드는 그대로다.
+### Tests
+- 회귀 39개 PASS. 실제 4회에서 라벨 읽기 응답·기권 확인. 마지막 VLM 7.537초, pixel 입력 확인.
+- 관계 오독은 품질 미통과다. 오류/보류 정책: `fivecircles/test/errorlogs/backend/2026-09-08-visual-relation-uncertainty.md`.
+### Delivery
+- 실제 이미지·질의·raw/answer/HTML은 resources/private에만 보관한다. 전체 corpus/Streamlit 전환은 하지 않았다.
+- 계약·실행 안내와 목표/현재 도형은 `fivecircles/architecture/specs/visual-ocr-index.md` 및 기존 흐름 보고에 갱신했다.
+
 ## Addendum (2026-09-08) — OCR 그림 샘플 벡터 저장·검색
 
 - 별도 VLM worktree에서 opt-in `visual_ocr_index` CLI를 추가했다. 기존 visual schema/index와 고정 KURE provider를 재사용하고 OCR/layout만 허용한다.
