@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="journal-id" content="2026-09-08-145922">
+<meta name="period-start" content="2026-09-08T02:54:00+09:00">
+<meta name="period-end" content="2026-09-08T14:59:22+09:00">
+<title>9월 8일 협업일지 · 박지수 · TODO 증분 기록</title>
+<style>
+:root{color-scheme:light;--ink:#23332e;--muted:#60726a;--line:#dce5df;--green:#1f6849;--bg:#f3f6f3}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.75 system-ui,-apple-system,sans-serif;word-break:keep-all}
+main{max-width:1100px;margin:auto;padding:36px 24px 64px}h1{font-size:clamp(28px,4vw,40px);line-height:1.3;letter-spacing:-.04em;margin:8px 0 16px}
+h2{font-size:23px;letter-spacing:-.025em;margin:32px 0 12px}h3{font-size:17px;margin:0 0 8px}p{margin:8px 0}a{color:#245f89;text-underline-offset:3px}
+.small,footer{font-size:13px;color:var(--muted)}.eyebrow{font-size:13px;letter-spacing:.08em;color:var(--green)}.hero,.card{padding:22px 24px;background:white;border:1px solid var(--line);border-radius:14px}.hero{background:#e7f1e9;border-color:#a4c5ae}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.scroll{overflow-x:auto;background:white;border:1px solid var(--line);border-radius:12px}table{border-collapse:collapse;width:100%;min-width:760px}th,td{padding:15px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}th{background:#eaf0eb;font-size:14px}tr:last-child td{border-bottom:none}td:first-child{width:15%}td:nth-child(2){width:27%}
+.badge{display:inline-block;padding:2px 9px;border-radius:5px;font-size:13px;font-weight:700;background:#e7f1e9;color:#206747;white-space:nowrap}.work{background:#e7eff9;color:#325a87}.blocked{background:#fff0df;color:#97591b}.new{background:#edeaf5;color:#635489}
+code{font:12px/1.65 ui-monospace,SFMono-Regular,monospace;overflow-wrap:anywhere;word-break:break-word}.note{padding:15px 18px;border-left:4px solid #c99547;background:#fff2e0;margin:16px 0}.sources{font-size:14px}.sources li{margin:12px 0}li{margin:8px 0}footer{border-top:1px solid var(--line);margin-top:30px;padding-top:15px}
+@media(max-width:720px){main{padding:24px 16px 42px}.grid{grid-template-columns:1fr}.hero,.card{padding:18px}}@media print{body{background:white}main{max-width:none;padding:0}.scroll{overflow:visible}table{min-width:0}.card,tr{break-inside:avoid}}
+</style>
+</head>
+<body><main>
+<header>
+<p class="eyebrow">MIDPROJECTRAG · 박지수 팀원 일지 · 시험 게시 1회</p>
+<h1>9월 8일, 마지막 기록 이후 바뀐 일</h1>
+<p>기록 범위: <time datetime="2026-09-08T02:54:00+09:00">02:54</time> 이후 ~ <time datetime="2026-09-08T14:59:22+09:00">14:59:22</time> · 한국 표준시</p>
+<p class="small">직전 새벽 일지의 명시된 종료 시각을 이어받았다. TODO와 작업 로그를 대조했으며, 확인한 최신 실제 실행 결과는 14:48 기록이다.</p>
+</header>
+<section class="hero">
+<h2 style="margin-top:0">HB 구성의 답변 실험을 시작했고, 실제 사용 경로의 병목을 확인했다</h2>
+<p>HB 방식의 검색 자료와 KURE 색인을 만들고 Qwen8B로 전체 131개 실행 기록을 확보했다. RAG 129개 중 43개는 정상 종료했고 86개는 오류였다. 출력 계약을 수리한 뒤 고정 4개를 다시 실행해 모두 정상 처리했다.</p>
+<p>Controller는 일부 검증 비용을 줄였지만 실제 1문답은 결과를 합치는 단계에서 시간 초과됐다. <strong>현재 다음 일은 남은 HB 오류 수리·전체 재평가와 Controller 중복 검증 개선이다.</strong></p>
+</section>
+
+<h2>이번 기간의 TODO 변화</h2>
+<div class="scroll"><table>
+<thead><tr><th>상태</th><th>할 일</th><th>진행 결과와 완료 범위</th></tr></thead>
+<tbody>
+<tr><td><span class="badge">완료</span></td><td>HB 검색 자료·KURE 색인 준비<br><code>HB8B.1</code></td><td>06:04 기준 98문서에서 작은 청크 14,012개와 부모 문맥 3,346개를 구성했다. GPU 임베딩·검색 색인 생성과 해시 검증을 완료했다. <a href="#source-hb">근거</a></td></tr>
+<tr><td><span class="badge">기록 완료</span><br><span class="badge blocked">오류 있음</span></td><td>HB+Qwen8B 전체131 첫 실행<br><code>HB8B.3 / 4.a</code></td><td>답변 41개·기권 2개·오류 86개와 파서 회귀 2개 통과를 기록했다. 결정론 채점은 끝났고, LLM의 의미 정답성 채점은 남았다. <a href="#source-hb">근거</a></td></tr>
+<tr><td><span class="badge">완료 · 4개 한정</span></td><td>출력 상태 계약 수리·재실행<br><code>HB8B.5.1a</code></td><td>13:15 같은 4개를 재실행해 답변 3개·기권 1개, 형식·엄격 검증 4/4, 오류 0을 확인했다. 생성 호출 합계 17.819초. 나머지 오류 전체의 복구 여부는 아직 확인하지 않았다. <a href="#source-hb">근거</a></td></tr>
+<tr><td><span class="badge work">진행 중</span></td><td>문맥 초과·잔여 출력 오류 수리<br><code>HB8B.5.2–5.5 / 4.b</code></td><td>13:36 승인 범위로 문맥 초과 26개와 기타 출력 오류 8개를 수리 중이다. 온전한 근거 단위 예산 선택, 전체 후보를 보존하는 최종 입력 정리, 블라인드 의미평가 연결을 준비한다. 유형별 실측과 새 전체131은 남았다. <a href="#source-hb">근거</a></td></tr>
+<tr><td><span class="badge">진단 완료</span></td><td>Controller 병목·로컬 노트북 확인<br><code>PERF-CONTROLLER.1 / RUN-LOCAL-NOTEBOOK.1</code></td><td>CLI 프로파일 363.399초와 새 로컬 커널 실행 203.028초를 기록했다. 반복 검증·직렬화 비용을 확인했고 집중 8검사·독립 검수를 마쳤다. 두 시간은 계측 방식이 달라 속도 개선 비교로 쓰지 않는다. <a href="#source-perf">근거</a></td></tr>
+<tr><td><span class="badge">구현·검수 완료</span></td><td>코드 표현 캐시·중복 선행 호출 축소<br><code>PERF-CONTROLLER.1.OPT1 / 2.1</code></td><td>좁은 캐시 적용 관련 30검사, 중복 선행 호출 제거 관련 40검사를 통과했다. 후속 합성 진단은 133.077초였다. 과거 입력 해시 일부가 없어 정밀한 개선율 확정이나 실사용 응답시간으로 해석하지 않는다. <a href="#source-perf">근거</a></td></tr>
+<tr><td><span class="badge blocked">차단</span></td><td>실제 질문 1개로 답변까지 연결<br><code>QUICKQA.1</code></td><td>14:48 기록: 실행기와 집중 9검사는 완료했지만 준비 포함 20분 제한에 중단됐다. 질문 계획·의미 검색·키워드 검색을 지나 fusion에서 멈췄으며 LLM 호출은 0회다. <a href="#source-quickqa">근거</a></td></tr>
+<tr><td><span class="badge new">신규 · 설계 대기</span></td><td>같은 실행 안의 중복 검증 통합<br><code>QUICKQA.2</code></td><td>이미 수행한 의미·키워드 검색 검증을 다시 반복하는 부분을 줄이는 설계를 추가했다. 구현·효과 실측은 아직 없다. <a href="#source-quickqa">근거</a></td></tr>
+</tbody>
+</table></div>
+
+<h2>수치를 읽는 기준</h2>
+<div class="grid">
+<section class="card"><h3>전체 131개와 수리 4개의 관계</h3>
+<p>전체131 = RAG129 + 파서2다. 첫 실행의 오류86은 출력 상태52 + 문맥 초과26 + 기타8로 나눴다.</p>
+<p>수리 후 실제로 정상 처리한 4개는 상태 오류52 안의 일부다. 저장 기록52개 검사와 새 생성4개를 더해 56개 복구로 세지 않는다. 상태 오류의 나머지48개도 아직 새로 생성하지 않았다.</p></section>
+<section class="card"><h3>코드 검사와 실제 답변</h3>
+<p>30·40·9개 검사는 각각 해당 구현 범위의 검사 결과다. 서로 겹칠 수 있어 전체 고유 검사 수로 합산하지 않는다.</p>
+<p>고정4개의 형식 통과는 정답률100%를 뜻하지 않는다. 정답 내용은 기존 Sol 블라인드 평가 계약으로 확인해야 한다.</p></section>
+</div>
+
+<h2>실제 1문답에서 멈춘 지점</h2>
+<div class="scroll"><table>
+<thead><tr><th>구간</th><th>관측 시간</th><th>상태</th></tr></thead>
+<tbody>
+<tr><td>모델·색인 준비</td><td>52.545초</td><td>완료 · 질문 처리 시간과 별도</td></tr>
+<tr><td>질문 계획</td><td>2.133초</td><td>완료</td></tr>
+<tr><td>의미 검색</td><td>41.918초</td><td>완료 · 첫 모델 로딩 포함</td></tr>
+<tr><td>키워드 검색</td><td>231.989초</td><td>완료</td></tr>
+<tr><td>검색 결과 합치기</td><td>871.433초</td><td>시간 초과 · 미완료</td></tr>
+<tr><td>질문 시작 → 중단</td><td>1,147.473초</td><td>중단까지의 시간 · 답변 완료시간 아님</td></tr>
+<tr><td>부모 문맥·답변 생성</td><td>측정 없음</td><td>미실행 · LLM 호출 0</td></tr>
+</tbody></table></div>
+<p class="note">fusion은 관측상 가장 긴 구간이었다. 중복 검증이 원인 후보로 확인됐지만 내부 함수별 시간 비중과 개선 효과는 아직 측정하지 않았다. 별도 합성 진단의 133.077초를 이 실문답과 직접 비교하면 안 된다.</p>
+
+<h2>다음 TODO</h2>
+<ol>
+<li><strong>HB 오류 수리 마무리:</strong> 문맥 초과26개·기타8개에 대한 입력/출력 제약을 구현하고 유형별 실제 실행·검수를 통과한다.</li>
+<li><strong>전체131 다시 실행·채점:</strong> 새 답변 기록으로 검색·출력 오류·지연·사용량을 비교하고, 기존 Sol 계약으로 의미 정답성을 평가한다.</li>
+<li><strong>Controller 병목 설계:</strong> 동일 실행 안의 중복 검증을 줄이는 최소 변경을 정하고 기존 변경 감지·검증 경계를 보존한다.</li>
+<li><strong>남은 통합:</strong> 부모 문맥 실행의 남은 검수, 시간 제한 처리, 후속 검증·생성·UI 연결을 기존 TODO에 따라 진행한다.</li>
+</ol>
+
+<h2 id="evidence">확인한 근거</h2>
+<p class="small">일지 작성 중 확인한 로컬 TODO·원장 기준이다. 아직 원격 저장소에 게시되지 않은 원장에는 끊어진 링크를 만들지 않고 위치만 표시했다.</p>
+<ul class="sources">
+<li id="source-hb"><strong>HB 생성 실험:</strong> <code>fivecircles/architecture/todolist.md</code>의 HB8B 항목 · <code>fivecircles/work/update.md</code> 1676·1705·1779행 부근 · <code>fivecircles/work/2026-09-08-hb-qwen-mini131.md</code>의 최신 승인·고정4개 실측 절.</li>
+<li id="source-perf"><strong>Controller 진단·최적화:</strong> <code>fivecircles/work/2026-09-08-controller-diagnostics-notebook.md</code>, <code>fivecircles/work/2026-09-08-controller-code-cache.md</code>, <code>fivecircles/work/2026-09-08-controller-traversal.md</code>의 구현 검수·13:20 시험런 절.</li>
+<li id="source-quickqa"><strong>실제 1문답 차단·다음 설계:</strong> <code>fivecircles/architecture/todolist.md</code> 7–13행 · <code>fivecircles/work/2026-09-08-controller-traversal.md</code>의 14:48 실행 결과·후속 범위 절.</li>
+<li><strong>중복 제외 기준:</strong> <code>fivecircles/work/2026-09-08-today-progress-share.html</code>의 02:54 기준. 이미 기록한 3종 검색 비교와 다음 행동 선택 완료는 이번 신규 성과에서 제외했다. <code>fivecircles/agent/sync.md</code>는 9/5 이후 갱신이 없어 이번 완료 근거로 사용하지 않았다.</li>
+</ul>
+
+<footer>
+<p>일지 ID: 2026-09-08-145922 · TODO 기반 증분 협업일지 첫 시험 게시</p>
+<p>일지 작성은 기존 실행 기록을 요약했다. 이번 작성 과정에서 모델·RAG 실험을 새로 실행하지 않았다.</p>
+<p>동일 HTML을 로컬과 팀원 일지 폴더에 저장한다. 실제 GitHub 게시·Discord 알림 결과는 로컬 실행 영수증과 대화에 남기며, 원격 협업일지 인덱스는 게시가 확인된 기록의 종료 시각을 다음 집계 기준으로 사용한다.</p>
+</footer>
+</main></body></html>
