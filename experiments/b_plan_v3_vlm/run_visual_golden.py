@@ -84,11 +84,73 @@ def _mean(series: pd.Series) -> float | None:
     return round(float(values.mean()), 4) if len(values) else None
 
 
+def _add_provenance_columns(result: pd.DataFrame) -> pd.DataFrame:
+    result = result.copy()
+
+    def levels(value: Any) -> set[str]:
+        try:
+            refs = json.loads(value) if isinstance(value, str) else (value or [])
+        except json.JSONDecodeError:
+            refs = []
+        return {str(ref.get("provenance_level")) for ref in refs if isinstance(ref, dict)}
+
+    provenance = result["visual_evidence_refs"].apply(levels)
+    result["visual_page_bbox_verified"] = provenance.apply(
+        lambda values: "page_bbox_verified" in values
+    )
+    result["visual_target_locator_verified"] = provenance.apply(
+        lambda values: bool(
+            values & {"page_bbox_verified", "gold_target_object_hash_verified"}
+        )
+    )
+    return result
+
+
+def _build_summary(result: pd.DataFrame) -> dict[str, Any]:
+    result = _add_provenance_columns(result)
+    summary: dict[str, Any] = {
+        "version": VERSION,
+        "cases": len(result),
+        "visual_evidence_used_rate": _mean(result["visual_evidence_used"]),
+        "visual_page_bbox_verified_rate": _mean(result["visual_page_bbox_verified"]),
+        "visual_target_locator_verified_rate": _mean(result["visual_target_locator_verified"]),
+        "generation_success_rate": _mean(result["generation_error"].isna()),
+        "retrieval_recall": _mean(result["retrieval_recall"]),
+        "context_fact_coverage": _mean(result["context_fact_coverage"]),
+        "answer_fact_coverage": _mean(result["fact_coverage"]),
+        "fact_full_pass_rate": _mean(result["facts_pass"]),
+        "citation_coverage": _mean(result["citation_coverage"]),
+        "compatible_overall_score": _mean(result["compatible_score"]),
+        "by_evidence_type": {},
+    }
+    for evidence_type, group in result.groupby("evidence_type"):
+        summary["by_evidence_type"][str(evidence_type)] = {
+            "cases": len(group),
+            "visual_evidence_used_rate": _mean(group["visual_evidence_used"]),
+            "visual_page_bbox_verified_rate": _mean(group["visual_page_bbox_verified"]),
+            "visual_target_locator_verified_rate": _mean(group["visual_target_locator_verified"]),
+            "answer_fact_coverage": _mean(group["fact_coverage"]),
+            "fact_full_pass_rate": _mean(group["facts_pass"]),
+            "compatible_score": _mean(group["compatible_score"]),
+        }
+    return summary
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--evidence", type=Path, default=DEFAULT_EVIDENCE)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT)
+    parser.add_argument("--summarize-only", action="store_true")
     args = parser.parse_args()
+    result_path = args.output_dir / "visual_golden_results.csv"
+    summary_path = args.output_dir / "visual_summary.json"
+    if args.summarize_only:
+        result = _add_provenance_columns(pd.read_csv(result_path))
+        result.to_csv(result_path, index=False, encoding="utf-8-sig")
+        summary = _build_summary(result)
+        summary_path.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
+        print(json.dumps(summary, ensure_ascii=False, indent=2))
+        return 0
     if not os.getenv("OPENAI_API_KEY"):
         raise RuntimeError("OPENAI_API_KEY_missing")
 
@@ -118,6 +180,12 @@ def main() -> int:
         evidence_doc = str(visual.get("doc_id") or next(iter(expected), ""))
         refs = visual.get("evidence_refs") or []
         verified_refs = [ref for ref in refs if ref.get("provenance_level") == "page_bbox_verified"]
+        locator_refs = [
+            ref
+            for ref in refs
+            if ref.get("provenance_level")
+            in {"page_bbox_verified", "gold_target_object_hash_verified"}
+        ]
         if verified_refs:
             pages = sorted({int(ref["page"]) for ref in verified_refs})
             citation_label = f"{visual.get('evidence_id', 'visual-evidence')}, page={pages}"
@@ -153,7 +221,8 @@ def main() -> int:
                 "retrieval_recall": len(context_set & expected) / len(expected) if expected else None,
                 "visual_evidence_used": bool(evidence_text),
                 "visual_evidence_id": visual.get("evidence_id"),
-                "visual_provenance_verified": bool(verified_refs),
+                "visual_page_bbox_verified": bool(verified_refs),
+                "visual_target_locator_verified": bool(locator_refs),
                 "visual_evidence_refs": json.dumps(refs, ensure_ascii=False),
                 "visual_evidence_text": evidence_text,
                 "context_fact_coverage": context_matched / context_total if context_total else None,
@@ -169,33 +238,12 @@ def main() -> int:
             }
         )
         args.output_dir.mkdir(parents=True, exist_ok=True)
-        pd.DataFrame(rows).to_csv(args.output_dir / "visual_golden_results.csv", index=False, encoding="utf-8-sig")
+        pd.DataFrame(rows).to_csv(result_path, index=False, encoding="utf-8-sig")
         print(f"[{seq}/{len(golden)}] {case_id}")
 
     result = pd.DataFrame(rows)
-    summary = {
-        "version": VERSION,
-        "cases": len(result),
-        "visual_evidence_used_rate": _mean(result["visual_evidence_used"]),
-        "visual_provenance_verified_rate": _mean(result["visual_provenance_verified"]),
-        "generation_success_rate": _mean(result["generation_error"].isna()),
-        "retrieval_recall": _mean(result["retrieval_recall"]),
-        "context_fact_coverage": _mean(result["context_fact_coverage"]),
-        "answer_fact_coverage": _mean(result["fact_coverage"]),
-        "fact_full_pass_rate": _mean(result["facts_pass"]),
-        "citation_coverage": _mean(result["citation_coverage"]),
-        "compatible_overall_score": _mean(result["compatible_score"]),
-        "by_evidence_type": {},
-    }
-    for evidence_type, group in result.groupby("evidence_type"):
-        summary["by_evidence_type"][str(evidence_type)] = {
-            "cases": len(group),
-            "visual_evidence_used_rate": _mean(group["visual_evidence_used"]),
-            "answer_fact_coverage": _mean(group["fact_coverage"]),
-            "fact_full_pass_rate": _mean(group["facts_pass"]),
-            "compatible_score": _mean(group["compatible_score"]),
-        }
-    (args.output_dir / "visual_summary.json").write_text(
+    summary = _build_summary(result)
+    summary_path.write_text(
         json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8"
     )
     print(json.dumps(summary, ensure_ascii=False, indent=2))
