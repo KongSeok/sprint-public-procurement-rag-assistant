@@ -282,7 +282,8 @@ def action_schema(episode: "Episode", budget: Budgets) -> dict:
             "doc_ids": scope_schema,
             "limit": {"type": "integer", "minimum": 1, "maximum": 10},
         })))
-    if "visual_search" in tools and episode.usage.search_calls < budget.search_calls:
+    if ("visual_search" in tools and episode.usage.search_calls < budget.search_calls
+            and episode.duplicate_search_cooldown is None):
         options.append(_schema_action("visual_search", _schema_object({
             "query": {"type": "string", "minLength": 1, "maxLength": 2000},
             "doc_ids": scope_schema,

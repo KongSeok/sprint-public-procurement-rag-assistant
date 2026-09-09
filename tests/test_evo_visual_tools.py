@@ -14,7 +14,7 @@ from midprojectrag.evo_harness import cli
 from midprojectrag.evo_harness.experience import Experience
 from midprojectrag.evo_harness.policy import Completion, ModelIdentity, MODEL_ID, DERIVATIVE_ID
 from midprojectrag.evo_harness.runtime import MLXBackend, compose_runtime, synthetic_tools
-from midprojectrag.evo_harness.state import Budgets, HarnessError, InvalidAction, LimitReached, Unsupported, action_from_json
+from midprojectrag.evo_harness.state import Budgets, HarnessError, InvalidAction, LimitReached, Unsupported, action_from_json, action_schema
 from midprojectrag.evo_harness.visual import VisualAccess, VisualHotlineTools
 from midprojectrag.evo_harness import visual_runtime
 from midprojectrag.indexing import visual_ocr_index as index_api
@@ -172,6 +172,21 @@ class EvoVisualToolsTests(unittest.TestCase):
         other = self.tools.begin(self.request)
         with self.assertRaises(InvalidAction):
             self.tools.inspect_image(other, {"evidence_id": "cand:e1", "question": "label"}, self.budget, lambda: 100)
+
+    def test_duplicate_visual_search_cooldown_requires_state_advance(self):
+        self.budget = replace(self.budget, search_calls=2)
+        self.search(); duplicate = self.search()
+        self.assertTrue(duplicate["duplicate"])
+        stagnant_schema = json.dumps(action_schema(self.episode, self.budget), separators=(",", ":"))
+        self.assertNotIn('"const":"visual_search"', stagnant_schema)
+        self.assertNotIn('"const":"search"', stagnant_schema)
+        self.assertNotIn('"const":"track"', stagnant_schema)
+        with self.assertRaisesRegex(InvalidAction, "stagnant_duplicate_search"):
+            self.search()
+        inspect_action = action_from_json(action("inspect_image", evidence_id="cand:e1", question="Read the image label."))
+        self.tools.dispatch(self.episode, inspect_action, self.budget, lambda: 100, Experience())
+        advanced_schema = json.dumps(action_schema(self.episode, self.budget), separators=(",", ":"))
+        self.assertIn('"const":"visual_search"', advanced_schema)
 
     def test_cached_different_question_restores_its_own_window(self):
         self.search(); self.inspect()
