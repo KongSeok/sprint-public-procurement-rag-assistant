@@ -54,6 +54,7 @@ Search/read/image hard budgets, scope validation, canonical evidence provenance,
 - `git diff --check`: PASS.
 - Frozen PRE snapshot at 70 records: 16 budget-exhausted terminals = 13 `policy_context_budget_exceeded` + 3 `policy_attempt_budget_exhausted`. These execution codes define the live repair regression set; answer/gold deltas are not inspected.
 - Live repaired-Qwen regression: PENDING until the frozen PRE releases the MLX resource.
+- Actual pinned Qwen3.5 tokenizer/chat-template smoke, no model load: 4x1500-char server windows compacted to 4x768-char policy previews at 3413 input tokens + 256 reserve = 3669/4096; 6x1500-char windows plus bounded prior history compacted to 6x384 at 3436 + 256 = 3692/4096. Full server windows remained 1500 chars each. Network sandbox denied.
 
 ## Relay state
 
