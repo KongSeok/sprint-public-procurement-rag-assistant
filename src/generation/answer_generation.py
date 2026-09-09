@@ -70,6 +70,35 @@
 #   다른 맥락(하자보증기간, 서류제출기한 등)의 숫자나, 서식에 값이 채워지지
 #   않은 "00일" 같은 플레이스홀더까지 오탐되는 것을 발견해, "사업/용역/과업기간"
 #   이라는 단어가 근처에 있어야만 인정하고 "00일"은 배제하도록 안전장치 추가.
+
+# - is_extreme_budget_question / extract_extreme_direction /
+#   extract_name_keyword_filter 신규 구현: "예산이 가장 큰/작은 곳은?" 질문을
+#   conditions 필터형 분기로만 처리했더니, LLM이 컨텍스트를 보고 스스로
+#   최댓값/최솟값을 골라야 해서 정확도가 우연에 의존하는 문제를 발견. 조건
+#   필터(학교/지자체 등) + 사업명 키워드 필터를 결합해 후보를 추린 뒤 메타데이터
+#   에서 직접 최댓값/최솟값을 계산하도록 전환. 동점(같은 예산)이 있을 경우
+#   하나만 반환하던 버그도 발견해 동점 문서를 모두 나열하도록 수정.
+#
+# - is_extreme_period_question 신규 구현: 위와 같은 방식으로 "기간이 가장
+#   긴/짧은 사업" 질문도 extract_period_days를 재사용해 처리. 동점 처리도
+#   동일하게 적용(실제로 봉화군·모잠비크 두 사업이 기간이 같아 동점 케이스가
+#   존재함을 확인).
+#
+# - extract_n_items_to_compare 신규 구현 + doc_hints 슬라이스 동적 확장:
+#   "다음 6개 사업을 비교해주세요"처럼 3개를 초과하는 다중 사업 비교 질문
+#   (c19)에서, extract_doc_hints_multi 자체는 정답 문서를 다 찾아내고 있는데
+#   `doc_hints[:3]`이라는 상수 제한 때문에 뒤쪽 문서들이 통째로 컨텍스트에서
+#   누락되는 게 원인이었음을 발견. "다음 N개 사업"이라는 표현을 감지해
+#   `doc_hints[:n+6]`로 넉넉하게 확장(단순히 n개만 자르면 org_group 노이즈에
+#   밀려 특정 문서가 다시 누락되는 것을 확인해 여유분을 둠).
+#
+# - 낮은 점수 문항 재조사로 시도했다가 효과가 검증되지 않아 제거한 것들:
+#   "사업명(과업명)의 핵심 키워드를 답변에 반드시 포함하라"(h15의 "홍수감시
+#   연동" 누락에 시도했으나 3회 반복 검증에서 재현 안 됨), "콤마로 나열된
+#   제출물(제안서, 제안요약서 등)을 모두 언급하라"(g08의 "제안요약서" 누락에
+#   시도했으나 재현 안 됨), "참가자격 충족/미충족을 명확히 판정하라"(g11에
+#   시도했으나 지시 유무와 무관하게 점수가 비슷하게 낮아, 정답 문구의 조사·
+#   어미 차이로 인한 채점 함수 한계로 판단).
 # ============================================
 
 import re
@@ -562,6 +591,43 @@ def extract_period_days(doc_id, child_chunks):
     return None
 
 
+def is_extreme_budget_question(question):
+    """'예산이 가장 큰/작은 곳은?' 같은 최댓값/최솟값 질문 감지"""
+    return bool(re.search(r"(가장|제일)\s*(큰|작은|높은|낮은)", question)) and (
+        "예산" in question or "금액" in question or "사업비" in question
+    )
+
+
+def extract_extreme_direction(question):
+    """'가장 큰/작은' 중 어느 방향인지 판별"""
+    if re.search(r"(가장|제일)\s*(큰|높은)", question):
+        return "max"
+    return "min"
+
+
+def extract_name_keyword_filter(question):
+    """'사업명에 'X'가 포함된' 같은 표현에서 파일명 키워드 X를 추출"""
+    m = re.search(r"['\"]([^'\"]+)['\"]", question)
+    if m and ("사업명" in question or "이름" in question):
+        return m.group(1)
+    return None
+
+
+def extract_n_items_to_compare(question):
+    """'다음 N개 사업을' 같은 표현에서 N을 추출"""
+    m = re.search(r"다음\s*(\d+)\s*개\s*(사업|문서|기관)", question)
+    if m:
+        return int(m.group(1))
+    return None
+
+
+def is_extreme_period_question(question):
+    """'기간이 가장 긴/짧은 사업' 같은 질문 감지"""
+    return bool(re.search(r"(가장|제일)\s*(긴|짧은|오래|빨리)", question)) and (
+        "기간" in question or "오래" in question
+    )
+
+
 def ask_rfp_v9(
     question,
     client,
@@ -595,7 +661,11 @@ def ask_rfp_v9(
             return f"다음 사업들이 {threshold}일 이내로 진행됩니다:\n{doc_list_str}\n\n[근거: {fname_list_str}]"
 
     doc_hints = extract_doc_hints_multi(question, all_filenames_with_biz)
-    doc_hints = doc_hints[:3]
+    n_items_to_compare = extract_n_items_to_compare(question)
+    if n_items_to_compare is not None:
+        doc_hints = doc_hints[: n_items_to_compare + 6]
+    else:
+        doc_hints = doc_hints[:3]
     keywords = find_relevant_keywords(question)
     conditions = extract_filter_conditions(question)
 
@@ -640,6 +710,62 @@ def ask_rfp_v9(
             return True
 
         return _filter
+
+    # 조건(학교/지자체 등)에 맞는 문서 중 예산 최댓값/최솟값을 찾는 질문 우선 처리
+    if is_extreme_budget_question(question):
+        meta_filter_extreme = build_meta_filter(conditions) if conditions else None
+        name_kw_filter = extract_name_keyword_filter(question)
+        candidates_extreme = []
+        for fname, biz in all_filenames_with_biz:
+            meta = doc_to_meta.get(fname, {})
+            if meta_filter_extreme and not meta_filter_extreme(meta, fname):
+                continue
+            if name_kw_filter and name_kw_filter not in fname:
+                continue
+            amt = meta.get("사업_금액")
+            if amt is not None:
+                candidates_extreme.append((fname, amt))
+        if candidates_extreme:
+            direction = extract_extreme_direction(question)
+            extreme_value = (
+                max(c[1] for c in candidates_extreme)
+                if direction == "max"
+                else min(c[1] for c in candidates_extreme)
+            )
+            tied = [c for c in candidates_extreme if c[1] == extreme_value]
+            if len(tied) == 1:
+                fname, amt = tied[0]
+                return f"{fname} — {amt:,.0f}원\n\n[근거: {fname}]"
+            lines = [f"- {fname} ({amt:,.0f}원)" for fname, amt in tied]
+            doc_list_str = "\n".join(lines)
+            fname_list_str = ", ".join(fname for fname, _ in tied)
+            return f"예산이 {'가장 큰' if direction == 'max' else '가장 작은'} 사업:\n{doc_list_str}\n\n[근거: {fname_list_str}]"
+
+    # 조건(학교/지자체 등)에 맞는 문서 중 기간 최댓값/최솟값을 찾는 질문 우선 처리
+    if is_extreme_period_question(question):
+        meta_filter_period = build_meta_filter(conditions) if conditions else None
+        candidates_period = []
+        for fname, biz in all_filenames_with_biz:
+            meta = doc_to_meta.get(fname, {})
+            if meta_filter_period and not meta_filter_period(meta, fname):
+                continue
+            days = extract_period_days(fname, child_chunks)
+            if days is not None:
+                candidates_period.append((fname, days))
+        if candidates_period:
+            direction = (
+                "max" if re.search(r"(가장|제일)\s*(긴|오래)", question) else "min"
+            )
+            extreme_value = (
+                max(c[1] for c in candidates_period)
+                if direction == "max"
+                else min(c[1] for c in candidates_period)
+            )
+            tied = [c for c in candidates_period if c[1] == extreme_value]
+            lines = [f"- {fname} ({days}일)" for fname, days in tied]
+            doc_list_str = "\n".join(lines)
+            fname_list_str = ", ".join(fname for fname, _ in tied)
+            return f"기간이 {'가장 긴' if direction == 'max' else '가장 짧은'} 사업:\n{doc_list_str}\n\n[근거: {fname_list_str}]"
 
     if is_aggregation_question(question) and len(doc_hints) >= 1:
         stopwords_q = {
