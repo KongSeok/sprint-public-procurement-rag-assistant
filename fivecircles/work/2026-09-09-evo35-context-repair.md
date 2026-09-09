@@ -82,3 +82,11 @@ Fresh KURE end-to-end replay remains the canonical final runtime check, but load
 - keep all replay records private and publish only aggregate terminal-code deltas.
 
 Private preflight over the 25 runtime-failure records found 380/380 recorded search candidates uniquely remappable. This mode does not claim retrieval quality, fresh KURE equivalence, or answer quality; it isolates whether the policy-context, duplicate-search and read-memory repairs remove their runtime terminal failures.
+
+## Final local repair gate - 2026-09-09
+
+The frozen PRE was not modified or reinterpreted. Runtime-failure selection stayed terminal-code-only: 25 cases = 20 `policy_context_budget_exceeded` + 5 `policy_attempt_budget_exhausted`; no per-case answer/gold differences were used.
+
+Final repaired candidate: `24c2bf28a06ae5174563c3d7033b8ee9a74e5da0`. Recorded-PRE-search isolation replay used the pinned live Qwen3.5 policy, real HotlineTools/read windows and a deterministic final-answer stub. It completed 25/25 selected cases. After replay: `after_code_counts={}`, with 24 `needs_clarification` and 1 `answered`. Semantic answer quality remains `not_evaluated`; this is not a fresh-KURE retrieval or answer-quality claim. Private summary SHA256: `9bcfa8f85bef89c4cd3f905660f2dfa1fd04cfd26a402ebd18884ae90e61224e`.
+
+Validation on the same candidate: focused repair/PRE/replay set 60/60 PASS; direct Evo/hotline/visual/retrieval impact set 244/244 PASS. Decision: **ACCEPT policy/runtime repair** for integration. Preserve Mini131 PRE as historical evidence and continue to non-golden TRAIN/DEV/SEALED-HOLDOUT work without using per-case PRE failures as curriculum. VM35 remains code-staged/model-free-tested until an independent Qwen3.5 GPU runtime is available.

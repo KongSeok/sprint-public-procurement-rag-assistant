@@ -60,4 +60,4 @@ Mini131 is a previously exposed historical benchmark, not a new sealed holdout a
 
 ## Next gate
 
-`EVO35.3c.R1`: replay the 25 PRE runtime-exhaustion terminals on the bounded-context/stagnation repair. Selection is terminal-code-only: 20 `policy_context_budget_exceeded` and 5 `policy_attempt_budget_exhausted`. Accept/reject the repair from terminal-code deltas and runtime behavior only; then merge/push if accepted.
+`EVO35.3c.R1` completed on repaired candidate `24c2bf2`: the terminal-code-only 25-case recorded-PRE-search/live-Qwen3.5 isolation replay produced zero runtime failure codes. This accepts the policy/runtime repair only; semantic answer quality remains unevaluated and fresh-KURE end-to-end quality is not claimed. Proceed to integration, then EVO35.3d non-golden TRAIN/DEV/SEALED-HOLDOUT work.
