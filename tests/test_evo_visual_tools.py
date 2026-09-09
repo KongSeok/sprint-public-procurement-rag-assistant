@@ -364,6 +364,21 @@ class EvoVisualToolsTests(unittest.TestCase):
         model.assert_not_called()
 
 
+
+    def test_validated_visual_teacher_exports_search_inspect_finish(self):
+        from midprojectrag.evo_harness.training import TRAINING_CASE_SCHEMA, sft_examples_from_trajectory
+        from midprojectrag.evo_harness.training_visual_teacher import run_visual_teacher_case
+        case={"schema_version":TRAINING_CASE_SCHEMA,"case_id":"tv1","group_id":"tv1","split":"train","task_type":"visual",
+              "question":"Confirm that this document contains an inserted image.",
+              "request":{"question":"Confirm that this document contains an inserted image.","history":[],"document_scope":{"mode":"explicit","doc_ids":[self.doc]},"options":{"max_citations":3}}}
+        target={"case_id":"tv1","split":"train","task_type":"visual","terminal_status":"answered","facts":{"has_inserted_image":True},"required_tools":["visual_search","inspect_image"]}
+        result=run_visual_teacher_case(case,target,tools=self.tools,count_backend=FakeMultimodalPolicy([]))
+        self.assertTrue(result["teacher_validation"]["success"],result)
+        self.assertEqual([a["tool"] for a in result["actions"]],["visual_search","inspect_image","finish"])
+        rows=sft_examples_from_trajectory(result,case)
+        self.assertEqual([json.loads(r["completion"][0]["content"])["tool"] for r in rows],["visual_search","inspect_image","finish"])
+
+
 class ScopedVisualRankingTests(unittest.TestCase):
     write_inputs = fixture.VisualOCRIndexTests.write_inputs
     build = fixture.VisualOCRIndexTests.build

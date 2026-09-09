@@ -136,6 +136,19 @@ class PersistentMLXBackend:
         except TypeError as exc:
             raise HarnessError("worker_completion_invalid") from exc
 
+    def inspect_image(self, request: dict, *, remaining):
+        timeout = remaining()
+        try:
+            response = self._exchange({"op": "inspect_image", "request": request, "timeout": float(timeout)},
+                                      max(1.0, float(timeout) + 1.0))
+        except TimeoutError:
+            self._terminate()
+            raise
+        value = response.get("visual")
+        if type(value) is not dict:
+            raise HarnessError("worker_visual_invalid")
+        return value
+
     def _close_pipes(self) -> None:
         process = getattr(self, "process", None)
         if process is None:
