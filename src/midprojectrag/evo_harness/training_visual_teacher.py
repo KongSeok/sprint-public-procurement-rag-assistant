@@ -17,6 +17,8 @@ from .worker_backend import PersistentMLXBackend
 
 SCHEMA="evo-policy-visual-teacher-collection-v1"
 VISUAL_TASKS=frozenset({"visual","mixed"})
+VISUAL_SEARCH_QUERY="문서 삽입 이미지 도표 화면 시각 요소"
+VISUAL_INSPECTION_QUESTION="이 crop에서 실제 삽입 이미지, 도표, 화면 또는 기타 시각 요소가 보이는지 판독하고, 보이는 시각 요소만 설명해줘."
 
 
 def run_visual_teacher_case(case:Mapping[str,Any],target:Mapping[str,Any],*,tools,count_backend)->dict[str,Any]:
@@ -40,10 +42,10 @@ def run_visual_teacher_case(case:Mapping[str,Any],target:Mapping[str,Any],*,tool
                 text_handles=_supporting_handles(target,episode,require_docs=scope)
                 if text_handles: break
             if text_handles: break
-    _,vobs=_action(policy,backend,episode,tools,budget,experience,events,{"tool":"visual_search","arguments":{"query":case["question"],"doc_ids":scope,"limit":5}},remaining)
+    _,vobs=_action(policy,backend,episode,tools,budget,experience,events,{"tool":"visual_search","arguments":{"query":VISUAL_SEARCH_QUERY,"doc_ids":scope,"limit":5}},remaining)
     visual_handle=None
     for candidate in list((vobs or {}).get("candidates",[]))[:budget.image_calls]:
-        _,iobs=_action(policy,backend,episode,tools,budget,experience,events,{"tool":"inspect_image","arguments":{"evidence_id":candidate["id"],"question":case["question"]}},remaining)
+        _,iobs=_action(policy,backend,episode,tools,budget,experience,events,{"tool":"inspect_image","arguments":{"evidence_id":candidate["id"],"question":VISUAL_INSPECTION_QUESTION}},remaining)
         if (iobs or {}).get("usable_in_finish") and isinstance((iobs or {}).get("finish_evidence_id"),str):
             visual_handle=iobs["finish_evidence_id"];break
     handles=[*text_handles,*([visual_handle] if visual_handle else [])]
