@@ -1186,3 +1186,8 @@ This file summarizes recent updates so other agents can continue without re‑di
 ### Tests
 - Final378 unique tests PASS, skip0; actual route answered with1 citation in18.680s. Recognition quality unverified.
 - Details: 2026-09-09-evo-visual-tools.md; raw first/second attempts retained privately.
+
+## Addendum (2026-09-09) - EVO35.3a/3b
+- Training/eval skeleton added without changing serving pins: Mini131 exclusion/split freezer, action-only SFT export/trainer preflight, external reward contract and GRPO preflight gate.
+- Follow-up evidence lifetime is typed (`hist:*` / `cand:*` / `ev:*`) and Qwen policy decoding is constrained by current executable-action JSON Schema; server validation remains authoritative.
+- Actual preserved Korean Qwen3.5 follow-up PASS: search -> read -> finish, invalid actions0, total worker10.488s. Final impact380 + training13 tests PASS; browser flow report PASS.

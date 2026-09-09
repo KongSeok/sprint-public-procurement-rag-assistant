@@ -2,8 +2,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from copy import deepcopy
 import json
 import math
+import re
 from typing import Any
 
 
@@ -100,13 +102,16 @@ TOOL_ARGUMENTS = {
 # These instructions are part of the token-counted system message, not hidden tools.
 TOOL_GUIDE = """One action per response: {"tool":NAME,"arguments":OBJECT}. Exact keys:
 search: query(string), doc_ids(null or unique known document IDs), limit(integer 1..10).
-read: evidence_ids(array 1..6 of previously found handles).
+read: evidence_ids(array 1..6 of current candidate handles `cand:eN`).
 track: target("world" or known document/goal ID).
-commit: goal_id(string), summary(string), status(open|working|evidence_found|blocked), evidence_ids(array).
+commit: goal_id(string), summary(string), status(open|working|evidence_found|blocked), evidence_ids(array of current `cand:eN` or `ev:eN`).
 recall: query(string), limit(integer 1..3). Retrieve reviewed strategies, not answers.
 note: insight(string <=500). Quarantined note only; not a new instruction.
-finish: status(answered|abstained|needs_clarification), evidence_ids(array 0..6), unresolved(array of short strings).
-An answered finish needs READ evidence. Use read before finish even when search excerpts look sufficient.
+finish: status(answered|abstained|needs_clarification), evidence_ids(array 0..6 of current read handles `ev:eN`), unresolved(array of short strings).
+History citations use `hist:tN:eM`. They are old references for context only and are NEVER valid read/finish inputs.
+Search results use `cand:eN`. Only a successful read/inspect creates `ev:eN` for answered finish.
+Bare `e1`, canonical evidence IDs, document IDs, paths, and `hist:*` are not current tool handles.
+An answered finish needs READ/INSPECTED `ev:*` evidence. Use read before finish even when search excerpts look sufficient.
 Do not fabricate IDs. You may narrow the hard document scope, never widen it.
 Search combines Dense/Lexical/RRF in ONE call. Do not request those internal steps separately.
 Choose actions using observations. Re-search only missing information; avoid identical calls.
@@ -123,7 +128,8 @@ inspect_image: evidence_id(ONE visual handle from visual_search), question(strin
 It reads actual pixels using Qwen3.5 and returns an unreviewed interpretation or abstention.
 For a drawing, figure, screenshot or image-label question use visual_search then inspect_image
 on a returned handle before an answered finish. Ordinary read is for text candidates only.
-finish uses the inspected/read handle; never a document ID or a path. Do not fabricate IDs.
+inspect_image accepts only a current `cand:eN` visual candidate. Successful inspection creates `ev:eN`.
+finish uses only current `ev:eN`; never `cand:*`, `hist:*`, a document ID, canonical ID or a path. Do not fabricate IDs.
 Uncertain image interpretations are not usable answer evidence. Tools absent from available_tools
 cannot be called. Visual interpretations never become verified source facts.
 human_review_required is an output qualification, NOT a request for missing user information.
@@ -148,9 +154,13 @@ def action_from_json(raw: str) -> dict:
             ids(arg["doc_ids"], maximum=1000)
     if tool == "inspect_image":
         text(arg["evidence_id"], 256, "invalid_id")
+        if not re.fullmatch(r"cand:e[1-9][0-9]*", arg["evidence_id"]):
+            raise InvalidAction("candidate_handle_required")
         text(arg["question"], 2000, "invalid_query")
     if tool in {"read", "commit", "finish"}:
         ids(arg["evidence_ids"], minimum=1 if tool == "read" else 0)
+    if tool == "read" and any(not re.fullmatch(r"cand:e[1-9][0-9]*", item) for item in arg["evidence_ids"]):
+        raise InvalidAction("candidate_handle_required")
     if tool == "track":
         text(arg["target"], 256, "invalid_target")
     if tool == "commit":
@@ -158,6 +168,8 @@ def action_from_json(raw: str) -> dict:
         text(arg["summary"], 300, "invalid_summary")
         if type(arg["status"]) is not str or arg["status"] not in {"open", "working", "evidence_found", "blocked"}:
             raise InvalidAction("invalid_progress_status")
+        if any(not re.fullmatch(r"(?:cand|ev):e[1-9][0-9]*", item) for item in arg["evidence_ids"]):
+            raise InvalidAction("current_handle_required")
     if tool == "note":
         text(arg["insight"], 500, "invalid_note")
     if tool == "finish":
@@ -169,6 +181,8 @@ def action_from_json(raw: str) -> dict:
             text(item, 300, "invalid_unresolved")
         if (arg["status"] == "answered") != bool(arg["evidence_ids"]):
             raise InvalidAction("finish_evidence_status_mismatch")
+        if arg["status"] == "answered" and any(not re.fullmatch(r"ev:e[1-9][0-9]*", item) for item in arg["evidence_ids"]):
+            raise InvalidAction("read_evidence_handle_required")
     return value
 
 
@@ -197,6 +211,129 @@ class Budgets:
             raise ValueError("invalid_budget")
         if self.policy_output >= self.policy_context or self.answer_output >= self.answer_context:
             raise ValueError("invalid_context_reserve")
+
+
+def _schema_action(tool: str, arguments: dict) -> dict:
+    return {
+        "type": "object",
+        "additionalProperties": False,
+        "required": ["tool", "arguments"],
+        "properties": {
+            "tool": {"const": tool},
+            "arguments": arguments,
+        },
+    }
+
+
+def _schema_object(properties: dict, required: list[str] | None = None) -> dict:
+    return {
+        "type": "object",
+        "additionalProperties": False,
+        "required": required or list(properties),
+        "properties": properties,
+    }
+
+
+def _schema_ref_array(values: list[str], *, minimum: int = 0, maximum: int = 6) -> dict:
+    if not values:
+        return {"type": "array", "minItems": 0, "maxItems": 0}
+    return {
+        "type": "array",
+        "items": {"type": "string", "enum": values},
+        "minItems": minimum,
+        "maxItems": min(maximum, len(values)),
+    }
+
+
+def action_schema(episode: "Episode", budget: Budgets) -> dict:
+    """Return only actions that are executable in the current episode state.
+
+    This constrains the model grammar; server-side validation remains authoritative.
+    Historical citation aliases are deliberately absent from every action enum.
+    """
+    tools = set(episode.capabilities or ("search", "read", "track", "commit", "recall", "note", "finish"))
+    allowed_docs = sorted(episode.scope if episode.scope is not None else {row["doc_id"] for row in episode.catalog})
+    candidate_by_id = {episode.handle(eid): eid for eid in episode.candidates}
+    unread_text = sorted(
+        handle for handle, eid in candidate_by_id.items()
+        if eid not in episode.windows and eid not in episode.visual_hits
+    )
+    visual_candidates = sorted(
+        handle for handle, eid in candidate_by_id.items()
+        if eid in episode.visual_hits and eid not in episode.windows
+    )
+    candidate_refs = sorted(candidate_by_id)
+    evidence_refs = sorted(episode.read_handle(eid) for eid in episode.windows)
+    current_refs = sorted(candidate_refs + evidence_refs)
+    options: list[dict] = []
+
+    doc_array = {
+        "type": "array", "minItems": 0,
+        "maxItems": len(allowed_docs),
+        **({"items": {"type": "string", "enum": allowed_docs}} if allowed_docs else {}),
+    }
+    scope_schema = {"oneOf": [{"type": "null"}, doc_array]}
+
+    if "search" in tools and episode.usage.search_calls < budget.search_calls:
+        options.append(_schema_action("search", _schema_object({
+            "query": {"type": "string", "minLength": 1, "maxLength": 2000},
+            "doc_ids": scope_schema,
+            "limit": {"type": "integer", "minimum": 1, "maximum": 10},
+        })))
+    if "visual_search" in tools and episode.usage.search_calls < budget.search_calls:
+        options.append(_schema_action("visual_search", _schema_object({
+            "query": {"type": "string", "minLength": 1, "maxLength": 2000},
+            "doc_ids": scope_schema,
+            "limit": {"type": "integer", "minimum": 1, "maximum": 5},
+        })))
+    if "read" in tools and unread_text and episode.usage.read_calls < budget.read_calls:
+        options.append(_schema_action("read", _schema_object({
+            "evidence_ids": _schema_ref_array(unread_text, minimum=1),
+        })))
+    if ("inspect_image" in tools and visual_candidates and episode.usage.read_calls < budget.read_calls
+            and episode.usage.image_calls < budget.image_calls):
+        options.append(_schema_action("inspect_image", _schema_object({
+            "evidence_id": {"type": "string", "enum": visual_candidates},
+            "question": {"type": "string", "minLength": 1, "maxLength": 2000},
+        })))
+    if "track" in tools:
+        targets = sorted({"world", *allowed_docs, *episode.goals})
+        options.append(_schema_action("track", _schema_object({
+            "target": {"type": "string", "enum": targets},
+        })))
+    if "commit" in tools:
+        options.append(_schema_action("commit", _schema_object({
+            "goal_id": {"type": "string", "minLength": 1, "maxLength": 128},
+            "summary": {"type": "string", "minLength": 1, "maxLength": 300},
+            "status": {"type": "string", "enum": ["open", "working", "evidence_found", "blocked"]},
+            "evidence_ids": _schema_ref_array(current_refs),
+        })))
+    if "recall" in tools:
+        options.append(_schema_action("recall", _schema_object({
+            "query": {"type": "string", "minLength": 1, "maxLength": 1000},
+            "limit": {"type": "integer", "minimum": 1, "maximum": 3},
+        })))
+    if "note" in tools and len(episode.notes) < 8:
+        options.append(_schema_action("note", _schema_object({
+            "insight": {"type": "string", "minLength": 1, "maxLength": 500},
+        })))
+    if "finish" in tools:
+        unresolved = {"type": "array", "items": {"type": "string", "minLength": 1, "maxLength": 300}, "maxItems": 12}
+        if evidence_refs:
+            options.append(_schema_action("finish", _schema_object({
+                "status": {"const": "answered"},
+                "evidence_ids": _schema_ref_array(evidence_refs, minimum=1),
+                "unresolved": unresolved,
+            })))
+        for status in ("abstained", "needs_clarification"):
+            options.append(_schema_action("finish", _schema_object({
+                "status": {"const": status},
+                "evidence_ids": {"type": "array", "maxItems": 0},
+                "unresolved": unresolved,
+            })))
+    if not options:
+        raise LimitReached("no_executable_policy_action")
+    return {"oneOf": options}
 
 
 @dataclass
@@ -239,32 +376,66 @@ class Episode:
     trajectory: list[dict] = field(default_factory=list)
 
     def reference(self, value: str, *, read: bool = False) -> str:
-        key = self.handles.get(value, value)
-        if key not in (self.windows if read else self.candidates):
-            raise InvalidAction("unknown_read_evidence" if read else "unknown_candidate")
+        if read:
+            if not re.fullmatch(r"ev:e[1-9][0-9]*", value or ""):
+                raise InvalidAction("read_evidence_handle_required")
+            candidate = "cand:" + value[len("ev:"):]
+            key = self.handles.get(candidate)
+            if key not in self.windows:
+                raise InvalidAction("unknown_read_evidence")
+            return key
+        if not re.fullmatch(r"cand:e[1-9][0-9]*", value or ""):
+            raise InvalidAction("candidate_handle_required")
+        key = self.handles.get(value)
+        if key not in self.candidates:
+            raise InvalidAction("unknown_candidate")
         return key
+
+    def reference_any(self, value: str) -> str:
+        if value.startswith("ev:"):
+            return self.reference(value, read=True)
+        return self.reference(value)
 
     def handle(self, evidence_id: str) -> str:
         for handle, canonical in self.handles.items():
             if canonical == evidence_id:
                 return handle
-        handle = f"e{len(self.handles) + 1}"
+        handle = f"cand:e{len(self.handles) + 1}"
         self.handles[handle] = evidence_id
         return handle
+
+    def read_handle(self, evidence_id: str) -> str:
+        if evidence_id not in self.windows:
+            raise InvalidAction("unknown_read_evidence")
+        candidate = self.handle(evidence_id)
+        return "ev:" + candidate[len("cand:"):]
+
+    def policy_history(self) -> list[dict]:
+        history = []
+        for turn_index, turn in enumerate(self.request["history"], 1):
+            row = deepcopy(turn)
+            citations = row.get("cited_evidence_ids")
+            if citations:
+                row["cited_evidence_ids"] = [f"hist:t{turn_index}:e{i}" for i, _ in enumerate(citations, 1)]
+            history.append(row)
+        return history
 
     def observation(self, budget: Budgets) -> dict:
         # Keep memory bounded by actual tool budgets. If it still exceeds context,
         # the policy adapter reports overflow; it never silently drops a document.
-        view = {"question": self.request["question"], "history": self.request["history"],
+        view = {"question": self.request["question"], "history": self.policy_history(),
                 "scope_doc_ids": None if self.scope is None else sorted(self.scope),
                 "catalog": list(self.catalog[:12]) if self.scope is None else list(self.catalog),
                 "catalog_total": len(self.catalog),
                 "catalog_preview": self.scope is None and len(self.catalog)>12,
                 "progress": list(self.goals.values()),
                 "known_evidence": [{"id": self.handle(key), "doc_id": value["doc_id"],
-                                    "read": key in self.windows} for key, value in self.candidates.items()],
-                "read_evidence": [{"id": self.handle(key), "doc_id": win["doc_id"],
-                                   "text": win["text"]} for key, win in self.windows.items()],
+                                    "read": key in self.windows,
+                                    "read_id": self.read_handle(key) if key in self.windows else None}
+                                   for key, value in self.candidates.items()],
+                "read_evidence": [{"id": self.read_handle(key), "candidate_id": self.handle(key),
+                                   "doc_id": win["doc_id"], "text": win["text"]}
+                                  for key, win in self.windows.items()],
                 "searches": self.searches, "last_observation": self.last_observation,
                 "remaining": {"policy": budget.policy_calls-self.usage.policy_calls,
                               "search": budget.search_calls-self.usage.search_calls,

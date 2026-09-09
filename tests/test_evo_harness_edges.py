@@ -7,7 +7,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from midprojectrag.evo_harness.state import Budgets, InvalidAction, HarnessError, json_object
+from midprojectrag.evo_harness.state import Budgets, InvalidAction, HarnessError, action_schema, json_object
 from midprojectrag.evo_harness.policy import ANSWER_SYSTEM, Completion
 from midprojectrag.evo_harness.runtime import synthetic_tools, compose_runtime, verify_local_model
 from midprojectrag.evo_harness.tools import HotlineTools
@@ -34,8 +34,43 @@ class EvoEdgeTests(unittest.TestCase):
         result=compose_runtime(backend,synthetic_tools()).run(REQUEST)
         self.assertEqual(result['status'],'needs_clarification',result)
         state=json.loads(backend.calls[-1][1]['content'])
-        self.assertEqual(state['last_observation']['omitted_evidence_ids'],['e1','e2'])
+        self.assertEqual(state['last_observation']['omitted_evidence_ids'],['ev:e1','ev:e2'])
         self.assertEqual(result['usage']['answer_calls'],0)
+
+    def test_dynamic_action_schema_tracks_current_handle_lifecycle(self):
+        tools=synthetic_tools();ep=tools.begin(REQUEST);budget=Budgets()
+        initial=action_schema(ep,budget)
+        initial_text=json.dumps(initial,sort_keys=True)
+        self.assertNotIn('hist:',initial_text)
+        self.assertNotIn('\"const\": \"read\"',initial_text)
+        self.assertNotIn('\"const\": \"answered\"',initial_text)
+        found=tools.search(ep,{'query':'budget','doc_ids':None,'limit':2},budget,lambda:100)
+        candidate=found['candidates'][0]['id']
+        searched=action_schema(ep,budget)
+        searched_text=json.dumps(searched,sort_keys=True)
+        self.assertIn(candidate,searched_text)
+        self.assertIn('\"const\": \"read\"',searched_text)
+        self.assertNotIn('\"const\": \"answered\"',searched_text)
+        read_result=tools.read(ep,{'evidence_ids':[candidate]},budget,lambda:100)
+        evidence=read_result['read'][0]
+        ready=action_schema(ep,budget)
+        ready_text=json.dumps(ready,sort_keys=True)
+        self.assertIn(evidence,ready_text)
+        self.assertIn('\"const\": \"answered\"',ready_text)
+        self.assertNotIn('hist:',ready_text)
+
+    def test_policy_backend_receives_dynamic_json_schema(self):
+        backend=FakeBackend([search(),read('e1'),finish('e1')])
+        result=compose_runtime(backend,synthetic_tools()).run(REQUEST)
+        self.assertEqual(result['status'],'answered',result)
+        schemas=[schema for schema in backend.schemas if schema is not None]
+        self.assertEqual(len(schemas),3)
+        first=json.dumps(schemas[0],sort_keys=True)
+        second=json.dumps(schemas[1],sort_keys=True)
+        third=json.dumps(schemas[2],sort_keys=True)
+        self.assertNotIn('\"const\": \"read\"',first)
+        self.assertIn('cand:e1',second)
+        self.assertIn('ev:e1',third)
 
     def test_unknown_read_handle_twice_limits_without_generator(self):
         result=compose_runtime(FakeBackend([read('fake'),read('fake')]),synthetic_tools()).run(REQUEST)
@@ -46,8 +81,8 @@ class EvoEdgeTests(unittest.TestCase):
     def test_alias_and_canonical_duplicate_is_rejected(self):
         tools=synthetic_tools();ep=tools.begin(REQUEST)
         tools.search(ep,{'query':'budget','doc_ids':None,'limit':10},Budgets(),lambda:100)
-        eid=ep.handles['e1']
-        with self.assertRaises(InvalidAction):tools.read(ep,{'evidence_ids':['e1',eid]},Budgets(),lambda:100)
+        eid=ep.handles['cand:e1']
+        with self.assertRaises(InvalidAction):tools.read(ep,{'evidence_ids':['cand:e1',eid]},Budgets(),lambda:100)
 
     def test_late_search_does_not_commit_partial_results(self):
         tools=synthetic_tools();ep=tools.begin(REQUEST);ticks=[0]

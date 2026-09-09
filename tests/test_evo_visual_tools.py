@@ -30,8 +30,9 @@ def action(tool, **args):
 
 
 class FakeMultimodalPolicy(text_fixture.FakeBackend):
-    def complete(self, messages, *, max_tokens, timeout):
+    def complete(self, messages, *, max_tokens, timeout, json_schema=None):
         self.calls.append(deepcopy(messages))
+        self.schemas.append(deepcopy(json_schema))
         payload = json.loads(messages[1]["content"])
         if "sources" in payload:
             output = json.dumps({"status": "answered", "answer": "Synthetic text and unreviewed image reading.",
@@ -83,23 +84,23 @@ class EvoVisualToolsTests(unittest.TestCase):
                                         self.budget, lambda: 100)
 
     def inspect(self, **overrides):
-        return self.tools.inspect_image(self.episode, {"evidence_id": "e1", "question": "Read the image label."} | overrides,
+        return self.tools.inspect_image(self.episode, {"evidence_id": "cand:e1", "question": "Read the image label."} | overrides,
                                         self.budget, lambda: 100)
 
     def test_strict_new_actions(self):
         for raw in [action("visual_search", query="label", doc_ids=None, limit=5),
-                    action("inspect_image", evidence_id="e1", question="label")]:
+                    action("inspect_image", evidence_id="cand:e1", question="label")]:
             self.assertIn(action_from_json(raw)["tool"], {"visual_search", "inspect_image"})
         for raw in [action("visual_search", query="label", doc_ids=[], limit=6),
-                    action("inspect_image", evidence_id=["e1"], question="label"),
-                    action("inspect_image", evidence_id="e1", question="label", crop_path="/tmp/x"),
-                    action("inspect_image", evidence_id="e1", question="x"*2001)]:
+                    action("inspect_image", evidence_id=["cand:e1"], question="label"),
+                    action("inspect_image", evidence_id="cand:e1", question="label", crop_path="/tmp/x"),
+                    action("inspect_image", evidence_id="cand:e1", question="x"*2001)]:
             with self.assertRaises(InvalidAction):
                 action_from_json(raw)
 
     def test_scoped_search_discloses_only_current_handles(self):
         found = self.search()
-        self.assertEqual(found["candidates"][0]["id"], "e1")
+        self.assertEqual(found["candidates"][0]["id"], "cand:e1")
         self.assertEqual(found["candidates"][0]["doc_id"], self.doc)
         self.assertNotIn("crop_path", json.dumps(found))
         self.assertEqual(self.search_calls[0][1], frozenset({self.doc}))
@@ -132,15 +133,15 @@ class EvoVisualToolsTests(unittest.TestCase):
     def test_visual_search_excerpt_cannot_be_read_as_verified_text(self):
         self.search()
         with self.assertRaisesRegex(InvalidAction, "use_inspect_image"):
-            self.tools.read(self.episode, {"evidence_ids": ["e1"]}, self.budget, lambda: 100)
+            self.tools.read(self.episode, {"evidence_ids": ["cand:e1"]}, self.budget, lambda: 100)
         with self.assertRaisesRegex(InvalidAction, "unknown_read_evidence"):
-            self.tools.packet(self.episode, ["e1"])
+            self.tools.packet(self.episode, ["ev:e1"])
 
     def test_pixels_interpretation_enters_typed_unreviewed_packet(self):
         self.search()
         observation = self.inspect()
         self.assertTrue(observation["usable_in_finish"])
-        packet = self.tools.packet(self.episode, ["e1"])
+        packet = self.tools.packet(self.episode, ["ev:e1"])
         self.assertEqual(packet[0]["locator"], self.chunks[0]["citation"])
         self.assertEqual(packet[0]["source_kind"], "visual_inference")
         self.assertTrue(packet[0]["human_review_required"])
@@ -158,7 +159,7 @@ class EvoVisualToolsTests(unittest.TestCase):
         self.assertEqual(result["status"], "abstained")
         self.assertFalse(result["usable_in_finish"])
         with self.assertRaises(InvalidAction):
-            self.tools.packet(self.episode, ["e1"])
+            self.tools.packet(self.episode, ["ev:e1"])
         self.assertEqual(self.episode.windows, {})
 
     def test_request_local_duplicates_do_not_redispatch(self):
@@ -170,7 +171,7 @@ class EvoVisualToolsTests(unittest.TestCase):
         self.assertEqual(self.episode.usage.duplicates, 2)
         other = self.tools.begin(self.request)
         with self.assertRaises(InvalidAction):
-            self.tools.inspect_image(other, {"evidence_id": "e1", "question": "label"}, self.budget, lambda: 100)
+            self.tools.inspect_image(other, {"evidence_id": "cand:e1", "question": "label"}, self.budget, lambda: 100)
 
     def test_cached_different_question_restores_its_own_window(self):
         self.search(); self.inspect()
@@ -185,10 +186,10 @@ class EvoVisualToolsTests(unittest.TestCase):
     def test_image_and_common_read_budget_are_enforced(self):
         self.search(); self.inspect()
         with self.assertRaisesRegex(LimitReached, "image_budget"):
-            self.tools.inspect_image(self.episode, {"evidence_id": "e1", "question": "new"},
+            self.tools.inspect_image(self.episode, {"evidence_id": "cand:e1", "question": "new"},
                                      Budgets(image_calls=1), lambda: 100)
         with self.assertRaisesRegex(LimitReached, "read_budget"):
-            self.tools.inspect_image(self.episode, {"evidence_id": "e1", "question": "new"},
+            self.tools.inspect_image(self.episode, {"evidence_id": "cand:e1", "question": "new"},
                                      Budgets(read_calls=1), lambda: 100)
         self.assertEqual(len(self.image_calls), 1)
 
@@ -216,7 +217,7 @@ class EvoVisualToolsTests(unittest.TestCase):
             return 10
         self.access.inspector = late
         with self.assertRaises(TimeoutError):
-            self.tools.inspect_image(self.episode, {"evidence_id": "e1", "question": "label"}, self.budget, remaining)
+            self.tools.inspect_image(self.episode, {"evidence_id": "cand:e1", "question": "label"}, self.budget, remaining)
         self.assertFalse(self.episode.windows)
         self.assertEqual(self.episode.usage.visual_output_tokens, 10)
 
@@ -224,7 +225,7 @@ class EvoVisualToolsTests(unittest.TestCase):
         self.search(); self.inspect()
         def expired(): raise TimeoutError("test")
         with self.assertRaises(TimeoutError):
-            self.tools.inspect_image(self.episode, {"evidence_id": "e1", "question": "label"}, self.budget, expired)
+            self.tools.inspect_image(self.episode, {"evidence_id": "cand:e1", "question": "label"}, self.budget, expired)
         self.assertEqual(len(self.image_calls), 1)
 
     def test_forged_result_rejected_before_candidates_are_added(self):
@@ -273,7 +274,7 @@ class EvoVisualToolsTests(unittest.TestCase):
         backend = FakeMultimodalPolicy([
             text_fixture.search(query="Alpha", docs=["alpha"], limit=1), text_fixture.read("e1"),
             action("visual_search", query="figure", doc_ids=[self.doc], limit=1),
-            action("inspect_image", evidence_id="e2", question="Read label"), text_fixture.finish("e1", "e2")])
+            action("inspect_image", evidence_id="cand:e2", question="Read label"), text_fixture.finish("e1", "e2")])
         result = compose_runtime(backend, self.tools).run(request)
         self.assertEqual(result["status"], "answered", result)
         self.assertEqual((result["usage"]["search_calls"], result["usage"]["read_calls"], result["usage"]["image_calls"]), (2, 2, 1))
@@ -290,7 +291,7 @@ class EvoVisualToolsTests(unittest.TestCase):
 
     def test_current_visual_prior_citations_can_resolve_scope_but_not_populate_handles(self):
         self.search(); self.inspect()
-        packet = self.tools.packet(self.episode, ["e1"])
+        packet = self.tools.packet(self.episode, ["ev:e1"])
         request = deepcopy(self.request)
         request["history"] = [{"role": "assistant", "content": "Earlier image reading",
                                 "cited_doc_ids": [self.doc], "cited_evidence_ids": [packet[0]["evidence_id"]]}]

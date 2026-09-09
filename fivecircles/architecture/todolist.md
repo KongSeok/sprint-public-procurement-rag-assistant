@@ -18,11 +18,15 @@ The user approved the EvoHarness-on-hotline plan with Qwen3.5-9B. This section o
 <a id="evo35-1"></a>
 - [x] **EVO35.1 / HOTLINE.3** [IMPLEMENTED_SCOPED_TESTED_SOLO] Public hotline tools, multi-evidence BPE and Qwen3.5 policy/runner/CLI implemented. Focused95 + related117 = 212 PASS, solo review and browser flow QA. Real-model behavior and training are not proven by these tests.
 - [ ] **EVO35.2** [LIVE_COMPARISON_PASS / FOLLOWUP_REPLAN] Actual Qwen comparison and fixed reference succeeded. Korean follow-up failed on the original and two rejected repair candidates. Code restored; 212 regression PASS. See ../work/2026-09-09-evo35-live-report.md.
-- [ ] **EVO35.3** Separate trajectory split and isolated SFT stage; validate actual model/resource compatibility before training.
-- [ ] **EVO35.4** Reduced GRPO and reviewed experience consolidation after a valid SFT/reward/split baseline.
-- [ ] **EVO35.5 / HOTLINE.4** Frozen support-matrix evaluation and application/UI integration; missing specialists remain explicit.
+- [x] **EVO35.3a** [IMPLEMENTED_SCOPED_TESTED_SOLO] Training/eval skeleton: trajectory schema, Mini131 hash exclusion, train/dev/sealed split freezer, action-only SFT exporter, external reward contract, SFT/GRPO preflight entrypoints. No serving dependency upgrade.
+- [x] **EVO35.3b** [LIVE_QWEN_FOLLOWUP_PASS] Replace ambiguous evidence handles at the policy boundary with `hist:*` / `cand:*` / `ev:*`; preserve canonical IDs server-side; run the exact failed Korean follow-up on real Qwen after regression.
+- [ ] **EVO35.3c** [NEXT_RELAY] Freeze the repaired implementation commit and run Mini131 PRE as a historical benchmark. Do not use per-case PRE failures to choose training data/prompts/rewards.
+- [ ] **EVO35.3d** Build new non-golden train/dev/sealed-holdout groups, prove exclusion/leakage audit, and collect private action trajectories. Seal heldout before tuning.
+- [ ] **EVO35.3e** Train bounded Qwen3.5 next-action SFT adapter in an isolated compatible environment; choose only on non-golden dev.
+- [ ] **EVO35.4** Reduced cost-aware GRPO from accepted SFT; independent rollout state, external success-gated reward, frozen Experience.
+- [ ] **EVO35.5 / HOTLINE.4** Final freeze -> Mini131 POST historical comparison -> one-time new sealed holdout -> support-matrix/UI integration.
 
-Contract: `specs/evo-harness-qwen35-contract.md`. Active closeout: `../work/2026-09-09-evo35-live-report.md`. Relay: solo / STOP_WITH_REASON at EVO35.2.FOLLOWUP redesign, not model preflight. Training requires the later data/split/environment/resource gates. Do not resume the retired Controller queue.
+Contracts: `specs/evo-harness-qwen35-contract.md`, `specs/evo-training-policy.md`. Active closeout: `../work/2026-09-09-evo35-live-report.md`. Relay: solo / STOP_WITH_REASON at EVO35.2.FOLLOWUP redesign, not model preflight. Training requires the later data/split/environment/resource gates. Do not resume the retired Controller queue.
 
 ## Active queue - HOTLINE.2 (2026-09-09, D-025)
 

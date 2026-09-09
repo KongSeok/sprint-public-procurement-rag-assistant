@@ -172,7 +172,7 @@ class VisualHotlineTools(HotlineTools):
         episode.usage.read_calls += 1
         episode.usage.image_calls += 1
         row = {"kind": "visual", "attempt": episode.usage.image_calls,
-               "evidence_id": episode.handle(eid), "outcome": "attempted"}
+               "candidate_id": episode.handle(eid), "outcome": "attempted"}
         episode.trajectory.append(row)
         try:
             raw = self.visual.inspector(request, remaining=remaining)
@@ -207,8 +207,9 @@ class VisualHotlineTools(HotlineTools):
             episode.windows[eid] = window
         else:
             episode.windows.pop(eid, None)
-        observation = {"id": episode.handle(eid), "status": generation["status"],
-                       "usable_in_finish": window is not None, "duplicate": False,
+        observation = {"candidate_id": episode.handle(eid),
+                       "finish_evidence_id": episode.read_handle(eid) if window is not None else None,
+                       "status": generation["status"], "usable_in_finish": window is not None, "duplicate": False,
                        "human_review_required": True, "factual_evidence_promoted": False,
                        "uncertainties": generation["interpretation"]["uncertainties"],
                        "image_count": runtime.get("image_count"), "ocr_text_supplied": runtime.get("ocr_text_supplied")}

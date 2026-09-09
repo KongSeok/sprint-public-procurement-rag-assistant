@@ -167,8 +167,8 @@ class EpisodeRunner:
             if not refs:
                 response = {"status": "abstained", "answer": "", "citations": []}
             else:
-                self.tools.read(episode, {"evidence_ids": refs}, self.budgets, remaining)
-                packet = self.tools.packet(episode, refs)
+                read_observation = self.tools.read(episode, {"evidence_ids": refs}, self.budgets, remaining)
+                packet = self.tools.packet(episode, read_observation["read"])
                 response = self.answer.compose(episode, packet, [], self.budgets, remaining)
             return {"status": response["status"], "response": response,
                     "usage": asdict(episode.usage), "wall_seconds": self.clock()-started,

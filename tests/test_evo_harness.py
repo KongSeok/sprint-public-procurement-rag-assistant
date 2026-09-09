@@ -31,12 +31,28 @@ def search(query="budget", docs=None, limit=10):
     return action("search",query=query,doc_ids=docs,limit=limit)
 
 
+def _candidate(ref):
+    if ref.startswith("cand:"):
+        return ref
+    if ref.startswith("ev:"):
+        return "cand:" + ref[len("ev:"):]
+    return "cand:" + ref
+
+
+def _evidence(ref):
+    if ref.startswith("ev:"):
+        return ref
+    if ref.startswith("cand:"):
+        return "ev:" + ref[len("cand:"):]
+    return "ev:" + ref
+
+
 def read(*refs):
-    return action("read",evidence_ids=list(refs))
+    return action("read",evidence_ids=[_candidate(ref) for ref in refs])
 
 
 def finish(*refs,status="answered",unresolved=None):
-    return action("finish",status=status,evidence_ids=list(refs),unresolved=unresolved or [])
+    return action("finish",status=status,evidence_ids=[_evidence(ref) for ref in refs],unresolved=unresolved or [])
 
 
 REQUEST={"question":"Compare the budget and performance period of Alpha and Beta.",
@@ -51,6 +67,7 @@ class FakeBackend:
         self.callback=callback
         self.answer=answer
         self.calls=[]
+        self.schemas=[]
         self.count_override=None
         self.finish_reason="stop"
         self.after_call=None
@@ -58,8 +75,9 @@ class FakeBackend:
     def count_messages(self,messages):
         return self.count_override or max(1,len(json.dumps(messages))//8)
 
-    def complete(self,messages,*,max_tokens,timeout):
+    def complete(self,messages,*,max_tokens,timeout,json_schema=None):
         self.calls.append(deepcopy(messages))
+        self.schemas.append(deepcopy(json_schema))
         if self.after_call:
             self.after_call()
         if messages[0]["content"]==ANSWER_SYSTEM:
@@ -124,8 +142,8 @@ class EvoToolsTests(unittest.TestCase):
     def test_search_read_and_provenance_for_multiple_documents(self):
         found=self.do(search())["candidates"]
         self.assertEqual({r["doc_id"] for r in found},{"alpha","beta"})
-        self.do(read(*[r["id"] for r in found]))
-        packet=self.tools.packet(self.ep,[r["id"] for r in found])
+        read_result=self.do(read(*[r["id"] for r in found]))
+        packet=self.tools.packet(self.ep,read_result["read"])
         self.assertEqual([r["label"] for r in packet],["S1","S2"])
         for row in packet:
             lo,hi=row["locator"]["char_range"]
@@ -154,7 +172,7 @@ class EvoToolsTests(unittest.TestCase):
 
     def test_progress_is_not_semantic_truth(self):
         self.do(search())
-        obs=self.do(action("commit",goal_id="g",summary="Candidate found",status="evidence_found",evidence_ids=["e1"]))
+        obs=self.do(action("commit",goal_id="g",summary="Candidate found",status="evidence_found",evidence_ids=["cand:e1"]))
         self.assertFalse(obs["goal"]["semantic_verified"])
         self.assertFalse(self.ep.windows)
         with self.assertRaises(InvalidAction):self.do(action("commit",goal_id="bad",summary="fake",status="verified",evidence_ids=[]))

@@ -166,3 +166,7 @@ The user approved the hotline-based EvoHarness plan with Qwen/Qwen3.5-9B as the 
 ## Opt-in policy visual tools - 2026-09-09 / D-028
 
 The hotline Evo policy may select persisted OCR/layout search and actual image inspection when visual artifacts/runtime are explicitly configured. Hard user scope and existing episode deadlines apply to these actions as to text retrieval. Successful image reading is an unreviewed interpretation, not automatically verified source truth. Actual current single-image wiring and a returned citation are distinct from corpus-wide recognition/retrieval quality. Existing text control, model/data artifacts and default UI remain preserved.
+
+## 15. EvoHarness training sequence - 2026-09-09 / D-029
+
+Proceed in solo relay-shot mode with no collaboration-model restriction. Keep Qwen3.5-9B as the application baseline for attribution. Implement an isolated training/evaluation pipeline, repair follow-up evidence-ID lifetime with typed policy-visible namespaces, freeze and run Mini131 only as a historical PRE/POST benchmark, exclude Mini131 and related groups from training, collect new non-golden trajectories, train next-action SFT before bounded GRPO, then run a separately sealed new holdout once after final freeze. Serving dependencies and private-data/egress rules do not change. Canonical contract: `architecture/specs/evo-training-policy.md`.

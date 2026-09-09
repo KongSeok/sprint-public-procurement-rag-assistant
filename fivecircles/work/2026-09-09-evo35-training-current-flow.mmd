@@ -1,0 +1,28 @@
+flowchart TD
+  U["D-029 solo relay contract recorded"] --> C["Leakage / split / SFT / GRPO preflight code"]
+  C --> N["Policy-visible history IDs: hist:tN:eN"]
+  N --> S1["Search candidates: cand:eN"]
+  S1 --> R1["Successful read / inspect: ev:eN"]
+  R1 --> G["Dynamic JSON action schema from current executable state"]
+  G --> M["Qwen3.5 structured next-action generation"]
+  M --> A["Server action_from_json + scope/budget validation"]
+  A -->|"search"| S1
+  A -->|"read"| R1
+  A -->|"finish answered"| Z["Same-model final answer + citations"]
+  Z --> L["Actual Korean follow-up PASS: search -> read -> finish"]
+  C --> T["Trajectory schema + non-golden split freezer + SFT exporter"]
+  T --> PF["Isolated SFT/GRPO dependency/resource preflight"]
+  L --> F["Pre-training freeze commit / push"]
+  PF --> F
+  F --> P["Mini131 PRE"]
+  P --> D["Non-golden collection / SFT / GRPO / POST / sealed holdout"]
+
+  classDef green fill:#e8f2ea,stroke:#bdd1c2,color:#1f2933,stroke-width:1.5px
+  classDef blue fill:#e8f0f7,stroke:#c2d3e0,color:#1f2933,stroke-width:1.5px
+  classDef amber fill:#fff4dc,stroke:#e7c88f,color:#1f2933,stroke-width:1.5px
+  classDef red fill:#fde9e6,stroke:#e8bab5,color:#1f2933,stroke-width:1.5px
+  classDef gray fill:#eef1ed,stroke:#d8e0da,color:#1f2933,stroke-width:1.5px
+  class U,C,N,S1,R1,G,A,Z,L,T,PF green
+  class M blue
+  class F amber
+  class P,D red

@@ -1,0 +1,26 @@
+{
+  "schema_version": "evo-sft-config-v1",
+  "model_id": "Qwen/Qwen3.5-9B",
+  "base_model_revision": null,
+  "mode": "qlora4",
+  "lora": {
+    "r": 16,
+    "alpha": 32,
+    "dropout": 0.05,
+    "target_modules": "all-linear"
+  },
+  "training": {
+    "max_steps": 100,
+    "learning_rate": 0.0001,
+    "micro_batch_size": 1,
+    "gradient_accumulation_steps": 8,
+    "max_length": 4096,
+    "save_steps": 25,
+    "logging_steps": 5,
+    "seed": 0
+  },
+  "resource_limits": {
+    "max_wall_seconds": null,
+    "max_output_gb": null
+  }
+}

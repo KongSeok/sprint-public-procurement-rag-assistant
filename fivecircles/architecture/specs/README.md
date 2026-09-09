@@ -101,3 +101,4 @@ Do not duplicate or reinterpret that order in specification files.
 - Current evidence: `../../work/2026-09-09-hotline-vlm-integration.md`.
 
 - `evo-visual-tools.md`: D-028 opt-in policy-selected OCR search and actual image inspection; shared scope/time/model and unreviewed citation contract.
+- `evo-training-policy.md`: D-029 training/leakage/evaluation contract; typed evidence lifecycle, non-golden splits, action-only SFT, bounded GRPO and PRE/POST discipline.

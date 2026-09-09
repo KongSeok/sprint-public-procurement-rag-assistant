@@ -546,3 +546,8 @@ Reference:
 - Do not Path.resolve a Python executable passed to a child: it can lose virtualenv site-packages. Keep the invocation path and test symlink forwarding.
 - A review label qualifies a model interpretation, whereas uncertainty can forbid its use. Keep both semantics visible; neither execution success nor a correct citation proves recognition accuracy.
 - refs: errorlogs/backend/2026-09-09-evo-visual-runtime.md.
+
+## 2026-09-09 - Typed handles and decoding grammar
+- Distinguish historical references (`hist:*`), current candidates (`cand:*`) and read/inspected evidence (`ev:*`) at the policy boundary; canonical IDs stay server-side.
+- A correct validator alone does not prevent repeated impossible model actions. Constrain local decoding to executable tools/handles while keeping server validation authoritative.
+- llguidance schema support is narrower than JSON Schema: unsupported grammar keywords such as `uniqueItems` may be omitted only from decoding grammar, never from runtime duplicate validation. See errorlogs/backend/2026-09-09-evo35-structured-followup.md.

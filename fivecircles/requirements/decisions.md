@@ -306,3 +306,15 @@
 - Keep text defaults and historical follow-up failure unchanged. VLM output remains unreviewed visual_inference with exact image citation, never automatically promoted to verified source evidence.
 - Actual trial may use existing private OCR index/crop locally under OS network denial; no downloads, re-embedding, model server replacement, training or default UI change. Per-episode120-second bound, failed tests and live outcomes preserved.
 - Contract: architecture/specs/evo-visual-tools.md. Implementation and live acceptance require actual evidence, not a branch merge alone.
+
+## D-029 - EvoHarness training/evaluation sequence and solo unrestricted relay
+
+- Date: 2026-09-09
+- Authority: user approved the sequence: training pipeline -> follow-up confusion repair -> frozen golden PRE -> non-golden data collection -> SFT -> GRPO -> post-training comparison, and explicitly requested relay-shot in solo mode without collaboration-model restrictions.
+- Execution mode: `solo`; no external Coder/Critic/delegation requirement. The assistant may use any available development/reasoning model/tool in this solo run. This does not silently change the application system-under-test: Qwen/Qwen3.5-9B remains the policy/final-answer baseline until a separately versioned experiment changes it.
+- Leakage: Mini131 and its questions, answers, qrels, same groups/conversations/document-pair variants are excluded from training and non-golden dev. Mini131 PRE/POST is a historical benchmark only, not a new sealed holdout and not a curriculum source.
+- Follow-up: repair the protocol before data collection by separating historical citation references, current search candidates and successfully read/inspected evidence into disjoint policy-visible namespaces. Do not solve the bug by weakening scope/evidence validation or another prompt-only retry.
+- Training: action-only SFT first, then bounded cost-aware GRPO only after SFT/dev/resource gates. Efficiency reward is gated by external task success. Experience is frozen per eval/rollout batch.
+- Environment: serving dependencies remain unchanged. Training must use an isolated compatible environment; current TRL agent environment support requiring Transformers >=5.2 conflicts with the serving `<5` pin.
+- Evaluation order: typed protocol -> freeze commit -> Mini131 PRE -> non-golden train/dev/sealed split + trajectories -> SFT -> optional GRPO -> final freeze -> Mini131 POST -> one-time new sealed holdout.
+- Contract: `fivecircles/architecture/specs/evo-training-policy.md`, ID `evo35-train-eval-v1`.

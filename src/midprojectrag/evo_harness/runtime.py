@@ -94,7 +94,7 @@ class MLXBackend:
     def count_messages(self, messages: list[dict]) -> int:
         return len(self.tokenizer.encode(self.formatted(messages), add_special_tokens=False))
 
-    def complete(self, messages: list[dict], *, max_tokens: int, timeout: float) -> Completion:
+    def complete(self, messages: list[dict], *, max_tokens: int, timeout: float, json_schema: dict | None = None) -> Completion:
         if type(timeout) not in (float, int) or not math.isfinite(timeout) or timeout <= 0:
             raise TimeoutError("model_deadline")
         import mlx.core as mx
@@ -103,8 +103,12 @@ class MLXBackend:
         formatted = self.formatted(messages)
         self.calls += 1
         mx.random.seed(0)
+        kwargs = {}
+        if json_schema is not None:
+            from mlx_vlm.structured import build_json_schema_logits_processor
+            kwargs["logits_processors"] = [build_json_schema_logits_processor(self.tokenizer, json_schema)]
         result = generate(self.model, self.processor, formatted, max_tokens=max_tokens,
-                          temperature=0.0, seed=0, enable_thinking=False, verbose=False)
+                          temperature=0.0, seed=0, enable_thinking=False, verbose=False, **kwargs)
         mx.synchronize()
         # The CLI supervisor enforces the process budget even during native work.
         # A late result is returned with usage; the runner performs its post-call

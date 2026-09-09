@@ -242,3 +242,9 @@
 - Existing artifacts reused, image inference shares the policy model. Three bounded live attempts: child environment failure; clarification-only; final answered with one citation and0 invalid actions.
 - Added26 tests; combined378 unique tests pass. Actual index unchanged. Model-recognition correctness and broad retrieval quality remain unproven.
 - Publication is source/tests/redacted notes only; actual Git acknowledgement recorded separately. No training/default UI rollout or automatic fixed-control change.
+
+## 2026-09-09 - EVO35.3a/3b solo relay closeout
+- D-029 contract/TODO established. Implemented training contracts/scripts and typed evidence lifetime.
+- First typed live run safely rejected invented cand:e0. First structured run exposed llguidance `uniqueItems` incompatibility; grammar-only keyword removed, duplicate validation retained server-side.
+- Rerun with same Qwen3.5 and preserved synthetic follow-up succeeded with scoped search/read/finish. 380 impact +13 training tests PASS.
+- Flow report/review recorded. Next relay: publish freeze, then Mini131 PRE; no training run yet.

@@ -8,7 +8,7 @@ import re
 from typing import Protocol
 
 from .state import (Budgets, ContextOverflow, Episode, HarnessError, InvalidAction,
-                    TOOL_GUIDE, VISUAL_TOOL_GUIDE, exact, ids, json_object, text)
+                    TOOL_GUIDE, VISUAL_TOOL_GUIDE, action_schema, exact, ids, json_object, text)
 
 MODEL_ID = "Qwen/Qwen3.5-9B"
 DERIVATIVE_ID = "mlx-community/Qwen3.5-9B-4bit"
@@ -68,7 +68,7 @@ class Backend(Protocol):
         """Count the same fully rendered template later sent to the model."""
         ...
 
-    def complete(self, messages: list[dict], *, max_tokens: int, timeout: float) -> Completion:
+    def complete(self, messages: list[dict], *, max_tokens: int, timeout: float, json_schema: dict | None = None) -> Completion:
         ...
 
 
@@ -124,7 +124,8 @@ class LLMPolicy:
         row = {"kind": "policy", "attempt": episode.usage.policy_calls,
                "messages": messages, "input_tokens": count, "outcome": "attempted"}
         episode.trajectory.append(row)
-        result = self.backend.complete(messages, max_tokens=budgets.policy_output, timeout=timeout)
+        schema = action_schema(episode, budgets)
+        result = self.backend.complete(messages, max_tokens=budgets.policy_output, timeout=timeout, json_schema=schema)
         record_completion(episode, result, role="policy", expected_input=count, output_cap=budgets.policy_output)
         remaining()
         row.update(outcome="completed", output=result.text, output_tokens=result.output_tokens)

@@ -56,3 +56,8 @@
 - APPROVE_WITH_LIMITS: explicit visual policy tools, hard scope and shared deadline; same loaded Qwen pixels and unreviewed image citations.
 - Final378 unique tests PASS; actual final episode visual_search/inspect_image/finish, one citation,18.680s. Initial runtime failure and clarification-only result retained.
 - No independent Critic or semantic-quality PASS. Source index unchanged; single occurrence cannot prove retrieval/recognition performance. refs: ../work/review/review-evo-visual-tools-2026-09-09.md.
+
+## 2026-09-09 - EVO35.3a/3b solo review
+- Explicit solo relay; no external Critic. Typed follow-up protocol and dynamic action grammar reviewed against D-029.
+- Verdict APPROVE_WITH_SCOPE_LIMITS: real synthetic Qwen follow-up PASS, 380+13 tests PASS; Mini131 PRE/SFT/GRPO remain separate gates.
+- Review: ../work/review/review-evo35-training-2026-09-09.md.

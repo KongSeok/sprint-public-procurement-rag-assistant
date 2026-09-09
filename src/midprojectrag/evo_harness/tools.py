@@ -101,13 +101,15 @@ class HotlineTools:
                 raise InvalidAction("unknown_track_target")
             return {"target": target, "goals": list(episode.goals.values()),
                     "evidence": [{"id": episode.handle(eid), "doc_id": row["doc_id"],
-                                  "read": eid in episode.windows} for eid, row in episode.candidates.items()],
+                                  "read": eid in episode.windows,
+                                  "read_id": episode.read_handle(eid) if eid in episode.windows else None}
+                                 for eid, row in episode.candidates.items()],
                     "searches": deepcopy(episode.searches), "semantic_verified": False}
         if tool == "commit":
             if arg["goal_id"] not in episode.goals and len(episode.goals) >= 12:
                 raise InvalidAction("progress_capacity")
-            evidence = [episode.reference(eid) for eid in arg["evidence_ids"]]
-            row = {**arg, "evidence_ids": [episode.handle(eid) for eid in evidence], "semantic_verified": False}
+            evidence = [episode.reference_any(eid) for eid in arg["evidence_ids"]]
+            row = {**arg, "evidence_ids": [episode.read_handle(eid) if eid in episode.windows else episode.handle(eid) for eid in evidence], "semantic_verified": False}
             episode.goals[arg["goal_id"]] = row
             return {"goal": deepcopy(row)}
         if tool == "recall":
@@ -212,7 +214,7 @@ class HotlineTools:
         episode.windows.update(windows)
         # The complete read text is in Episode.observation.read_evidence. Avoid
         # sending it twice in last_observation.
-        result = {"read": [episode.handle(eid) for eid in evidence_ids], "duplicate": False,
+        result = {"read": [episode.read_handle(eid) for eid in evidence_ids], "duplicate": False,
                   "semantic_verified": False}
         episode.cache[key] = deepcopy(result)
         return result
