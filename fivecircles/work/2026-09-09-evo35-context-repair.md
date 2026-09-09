@@ -77,7 +77,7 @@ Fresh KURE end-to-end replay remains the canonical final runtime check, but load
 - load the sealed PRE EvidenceStore without KURE inference;
 - remap each PRE search candidate by exact `(doc_id, kind, excerpt)` to canonical evidence;
 - require unique mapping and fail closed otherwise;
-- replay those frozen search batches through real HotlineTools/read windows and the pinned Qwen3.5 policy;
+- replay those frozen search batches through real HotlineTools/read windows and the pinned Qwen3.5 policy; if the repaired policy performs more search calls than PRE recorded before failure, hold the final frozen batch and count each reuse explicitly;
 - use a deterministic final-answer stub, because semantic answer quality is explicitly out of scope;
 - keep all replay records private and publish only aggregate terminal-code deltas.
 

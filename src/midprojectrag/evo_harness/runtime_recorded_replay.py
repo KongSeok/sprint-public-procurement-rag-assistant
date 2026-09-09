@@ -18,7 +18,7 @@ from .tools import HotlineTools
 from .worker_backend import PersistentMLXBackend
 from .runtime_replay import replay_record
 SCHEMA="evo-runtime-recorded-replay-v1"
-MODE="recorded_pre_search_results_live_qwen_policy"
+MODE="recorded_pre_search_results_hold_last_live_qwen_policy"
 def _canonical(v:Any)->str:return json.dumps(v,ensure_ascii=False,sort_keys=True,separators=(",",":"),allow_nan=False)
 def _index(store):
     out={};dup=set()
@@ -48,11 +48,16 @@ def recorded_search_batches(before,store):
             batches.append(batch)
     return batches
 class RecordedRetriever:
-    def __init__(self,store,batches):self.store=store;self.batches=[tuple(x) for x in batches];self.used=0
+    def __init__(self,store,batches):
+        self.store=store;self.batches=[tuple(x) for x in batches];self.used=0;self.consumed=0;self.reused=0
     def search(self,query,*,dense_k,lexical_k,scope):
         del query,dense_k,lexical_k
-        if self.used>=len(self.batches):raise HarnessError("recorded_retrieval_exhausted")
-        batch=self.batches[self.used];self.used+=1;allowed=scope.allowed_doc_ids
+        if self.consumed<len(self.batches):
+            batch=self.batches[self.consumed];self.consumed+=1
+        elif self.batches:
+            batch=self.batches[-1];self.reused+=1
+        else:raise HarnessError("recorded_retrieval_exhausted")
+        self.used+=1;allowed=scope.allowed_doc_ids
         rows=[x for x in batch if allowed is None or x[1] in allowed]
         cs=tuple(Candidate(eid,doc,1.0/rank,"recorded_pre",rank) for rank,(eid,doc) in enumerate(rows,1))
         return SearchResult(cs,{"lane":"recorded_pre","granularity":"child","batch":self.used})
@@ -88,7 +93,8 @@ def _summary(records,*,aggregate,runner,candidate,suite_hash,target):
           "target_count":target,"completed_count":len(records),"before_code_counts":dict(sorted(before.items())),
           "after_status_counts":dict(sorted(status.items())),"after_code_counts":dict(sorted(codes.items())),"usage":dict(sorted(usage.items())),
           "recorded_search_batches_total":sum(r.get("recorded_search_batches_total",0) for r in records),
-          "recorded_search_batches_used":sum(r.get("recorded_search_batches_used",0) for r in records)}
+          "recorded_search_batches_used":sum(r.get("recorded_search_batches_used",0) for r in records),
+          "recorded_search_batches_reused":sum(r.get("recorded_search_batches_reused",0) for r in records)}
     return body|{"summary_sha256":sha256(_canonical(body).encode()).hexdigest()}
 def run(*,repo_root:Path,source_repo_root:Path,source_config:Path,runtime_data_root:Path,artifact_dir:Path,
         mlx_python:Path,model_dir:Path,model_manifest:Path,expected_revision:str,source_records:Path,
@@ -118,7 +124,8 @@ def run(*,repo_root:Path,source_repo_root:Path,source_config:Path,runtime_data_r
             runner=EpisodeRunner(tools,LLMPolicy(backend),answer,budgets=Budgets(),experience=Experience());started=time.monotonic()
             result=_end_to_end_followup(runner,case)[0] if _is_followup(case) else runner.run(_base_request(case.request_template),record_trajectory=False)
             rec=replay_record(case,source,result,time.monotonic()-started);rec.update(replay_mode=MODE,repaired_candidate_commit=repaired_candidate,
-                repaired_runner_commit=runner_commit,recorded_search_batches_total=len(batches),recorded_search_batches_used=retriever.used)
+                repaired_runner_commit=runner_commit,recorded_search_batches_total=len(batches),recorded_search_batches_used=retriever.used,
+                recorded_search_batches_reused=retriever.reused)
             _secure_append(records_path,rec);existing.append(rec)
     summary=_summary(existing,aggregate=aggregate,runner=runner_commit,candidate=repaired_candidate,suite_hash=suite.eval_set_sha256,target=len(selected))
     (output_dir/"summary.json").write_text(json.dumps(summary,ensure_ascii=False,sort_keys=True,indent=2)+"\n");return summary

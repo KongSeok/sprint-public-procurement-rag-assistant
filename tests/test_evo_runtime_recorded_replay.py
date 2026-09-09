@@ -21,6 +21,9 @@ class RecordedReplayTests(unittest.TestCase):
         scope=ResolvedScope.from_allowed(frozenset({self.ev.doc_id}),origin='combined')
         out=r.search('ignored',dense_k=10,lexical_k=10,scope=scope)
         self.assertEqual([c.evidence_id for c in out.candidates],[self.ev.evidence_id]);self.assertEqual(r.used,1)
+        again=r.search('ignored',dense_k=10,lexical_k=10,scope=scope)
+        self.assertEqual([c.evidence_id for c in again.candidates],[self.ev.evidence_id]);self.assertEqual(r.reused,1)
+        empty=RecordedRetriever(self.store,[])
         with self.assertRaisesRegex(HarnessError,'recorded_retrieval_exhausted'):
-            r.search('ignored',dense_k=10,lexical_k=10,scope=scope)
+            empty.search('ignored',dense_k=10,lexical_k=10,scope=scope)
 if __name__=='__main__':unittest.main()
