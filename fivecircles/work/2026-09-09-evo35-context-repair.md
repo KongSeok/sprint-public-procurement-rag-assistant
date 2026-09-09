@@ -56,6 +56,16 @@ Search/read/image hard budgets, scope validation, canonical evidence provenance,
 - Live repaired-Qwen regression: PENDING until the frozen PRE releases the MLX resource.
 - Actual pinned Qwen3.5 tokenizer/chat-template smoke, no model load: 4x1500-char server windows compacted to 4x768-char policy previews at 3413 input tokens + 256 reserve = 3669/4096; 6x1500-char windows plus bounded prior history compacted to 6x384 at 3436 + 256 = 3692/4096. Full server windows remained 1500 chars each. Network sandbox denied.
 
+## VM35 staging - 2026-09-09
+
+- User explicitly approved SSH-key issuance and VM35-first rollout; VM3/Qwen3-8B port remains deferred.
+- GCP target verified: `rag-gpu-vm`, `us-central1-c`, `g2-standard-4`, 100 GB disk. A gcloud SSH key was generated and project metadata updated successfully.
+- Repair branch cloned into the isolated owner path `/home/pio/MidProjectRAG-evo35-context-repair` at exact commit `f3e74fcf28d5cd43a13dd09ae27d2b27d803bce3`.
+- Isolated test environment `/home/pio/.venvs/evo35-repair`; project/shared serving Python environments were not upgraded. Focused `tests.test_evo_harness tests.test_evo_mini131_pre`: 49/49 PASS on VM.
+- Runtime inventory found no Qwen3.5 model/service on ports 8000-8003 or in accessible VM paths. Port 8002 identifies `Qwen/Qwen3-8B-AWQ`; the L4 is already occupied by processes owned by another VM user. Those processes were not signalled, restarted, modified or reconfigured.
+- Root disk after isolated staging: 69/96 GB used (72%), below the 80 GB project warning threshold. No Qwen3.5 weights or heavyweight serving stack were downloaded.
+- VM35 status is therefore code-staged + model-free-tested, not live-model-validated. Live replay remains blocked on an available Qwen3.5 VM runtime/GPU slot; do not reinterpret this as a Qwen3-8B patch.
+
 ## Relay state
 
 `IMPLEMENTED_TESTED_PENDING_LIVE`. Do not merge into `feat/hotline-runtime` before PRE closeout. Next gate: PRE aggregate seal -> repaired runtime-failure replay -> accept/reject candidate -> merge/push if accepted.
