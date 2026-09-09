@@ -229,6 +229,23 @@ class EvoToolsTests(unittest.TestCase):
         self.do(action("track",target="world"))
         self.assertTrue(self.do(search())["duplicate"])
 
+    def test_read_schema_respects_remaining_memory_capacity(self):
+        self.do(search())
+        for i in range(1, 6):
+            eid=f"memory-{i}"
+            self.ep.candidates[eid]={"evidence_id":eid,"doc_id":"alpha","kind":"text","excerpt":"x"}
+            self.ep.windows[eid]={"evidence_id":eid,"doc_id":"alpha","text":"x"}
+        self.ep.candidates["unread-a"]={"evidence_id":"unread-a","doc_id":"alpha","kind":"text","excerpt":"x"}
+        self.ep.candidates["unread-b"]={"evidence_id":"unread-b","doc_id":"alpha","kind":"text","excerpt":"x"}
+        schema=action_schema(self.ep,self.b)
+        read_options=[row for row in schema["oneOf"] if row["properties"]["tool"].get("const")=="read"]
+        self.assertEqual(len(read_options),1)
+        evidence_schema=read_options[0]["properties"]["arguments"]["properties"]["evidence_ids"]
+        self.assertEqual(evidence_schema["maxItems"],1)
+        self.ep.windows["memory-6"]={"evidence_id":"memory-6","doc_id":"alpha","text":"x"}
+        schema=action_schema(self.ep,self.b)
+        self.assertFalse(any(row["properties"]["tool"].get("const")=="read" for row in schema["oneOf"]))
+
     def test_tool_result_copy_cannot_mutate_cache(self):
         first=self.do(search());first["candidates"].clear()
         self.assertTrue(self.do(search())["candidates"])

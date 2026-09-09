@@ -265,6 +265,7 @@ def action_schema(episode: "Episode", budget: Budgets) -> dict:
     candidate_refs = sorted(candidate_by_id)
     evidence_refs = sorted(episode.read_handle(eid) for eid in episode.windows)
     current_refs = sorted(candidate_refs + evidence_refs)
+    read_memory_remaining = max(0, 6 - len(episode.windows))
     options: list[dict] = []
 
     doc_array = {
@@ -287,11 +288,13 @@ def action_schema(episode: "Episode", budget: Budgets) -> dict:
             "doc_ids": scope_schema,
             "limit": {"type": "integer", "minimum": 1, "maximum": 5},
         })))
-    if "read" in tools and unread_text and episode.usage.read_calls < budget.read_calls:
+    if ("read" in tools and unread_text and read_memory_remaining > 0
+            and episode.usage.read_calls < budget.read_calls):
         options.append(_schema_action("read", _schema_object({
-            "evidence_ids": _schema_ref_array(unread_text, minimum=1),
+            "evidence_ids": _schema_ref_array(unread_text, minimum=1, maximum=read_memory_remaining),
         })))
-    if ("inspect_image" in tools and visual_candidates and episode.usage.read_calls < budget.read_calls
+    if ("inspect_image" in tools and visual_candidates and read_memory_remaining > 0
+            and episode.usage.read_calls < budget.read_calls
             and episode.usage.image_calls < budget.image_calls):
         options.append(_schema_action("inspect_image", _schema_object({
             "evidence_id": {"type": "string", "enum": visual_candidates},
