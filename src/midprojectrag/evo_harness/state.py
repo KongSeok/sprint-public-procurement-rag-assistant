@@ -312,7 +312,7 @@ def action_schema(episode: "Episode", budget: Budgets) -> dict:
             "status": {"type": "string", "enum": ["open", "working", "evidence_found", "blocked"]},
             "evidence_ids": _schema_ref_array(current_refs),
         })))
-    if "recall" in tools:
+    if "recall" in tools and episode.recall_available:
         options.append(_schema_action("recall", _schema_object({
             "query": {"type": "string", "minLength": 1, "maxLength": 1000},
             "limit": {"type": "integer", "minimum": 1, "maximum": 3},
@@ -379,6 +379,7 @@ class Episode:
     last_observation: dict = field(default_factory=lambda: {"status": "ready"})
     trajectory: list[dict] = field(default_factory=list)
     duplicate_search_cooldown: tuple | None = None
+    recall_available: bool = False
 
     def reference(self, value: str, *, read: bool = False) -> str:
         if read:

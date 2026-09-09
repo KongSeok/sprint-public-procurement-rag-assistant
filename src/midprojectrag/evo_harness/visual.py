@@ -103,9 +103,15 @@ class VisualHotlineTools(HotlineTools):
 
     def dispatch(self, episode, action, budget, remaining, experience):
         if action["tool"] == "visual_search":
-            return self.visual_search(episode, action["arguments"], budget, remaining)
+            result = self.visual_search(episode, action["arguments"], budget, remaining)
+            if not result.get("duplicate", False):
+                episode.duplicate_search_cooldown = None
+            return result
         if action["tool"] == "inspect_image":
-            return self.inspect_image(episode, action["arguments"], budget, remaining)
+            result = self.inspect_image(episode, action["arguments"], budget, remaining)
+            if not result.get("duplicate", False):
+                episode.duplicate_search_cooldown = None
+            return result
         return super().dispatch(episode, action, budget, remaining, experience)
 
     def visual_search(self, episode, arg, budget, remaining):

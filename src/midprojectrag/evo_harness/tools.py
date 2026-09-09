@@ -93,9 +93,11 @@ class HotlineTools:
         tool, arg = action["tool"], action["arguments"]
         if tool == "search":
             return self.search(episode, arg, budget, remaining)
-        episode.duplicate_search_cooldown = None
         if tool == "read":
-            return self.read(episode, arg, budget, remaining)
+            result = self.read(episode, arg, budget, remaining)
+            if not result.get("duplicate", False):
+                episode.duplicate_search_cooldown = None
+            return result
         if tool == "track":
             target = arg["target"]
             if target != "world" and target not in episode.goals and target not in {r["doc_id"] for r in episode.catalog}:
@@ -112,6 +114,7 @@ class HotlineTools:
             evidence = [episode.reference_any(eid) for eid in arg["evidence_ids"]]
             row = {**arg, "evidence_ids": [episode.read_handle(eid) if eid in episode.windows else episode.handle(eid) for eid in evidence], "semantic_verified": False}
             episode.goals[arg["goal_id"]] = row
+            episode.duplicate_search_cooldown = None
             return {"goal": deepcopy(row)}
         if tool == "recall":
             return experience.recall(arg["query"], arg["limit"])
@@ -119,6 +122,7 @@ class HotlineTools:
             if len(episode.notes) >= 8:
                 raise InvalidAction("note_capacity")
             episode.notes.append(arg["insight"])
+            episode.duplicate_search_cooldown = None
             return {"status": "quarantined", "count": len(episode.notes), "bank_modified": False}
         raise InvalidAction("unsupported_dispatch_tool")
 

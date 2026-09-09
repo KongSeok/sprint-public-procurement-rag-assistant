@@ -220,14 +220,25 @@ class EvoToolsTests(unittest.TestCase):
         with self.assertRaises(LimitReached):self.do(search(query="other"))
         with self.assertRaises(LimitReached):self.do(read("e2"))
 
-    def test_duplicate_search_cooldown_breaks_stagnation(self):
+    def test_duplicate_search_cooldown_requires_state_advance(self):
         self.do(search()); duplicate=self.do(search())
         self.assertTrue(duplicate["duplicate"])
         self.assertNotIn('"const":"search"',json.dumps(action_schema(self.ep,self.b),separators=(",",":")))
         with self.assertRaisesRegex(InvalidAction,"stagnant_duplicate_search"):
             self.do(search())
         self.do(action("track",target="world"))
+        self.do(action("recall",query="period",limit=1))
+        self.assertNotIn('"const":"search"',json.dumps(action_schema(self.ep,self.b),separators=(",",":")))
+        self.do(read("e1"))
+        self.assertIn('"const":"search"',json.dumps(action_schema(self.ep,self.b),separators=(",",":")))
         self.assertTrue(self.do(search())["duplicate"])
+
+    def test_recall_schema_requires_reviewed_experience(self):
+        schema=json.dumps(action_schema(self.ep,self.b),separators=(",",":"))
+        self.assertNotIn('"const":"recall"',schema)
+        self.ep.recall_available=True
+        schema=json.dumps(action_schema(self.ep,self.b),separators=(",",":"))
+        self.assertIn('"const":"recall"',schema)
 
     def test_read_schema_respects_remaining_memory_capacity(self):
         self.do(search())
