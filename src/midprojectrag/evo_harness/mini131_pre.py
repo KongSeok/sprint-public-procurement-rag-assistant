@@ -95,6 +95,25 @@ def _read_records(path: Path) -> list[dict[str, Any]]:
     return rows
 
 
+RUNTIME_REPAIR_CODES = frozenset({"policy_context_budget_exceeded", "policy_attempt_budget_exhausted"})
+
+
+def runtime_failure_case_ids(records: list[dict[str, Any]]) -> tuple[str, ...]:
+    """Select PRE runtime exhaustion only; answer/gold quality is irrelevant."""
+    selected = []
+    for row in records:
+        result = row.get("result")
+        if (row.get("classification") == "executed_text" and type(result) is dict
+                and result.get("status") == "budget_exhausted" and result.get("code") in RUNTIME_REPAIR_CODES):
+            case_id = row.get("case_id")
+            if type(case_id) is not str or not case_id:
+                raise ValueError("pre_runtime_failure_case_id_invalid")
+            selected.append(case_id)
+    if len(selected) != len(set(selected)):
+        raise ValueError("pre_runtime_failure_duplicate_case")
+    return tuple(selected)
+
+
 def _required_docs(case) -> list[str]:
     if case.lane == "core40":
         value = case.source.get("gold", {}).get("required_doc_ids", [])

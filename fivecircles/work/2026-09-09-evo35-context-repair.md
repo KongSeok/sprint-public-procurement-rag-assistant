@@ -50,7 +50,7 @@ Search/read/image hard budgets, scope validation, canonical evidence provenance,
 - Reused the already isolated repair candidate `8075b67` onto base `803a30f` as `890a9b3`; no PRE worktree/runtime files changed.
 - Focused Evo/training/PRE/visual set: 109 tests PASS.
 - Existing hotline/visual/retrieval impact set after the two new regression tests: 382 tests PASS.
-- Training + PRE auxiliary: 19 tests PASS.
+- Training + PRE auxiliary after terminal-code-only replay selection test: 20 tests PASS.
 - `git diff --check`: PASS.
 - Frozen PRE snapshot at 70 records: 16 budget-exhausted terminals = 13 `policy_context_budget_exceeded` + 3 `policy_attempt_budget_exhausted`. These execution codes define the live repair regression set; answer/gold deltas are not inspected.
 - Live repaired-Qwen regression: PENDING until the frozen PRE releases the MLX resource.
