@@ -44,3 +44,10 @@
 - Evidence: 집중12·주변246·격리258·보충14·resolved full1765 PASS. complete-context 재검증·parent/bridge 동시 준비 P1 수리 확인. Canonical CSV UNREPAIRED·실패 이력·환경 구분 유지.
 - Decision: B3 제품 경계만 승인. 보고·로그올 후 exact changed9/참조2 및 공개 패키지 별도 대조. 부모 Controller/E2E와 품질 우승은 미완료.
 - Next: 통합 이후 남은 준비 문맥 소비의 별도 Design. refs: fivecircles/work/review/review-controller-first-parent-final-2026-09-08.md.
+
+## 2026-09-09 - HOTLINE.VISUAL.1 solo merge review
+- Scope: origin/feat/vlm-visual-retrieval88a9e62 -> feat/hotline-runtime c91f099, existing OCR/runtime, persisted search, local image QA.
+- Status: APPROVE_WITH_SCOPE_LIMITS / self-review in user-selected solo mode; no independent Critic.
+- Evidence:352 unique tests PASS, no failure/error/skip; both doc histories kept, target hotline/Evo source unchanged, synthetic preview desktop/mobile PASS.
+- Boundary: explicit visual API/CLI only, no automatic Evo tool/UI route, no real-model rerun or quality claim. Future scoped/budgeted visual-policy integration remains separate.
+- Review: fivecircles/work/review/review-hotline-vlm-integration-2026-09-09.md.

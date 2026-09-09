@@ -287,3 +287,14 @@
 - Date: 2026-09-09. User explicitly requested proceeding independently instead of invoking Coder/Critic.
 - This run uses `solo` relay-shot: current assistant designs, implements, tests and reviews. No external agents, Codex model calls, or claimed independent review. The former Coder-version blocker is historical, not active.
 - Qwen3.5-9B product contract and privacy/resource limits remain. Proceed with EVO35.1 and available EVO35.2 preflight; no automatic SFT/RL or shared-service changes.
+
+## D-027 - Merge VLM/OCR/retrieval into hotline
+
+- Date: 2026-09-09
+- Authority: latest explicit user request to bring the VLM branch's existing OCR/VLM/retrieval implementation into the hotline branch; solo mode retained.
+- Source: origin/feat/vlm-visual-retrieval at88a9e62; target feat/hotline-runtime atc91f099. Preserve all four source commits with a merge, not unrelated worktree changes.
+- Included: pinned local OCR runtime, KURE OCR/layout index persistence/search, verified crop input to Qwen3.5-9B VLM, structured inference/citation/uncertainty behavior, associated tests/docs.
+- Runtime boundary: imported visual search/answer remains explicitly selected through its own API/CLI. Existing hotline/Evo defaults, policy action vocabulary,120-second text episode budgets and known follow-up failures are not silently replaced. The visual child retains its own documented180-second bound and OS network isolation; it is not yet a tool inside a120-second policy episode.
+- Provenance: OCR/layout evidence and unreviewed visual inference remain separate. No automatic caption indexing, source-fact promotion, model installation, re-embedding, private-data copying or default UI switch.
+- Historical branch instructions in imported docs are preserved as history; D-025/D-026 and this integration decision govern the hotline checkout. Source branch/worktree and ongoing VM/other jobs are not modified.
+- Verification: same-candidate imported/related tests and hotline/Evo regression plus explicit CLI/coexistence smoke. No new real OCR/VLM quality or independent Critic claim. Details: work/2026-09-09-hotline-vlm-integration.md.

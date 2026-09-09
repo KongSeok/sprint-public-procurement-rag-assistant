@@ -522,3 +522,22 @@ Reference:
 ## 2026-09-09 - Live policy tests versus scripted backends
 - A passed scripted follow-up does not prove actual-model tool selection. Historical and current evidence IDs can confuse the policy even with explicit instructions.
 - Keep scope/JSON guards and failed trajectories; reject prompt-only candidates that fail the real target and restore only owned edits. refs: errorlogs/backend/2026-09-09-evo35-live-followup.md.
+
+### OCR vector search is not pixel understanding (2026-09-08)
+
+- OCR/layout text embedding can return the original verified crop without embedding pixels or invoking a VLM.
+- A two-chunk, one-occurrence smoke proves persistence/query/provenance wiring only, not corpus ranking quality or diagram relationship reasoning.
+- Confirm actual encoder device and successful inference; offline flags alone do not establish no-egress. Keep private inference inside an OS network-denied subprocess.
+- Local HTML browser URL-policy rejection is a validation boundary. Do not proxy or use another browser to bypass it; record static checks separately from unperformed browser checks.
+
+### VLM image input does not prove visual answer accuracy (2026-09-08)
+
+- Pixel tensors, valid JSON and exact citations prove wiring/provenance only; observed relation hallucinations remained after prompt changes.
+- Keep generation out of source truth. Withhold self-reported uncertain answers; narrow responses to the question and retain raw diagnostics privately.
+- Evaluate over-abstention separately: uncertainty about an unasked relationship must not be mistaken for unreadable labels.
+- Evidence: `errorlogs/backend/2026-09-08-visual-relation-uncertainty.md`. Actual labels and uncertainty handling were tested, not whole-corpus quality.
+
+## 2026-09-09 - Hotline visual merge discovery and runtime boundary
+- An external test script needs both source and repo root on PYTHONPATH; loader errors are not exercised product tests. Final unique discovery is recorded.
+- Branch integration does not automatically authorize a new policy tool: visual search scope and180-second VLM timeout differ from120-second Evo episodes.
+- Preserve source uncertainty/nonpromotion semantics and historical test/quality limits. refs: errorlogs/backend/2026-09-09-hotline-vlm-merge-runner.md.

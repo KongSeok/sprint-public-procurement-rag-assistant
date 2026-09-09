@@ -196,3 +196,27 @@ PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src "$MLX_PYTHON" -m midprojectrag.evo_harn
 
 계약: `fivecircles/architecture/specs/evo-harness-qwen35-contract.md`.
 검증·차단·재개 지점: `fivecircles/work/2026-09-09-evo35-solo-delivery.md`와 동명 HTML.
+
+## VLM / OCR / visual retrieval merged into hotline (2026-09-09, D-027)
+
+`feat/vlm-visual-retrieval`의 OCR 실행기, OCR/layout KURE 인덱스 저장·검색, 검색된 원본 PNG를 Qwen3.5-9B VLM에 넣는 답변 경로가 이 브랜치에 병합됐습니다. 기존 핫라인과 Evo 정책은 그대로 유지합니다.
+
+- OCR 준비: `scripts/run_visual_ocr_smoke.py` 및 `ingest.paddle_ocr_runtime` (기존 별도 OCR 환경 필요).
+- OCR 인덱스 생성·검색·이미지 답변: `python -m midprojectrag.indexing.visual_ocr_index build|search|answer`.
+- VLM: 검증된 top-1 PNG를 `mlx-community/Qwen3.5-9B-4bit`에 전달합니다. 인용은 앱이 붙이고 불확실한 해석은 기권합니다.
+
+아래는 기존 로컬 환경·인덱스를 지정하는 실행 예시이며, 병합 중 실제 모델을 재실행했다는 뜻은 아닙니다. `RAG_PYTHON`은 기존 KURE 환경 Python, `MLX_PYTHON`은 기존 MLX-VLM 환경 Python입니다. private/model/cache 경로는 실제로 준비된 경로를 명시합니다. Mac private 추론에는 원래 계약의 OS 네트워크 차단을 유지합니다.
+
+```bash
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src /usr/bin/sandbox-exec \
+  -p '(version 1) (allow default) (deny network*)' \
+  "$RAG_PYTHON" -m midprojectrag.indexing.visual_ocr_index answer \
+  --private-root "$VISUAL_PRIVATE_ROOT" --index-dir "$OCR_INDEX_DIR" \
+  --crop-root "$CROP_ROOT" --hf-cache "$HF_CACHE" --device mps \
+  --query "$QUESTION" --result-dir "$NEW_PRIVATE_OUTPUT" \
+  --vlm-python "$MLX_PYTHON" --vlm-model "$VLM_MODEL_DIR" --vlm-manifest "$VLM_MANIFEST"
+```
+
+기존 인덱스를 사용할 때 OCR/임베딩을 다시 만들 필요는 없습니다. 원본·crop·모델·벡터는 Git에서 제외하며 병합 과정에서 복사하지 않습니다. 이 명시적 시각 경로는 아직 Evo의 자동 도구 선택이나 기본 Streamlit 검색에 연결하지 않았습니다. VLM 결과는 `visual_inference`, `human_review_required=true`, `factual_evidence_promoted=false`로 유지합니다. 시각 작업을 정책에 붙일 때는 문서 범위와120초 예산을 별도로 전달해야 합니다.
+
+검증: 병합 후보352개 영향 테스트 통과, 같은 프로세스의 시각/텍스트 동시 사용과4개 CLI 및 합성 HTML 미리보기 확인. 실제 RFP·OCR/VLM 정확도를 새로 측정한 결과는 아닙니다. 상세: `fivecircles/work/2026-09-09-hotline-vlm-integration.md`; 시각 계약: `fivecircles/architecture/specs/visual-ocr-index.md`.

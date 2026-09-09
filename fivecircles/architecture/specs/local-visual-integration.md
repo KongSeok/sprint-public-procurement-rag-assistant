@@ -1,0 +1,47 @@
+# Local-first visual integration / LLM adapter contract
+
+## 1. Goal — 2026-09-03 superseding decision
+
+사용자 승인: **그림/OCR 작업은 로컬 설계에만 통합한다. API 브랜치 전체는 병합하지 않는다.**
+파서·청크·KURE 임베딩·로컬 인덱스·검색을 유지하고 답변 생성 LLM만 로컬/API로 교체한다.
+LLM 교체는 재임베딩 사유가 아니다. 기존 visual 계약의 API-first 순서를 이 결정으로 대체한다.
+
+## 2. Scope and Git contract
+
+- 공통 시작점 `7ad229f8c85fb48ebb1c53f4424db4a224b562a7`에 검증한 OCR/safety 파일만 선택 커밋한다.
+- local tip `6e5da2284b67f7ad648a3e8e18a12fbe1a6dccef`을 `integration/local-visual`에 병합한다.
+- sibling worktree `MidProjectRAG-local-visual`을 사용한다. 원본 dirty checkout/다른 worktree는 보존한다.
+- API tip `33f8c2f`, harness tip `46275c4`, 타 작업자의 미커밋 UI/catalog/table 변경은 제외한다.
+- main/push, 실물 전체 OCR/재임베딩, 유료 API 실행, 자동 visual 활성화, VLM 구현은 범위 밖이다.
+- resources 전체·.env·모델·venv는 복사/커밋하지 않는다. 운영본 TODO/계약에 작업 위치와 결과를 남긴다.
+
+## 3. Runtime contracts
+
+- 기존 `load_mac_pipeline`과 동결 Mini131 설정/평가 증거는 보존한다.
+- 새 application composition은 동일 검증된 local retrieval components를 재사용한다.
+- 생성 provider는 `ollama`(기본), `vllm`, `openai`; provider별 기존 allowlist·토큰상한을 유지한다.
+- OpenAI는 `gpt-5-nano`/`gpt-5-mini`만, 기존 생성 adapter를 재사용한다.
+- OpenAI에는 명시적 client, 모델에 맞는 token counter, budget, 매 요청 실제 prompt 승인 guard가 필요하다.
+- 키 존재만으로 승인하지 않는다. 미승인 호출과 실패 후 provider 자동 우회는 금지한다.
+- 공통 `generate(prompt) -> (answer_plan, input_tokens, output_tokens)`와 인용/기권 검사를 따른다.
+- application stack ID를 동결 `mac_local_equivalent`/`gcp_local` 평가 ID와 구분한다.
+- OCR은 로컬 KURE 별도 인덱스 우선. page index는 보존하고 모델/revision/차원/청킹 식별자를 고정한다.
+- OCR chunk는 현재 offline 산출물이며 R2–R5 gate 전 검색·답변에 자동 투입하지 않는다.
+- D-020 private OCR/crop 외부전송 제한을 유지한다. LLM 교체 기능과 실제 전송 승인은 별개다.
+
+## 4. Batches / acceptance and tests
+
+1. 선택 통합: OCR wrapper/9파일 검증/캐시/resources 제외를 local branch와 통합한다.
+2. LLM composition: retrieval loading 공유, 생성 설정만 교체, frozen loader 동작 보존.
+3. 실제 pipeline + provider stub으로 동일 검색순위·인용·캐시 재사용과 미승인 API 차단을 검증한다.
+4. 전체 unittest·safety·diff 검사, target/current 흐름 보고서 렌더와 logall로 마감한다.
+
+## 5. Follow-up / known gaps
+
+- GOLDEN-E2E-OCR: OCR→로컬 임베딩→검색→생성/인용→UI 골든·자원·비그림 회귀 검증은 후속이다.
+- occurrence dedup/relevance admission, caption 배제, opt-in UI, object-aware gold 이후 활성화한다.
+- GCP vLLM/FAISS 실물 재현, API 생성 교체 성능, VLM 해석은 fixture 검증으로 대체하지 않는다.
+
+## 6. Validation
+
+PLANNED. 실제 검증 결과를 후속 기록한다.

@@ -2,6 +2,30 @@
 
 This file summarizes recent updates so other agents can continue without re‑discovering changes.
 
+## Addendum (2026-09-08) — 검색 그림의 로컬 VLM 답변 연결
+
+### Backend
+- `visual_ocr_index answer`가 top-1 PNG를 Qwen3.5-9B-4bit MLX에 전달하고 인용·해석·기권을 별도 저장한다.
+- 원문/모델 SHA, GPU/pixel/token 검증과 OS network sandbox를 적용했다. 기존 앱과 부모 평가 코드는 그대로다.
+### Tests
+- 회귀 39개 PASS. 실제 4회에서 라벨 읽기 응답·기권 확인. 마지막 VLM 7.537초, pixel 입력 확인.
+- 관계 오독은 품질 미통과다. 오류/보류 정책: `fivecircles/test/errorlogs/backend/2026-09-08-visual-relation-uncertainty.md`.
+### Delivery
+- 실제 이미지·질의·raw/answer/HTML은 resources/private에만 보관한다. 전체 corpus/Streamlit 전환은 하지 않았다.
+- 계약·실행 안내와 목표/현재 도형은 `fivecircles/architecture/specs/visual-ocr-index.md` 및 기존 흐름 보고에 갱신했다.
+
+## Addendum (2026-09-08) — OCR 그림 샘플 벡터 저장·검색
+
+- 별도 VLM worktree에서 opt-in `visual_ocr_index` CLI를 추가했다. 기존 visual schema/index와 고정 KURE provider를 재사용하고 OCR/layout만 허용한다.
+- 모델 identity·입력/저장 파일 SHA·PNG provenance·private 경로·덮어쓰기 금지를 검증한다. 동일 occurrence 결과는 하나로 묶는다.
+- 합성 12 + 기존 fusion/HF 12 = 24 테스트 PASS. 실제 KURE MPS 2×1024 벡터 저장 및 fresh-process 검색으로 그림 1개 반환.
+- 모델 로딩 4.668초, 2청크 임베딩 0.812초, query 검색 0.454초. 샘플 연결 검증이며 골든셋 성능 주장이 아니다.
+- 원본 입력 hash 유지, 데이터/벡터/HTML 결과는 resources/private에만 저장. Qwen 평가·기존 앱·원래 작업 트리 코드는 수정하지 않았다.
+- 브라우저 file URL 검수는 정책 차단으로 중단했다. 우회/DOM PASS/screenshot 증거를 만들지 않았다.
+- 정적 산출물 QA PASS: 벡터 shape/norm, 원본 SHA, query occurrence, HTML PNG, 흐름 PNG 2개. 저장소 safety 581파일 PASS, 실제 private 인덱스/미리보기 ignore 확인.
+- 계약과 공개 흐름 보고: `fivecircles/architecture/specs/visual-ocr-index.md`, `visual-ocr-flow-validation.html`.
+- 구현 커밋 `a93af22`를 `feat/vlm-visual-retrieval`에 fast-forward push하고 원격 SHA 일치를 확인했다. 본 항목은 푸시 확인 후 추가한 종료 기록이다.
+
 ## Addendum (2026-08-24) - Batch 0 foundation
 
 ### Governance
@@ -1146,3 +1170,11 @@ This file summarizes recent updates so other agents can continue without re‑di
 - Restored212 regression PASS/skip0. Five live episodes: policy10/answer2; no training, model download or service changes.
 ### Relay
 - Solo; next=follow-up policy REPLAN, not artifact access. Publish factual evidence only; no implementation-complete claim.
+
+## Addendum (2026-09-09) - Hotline VLM/OCR branch integration
+### Backend
+- Source88a9e62 OCR/runtime, persisted KURE visual search and local Qwen image QA merged; existing hotline/Evo unchanged.
+- TODO/learn histories preserved; explicit visual CLI remains separate from automatic policy/UI routing.
+### Tests
+- Final352 unique tests PASS, skip0; coexistence/4CLI and synthetic browser desktop/mobile PASS. No real inference.
+- Details: 2026-09-09-hotline-vlm-integration.md; initial runner-path failure retained and corrected.

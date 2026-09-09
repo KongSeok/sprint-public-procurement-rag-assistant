@@ -1,5 +1,15 @@
 # MidProjectRAG Task List
 
+## Active integration - HOTLINE.VISUAL.1 (2026-09-09)
+
+Latest user request: merge the existing VLM/OCR/retrieval branch into hotline. Source88a9e62, targetc91f099; source history is preserved by an actual merge. The imported older LOCAL-VISUAL queue below is historical, not a new instruction to switch branches or restore Controller.
+
+- [x] **HOTLINE.VISUAL.1** Source88a9e62 merged into hotline; OCR/runtime, persisted search and local image QA retained. Both docs histories preserved; hotline/Evo source and known follow-up REPLAN unchanged.
+- [x] **HOTLINE.VISUAL.1.QA** Final352 unique tests PASS, errors/failures/skips0; includes212 baseline tests plus visual/coexistence. Four CLI entrypoints and synthetic desktop/mobile preview PASS. No new real-model/quality run.
+- [ ] **HOTLINE.VISUAL.2** Separate future contract: allow the Evo policy to select visual tools with hard scope and total-budget propagation. Importing a branch is not automatic policy/UI routing.
+
+Report: `../work/2026-09-09-hotline-vlm-integration.md`. No raw OCR/crops/vectors/models are copied or tracked. No new real inference is claimed by the merge.
+
 ## Active queue - EVO35 (2026-09-09, D-026)
 
 The user approved the EvoHarness-on-hotline plan with Qwen3.5-9B. This section owns the next serving steps; HOTLINE.3/4 below retain their history and are refined here, not duplicated implementation credit.
@@ -451,6 +461,18 @@ runtime은 local profile 기본·LLM provider 교체형으로 유지하며 새 �
 - [ ] **EH-D.4** logall/TODO/원장을 실제 결과로 동기화한다. 실패/수리 근거는 별도 error log로 연결한다.
 - [ ] **EH-D.5** 이번 변경만 선택 stage/commit/push한다. 현재 브랜치 유지, 무관한 dirty·resources 제외, force 금지.
 - [ ] **EH-D.6** 13항목 최종 보고와 relay 판단을 기록한다. 전체 완료 전 전체 완료/성능 개선을 주장하지 않음.
+
+## 2026-09-03 — LOCAL-VISUAL: 로컬만 통합 / LLM 교체형
+
+계약: `specs/local-visual-integration.md`. API+local 동시 병합/API-first OCR 계획을 대체한다.
+
+- [x] 로컬 파서·KURE·검색 유지, 생성 LLM만 local/API 교체로 확정. API branch 전체 병합은 제외한다.
+- [ ] 최신 local tip과 검증한 OCR/safety 변경만 `integration/local-visual`에 통합한다.
+- [ ] 공통 Generator composition과 동일 검색/인용·미승인 API 차단 회귀를 구현한다.
+- [ ] 전체 unittest·safety·흐름 보고서 검증 및 logall로 마감한다.
+- [ ] GOLDEN-E2E-OCR: 로컬 OCR 임베딩/검색/생성/인용/UI 전체 품질·자원·비그림 회귀를 후속 검증한다.
+
+resources 전체 Git 제외. 원본 dirty checkout/API/main/harness 변경·외부 API 실행은 범위 밖이다.
 
 ## 실행 원칙
 
@@ -933,3 +955,18 @@ HWP blank-crop incident: `fivecircles/test/errorlogs/backend/2026-08-31-visual-c
 - [x] **EVO35.2.COMPARE** Real Qwen3.5 comparison: correct two-source response, 11.085s total, policy4/answer1. Scoped synthetic proof only.
 - [x] **EVO35.2.FIXED** Same-model fixed reference: same answer, 5.918s total, policy0/answer1. Single-run reference, not a latency distribution.
 - [ ] **EVO35.2.FOLLOWUP** [REPLAN] Reliable episode-local tool use after explicit history. Preserve all three failed runs; do not launch another blind prompt retry or call training complete.
+
+## OCR 그림 샘플 임베딩 — 2026-09-08
+
+- [x] 별도 visual index build/reload/search와 crop provenance 검증 구현.
+- [x] 합성·기존 회귀 24개 PASS, KURE MPS 2청크 임베딩 및 새 프로세스 검색 1그림 반환.
+- [x] private JSON/HTML 미리보기 생성. 브라우저 자동 검수는 URL 정책 차단, 사용자 화면 확인은 별도.
+- [x] 리소스 제외·로그올 후 feat/vlm-visual-retrieval에 관련 파일만 커밋·푸시. 구현 a93af22, 원격 SHA 일치 확인.
+- 계약: `fivecircles/architecture/specs/visual-ocr-index.md`. Qwen 평가/기존 앱 전환 없음.
+
+### 후속: 검색 그림 → 로컬 VLM 답변
+
+- [x] top-1 crop 검증 → MLX 이미지 tensor → 구조화 답변/앱 인용/불확실성 기권 연결.
+- [x] 실제 Qwen3.5-9B-4bit 이미지 QA 4회. 라벨 읽기 응답·불확실성 기권 확인, 계약·검색 회귀 39개 PASS.
+- [x] private 보존·흐름 보고·로그 업데이트. 전체 corpus/Streamlit/사전 caption 인덱싱은 별도 범위.
+- [ ] 후속 별도 검수: 도식 관계 오독과 질문 범위 밖 불확실성의 과기권 평가. 기본 앱 전환·전체 품질 통과로 해석하지 않는다.

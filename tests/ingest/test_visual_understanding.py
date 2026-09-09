@@ -456,11 +456,15 @@ else:
             "network_sandbox_command": sandbox_command,
             "network_sandbox_command_sha256": sha256_file(sandbox_command),
         }
+        dependency = self.private_root / "wrapper-dependency.py"
+        dependency.write_text("# synthetic pinned dependency\n", encoding="utf-8")
+        dependency_bytes = dependency.read_bytes()
         adapter = PinnedLocalJsonCommandAdapter(
             command=command,
             command_sha256=command_hash,
             model_artifact=manifest,
             model_artifact_sha256=model_hash,
+            pinned_files={dependency: sha256_file(dependency)},
             **sandbox_options,
             timeout_seconds=1.0,
             max_stdout_bytes=256,
@@ -479,6 +483,11 @@ else:
         self.assertEqual(adapter.identity["network"], "os_sandbox_enforced")
         self.assertNotIn(str(command), canonical_json(adapter.identity))
         self.assertNotIn(str(manifest), canonical_json(adapter.identity))
+
+        dependency.write_text("# tampered dependency\n", encoding="utf-8")
+        with self.assertRaisesRegex(VisualUnderstandingError, "local_adapter_dependency_checksum_mismatch"):
+            adapter.infer("ok", {})
+        dependency.write_bytes(dependency_bytes)
 
         command.write_text(command.read_text() + "\n# tampered\n", encoding="utf-8")
         command.chmod(0o700)

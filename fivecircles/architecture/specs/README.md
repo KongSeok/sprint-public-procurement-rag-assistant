@@ -94,3 +94,8 @@ Do not duplicate or reinterpret that order in specification files.
 - Use scoring only when the active workflow asks for it.
 - Record scoring under `fivecircles/scoring/` when applicable.
 - Optimize for correct, verified, logged work with the fewest avoidable retries.
+
+## Hotline visual integration (D-027)
+- `visual-ocr-index.md`: imported persisted OCR/layout search and local image QA; explicit opt-in APIs, not automatic Evo routing.
+- `local-visual-integration.md`, `visual-retrieval-feature-contract.md`: source design/history retained; current branch authority is D-025/D-026/D-027.
+- Current evidence: `../../work/2026-09-09-hotline-vlm-integration.md`.

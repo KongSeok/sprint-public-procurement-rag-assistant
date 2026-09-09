@@ -1,0 +1,14 @@
+flowchart LR
+  A["기존 OCR/layout 2청크"]:::amber --> B["출처 hash 검증"]:::green
+  B --> C["KURE mps:0 / 2 x 1024"]:::green --> D["신규 private index"]:::amber
+  Q["새 프로세스 질문 임베딩"]:::green --> E["reload / cosine 검색"]:::green
+  D --> E --> F["중복 병합 → 그림 1개"]:::green
+  F --> J["PNG hash 재검증 / Qwen3.5 MLX"]:::green
+  J --> K["픽셀 tensor → 구조화 해석"]:::green --> L["불확실성 있으면 자동 기권"]:::gray
+  L --> G["인용 + JSON / HTML"]:::green --> H["브라우저 자동 검수 차단"]:::red
+  K -. "품질 게이트 별도" .-> M["관계 오독 관찰 / 사람 검수 필요"]:::red
+  E -. "이번 범위 제외" .-> I["Streamlit 기본 앱 / 픽셀 검색 인덱스"]:::red
+  classDef green fill:#e8f2ea,stroke:#bdd1c2,color:#1f2933,stroke-width:1.5px
+  classDef amber fill:#fff4dc,stroke:#e7c88f,color:#1f2933,stroke-width:1.5px
+  classDef red fill:#fde9e6,stroke:#e8bab5,color:#1f2933,stroke-width:1.5px
+  classDef gray fill:#eef1ed,stroke:#d8e0da,color:#1f2933,stroke-width:1.5px

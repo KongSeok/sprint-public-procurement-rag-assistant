@@ -229,3 +229,10 @@
 - Original comparison and fixed-reference answers matched both synthetic documents; three Korean follow-up variants failed safely. Actual policy10/answer2 calls; no private corpus inference or training.
 - Two generic prompt/observation repair candidates passed local tests but did not solve live behavior. Rejected edits and tests archived, product sources restored exactly,212 regression tests passed.
 - Updated target/current evidence, queue and errors; overall GAP/PARTIAL. Next follow-up requires REPLAN, later SFT requires frozen data/environment/resource scope. No external agents or background jobs.
+
+## 2026-09-09 - HOTLINE.VISUAL.1 merge closeout
+- User requested the existing VLM/OCR/search branch be combined with hotline; solo execution, no delegation.
+- Four source commits from88a9e62 merged;31 incoming paths. Both documentation histories retained, target core source unchanged.
+- Final352 unique impact tests PASS, same-process visual/text and4CLI smoke, new synthetic HTML browser checks. No OCR/VLM live rerun or private asset copy.
+- Source VLM branch/worktree preserved; future scope/deadline-aware visual policy routing and known follow-up failure are not silently marked complete.
+- Publication acknowledgement and exact merge parents are saved after Git operations. Report: 2026-09-09-hotline-vlm-integration.md.
