@@ -12,6 +12,7 @@ import json
 import os
 from pathlib import Path
 import sys
+import time
 
 
 def _emit(value: dict) -> None:
@@ -57,6 +58,21 @@ def main(argv=None) -> int:
             if op == "shutdown":
                 _emit({"id": request_id, "ok": True, "op": "shutdown"})
                 return 0
+            if op == "inspect_image":
+                request = row.get("request")
+                timeout = row.get("timeout")
+                if type(request) is not dict or type(timeout) not in (int, float) or timeout <= 0:
+                    raise ValueError("worker_visual_args_invalid")
+                deadline = time.monotonic() + float(timeout)
+                def remaining():
+                    value = deadline - time.monotonic()
+                    if value <= 0:
+                        raise TimeoutError("visual_deadline")
+                    return value
+                with redirect_stdout(sys.stderr):
+                    result = backend.inspect_image(request, remaining=remaining)
+                _emit({"id": request_id, "ok": True, "visual": result})
+                continue
             messages = row.get("messages")
             if type(messages) is not list:
                 raise ValueError("worker_messages_invalid")

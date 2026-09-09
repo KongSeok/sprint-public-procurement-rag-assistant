@@ -28,6 +28,7 @@ class WorkerProxyTests(unittest.TestCase):
                 row=json.loads(line); rid=row["id"]
                 if row["op"]=="shutdown": print(json.dumps({{"id":rid,"ok":True}}),flush=True); break
                 if row["op"]=="count": print(json.dumps({{"id":rid,"ok":True,"count":7}}),flush=True); continue
+                if row["op"]=="inspect_image": print(json.dumps({{"id":rid,"ok":True,"visual":{{"raw_text":"{{}}","runtime":{{"actual_prompt_tokens":3,"output_tokens":2}}}}}}),flush=True); continue
                 if row["op"]=="complete":
                     {"time.sleep(2)" if slow else "pass"}
                     value={{"text":"{{\\\"tool\\\":\\\"finish\\\",\\\"arguments\\\":{{\\\"status\\\":\\\"abstained\\\",\\\"evidence_ids\\\":[],\\\"unresolved\\\":[]}}}}","input_tokens":7,"output_tokens":5,"finish_reason":"stop"}}
@@ -42,6 +43,8 @@ class WorkerProxyTests(unittest.TestCase):
                 self.assertEqual(backend.count_messages([{'role':'user','content':'x'}]),7)
                 value=backend.complete([{'role':'user','content':'x'}],max_tokens=16,timeout=2,json_schema={'type':'object'})
                 self.assertEqual(value.input_tokens,7); self.assertEqual(value.output_tokens,5)
+                visual=backend.inspect_image({"query":"q"},remaining=lambda:2.0)
+                self.assertEqual(visual["runtime"]["output_tokens"],2)
                 self.assertTrue(backend.identity.synthetic)
             self.assertIsNotNone(backend.process.poll())
 
