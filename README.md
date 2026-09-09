@@ -288,5 +288,11 @@ git diff --staged
 - [x] Golden Set 구축 (`feat/rag-pipeline-and-eval`, 공식 111건 + golden-set-v3-share 공유 lane 연동)
 - [x] 검색 및 생성 성능 개선 실험 (`feat/rag-pipeline-and-eval`, Parent-Child·임베딩 A/B·리랭커·
       가중치 튜닝·프롬프트 개선 — 상세는 `docs/rag-pipeline-and-eval-summary.md`)
+- [x] 서빙 화면 프로토타입 구현 (`feat/rag-pipeline-and-eval`, `scripts/step24_prefilled_qa_prototype.py`
+      + `scripts/step26_streamlit_serving_prototype.py` + `scripts/step27_quick_answer_llm_polish.py` —
+      Streamlit 채팅형 UI. 문서 선택 후 자주 묻는 질문 버튼 패널(예산/일정/신청서식/하도급/평가배점
+      등 11종), 정규식 후보 + parent chunk 확장 LLM 요약(🤖 AI 요약, 선택적 호출), 문서 스코프
+      RAG 자유 질문 채팅(기존 `src/retrieval/indexing.py`의 HybridIndex 재사용)까지 구현. `.env`로
+      `OPENAI_API_KEY` 로드 지원)
 - [ ] API 모델과 GCP 로컬 모델 비교 (시나리오 A는 아직 미착수)
 - [ ] 데모 및 최종 보고서 완성

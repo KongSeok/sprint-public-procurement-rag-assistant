@@ -32,3 +32,9 @@ scikit-learn
 
 # Generation baseline (step6) - gpt-5-mini 호출용
 openai
+
+# 서빙 화면 (step26) - 스트림릿 프로토타입
+streamlit
+
+# .env 파일에서 OPENAI_API_KEY를 자동으로 읽어오기 위함 (step26)
+python-dotenv
