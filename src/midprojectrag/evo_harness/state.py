@@ -300,7 +300,7 @@ def action_schema(episode: "Episode", budget: Budgets) -> dict:
             "evidence_id": {"type": "string", "enum": visual_candidates},
             "question": {"type": "string", "minLength": 1, "maxLength": 2000},
         })))
-    if "track" in tools:
+    if "track" in tools and episode.track_available:
         targets = sorted({"world", *allowed_docs, *episode.goals})
         options.append(_schema_action("track", _schema_object({
             "target": {"type": "string", "enum": targets},
@@ -380,6 +380,7 @@ class Episode:
     trajectory: list[dict] = field(default_factory=list)
     duplicate_search_cooldown: tuple | None = None
     recall_available: bool = False
+    track_available: bool = True
 
     def reference(self, value: str, *, read: bool = False) -> str:
         if read:

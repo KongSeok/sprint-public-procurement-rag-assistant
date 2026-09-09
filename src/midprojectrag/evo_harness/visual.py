@@ -106,11 +106,13 @@ class VisualHotlineTools(HotlineTools):
             result = self.visual_search(episode, action["arguments"], budget, remaining)
             if not result.get("duplicate", False):
                 episode.duplicate_search_cooldown = None
+                episode.track_available = True
             return result
         if action["tool"] == "inspect_image":
             result = self.inspect_image(episode, action["arguments"], budget, remaining)
             if not result.get("duplicate", False):
                 episode.duplicate_search_cooldown = None
+                episode.track_available = True
             return result
         return super().dispatch(episode, action, budget, remaining, experience)
 

@@ -233,6 +233,19 @@ class EvoToolsTests(unittest.TestCase):
         self.assertIn('"const":"search"',json.dumps(action_schema(self.ep,self.b),separators=(",",":")))
         self.assertTrue(self.do(search())["duplicate"])
 
+    def test_track_schema_requires_material_state_advance(self):
+        schema=json.dumps(action_schema(self.ep,self.b),separators=(",",":"))
+        self.assertIn('"const":"track"',schema)
+        self.do(action("track",target="world"))
+        schema=json.dumps(action_schema(self.ep,self.b),separators=(",",":"))
+        self.assertNotIn('"const":"track"',schema)
+        self.do(search())
+        schema=json.dumps(action_schema(self.ep,self.b),separators=(",",":"))
+        self.assertIn('"const":"track"',schema)
+        self.do(action("track",target="world"));self.do(read("e1"))
+        schema=json.dumps(action_schema(self.ep,self.b),separators=(",",":"))
+        self.assertIn('"const":"track"',schema)
+
     def test_recall_schema_requires_reviewed_experience(self):
         schema=json.dumps(action_schema(self.ep,self.b),separators=(",",":"))
         self.assertNotIn('"const":"recall"',schema)
