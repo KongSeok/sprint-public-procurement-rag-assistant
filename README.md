@@ -3,6 +3,27 @@
 기업·정부 제안요청서(RFP) 100건을 대상으로 근거 인용형 RAG 시스템을 만들고,
 OpenAI API 기반 스택과 GCP L4 기반 로컬 Hugging Face 스택을 동일한 평가 계약으로 비교하는 3주 팀 프로젝트입니다.
 
+
+## 핫라인 중심 실행 (2026-09-09, D-025)
+
+신규 로컬 실행은 **핫라인만** 사용합니다. 고정 순서는 질문·문서 범위 → Dense → Lexical → RRF → Parent → 생성 → 답변·인용 검사입니다.
+Controller decision/ledger/retained-transition 반복 검증은 이 경로에 없습니다. 공유 공개 API의 근거·범위·아티팩트 검사와 개인정보·시간 제한은 유지합니다.
+
+```bash
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python -m midprojectrag.hotline \
+  --data-dir resources/data_refined \
+  --request resources/data_refined/private/requests/question.json \
+  --output-dir resources/data_refined/private/outputs/local/hotline/run-001 \
+  --timeout-seconds 120
+```
+
+위 명령은 사용 예시입니다. 요청 JSON은 먼저 준비하고 출력 폴더는 새 이름을 사용합니다. 기존 compat/dense/lexical 아티팩트만 로드하며 자동 재색인·다운로드는 하지 않습니다.
+`python scripts/run_hotline.py`도 같은 인수를 받습니다. 패키지 설치 시 `midprojectrag-hotline` 명령이 등록됩니다. 기존 `run_controller_quick_qa.py`는 호환 진입점이며 `--path controller`는 거절됩니다.
+
+현재 승격 범위는 **Mac MPS + 기존 Ollama 모델의 fact 질문·단일 parent 문맥**입니다. 다중 근거/비교/후속 질문·상주 서버·Streamlit 연결·GCP 모델 이관은 별도 작업입니다.
+기존 Streamlit 기준선·VM 평가·골든셋은 이 변경으로 전환하지 않습니다. 명목 전체 worker 제한은 120초이고 프로세스 회수·결과 기록 시간은 별도입니다. 실제 모델의 속도·정답 품질 개선은 아직 재측정하지 않았습니다.
+상세: `fivecircles/architecture/specs/hotline-runtime.md`.
+
 ## 핵심 사용자 시나리오
 
 1. 단일 RFP에서 요구사항과 주요 정보를 정확히 추출한다.

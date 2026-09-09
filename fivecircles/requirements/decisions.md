@@ -257,3 +257,14 @@
   claim만 factual evidence다. 외부 parser/search API와 private egress는 계속 금지한다.
 - Activation: public code/schema/fixture gate와 private human/model/5→94 실행 gate를 분리한다.
   private gate가 끝나기 전 기본 Streamlit/runtime을 전환하지 않는다.
+
+## D-025 - Hotline-first runtime; Controller expansion retired
+
+- Date: 2026-09-09
+- Status: USER_APPROVED_IMPLEMENTATION_DIRECTION
+- Approval: The user requested using only hotline and dropping unnecessary integrity machinery.
+- Chosen: New local serving work uses the fixed hotline pipeline: plan/scope -> dense -> lexical -> RRF -> parent context -> generation -> response/citations. Controller decisions, ledger, retained-transition traversal and E1 completion are not serving prerequisites.
+- Retained: Existing public retrieval/artifact checks, explicit scope, source and citation checks, request/evaluator separation, private outputs, timeout/call budgets and provider permissions. No validation function is stubbed or globally disabled.
+- Supersedes: The requirement to finish EH2.6 Controller/E1 or LATENCY.FIX before building this local serving path. Historical Controller code, tests, logs, baseline artifacts and Mini131 runs remain preserved, not relabelled as completed.
+- Boundary: Hotline promotion is a user-selected architecture direction, not a measured quality winner. Reproducible comparisons, separate semantic-quality judging and immutable prior runs remain required. No claim of EvoHarness-RL training.
+- Delivery: HOTLINE.2 promotes the existing fact-only/single-context path and closes its Controller CLI option. Compare, follow-up, richer context and UI integration remain separately tested increments; existing baseline/UI/VM jobs are not silently switched.

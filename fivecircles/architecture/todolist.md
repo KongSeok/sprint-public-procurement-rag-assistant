@@ -1,5 +1,17 @@
 # MidProjectRAG Task List
 
+## Active queue - HOTLINE.2 (2026-09-09, D-025)
+
+This queue takes precedence over the historical queues below for new local serving work.
+Controller/E1, PERF-CONTROLLER, LATENCY.FIX and Controller QUICKQA continuation are RETIRED_FROM_SERVING_QUEUE, not completed. Existing branch/VM runs are untouched.
+
+- [x] **HOTLINE.2.a** User decision and bounded migration contract recorded; existing dirty changes preserved.
+- [x] **HOTLINE.2.b** Promote fixed public pipeline to reusable `midprojectrag.hotline`; hotline-only CLI and legacy-launcher compatibility.
+- [x] **HOTLINE.2.c** Focused30 + related64 PASS (94 total, no skips); synthetic CLI/owned-worker timeout smoke passed. Real-model/UI/full-suite/independent review not run. Publication candidate rechecked separately: 147 PASS; existing SHA-256 pattern false positives classified (raw scanner remains exit1). See migration report.
+- [x] **HOTLINE.2.BRANCH** Separate `feat/hotline-runtime` worktree and selective publication candidate prepared under explicit user push authorization; integration checkout preserved.
+- [ ] **HOTLINE.3** Add and measure multi-evidence packing and compare/follow-up support on the fixed pipeline; do not claim fact-only coverage is full FR coverage.
+- [ ] **HOTLINE.4** Connect the application/UI facade and validate real local answers/latency within an approved run budget. Existing Streamlit baseline stays unchanged until wired and tested.
+
 - [x] **TEST-ENV-20260906** 프로젝트 `.venv` 의존성 동기화·pip check 및 ML lock32 일치. 기존 실패 영역153/153·전체1498/1498 PASS(오류/실패/skip0). 실행 명령·오류 기록 정정.
 
 ## 현재 실행 큐 — 검색 비교 우선 (2026-09-05 승인)

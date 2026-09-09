@@ -506,3 +506,10 @@ Reference:
 - runpy로 unguarded runner를 __main__에 넣으면 multiprocessing spawn이 전체 검사를 다시 시작할 수 있다. 실제 PDF worker 사전 검사와 raw 시작/완료 이벤트 각1회, unique discovery·최종 native count를 함께 확인한다. refs: errorlogs/backend/2026-09-08-b3-full-launcher-spawn.md.
 - 설치된 패키지와 활성 PYTHONPATH, .pth 파일과 실제 sys.path를 구분한다. full-only add-on과 source-only 환경을 합쳐 같은 환경이라 하지 않는다. 누락·중단된 원시 결과는 보존한다. refs: errorlogs/backend/2026-09-08-b3-full-addon-path.md.
 - 보고서 브라우저 경로 누락은 제품 회귀가 아니다. 기존 지원 실행 파일을 명시한 같은 오프라인 검사로 확인하며, 패키지 설치나 assertion 완화로 우회하지 않는다. refs: errorlogs/frontend/2026-09-08-b3-report-browser.md.
+
+## 2026-09-09 - Hotline migration boundaries
+
+- A missing new module is expected TDD RED, not an environment dependency issue. refs: errorlogs/backend/2026-09-09-hotline-migration-red.md.
+- Runtime retirement is not historical task completion: remove the Controller CLI path and retain incomplete records. Scope/citation/privacy checks remain.
+- Report focused PASS and repository publication safety separately. Existing pattern hits must not be hidden by rewriting evidence. refs: errorlogs/backend/2026-09-09-hotline-publication-safety.md.
+- Connector execute_command has a 4000-character limit. Stage longer scripts using write_file, then invoke a short path command; rejected schema calls have no side effects.

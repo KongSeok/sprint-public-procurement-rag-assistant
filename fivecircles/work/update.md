@@ -1101,3 +1101,22 @@ This file summarizes recent updates so other agents can continue without re‑di
 - Chrome 보고 검사 PASS. refs: review/review-controller-first-parent-final-2026-09-08.md.
 ### Handoff
 - 보고/로그올 완료, 선택 공개·통합 대조 중. 이후 남은 context Design. refs: 2026-09-07-controller-first-parent-relay.md.
+
+## Addendum (2026-09-09) - HOTLINE.2 runtime promotion
+### Backend
+- D-025: hotline-only module/CLI; Controller route retired, public scope/citation/privacy checks retained.
+- Compatibility launcher and owned-worker timeout; old Controller/core/baseline/VM work preserved.
+### Tests
+- Focused30 + shared64 PASS; synthetic CLI and Controller-call0 check. Real model/UI/full-suite not run.
+- Details: `2026-09-09-hotline-runtime-migration.md`. No commit/push or quality/speedup claim.
+
+### Publication checks
+- Scoped diff/AST PASS; repository safety FAIL on existing collaboration JSON patterns, new files0. No publication.
+
+## Addendum (2026-09-09) - Hotline feature branch publication candidate
+### Backend
+- Isolated `feat/hotline-runtime` from fc03a4e; only hotline files and migration records selected.
+### Tests
+- Exact checkout: focused30/shared82/fusion35 PASS, nine import checks and CLI help PASS; no real model or full-suite claim.
+### Publication
+- Existing phone-pattern hits classified as SHA-256 substrings; scanner/evidence unchanged. Detail: hotline-runtime-migration report.

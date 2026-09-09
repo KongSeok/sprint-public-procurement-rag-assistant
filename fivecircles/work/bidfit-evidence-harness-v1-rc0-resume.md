@@ -1,3 +1,5 @@
+> 2026-09-09 / D-025: New local serving work uses `midprojectrag.hotline` only. Do not resume Controller/E1/LATENCY.FIX from the historical queue below. See the HOTLINE.2 queue and `../architecture/specs/hotline-runtime.md`. Existing code/records are historical, not newly completed; other active VM/evaluation work is unchanged.
+
 # EH-RC0: 여기부터 재개
 
 작성 시점: 2026-09-03. 이 파일은 짧은 복구 안내이며 최신 상태는 checkpoint가 우선한다.

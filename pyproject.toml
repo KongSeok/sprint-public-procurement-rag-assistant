@@ -61,6 +61,7 @@ ui = [
 ]
 
 [project.scripts]
+midprojectrag-hotline = "midprojectrag.hotline:main"
 midprojectrag = "midprojectrag.cli:main"
 midprojectrag-eval = "midprojectrag.evaluation:main"
 midprojectrag-supplemental-eval = "midprojectrag.supplemental_evaluation:main"

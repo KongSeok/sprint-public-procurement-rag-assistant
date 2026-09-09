@@ -19,6 +19,8 @@ Do not duplicate or reinterpret that order in specification files.
 
 ## Spec Inventory
 
+- `hotline-runtime.md`: active D-025 local serving direction; Controller/E1 is no longer a serving prerequisite.
+
 - `agent-orchestrator.md`: active agent roles and session management.
 - `system-overview.md`: RAG component boundaries and A/B stack architecture.
 - `source-data-contract.md`: source, normalization, manifest, extraction and provenance contract.

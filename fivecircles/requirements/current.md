@@ -1,7 +1,7 @@
 # MidProjectRAG Current Requirements
 
 상태: Working baseline contract  
-최종 갱신: 2026-08-24
+최종 갱신: 2026-09-09
 
 ## 1. 프로젝트 목표
 
@@ -154,3 +154,7 @@ corpus에 없거나 질문이 모호해 신뢰할 근거를 찾지 못하면 내
 - HWP 표본 검증 후 주 추출기와 fallback을 Batch 1에서 확정한다.
 - API/로컬 생성 모델의 최종 선택은 공통 평가 계약 이후 dev 결과로 확정한다.
 - 절대 latency 합격선은 과제에 명시되지 않았으므로 기준선 측정 후 목표를 정한다.
+
+## 13. Active serving direction - 2026-09-09 / D-025
+
+New local serving work is hotline-first, not the recursive Controller/E1 path. Finish a usable fixed retrieval-to-answer pipeline before optional learned policy or expanded execution-integrity machinery. Existing source/scope/citation, privacy, budget and evaluation controls remain. The initial promoted hotline is fact-only and one-context; FR-02/FR-03 and UI integration are not fulfilled by this migration alone. Historical control baselines remain immutable.

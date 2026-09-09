@@ -182,3 +182,23 @@
   - Result: ordinal4 결정 연결. 집중11·관련205·격리216 PASS. 원래 전체1657은 CSV 동결 해시 오류1로 FAIL; 동결 사본 analytics5 재검증 PASS 및 fresh deep의 증거 결합 승인.
   - Boundary: 실제 context/verify/absence/terminal/생성은 후속.
   - Evidence: work/2026-09-07-controller-post-fusion-decision-relay.md.
+
+## 2026-09-09 - HOTLINE.2 start / user-directed architecture change
+- User directive: stop expanding unnecessary Controller integrity machinery and build around hotline only.
+- Scope: promote the existing fixed public pipeline to a reusable local module and CLI; retire Controller selection from that entrypoint. Keep public retrieval checks, request scope, citation validation, model identity, private output, and deadline controls.
+- Existing dirty files are user-owned. Before-images saved outside the repository; no broad reset/add, branch change, model run, VM change, corpus/index mutation, or push.
+- Validation: existing hotline adapter regression, CLI migration/failure tests, synthetic complete CLI and process timeout smoke. This is not a full RAG/UI delivery or a semantic-quality result.
+- Rollback: revert only this batch's patch using saved before-images after reconciling later changes; never restore over concurrent work.
+
+## 2026-09-09 - HOTLINE.2 scoped implementation closeout
+- 30 focused + 64 shared regression tests passed, exit0; synthetic worker CLI and subprocess timeout smoke passed.
+- Controller path disabled at the CLI; fixed hotline is the default executor. Actual public retrieval/parent APIs retained and unchanged.
+- Original hotline logic preserved by AST comparison; no source/core/retriever bypass or new repeated integrity framework.
+- New serving module is fact-only; multi-evidence/compare/follow-up/UI remain explicit backlog. Existing baseline and VM runs untouched.
+- No independent review/full-suite/real-model run or commit/push claimed. Report: `2026-09-09-hotline-runtime-migration.md`.
+
+## 2026-09-09T11:56:03+09:00 - User-authorized hotline branch publication
+- Target origin/feat/hotline-runtime, separate worktree from fc03a4e. No original checkout switch, reset, stash or staging.
+- Exact candidate147 tests PASS and isolated runtime imports PASS; source code matches the selected migration. Other uncommitted work excluded.
+- Publication content review clears only exact SHA-256 false positives; original scanner exit1 is preserved and documented. No raw data/model execution or independent/full-suite claim.
+- Commit and push acknowledgement are checked after creating this feature commit; original integration files/index are checked for preservation.
