@@ -8,6 +8,7 @@ from __future__ import annotations
 from copy import deepcopy
 from importlib import metadata
 import json
+import platform
 from pathlib import Path
 import re
 from typing import Any, Iterable, Mapping, Sequence
@@ -35,6 +36,9 @@ FORBIDDEN_TRAINING_KEYS = frozenset({
 })
 
 TRAINING_DISTRIBUTIONS = ("transformers", "trl", "peft", "datasets", "accelerate", "torch")
+QLORA_DISTRIBUTIONS = ("bitsandbytes",)
+BACKEND_RECEIPT_SCHEMA = "evo-sft-backend-capability-v1"
+SFT_FREEZE_SCHEMA = "evo-sft-freeze-v1"
 MIN_TRANSFORMERS = (5, 2, 0)
 
 
@@ -291,10 +295,13 @@ def reward_episode(*, success: bool, citation_success: bool, valid_abstention: b
             "components": components, "total": float(sum(components.values()))}
 
 
-def training_environment_preflight() -> dict[str, Any]:
+def training_environment_preflight(*, mode: str | None = None) -> dict[str, Any]:
+    if mode not in {None, "lora", "qlora4"}:
+        raise ValueError("sft_mode_invalid")
     versions: dict[str, str | None] = {}
     reasons: list[str] = []
-    for name in TRAINING_DISTRIBUTIONS:
+    distributions = TRAINING_DISTRIBUTIONS + (QLORA_DISTRIBUTIONS if mode == "qlora4" else ())
+    for name in distributions:
         try:
             versions[name] = metadata.version(name)
         except metadata.PackageNotFoundError:
@@ -303,15 +310,71 @@ def training_environment_preflight() -> dict[str, Any]:
     transformers = versions.get("transformers")
     if transformers is not None and _version_tuple(transformers) < MIN_TRANSFORMERS:
         reasons.append("transformers_lt_5_2")
-    return {
-        "schema_version": "evo-training-environment-preflight-v1",
-        "compatible": not reasons,
-        "versions": versions,
-        "requirements": {"transformers": ">=5.2.0", "trl": "required", "peft": "required",
-                         "datasets": "required", "accelerate": "required", "torch": "required"},
-        "reasons": reasons,
-    }
+    requirements = {"transformers": ">=5.2.0", "trl": "required", "peft": "required",
+                    "datasets": "required", "accelerate": "required", "torch": "required"}
+    if mode == "qlora4":
+        requirements["bitsandbytes"] = "required_for_qlora4"
+    return {"schema_version": "evo-training-environment-preflight-v1", "mode": mode,
+            "compatible": not reasons, "versions": versions,
+            "platform": {"system": platform.system(), "machine": platform.machine(), "python": platform.python_version()},
+            "requirements": requirements, "reasons": reasons}
 
+
+def training_backend_blockers(*, mode: str, environment: Mapping[str, Any], receipt: Mapping[str, Any] | None) -> list[str]:
+    if mode == "lora":
+        return []
+    if mode != "qlora4":
+        return ["sft_mode_invalid"]
+    if receipt is None:
+        return ["qlora_backend_receipt_missing"]
+    required = {"schema_version", "mode", "probe", "available", "versions", "platform", "device"}
+    if not required.issubset(receipt) or receipt.get("schema_version") != BACKEND_RECEIPT_SCHEMA or receipt.get("mode") != "qlora4" or receipt.get("probe") != "linear4bit_nf4_forward":
+        return ["qlora_backend_receipt_invalid"]
+    versions = receipt.get("versions"); env_versions = environment.get("versions")
+    if not isinstance(versions, Mapping) or not isinstance(env_versions, Mapping):
+        return ["qlora_backend_receipt_invalid"]
+    if any(versions.get(name) != env_versions.get(name) for name in ("torch", "bitsandbytes")) or receipt.get("platform") != environment.get("platform"):
+        return ["qlora_backend_receipt_environment_mismatch"]
+    if receipt.get("available") is not True:
+        return ["qlora_backend_unavailable"]
+    return []
+
+def freeze_sft_examples(sources: Sequence[tuple[str, Sequence[Mapping[str, Any]]]], *, exclusion: Mapping[str, Any] | None = None) -> dict[str, Any]:
+    if not sources:
+        raise ValueError("training_sft_sources_required")
+    if exclusion is not None:
+        validate_exclusion_manifest(exclusion)
+    rows=[]; seen=set(); duplicates=0; input_rows=0; source_receipts=[]
+    for source_id, source_rows in sources:
+        if not isinstance(source_id,str) or not source_id:
+            raise ValueError("training_sft_source_id_invalid")
+        count=0
+        for raw in source_rows:
+            row=deepcopy(dict(raw)); reject_forbidden_training_fields(row)
+            if row.get("schema_version")!=SFT_SCHEMA or row.get("metadata",{}).get("split")!="train":
+                raise ValueError("training_sft_train_only")
+            prompt=row.get("prompt"); meta=row.get("metadata",{}); observation=None
+            if not isinstance(prompt,list) or not isinstance(meta,Mapping):
+                raise ValueError("training_sft_schema_invalid")
+            for message in reversed(prompt):
+                if isinstance(message,Mapping) and message.get("role")=="user" and isinstance(message.get("content"),str):
+                    try: value=json.loads(message["content"])
+                    except json.JSONDecodeError: continue
+                    if isinstance(value,Mapping) and isinstance(value.get("question"),str): observation=value; break
+            if observation is None:
+                raise ValueError("training_sft_question_missing")
+            scope=observation.get("scope_doc_ids") or []
+            case={"schema_version":TRAINING_CASE_SCHEMA,"case_id":meta.get("case_id"),"group_id":meta.get("group_id"),"task_type":"multi_doc_compare" if len(scope)==2 else "single_doc","split":"train","question":observation["question"],"request":{"question":observation["question"],"document_scope":{"mode":"explicit","doc_ids":scope}}}
+            if exclusion is not None and exclusion_collision(case,exclusion):
+                raise ValueError("training_sft_evaluation_leakage")
+            count+=1; input_rows+=1; encoded=canonical_json(row)
+            if encoded in seen: duplicates+=1; continue
+            seen.add(encoded); rows.append(row)
+        source_receipts.append({"source_id":source_id,"input_rows":count})
+    if not rows: raise ValueError("training_sft_rows_required")
+    output_text=''.join(canonical_json(row)+'\n' for row in rows)
+    receipt={"schema_version":SFT_FREEZE_SCHEMA,"sources":source_receipts,"input_rows":input_rows,"train_rows":len(rows),"exact_duplicate_rows_removed":duplicates,"unique_trajectory_ids":len({r["metadata"]["trajectory_id"] for r in rows}),"output_sha256":sha256_text(output_text),"mini131_used_for_selection":False,"sealed_holdout_executed":False}
+    return {"rows":rows,"receipt":receipt}
 
 def read_jsonl(path: Path) -> list[dict[str, Any]]:
     rows = []

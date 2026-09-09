@@ -4,7 +4,7 @@ from __future__ import annotations
 import argparse, inspect, json, os, time
 from pathlib import Path
 
-from midprojectrag.evo_harness.training import read_jsonl, training_environment_preflight
+from midprojectrag.evo_harness.training import read_jsonl, training_backend_blockers, training_environment_preflight
 from midprojectrag.ingest.common import canonical_json, sha256_file
 
 
@@ -16,12 +16,13 @@ def _config(path: Path):
     return value
 
 
-def _blockers(config, env):
+def _blockers(config, env, backend_receipt=None):
     reasons=list(env["reasons"])
     if not isinstance(config["base_model_revision"],str) or len(config["base_model_revision"]) not in (40,64): reasons.append("base_model_revision_unfrozen")
     limits=config["resource_limits"]
     if not isinstance(limits,dict) or not isinstance(limits.get("max_wall_seconds"),int) or limits.get("max_wall_seconds",0)<=0: reasons.append("wall_budget_unfrozen")
     if not isinstance(limits,dict) or not isinstance(limits.get("max_output_gb"),(int,float)) or limits.get("max_output_gb",0)<=0: reasons.append("storage_budget_unfrozen")
+    reasons.extend(training_backend_blockers(mode=config["mode"], environment=env, receipt=backend_receipt))
     return sorted(set(reasons))
 
 
@@ -29,9 +30,12 @@ def main(argv=None):
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config",type=Path,required=True);parser.add_argument("--train-data",type=Path)
     parser.add_argument("--dev-data",type=Path);parser.add_argument("--model-path",type=Path);parser.add_argument("--output-dir",type=Path)
-    parser.add_argument("--preflight",action="store_true")
-    args=parser.parse_args(argv);config=_config(args.config);env=training_environment_preflight();reasons=_blockers(config,env)
-    receipt={"schema_version":"evo-sft-preflight-v1","environment":env,"config_sha256":sha256_file(args.config),"blockers":reasons,"ready":not reasons}
+    parser.add_argument("--backend-receipt",type=Path);parser.add_argument("--preflight",action="store_true")
+    args=parser.parse_args(argv);config=_config(args.config);env=training_environment_preflight(mode=config["mode"]);backend_receipt=None
+    if args.backend_receipt:
+        backend_receipt=json.loads(args.backend_receipt.read_text(encoding="utf-8"))
+    reasons=_blockers(config,env,backend_receipt)
+    receipt={"schema_version":"evo-sft-preflight-v1","environment":env,"config_sha256":sha256_file(args.config),"backend_receipt_sha256":sha256_file(args.backend_receipt) if args.backend_receipt else None,"blockers":reasons,"ready":not reasons}
     if args.preflight:
         print(canonical_json(receipt));return 0 if not reasons else 2
     if reasons: raise RuntimeError("isolated_training_environment_required:"+",".join(reasons))

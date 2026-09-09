@@ -5,7 +5,7 @@ import argparse, json, os
 from pathlib import Path
 
 from midprojectrag.evo_harness.training import (
-    build_exclusion_manifest, freeze_splits, read_jsonl, sft_examples_from_trajectory,
+    build_exclusion_manifest, freeze_sft_examples, freeze_splits, read_jsonl, sft_examples_from_trajectory,
     validate_exclusion_manifest, write_jsonl_new,
 )
 from midprojectrag.ingest.common import canonical_json, sha256_file
@@ -31,6 +31,8 @@ def main(argv=None):
     p.add_argument("--cases",type=Path,required=True);p.add_argument("--exclusion",type=Path,required=True);p.add_argument("--output-dir",type=Path,required=True)
     p=sub.add_parser("sft")
     p.add_argument("--case",type=Path,required=True);p.add_argument("--result",type=Path,required=True);p.add_argument("--output",type=Path,required=True)
+    p=sub.add_parser("sft-freeze")
+    p.add_argument("--source",type=Path,action="append",required=True);p.add_argument("--exclusion",type=Path,required=True);p.add_argument("--output-dir",type=Path,required=True)
     args=parser.parse_args(argv);os.umask(0o077)
     if args.command=="exclusion":
         rows=[]
@@ -44,6 +46,16 @@ def main(argv=None):
         args.output_dir.mkdir(parents=True,exist_ok=False,mode=0o700)
         for split,rows in frozen["cases"].items(): write_jsonl_new(args.output_dir/f"{split}.jsonl",rows)
         _new_json(args.output_dir/"receipt.json",frozen["receipt"]);print(canonical_json(frozen["receipt"]));return 0
+    if args.command=="sft-freeze":
+        exclusion=_load(args.exclusion); validate_exclusion_manifest(exclusion)
+        sources=[(f"source-{i}",read_jsonl(path)) for i,path in enumerate(args.source,1)]
+        frozen=freeze_sft_examples(sources,exclusion=exclusion)
+        args.output_dir.mkdir(parents=True,exist_ok=False,mode=0o700)
+        output=args.output_dir/"train-positive-sft.jsonl"; write_jsonl_new(output,frozen["rows"])
+        receipt=frozen["receipt"]
+        for item,path in zip(receipt["sources"],args.source): item["sha256"]=sha256_file(path)
+        receipt["output_sha256"]=sha256_file(output); receipt["exclusion_manifest_sha256"]=sha256_file(args.exclusion)
+        _new_json(args.output_dir/"dataset-receipt.json",receipt); print(canonical_json(receipt)); return 0
     case=_load(args.case);result=_load(args.result);rows=sft_examples_from_trajectory(result,case)
     write_jsonl_new(args.output,rows);print(canonical_json({"status":"written","examples":len(rows)}));return 0
 

@@ -14,7 +14,7 @@ from midprojectrag.evo_harness.state import Budgets, InvalidAction, action_from_
 from midprojectrag.evo_harness.training import (
     EXCLUSION_SCHEMA, SFT_SCHEMA, TRAINING_CASE_SCHEMA, build_exclusion_manifest,
     case_fingerprints, exclusion_collision, freeze_splits, reject_forbidden_training_fields,
-    reward_episode, sft_examples_from_trajectory, training_environment_preflight,
+    freeze_sft_examples, reward_episode, sft_examples_from_trajectory, training_backend_blockers, training_environment_preflight,
     validate_exclusion_manifest,
 )
 from tests.test_evo_harness import FakeBackend, REQUEST, search, read, finish
@@ -140,6 +140,27 @@ class SFTAndRewardTests(unittest.TestCase):
         passed=reward_episode(success=True,citation_success=True,valid_abstention=False,policy_calls=1,search_calls=1,total_tokens=100)
         self.assertEqual(failed["components"]["efficiency"],0.0);self.assertGreater(passed["components"]["efficiency"],0.0)
         self.assertGreater(passed["total"],failed["total"])
+
+    def test_qlora_preflight_requires_bitsandbytes_and_backend_receipt(self):
+        versions={"transformers":"5.2.1","trl":"1.8.0","peft":"0.20.0","datasets":"4.0.0","accelerate":"1.0.0","torch":"2.8.0"}
+        def version(name):
+            if name=="bitsandbytes": raise __import__("importlib").metadata.PackageNotFoundError(name)
+            return versions[name]
+        with patch("midprojectrag.evo_harness.training.metadata.version",side_effect=version):
+            env=training_environment_preflight(mode="qlora4")
+        self.assertIn("missing:bitsandbytes",env["reasons"])
+        self.assertEqual(training_backend_blockers(mode="qlora4",environment=env,receipt=None),["qlora_backend_receipt_missing"])
+
+    def test_sft_freeze_is_stable_train_only_and_deduplicates(self):
+        backend=FakeBackend([search(),read("e1"),finish("e1")])
+        result=compose_runtime(backend,synthetic_tools()).run(REQUEST,record_trajectory=True)
+        case=training_case(question=REQUEST["question"],docs=["alpha","beta"]);case["request"]=deepcopy(REQUEST);case["task_type"]="multi_doc_compare"
+        rows=sft_examples_from_trajectory(result,case)
+        one=freeze_sft_examples([("teacher",rows),("live",[deepcopy(rows[0])])])
+        two=freeze_sft_examples([("teacher",deepcopy(rows)),("live",[deepcopy(rows[0])])])
+        self.assertEqual(one,two);self.assertEqual(one["receipt"]["input_rows"],4);self.assertEqual(one["receipt"]["train_rows"],3);self.assertEqual(one["receipt"]["exact_duplicate_rows_removed"],1)
+        bad=deepcopy(rows[0]);bad["metadata"]["split"]="dev"
+        with self.assertRaisesRegex(ValueError,"training_sft_train_only"): freeze_sft_examples([("bad",[bad])])
 
     def test_environment_preflight_is_metadata_only(self):
         versions={"transformers":"5.2.1","trl":"1.8.0","peft":"0.20.0","datasets":"4.0.0","accelerate":"1.0.0","torch":"2.8.0"}
