@@ -113,7 +113,7 @@ class LLMPolicy:
                 "An answered finish needs successfully read text or inspected visual evidence.") + VISUAL_TOOL_GUIDE
         messages = None; count = None; projection = None
         tiers = ((None, None), (1024, None), (768, None), (512, None), (384, None),
-                 (256, None), (256, 180), (192, 120))
+                 (256, None), (256, 180), (192, 120), (128, 80), (96, 40))
         for read_chars, excerpt_chars in tiers:
             payload = episode.observation(budgets, read_preview_chars=read_chars,
                                           search_excerpt_chars=excerpt_chars)

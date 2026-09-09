@@ -357,6 +357,19 @@ class EvoRunnerTests(unittest.TestCase):
         self.assertTrue(all(len(row["text"])==1600 for row in ep.windows.values()))
         self.assertLessEqual(backend.count_messages(backend.calls[-1])+budget.policy_output,budget.policy_context)
 
+    def test_policy_reaches_deeper_projection_tier_before_overflow(self):
+        tools=synthetic_tools(); ep=tools.begin(REQUEST); budget=Budgets()
+        backend=FakeBackend([finish(status="abstained")])
+        def count(messages):
+            state=json.loads(messages[1]["content"]); projection=state.get("context_projection") or {}
+            return 3700 if (projection.get("read_preview_chars"),projection.get("search_excerpt_chars"))==(128,80) else 3900
+        backend.count_messages=count
+        raw=LLMPolicy(backend).propose(ep,budget,lambda:100)
+        self.assertEqual(action_from_json(raw)["tool"],"finish")
+        state=json.loads(backend.calls[-1][1]["content"]); projection=state["context_projection"]
+        self.assertEqual((projection["read_preview_chars"],projection["search_excerpt_chars"]),(128,80))
+        self.assertLessEqual(backend.count_messages(backend.calls[-1])+budget.policy_output,budget.policy_context)
+
     def test_abstain_and_clarification_do_not_generate(self):
         for status in ["abstained","needs_clarification"]:
             result=self.run_case([finish(status=status,unresolved=["Specify the project"])])
