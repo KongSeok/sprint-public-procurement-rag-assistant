@@ -13,6 +13,7 @@ from .runtime import load_hotline_tools
 from .state import Budgets
 from .training import read_jsonl,sft_examples_from_trajectory,validate_training_case
 from .worker_backend import PersistentMLXBackend
+from .visual_runtime import compose_visual_tools
 
 SCHEMA="evo-policy-collection-v1"
 TEXT_TASKS=frozenset({"fact","compare","follow_up","abstain"})
@@ -170,5 +171,74 @@ def collect_text(*,repo_root:Path,cases_path:Path,targets_path:Path,runtime_data
              "task_success":dict(sorted(task_success.items())),"usage":dict(sorted(usage.items())),
              "positive_sft_examples":len(positive) if export_sft else None,"model_load_seconds":model_load_seconds,
              "worker_manifest_sha256":worker_manifest_sha256,"sealed_holdout_executed":False}
+    if export_sft: summary["positive_sft_sha256"]=sha256_file(output_dir/"positive-sft.jsonl")
+    summary["summary_sha256"]=sha256_text(canonical_json(summary));_secure_json(output_dir/"summary.json",summary);return summary
+
+
+def collect_visual(*,repo_root:Path,cases_path:Path,targets_path:Path,runtime_data_root:Path,artifact_dir:Path,
+                   mlx_python:Path,model_dir:Path,model_manifest:Path,expected_revision:str,output_dir:Path,
+                   candidate_commit:str,index_dir:Path,visual_private_root:Path,crop_root:Path,query_python:Path,
+                   hf_cache:Path,limit:int|None=None,export_sft:bool=False)->dict[str,Any]:
+    runner_commit=_verify_head(repo_root.resolve(),candidate_commit);output_dir=output_dir.resolve()
+    if "private" not in output_dir.parts or output_dir.is_symlink(): raise ValueError("collection_private_output_required")
+    cases=read_jsonl(cases_path);targets=read_jsonl(targets_path)
+    if any(c.get("split")=="sealed_holdout" for c in cases): raise ValueError("collection_sealed_holdout_forbidden")
+    for c in cases: validate_training_case(c)
+    target_map={t.get("case_id"):t for t in targets}
+    if len(target_map)!=len(targets) or set(target_map)!={c["case_id"] for c in cases}: raise ValueError("collection_target_set_mismatch")
+    selected=[c for c in cases if c.get("task_type") in VISUAL_TASKS]
+    output_dir.mkdir(parents=True,exist_ok=True,mode=0o700);records_path=output_dir/"records.jsonl"
+    existing=read_jsonl(records_path) if records_path.exists() else []
+    for r in existing:
+        if r.get("candidate_commit")!=candidate_commit or r.get("runner_commit")!=runner_commit: raise ValueError("collection_resume_identity_mismatch")
+    completed={r["case_id"] for r in existing}
+    base=load_hotline_tools(runtime_data_root.resolve(),artifact_dir.resolve(),device="mps")
+    backend=None;tools=None;attempted=0;model_load_seconds=0.0;worker_manifest_sha256=None;generation=0
+    try:
+        for case in selected:
+            if case["case_id"] in completed: continue
+            if limit is not None and attempted>=limit: break
+            if backend is None or not backend.alive:
+                if backend is not None: backend.close()
+                backend=PersistentMLXBackend(python=mlx_python,model_dir=model_dir,model_manifest=model_manifest,
+                    expected_revision=expected_revision,startup_timeout=30.0,stderr_path=output_dir/"mlx-worker.stderr")
+                model_load_seconds+=backend.load_seconds;worker_manifest_sha256=backend.manifest_sha256;generation+=1
+                tools=compose_visual_tools(backend,base=base,index_dir=index_dir,private_root=visual_private_root,
+                    crop_root=crop_root,python=query_python,hf_cache=hf_cache,work_dir=output_dir/f"visual-query-{generation:02d}")
+            runner=EpisodeRunner(tools,LLMPolicy(backend),AnswerComposer(backend),budgets=Budgets(),experience=Experience())
+            started=time.monotonic()
+            try:
+                result=runner.run(deepcopy(case["request"]),record_trajectory=True)
+            except ValueError as exc:
+                result={"status":"error","code":str(exc),"response":None,"actions":[],"trajectory":[],"usage":{},"wall_seconds":time.monotonic()-started}
+            evaluation=evaluate_result(case,target_map[case["case_id"]],result)
+            record={"schema_version":SCHEMA,"case_id":case["case_id"],"split":case["split"],"task_type":case["task_type"],
+                    "candidate_commit":candidate_commit,"runner_commit":runner_commit,"case_sha256":sha256_text(canonical_json(case)),
+                    "target_sha256":sha256_text(canonical_json(target_map[case["case_id"]])),"evaluation":evaluation,
+                    "result":result,"wall_seconds":time.monotonic()-started}
+            _secure_append(records_path,record);existing.append(record);completed.add(case["case_id"]);attempted+=1
+    finally:
+        if backend is not None: backend.close()
+    relevant=[r for r in existing if r.get("case_id") in {c["case_id"] for c in selected}]
+    case_map={c["case_id"]:c for c in cases};positive=[]
+    if export_sft:
+        for r in relevant:
+            if r.get("split")!="train" or not r.get("evaluation",{}).get("success"): continue
+            positive.extend(sft_examples_from_trajectory(r["result"],case_map[r["case_id"]]))
+        _replace_jsonl(output_dir/"positive-sft.jsonl",positive)
+    statuses=Counter(str(r.get("result",{}).get("status")) for r in relevant);usage=Counter();task_total=Counter();task_success=Counter()
+    for r in relevant:
+        task_total[r["task_type"]]+=1
+        if r.get("evaluation",{}).get("success"): task_success[r["task_type"]]+=1
+        u=r.get("result",{}).get("usage",{})
+        if isinstance(u,Mapping): usage.update({k:v for k,v in u.items() if type(v) is int})
+    summary={"schema_version":SCHEMA,"mode":"live_pinned_qwen35_visual_train_dev","candidate_commit":candidate_commit,
+             "runner_commit":runner_commit,"cases_sha256":sha256_file(cases_path),"targets_sha256":sha256_file(targets_path),
+             "selected_count":len(selected),"completed_count":len(relevant),"success_count":sum(task_success.values()),
+             "status_counts":dict(sorted(statuses.items())),"task_total":dict(sorted(task_total.items())),
+             "task_success":dict(sorted(task_success.items())),"usage":dict(sorted(usage.items())),
+             "positive_sft_examples":len(positive) if export_sft else None,"model_load_seconds":model_load_seconds,
+             "worker_manifest_sha256":worker_manifest_sha256,"sealed_holdout_executed":False,
+             "visual_index_metadata_sha256":sha256_file(index_dir/"metadata.json")}
     if export_sft: summary["positive_sft_sha256"]=sha256_file(output_dir/"positive-sft.jsonl")
     summary["summary_sha256"]=sha256_text(canonical_json(summary));_secure_json(output_dir/"summary.json",summary);return summary
