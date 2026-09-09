@@ -15,7 +15,7 @@ import unittest
 from unittest.mock import patch
 
 from midprojectrag.evo_harness.state import (Budgets, InvalidAction, LimitReached, Unsupported,
-                                             action_from_json, json_object)
+                                             action_from_json, action_schema, json_object)
 from midprojectrag.evo_harness.experience import Experience
 from midprojectrag.evo_harness.policy import (MODEL_ID, DERIVATIVE_ID, POLICY_SYSTEM, ANSWER_SYSTEM,
                                              ModelIdentity, Completion, LLMPolicy, AnswerComposer)
@@ -220,6 +220,69 @@ class EvoToolsTests(unittest.TestCase):
         with self.assertRaises(LimitReached):self.do(search(query="other"))
         with self.assertRaises(LimitReached):self.do(read("e2"))
 
+    def test_duplicate_search_cooldown_requires_state_advance(self):
+        self.do(search()); duplicate=self.do(search())
+        self.assertTrue(duplicate["duplicate"])
+        stagnant_schema=json.dumps(action_schema(self.ep,self.b),separators=(",",":"))
+        self.assertNotIn('"const":"search"',stagnant_schema)
+        self.assertNotIn('"const":"track"',stagnant_schema)
+        with self.assertRaisesRegex(InvalidAction,"stagnant_duplicate_search"):
+            self.do(search())
+        self.do(action("track",target="world"))
+        self.do(action("recall",query="period",limit=1))
+        self.assertNotIn('"const":"search"',json.dumps(action_schema(self.ep,self.b),separators=(",",":")))
+        self.do(read("e1"))
+        self.assertIn('"const":"search"',json.dumps(action_schema(self.ep,self.b),separators=(",",":")))
+        self.assertTrue(self.do(search())["duplicate"])
+
+    def test_track_schema_requires_material_state_advance(self):
+        schema=json.dumps(action_schema(self.ep,self.b),separators=(",",":"))
+        self.assertIn('"const":"track"',schema)
+        self.do(action("track",target="world"))
+        schema=json.dumps(action_schema(self.ep,self.b),separators=(",",":"))
+        self.assertNotIn('"const":"track"',schema)
+        self.do(search())
+        schema=json.dumps(action_schema(self.ep,self.b),separators=(",",":"))
+        self.assertIn('"const":"track"',schema)
+        self.do(action("track",target="world"));self.do(read("e1"))
+        schema=json.dumps(action_schema(self.ep,self.b),separators=(",",":"))
+        self.assertIn('"const":"track"',schema)
+
+    def test_policy_projection_deduplicates_track_snapshot(self):
+        self.do(search())
+        track=self.do(action("track",target="world"));self.ep.last_observation=track
+        view=self.ep.observation(self.b)
+        self.assertEqual(view["last_observation"],{"kind":"track_snapshot","target":"world",
+            "state_references":"top_level","semantic_verified":False})
+        self.assertEqual(view["last_observation"]["state_references"],"top_level")
+        self.assertTrue(view["known_evidence"]);self.assertTrue(view["searches"])
+        drift=dict(track);drift["evidence"]=[];self.ep.last_observation=drift
+        self.assertIn("evidence",self.ep.observation(self.b)["last_observation"])
+
+    def test_recall_schema_requires_reviewed_experience(self):
+        schema=json.dumps(action_schema(self.ep,self.b),separators=(",",":"))
+        self.assertNotIn('"const":"recall"',schema)
+        self.ep.recall_available=True
+        schema=json.dumps(action_schema(self.ep,self.b),separators=(",",":"))
+        self.assertIn('"const":"recall"',schema)
+
+    def test_read_schema_respects_remaining_memory_capacity(self):
+        self.do(search())
+        for i in range(1, 6):
+            eid=f"memory-{i}"
+            self.ep.candidates[eid]={"evidence_id":eid,"doc_id":"alpha","kind":"text","excerpt":"x"}
+            self.ep.windows[eid]={"evidence_id":eid,"doc_id":"alpha","text":"x"}
+        self.ep.candidates["unread-a"]={"evidence_id":"unread-a","doc_id":"alpha","kind":"text","excerpt":"x"}
+        self.ep.candidates["unread-b"]={"evidence_id":"unread-b","doc_id":"alpha","kind":"text","excerpt":"x"}
+        schema=action_schema(self.ep,self.b)
+        read_options=[row for row in schema["oneOf"] if row["properties"]["tool"].get("const")=="read"]
+        self.assertEqual(len(read_options),1)
+        evidence_schema=read_options[0]["properties"]["arguments"]["properties"]["evidence_ids"]
+        self.assertEqual(evidence_schema["maxItems"],1)
+        self.ep.windows["memory-6"]={"evidence_id":"memory-6","doc_id":"alpha","text":"x"}
+        schema=action_schema(self.ep,self.b)
+        self.assertFalse(any(row["properties"]["tool"].get("const")=="read" for row in schema["oneOf"]))
+
     def test_tool_result_copy_cannot_mutate_cache(self):
         first=self.do(search());first["candidates"].clear()
         self.assertTrue(self.do(search())["candidates"])
@@ -289,6 +352,36 @@ class EvoRunnerTests(unittest.TestCase):
         backend=FakeBackend([search()]);backend.count_override=4096
         result=self.run_case(backend=backend)
         self.assertEqual(result["code"],"policy_context_budget_exceeded");self.assertFalse(backend.calls)
+
+    def test_policy_compacts_read_previews_before_context_overflow(self):
+        tools=synthetic_tools(); ep=tools.begin(REQUEST); budget=Budgets()
+        found=tools.search(ep,{"query":"budget","doc_ids":None,"limit":10},budget,lambda:100)["candidates"]
+        tools.read(ep,{"evidence_ids":[row["id"] for row in found]},budget,lambda:100)
+        original={key: row["text"] for key,row in ep.windows.items()}
+        for row in ep.windows.values(): row["text"]="K"*1600
+        backend=FakeBackend(callback=lambda state: finish(*[row["id"] for row in state["read_evidence"]]))
+        backend.count_messages=lambda messages: 2300 + len(messages[1]["content"])//2
+        raw=LLMPolicy(backend).propose(ep,budget,lambda:100)
+        self.assertEqual(action_from_json(raw)["tool"],"finish")
+        state=json.loads(backend.calls[-1][1]["content"]); rows=state["read_evidence"]
+        self.assertTrue(all(row.get("text_truncated") for row in rows))
+        self.assertTrue(all(len(row["text"])<1600 for row in rows))
+        self.assertEqual(set(ep.windows),set(original))
+        self.assertTrue(all(len(row["text"])==1600 for row in ep.windows.values()))
+        self.assertLessEqual(backend.count_messages(backend.calls[-1])+budget.policy_output,budget.policy_context)
+
+    def test_policy_reaches_deeper_projection_tier_before_overflow(self):
+        tools=synthetic_tools(); ep=tools.begin(REQUEST); budget=Budgets()
+        backend=FakeBackend([finish(status="abstained")])
+        def count(messages):
+            state=json.loads(messages[1]["content"]); projection=state.get("context_projection") or {}
+            return 3700 if (projection.get("read_preview_chars"),projection.get("search_excerpt_chars"))==(128,80) else 3900
+        backend.count_messages=count
+        raw=LLMPolicy(backend).propose(ep,budget,lambda:100)
+        self.assertEqual(action_from_json(raw)["tool"],"finish")
+        state=json.loads(backend.calls[-1][1]["content"]); projection=state["context_projection"]
+        self.assertEqual((projection["read_preview_chars"],projection["search_excerpt_chars"]),(128,80))
+        self.assertLessEqual(backend.count_messages(backend.calls[-1])+budget.policy_output,budget.policy_context)
 
     def test_abstain_and_clarification_do_not_generate(self):
         for status in ["abstained","needs_clarification"]:

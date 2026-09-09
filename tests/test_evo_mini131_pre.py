@@ -11,7 +11,7 @@ import unittest
 
 from midprojectrag.evo_harness.mini131_pre import (
     SCHEMA_VERSION, UNSUPPORTED, _end_to_end_followup, _execution_record,
-    _unsupported_record, aggregate,
+    _unsupported_record, aggregate, runtime_failure_case_ids,
 )
 from midprojectrag.evo_harness.worker_backend import PersistentMLXBackend
 
@@ -38,6 +38,7 @@ class WorkerProxyTests(unittest.TestCase):
     def test_persistent_proxy_count_complete_and_close(self):
         with tempfile.TemporaryDirectory() as folder:
             with PersistentMLXBackend(command=self.worker(Path(folder)),network_sandbox=False,startup_timeout=2) as backend:
+                self.assertTrue(backend.alive)
                 self.assertEqual(backend.count_messages([{'role':'user','content':'x'}]),7)
                 value=backend.complete([{'role':'user','content':'x'}],max_tokens=16,timeout=2,json_schema={'type':'object'})
                 self.assertEqual(value.input_tokens,7); self.assertEqual(value.output_tokens,5)
@@ -50,6 +51,7 @@ class WorkerProxyTests(unittest.TestCase):
             with self.assertRaises(TimeoutError):
                 backend.complete([{'role':'user','content':'x'}],max_tokens=16,timeout=.05)
             self.assertIsNotNone(backend.process.poll())
+            self.assertFalse(backend.alive)
             backend.close()
 
 
@@ -90,6 +92,15 @@ class Mini131PreContractTests(unittest.TestCase):
         self.assertEqual(summary['inventory']['executed_text'],1)
         self.assertEqual(summary['inventory']['unsupported_specialist'],1)
         self.assertEqual(summary['objective']['decision_match_rate'],1.0)
+
+    def test_runtime_failure_selection_uses_terminal_codes_only(self):
+        rows=[
+            {"case_id":"a","classification":"executed_text","result":{"status":"budget_exhausted","code":"policy_context_budget_exceeded"}},
+            {"case_id":"b","classification":"executed_text","result":{"status":"budget_exhausted","code":"policy_attempt_budget_exhausted"}},
+            {"case_id":"c","classification":"executed_text","result":{"status":"budget_exhausted","code":"search_budget_exhausted"}},
+            {"case_id":"d","classification":"executed_text","result":{"status":"answered","code":None}},
+        ]
+        self.assertEqual(runtime_failure_case_ids(rows),("a","b"))
 
     def test_followup_uses_candidate_prior_citations_only(self):
         case=self.case(task='follow_up')

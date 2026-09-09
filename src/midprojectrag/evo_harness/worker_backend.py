@@ -103,6 +103,11 @@ class PersistentMLXBackend:
             raise HarnessError(code)
         return response
 
+    @property
+    def alive(self) -> bool:
+        process = getattr(self, "process", None)
+        return process is not None and process.poll() is None
+
     def count_messages(self, messages: list[dict]) -> int:
         try:
             response = self._exchange({"op": "count", "messages": messages}, 30.0)

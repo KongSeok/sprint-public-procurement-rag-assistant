@@ -265,6 +265,7 @@ def action_schema(episode: "Episode", budget: Budgets) -> dict:
     candidate_refs = sorted(candidate_by_id)
     evidence_refs = sorted(episode.read_handle(eid) for eid in episode.windows)
     current_refs = sorted(candidate_refs + evidence_refs)
+    read_memory_remaining = max(0, 6 - len(episode.windows))
     options: list[dict] = []
 
     doc_array = {
@@ -274,7 +275,8 @@ def action_schema(episode: "Episode", budget: Budgets) -> dict:
     }
     scope_schema = {"oneOf": [{"type": "null"}, doc_array]}
 
-    if "search" in tools and episode.usage.search_calls < budget.search_calls:
+    if ("search" in tools and episode.usage.search_calls < budget.search_calls
+            and episode.duplicate_search_cooldown is None):
         options.append(_schema_action("search", _schema_object({
             "query": {"type": "string", "minLength": 1, "maxLength": 2000},
             "doc_ids": scope_schema,
@@ -286,17 +288,19 @@ def action_schema(episode: "Episode", budget: Budgets) -> dict:
             "doc_ids": scope_schema,
             "limit": {"type": "integer", "minimum": 1, "maximum": 5},
         })))
-    if "read" in tools and unread_text and episode.usage.read_calls < budget.read_calls:
+    if ("read" in tools and unread_text and read_memory_remaining > 0
+            and episode.usage.read_calls < budget.read_calls):
         options.append(_schema_action("read", _schema_object({
-            "evidence_ids": _schema_ref_array(unread_text, minimum=1),
+            "evidence_ids": _schema_ref_array(unread_text, minimum=1, maximum=read_memory_remaining),
         })))
-    if ("inspect_image" in tools and visual_candidates and episode.usage.read_calls < budget.read_calls
+    if ("inspect_image" in tools and visual_candidates and read_memory_remaining > 0
+            and episode.usage.read_calls < budget.read_calls
             and episode.usage.image_calls < budget.image_calls):
         options.append(_schema_action("inspect_image", _schema_object({
             "evidence_id": {"type": "string", "enum": visual_candidates},
             "question": {"type": "string", "minLength": 1, "maxLength": 2000},
         })))
-    if "track" in tools:
+    if "track" in tools and episode.track_available and episode.duplicate_search_cooldown is None:
         targets = sorted({"world", *allowed_docs, *episode.goals})
         options.append(_schema_action("track", _schema_object({
             "target": {"type": "string", "enum": targets},
@@ -308,7 +312,7 @@ def action_schema(episode: "Episode", budget: Budgets) -> dict:
             "status": {"type": "string", "enum": ["open", "working", "evidence_found", "blocked"]},
             "evidence_ids": _schema_ref_array(current_refs),
         })))
-    if "recall" in tools:
+    if "recall" in tools and episode.recall_available:
         options.append(_schema_action("recall", _schema_object({
             "query": {"type": "string", "minLength": 1, "maxLength": 1000},
             "limit": {"type": "integer", "minimum": 1, "maximum": 3},
@@ -374,6 +378,9 @@ class Episode:
     usage: Usage = field(default_factory=Usage)
     last_observation: dict = field(default_factory=lambda: {"status": "ready"})
     trajectory: list[dict] = field(default_factory=list)
+    duplicate_search_cooldown: tuple | None = None
+    recall_available: bool = False
+    track_available: bool = True
 
     def reference(self, value: str, *, read: bool = False) -> str:
         if read:
@@ -420,7 +427,24 @@ class Episode:
             history.append(row)
         return history
 
-    def observation(self, budget: Budgets) -> dict:
+    def _policy_text_preview(self, window: dict, maximum: int | None):
+        body = window["text"]
+        if maximum is None or len(body) <= maximum:
+            return body, False, None
+        low = 0
+        outer = window.get("locator", {}).get("char_range")
+        seed = window.get("seed_locator", {}).get("char_range")
+        if (window.get("source_kind") == "parent_window" and isinstance(outer, list)
+                and len(outer) == 2 and isinstance(seed, list) and len(seed) == 2
+                and all(type(value) is int for value in (*outer, *seed))):
+            seed_low = max(0, seed[0] - outer[0]); seed_high = min(len(body), seed[1] - outer[0])
+            center = max(seed_low, min(len(body), (seed_low + seed_high) // 2))
+            low = max(0, min(len(body) - maximum, center - maximum // 2))
+        high = min(len(body), low + maximum)
+        return body[low:high], True, [low, high]
+
+    def observation(self, budget: Budgets, *, read_preview_chars: int | None = None,
+                    search_excerpt_chars: int | None = None) -> dict:
         # Keep memory bounded by actual tool budgets. If it still exceeds context,
         # the policy adapter reports overflow; it never silently drops a document.
         view = {"question": self.request["question"], "history": self.policy_history(),
@@ -433,13 +457,35 @@ class Episode:
                                     "read": key in self.windows,
                                     "read_id": self.read_handle(key) if key in self.windows else None}
                                    for key, value in self.candidates.items()],
-                "read_evidence": [{"id": self.read_handle(key), "candidate_id": self.handle(key),
-                                   "doc_id": win["doc_id"], "text": win["text"]}
-                                  for key, win in self.windows.items()],
-                "searches": self.searches, "last_observation": self.last_observation,
+                "read_evidence": [],
+                "searches": self.searches, "last_observation": deepcopy(self.last_observation),
                 "remaining": {"policy": budget.policy_calls-self.usage.policy_calls,
                               "search": budget.search_calls-self.usage.search_calls,
                               "read": budget.read_calls-self.usage.read_calls}}
+        last = view["last_observation"]
+        if (isinstance(last, dict) and set(last) == {"target", "goals", "evidence", "searches", "semantic_verified"}
+                and last["goals"] == view["progress"] and last["evidence"] == view["known_evidence"]
+                and last["searches"] == view["searches"]):
+            view["last_observation"] = {"kind": "track_snapshot", "target": last["target"],
+                                        "state_references": "top_level",
+                                        "semantic_verified": last["semantic_verified"]}
+        for key, win in self.windows.items():
+            preview, truncated, preview_range = self._policy_text_preview(win, read_preview_chars)
+            item = {"id": self.read_handle(key), "candidate_id": self.handle(key),
+                    "doc_id": win["doc_id"], "text": preview}
+            if truncated:
+                item.update(text_truncated=True, full_text_chars=len(win["text"]),
+                            preview_char_range=preview_range)
+            view["read_evidence"].append(item)
+        if search_excerpt_chars is not None and isinstance(view["last_observation"].get("candidates"), list):
+            for row in view["last_observation"]["candidates"]:
+                excerpt = row.get("excerpt") if isinstance(row, dict) else None
+                if isinstance(excerpt, str) and len(excerpt) > search_excerpt_chars:
+                    row["excerpt"] = excerpt[:search_excerpt_chars]; row["excerpt_truncated"] = True
+        if read_preview_chars is not None or search_excerpt_chars is not None:
+            view["context_projection"] = {"read_preview_chars": read_preview_chars,
+                                          "search_excerpt_chars": search_excerpt_chars,
+                                          "full_evidence_retained_server_side": True}
         if self.capabilities:
             view["available_tools"] = list(self.capabilities)
             view["remaining"]["image"] = budget.image_calls-self.usage.image_calls

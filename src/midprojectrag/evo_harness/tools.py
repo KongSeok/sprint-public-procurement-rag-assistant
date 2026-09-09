@@ -92,10 +92,18 @@ class HotlineTools:
                  remaining: Callable[[], float], experience: Experience) -> dict:
         tool, arg = action["tool"], action["arguments"]
         if tool == "search":
-            return self.search(episode, arg, budget, remaining)
+            result = self.search(episode, arg, budget, remaining)
+            if not result.get("duplicate", False):
+                episode.track_available = True
+            return result
         if tool == "read":
-            return self.read(episode, arg, budget, remaining)
+            result = self.read(episode, arg, budget, remaining)
+            if not result.get("duplicate", False):
+                episode.duplicate_search_cooldown = None
+                episode.track_available = True
+            return result
         if tool == "track":
+            episode.track_available = False
             target = arg["target"]
             if target != "world" and target not in episode.goals and target not in {r["doc_id"] for r in episode.catalog}:
                 raise InvalidAction("unknown_track_target")
@@ -111,6 +119,8 @@ class HotlineTools:
             evidence = [episode.reference_any(eid) for eid in arg["evidence_ids"]]
             row = {**arg, "evidence_ids": [episode.read_handle(eid) if eid in episode.windows else episode.handle(eid) for eid in evidence], "semantic_verified": False}
             episode.goals[arg["goal_id"]] = row
+            episode.duplicate_search_cooldown = None
+            episode.track_available = True
             return {"goal": deepcopy(row)}
         if tool == "recall":
             return experience.recall(arg["query"], arg["limit"])
@@ -118,6 +128,7 @@ class HotlineTools:
             if len(episode.notes) >= 8:
                 raise InvalidAction("note_capacity")
             episode.notes.append(arg["insight"])
+            episode.duplicate_search_cooldown = None
             return {"status": "quarantined", "count": len(episode.notes), "bank_modified": False}
         raise InvalidAction("unsupported_dispatch_tool")
 
@@ -126,6 +137,9 @@ class HotlineTools:
         key = ("search", *episode.profile_key, arg["query"],
                None if scope is None else tuple(sorted(scope)), arg["limit"])
         if key in episode.cache:
+            if episode.duplicate_search_cooldown == key:
+                raise InvalidAction("stagnant_duplicate_search")
+            episode.duplicate_search_cooldown = key
             episode.usage.duplicates += 1
             return {**deepcopy(episode.cache[key]), "duplicate": True}
         remaining()
@@ -135,6 +149,7 @@ class HotlineTools:
             return result
         if episode.usage.search_calls >= budget.search_calls:
             raise LimitReached("search_budget_exhausted")
+        episode.duplicate_search_cooldown = None
         episode.usage.search_calls += 1
         resolved = ResolvedScope.from_allowed(scope, origin="combined" if scope is not None else "all")
         # This is the same public hybrid used by hotline composition; no

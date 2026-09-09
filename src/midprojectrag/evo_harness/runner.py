@@ -66,6 +66,7 @@ class EpisodeRunner:
         try:
             remaining()
             episode = self.tools.begin(request, follow_up=follow_up)
+            episode.recall_available = bool(self.experience.entries)
             if episode.scope == frozenset():
                 return result("abstained", "empty_scope", {"status": "abstained", "answer": "", "citations": []})
             while episode.usage.policy_calls < self.budgets.policy_calls:
