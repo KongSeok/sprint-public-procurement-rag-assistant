@@ -248,6 +248,17 @@ class EvoToolsTests(unittest.TestCase):
         schema=json.dumps(action_schema(self.ep,self.b),separators=(",",":"))
         self.assertIn('"const":"track"',schema)
 
+    def test_policy_projection_deduplicates_track_snapshot(self):
+        self.do(search())
+        track=self.do(action("track",target="world"));self.ep.last_observation=track
+        view=self.ep.observation(self.b)
+        self.assertEqual(view["last_observation"],{"kind":"track_snapshot","target":"world",
+            "state_references":"top_level","semantic_verified":False})
+        self.assertEqual(view["last_observation"]["state_references"],"top_level")
+        self.assertTrue(view["known_evidence"]);self.assertTrue(view["searches"])
+        drift=dict(track);drift["evidence"]=[];self.ep.last_observation=drift
+        self.assertIn("evidence",self.ep.observation(self.b)["last_observation"])
+
     def test_recall_schema_requires_reviewed_experience(self):
         schema=json.dumps(action_schema(self.ep,self.b),separators=(",",":"))
         self.assertNotIn('"const":"recall"',schema)

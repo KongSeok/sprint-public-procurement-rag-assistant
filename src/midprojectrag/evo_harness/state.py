@@ -462,6 +462,13 @@ class Episode:
                 "remaining": {"policy": budget.policy_calls-self.usage.policy_calls,
                               "search": budget.search_calls-self.usage.search_calls,
                               "read": budget.read_calls-self.usage.read_calls}}
+        last = view["last_observation"]
+        if (isinstance(last, dict) and set(last) == {"target", "goals", "evidence", "searches", "semantic_verified"}
+                and last["goals"] == view["progress"] and last["evidence"] == view["known_evidence"]
+                and last["searches"] == view["searches"]):
+            view["last_observation"] = {"kind": "track_snapshot", "target": last["target"],
+                                        "state_references": "top_level",
+                                        "semantic_verified": last["semantic_verified"]}
         for key, win in self.windows.items():
             preview, truncated, preview_range = self._policy_text_preview(win, read_preview_chars)
             item = {"id": self.read_handle(key), "candidate_id": self.handle(key),
