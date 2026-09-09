@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import fcntl
 import json
 import os
 from pathlib import Path
@@ -35,12 +36,23 @@ def main(argv=None) -> int:
 
     from midprojectrag.evo_harness.mini131_pre import run
     repo_root = Path(__file__).resolve().parents[1]
-    result = run(repo_root=repo_root, source_repo_root=args.source_repo_root,
-                 source_config=args.source_config, runtime_data_root=args.runtime_data_root,
-                 artifact_dir=args.artifacts, mlx_python=args.mlx_python,
-                 model_dir=args.model_dir, model_manifest=args.model_manifest,
-                 expected_revision=args.expected_revision, output_dir=args.output_dir,
-                 candidate_commit=args.candidate_commit, limit=args.limit)
+    lock_path = args.runtime_data_root.resolve() / "private" / ".evo-mini131-pre.lock"
+    lock_path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+    lock_fd = os.open(lock_path, os.O_WRONLY | os.O_CREAT, 0o600)
+    try:
+        try:
+            fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError as exc:
+            raise RuntimeError("evo_mini131_pre_already_running") from exc
+        result = run(repo_root=repo_root, source_repo_root=args.source_repo_root,
+                     source_config=args.source_config, runtime_data_root=args.runtime_data_root,
+                     artifact_dir=args.artifacts, mlx_python=args.mlx_python,
+                     model_dir=args.model_dir, model_manifest=args.model_manifest,
+                     expected_revision=args.expected_revision, output_dir=args.output_dir,
+                     candidate_commit=args.candidate_commit, limit=args.limit)
+    finally:
+        try: fcntl.flock(lock_fd, fcntl.LOCK_UN)
+        finally: os.close(lock_fd)
     public = {"schema_version": result["schema_version"], "candidate_commit": result["candidate_commit"], "runner_commit": result["runner_commit"],
               "inventory": result["inventory"], "status_counts": result["status_counts"],
               "objective": result["objective"], "usage": result["usage"],
