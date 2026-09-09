@@ -18,6 +18,11 @@ import time
 from pathlib import Path
 from typing import Any
 
+# 이 실험의 생성 모델은 OpenAI API를 사용한다. 공유 GPU를 점유한 다른 실험과
+# 충돌하지 않도록 검색용 KURE만 CPU에 올린다. 반드시 torch/sentence-transformers
+# import보다 먼저 설정되어야 한다.
+os.environ.setdefault("CUDA_VISIBLE_DEVICES", "")
+
 import pandas as pd
 from openai import OpenAI
 
@@ -183,6 +188,7 @@ def main() -> None:
     from experiments.dahye_latest_20260909.answer_generation import ask_rfp_v9
     from src.data_processing.chunking import load_chunks
     from src.evaluation.golden_set_v3 import load_golden_set_v3
+    from src.retrieval.embeddings import SentenceTransformerEmbedding
     from src.retrieval.indexing import HybridIndex
 
     scorer = load_module(
@@ -207,8 +213,11 @@ def main() -> None:
     all_filenames_with_biz = sorted(doc_to_biz.items())
 
     print(f"chunk {len(chunks):,}개, 문서 {len(corpus_doc_ids)}개, 골든셋 {len(golden_rows)}문항")
-    print("Chroma DB를 여는 중입니다. 기존 컬렉션이 맞으면 재사용됩니다.")
-    index = HybridIndex(chunks, persist=True)
+    print("검색용 KURE를 CPU에 로드하고 Chroma DB를 여는 중입니다.")
+    embedding_backend = SentenceTransformerEmbedding()
+    if embedding_backend.name != "nlpai-lab/KURE-v1":
+        raise RuntimeError(f"KURE-v1이 아닌 임베딩 백엔드입니다: {embedding_backend.name}")
+    index = HybridIndex(chunks, persist=True, embedding_backend=embedding_backend)
     client = CapturingClient(OpenAI())
 
     prior_rows = read_jsonl(PREDICTIONS_PATH)
