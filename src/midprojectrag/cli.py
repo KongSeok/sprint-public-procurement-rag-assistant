@@ -2080,7 +2080,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--canvas-module-sha256", type=_sha256_hex, required=True
     )
     hwp_visual_v2.add_argument(
-        "--mode", choices=("representative", "corpus"), default="representative"
+        "--mode", choices=("representative", "corpus-provenance", "corpus"), default="representative"
     )
     hwp_visual_v2.add_argument("--visual-gold", type=Path)
     hwp_visual_v2.add_argument(
