@@ -91,12 +91,14 @@ def run(*, repo_root: Path, source_repo_root: Path, source_config: Path,
     if set(ids)-set(cases): raise ValueError("runtime_replay_case_missing")
     output_dir.mkdir(parents=True,exist_ok=False,mode=0o700)
     tools=load_hotline_tools(runtime_data_root.resolve(),artifact_dir.resolve(),device="mps")
-    records=[]
-    with PersistentMLXBackend(python=mlx_python,model_dir=model_dir,model_manifest=model_manifest,
-                              expected_revision=expected_revision,startup_timeout=30.0,
-                              stderr_path=output_dir/"mlx-worker.stderr") as backend:
-        runner=EpisodeRunner(tools,LLMPolicy(backend),AnswerComposer(backend),budgets=Budgets(),experience=Experience())
+    records=[]; backend=None
+    try:
         for case_id in ids:
+            if backend is None or not backend.alive:
+                if backend is not None: backend.close()
+                backend=PersistentMLXBackend(python=mlx_python,model_dir=model_dir,model_manifest=model_manifest,
+                    expected_revision=expected_revision,startup_timeout=30.0,stderr_path=output_dir/"mlx-worker.stderr")
+            runner=EpisodeRunner(tools,LLMPolicy(backend),AnswerComposer(backend),budgets=Budgets(),experience=Experience())
             case=cases[case_id]; started=time.monotonic()
             if _is_followup(case): result,_prior=_end_to_end_followup(runner,case)
             else: result=runner.run(_base_request(case.request_template),record_trajectory=False)
@@ -104,6 +106,8 @@ def run(*, repo_root: Path, source_repo_root: Path, source_config: Path,
             records.append(record)
             with (output_dir/"records.jsonl").open("a",encoding="utf-8") as f:
                 f.write(_canonical(record)+"\n"); f.flush()
+    finally:
+        if backend is not None: backend.close()
     summary=summarize(records,source_pre_candidate=aggregate["candidate_commit"],
                       source_records_sha256=aggregate["records_sha256"],repaired_candidate=repaired_candidate,
                       repaired_runner_commit=runner_commit,source_suite_sha256=suite.eval_set_sha256)

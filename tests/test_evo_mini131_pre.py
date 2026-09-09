@@ -38,6 +38,7 @@ class WorkerProxyTests(unittest.TestCase):
     def test_persistent_proxy_count_complete_and_close(self):
         with tempfile.TemporaryDirectory() as folder:
             with PersistentMLXBackend(command=self.worker(Path(folder)),network_sandbox=False,startup_timeout=2) as backend:
+                self.assertTrue(backend.alive)
                 self.assertEqual(backend.count_messages([{'role':'user','content':'x'}]),7)
                 value=backend.complete([{'role':'user','content':'x'}],max_tokens=16,timeout=2,json_schema={'type':'object'})
                 self.assertEqual(value.input_tokens,7); self.assertEqual(value.output_tokens,5)
@@ -50,6 +51,7 @@ class WorkerProxyTests(unittest.TestCase):
             with self.assertRaises(TimeoutError):
                 backend.complete([{'role':'user','content':'x'}],max_tokens=16,timeout=.05)
             self.assertIsNotNone(backend.process.poll())
+            self.assertFalse(backend.alive)
             backend.close()
 
 

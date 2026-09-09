@@ -115,10 +115,14 @@ def run(*,repo_root:Path,source_repo_root:Path,source_config:Path,runtime_data_r
         pending=pending[:limit]
     suite=verify_suite(repo_root=source_repo_root.resolve(),config_path=source_config.resolve());cases={c.case_id:c for c in suite.cases}
     store,_=load_bundle(artifact_dir.resolve()/"compat",data_root=runtime_data_root);catalog=_catalog(runtime_data_root,store)
-    with PersistentMLXBackend(python=mlx_python,model_dir=model_dir,model_manifest=model_manifest,expected_revision=expected_revision,
-                              startup_timeout=30.0,stderr_path=output_dir/"mlx-worker.stderr") as backend:
-        answer=AnswerComposer(ReplayAnswerBackend(backend))
+    backend=None
+    try:
         for case_id in pending:
+            if backend is None or not backend.alive:
+                if backend is not None: backend.close()
+                backend=PersistentMLXBackend(python=mlx_python,model_dir=model_dir,model_manifest=model_manifest,
+                    expected_revision=expected_revision,startup_timeout=30.0,stderr_path=output_dir/"mlx-worker.stderr")
+            answer=AnswerComposer(ReplayAnswerBackend(backend))
             case=cases[case_id];source=before[case_id];batches=recorded_search_batches(source,store);retriever=RecordedRetriever(store,batches)
             tools=HotlineTools(store,retriever,catalog=catalog,identity="recorded-pre-runtime-replay-v1")
             runner=EpisodeRunner(tools,LLMPolicy(backend),answer,budgets=Budgets(),experience=Experience());started=time.monotonic()
@@ -127,5 +131,7 @@ def run(*,repo_root:Path,source_repo_root:Path,source_config:Path,runtime_data_r
                 repaired_runner_commit=runner_commit,recorded_search_batches_total=len(batches),recorded_search_batches_used=retriever.used,
                 recorded_search_batches_reused=retriever.reused)
             _secure_append(records_path,rec);existing.append(rec)
+    finally:
+        if backend is not None: backend.close()
     summary=_summary(existing,aggregate=aggregate,runner=runner_commit,candidate=repaired_candidate,suite_hash=suite.eval_set_sha256,target=len(selected))
     (output_dir/"summary.json").write_text(json.dumps(summary,ensure_ascii=False,sort_keys=True,indent=2)+"\n");return summary

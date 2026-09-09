@@ -223,7 +223,9 @@ class EvoToolsTests(unittest.TestCase):
     def test_duplicate_search_cooldown_requires_state_advance(self):
         self.do(search()); duplicate=self.do(search())
         self.assertTrue(duplicate["duplicate"])
-        self.assertNotIn('"const":"search"',json.dumps(action_schema(self.ep,self.b),separators=(",",":")))
+        stagnant_schema=json.dumps(action_schema(self.ep,self.b),separators=(",",":"))
+        self.assertNotIn('"const":"search"',stagnant_schema)
+        self.assertNotIn('"const":"track"',stagnant_schema)
         with self.assertRaisesRegex(InvalidAction,"stagnant_duplicate_search"):
             self.do(search())
         self.do(action("track",target="world"))

@@ -300,7 +300,7 @@ def action_schema(episode: "Episode", budget: Budgets) -> dict:
             "evidence_id": {"type": "string", "enum": visual_candidates},
             "question": {"type": "string", "minLength": 1, "maxLength": 2000},
         })))
-    if "track" in tools and episode.track_available:
+    if "track" in tools and episode.track_available and episode.duplicate_search_cooldown is None:
         targets = sorted({"world", *allowed_docs, *episode.goals})
         options.append(_schema_action("track", _schema_object({
             "target": {"type": "string", "enum": targets},
