@@ -1,6 +1,6 @@
 import unittest
 from midprojectrag.evo_harness.runtime import synthetic_tools
-from midprojectrag.evo_harness.runtime_recorded_replay import RecordedRetriever,recorded_search_batches
+from midprojectrag.evo_harness.runtime_recorded_replay import RecordedRetriever,recorded_search_batches,_slice_pending
 from midprojectrag.evo_harness.state import HarnessError
 from midprojectrag.runtime_integrity import ResolvedScope
 class RecordedReplayTests(unittest.TestCase):
@@ -15,6 +15,12 @@ class RecordedReplayTests(unittest.TestCase):
     def test_duplicate_search_does_not_consume_recorded_batch(self):
         before={'result':{'actions':[{'tool':'search','outcome':'completed','observation':{'duplicate':True,'candidates':[self.row()]}}]}}
         self.assertEqual(recorded_search_batches(before,self.store),[])
+    def test_pending_slice_supports_private_targeted_replay(self):
+        ids=['a','b','c','d']
+        self.assertEqual(_slice_pending(ids,{'c'},1,2),['b','d'])
+        with self.assertRaisesRegex(ValueError,'recorded_replay_offset_invalid'):
+            _slice_pending(ids,set(),5,1)
+
     def test_retriever_scope_and_exhaustion(self):
         other=list(self.store.evidence)[1]
         r=RecordedRetriever(self.store,[[(self.ev.evidence_id,self.ev.doc_id),(other.evidence_id,other.doc_id)]])

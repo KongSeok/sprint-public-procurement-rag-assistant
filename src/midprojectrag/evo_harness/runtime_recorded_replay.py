@@ -47,6 +47,17 @@ def recorded_search_batches(before,store):
                 batch.append((eid,row["doc_id"]))
             batches.append(batch)
     return batches
+
+def _slice_pending(selected, completed, offset=0, limit=None):
+    if type(offset) is not int or offset < 0 or offset > len(selected):
+        raise ValueError("recorded_replay_offset_invalid")
+    pending=[x for x in selected[offset:] if x not in completed]
+    if limit is not None:
+        if type(limit) is not int or limit < 1:
+            raise ValueError("recorded_replay_limit_invalid")
+        pending=pending[:limit]
+    return pending
+
 class RecordedRetriever:
     def __init__(self,store,batches):
         self.store=store;self.batches=[tuple(x) for x in batches];self.used=0;self.consumed=0;self.reused=0
@@ -98,7 +109,7 @@ def _summary(records,*,aggregate,runner,candidate,suite_hash,target):
     return body|{"summary_sha256":sha256(_canonical(body).encode()).hexdigest()}
 def run(*,repo_root:Path,source_repo_root:Path,source_config:Path,runtime_data_root:Path,artifact_dir:Path,
         mlx_python:Path,model_dir:Path,model_manifest:Path,expected_revision:str,source_records:Path,
-        source_aggregate:Path,output_dir:Path,repaired_candidate:str,limit:int|None=None):
+        source_aggregate:Path,output_dir:Path,repaired_candidate:str,limit:int|None=None,offset:int=0):
     runner_commit=_verify_candidate(repo_root.resolve(),repaired_candidate);output_dir=output_dir.resolve();runtime_data_root=runtime_data_root.resolve()
     if "private" not in output_dir.parts or output_dir.is_symlink():raise ValueError("recorded_replay_private_output_required")
     output_dir.mkdir(parents=True,exist_ok=True,mode=0o700);rows=_read_records(source_records.resolve());aggregate=json.loads(source_aggregate.read_text())
@@ -109,10 +120,7 @@ def run(*,repo_root:Path,source_repo_root:Path,source_config:Path,runtime_data_r
     for r in existing:
         if r.get("repaired_candidate_commit")!=repaired_candidate or r.get("repaired_runner_commit")!=runner_commit or r.get("replay_mode")!=MODE:
             raise ValueError("recorded_replay_resume_identity_mismatch")
-    completed={r["case_id"] for r in existing};pending=[x for x in selected if x not in completed]
-    if limit is not None:
-        if type(limit) is not int or limit<1:raise ValueError("recorded_replay_limit_invalid")
-        pending=pending[:limit]
+    completed={r["case_id"] for r in existing};pending=_slice_pending(selected,completed,offset,limit)
     suite=verify_suite(repo_root=source_repo_root.resolve(),config_path=source_config.resolve());cases={c.case_id:c for c in suite.cases}
     store,_=load_bundle(artifact_dir.resolve()/"compat",data_root=runtime_data_root);catalog=_catalog(runtime_data_root,store)
     backend=None
