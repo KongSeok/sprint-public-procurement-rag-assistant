@@ -170,8 +170,20 @@ def retrieval_recall(expected: list[str], retrieved: list[str]) -> float | None:
 
 def main() -> None:
     os.chdir(ROOT)
-    if not os.environ.get("OPENAI_API_KEY"):
+    api_key = os.environ.get("OPENAI_API_KEY", "").strip()
+    if not api_key:
         raise RuntimeError("OPENAI_API_KEY가 없습니다. Jupyter 터미널에서 먼저 설정하세요.")
+    try:
+        api_key.encode("ascii")
+    except UnicodeEncodeError as exc:
+        raise RuntimeError(
+            "OPENAI_API_KEY에 한글 또는 ASCII 이외 문자가 포함되어 있습니다. "
+            "실제 OpenAI API 키를 다시 입력하세요."
+        ) from exc
+    if not api_key.startswith("sk-"):
+        raise RuntimeError(
+            "OPENAI_API_KEY가 'sk-'로 시작하지 않습니다. 실제 OpenAI API 키를 확인하세요."
+        )
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     current_manifest = manifest()
@@ -218,7 +230,7 @@ def main() -> None:
     if embedding_backend.name != "nlpai-lab/KURE-v1":
         raise RuntimeError(f"KURE-v1이 아닌 임베딩 백엔드입니다: {embedding_backend.name}")
     index = HybridIndex(chunks, persist=True, embedding_backend=embedding_backend)
-    client = CapturingClient(OpenAI())
+    client = CapturingClient(OpenAI(api_key=api_key))
 
     prior_rows = read_jsonl(PREDICTIONS_PATH)
     completed = {
