@@ -15,6 +15,7 @@ import math
 import os
 import re
 import selectors
+import shutil
 import signal
 import subprocess
 import tempfile
@@ -764,8 +765,9 @@ def _validate_helper_envelope(
             _fail(code)
         _require_sha256(digest, code)
         relpath, asset_path = _safe_relative_asset(raw.get("relpath"), stage_root, code)
-        if relpath in seen_asset_paths:
-            _fail(code)
+        # Source resources are keyed separately from content storage. Distinct
+        # document-local keys may legitimately resolve to identical bytes and
+        # therefore the same content-addressed relpath.
         seen_asset_paths.add(relpath)
         expected_size = raw.get("byte_size")
         if (
@@ -821,8 +823,11 @@ def _validate_helper_envelope(
             _fail(code)
         _require_sha256(digest, code)
         relpath, render_path = _safe_relative_asset(raw.get("relpath"), stage_root, code)
-        if relpath in seen_asset_paths or sha256_file(render_path) != digest:
+        if sha256_file(render_path) != digest:
             _fail("hwp_visual_runner_page_render_mismatch")
+        # Page renders are content-addressed, so byte-identical pages may
+        # intentionally reuse the same relpath. Source assets live under a
+        # disjoint directory; only conflicting bytes are corruption.
         seen_asset_paths.add(relpath)
         _verify_png(
             render_path,
@@ -1086,14 +1091,15 @@ def run_hwp_visual_v2_from_manifest(
     expected_existing_artifact_set_id: str | None = None,
     limits: HwpVisualRunnerLimits = DEFAULT_HWP_VISUAL_RUNNER_LIMITS,
 ) -> dict[str, Any]:
-    """Build representative or gated full-corpus HWP visual-v2 artifacts.
+    """Build representative, provenance-only, or gated full-corpus HWP visual-v2 artifacts.
 
-    Representative mode processes one to five document IDs from the pinned
-    selection file.  Corpus mode requires five-document/four-PDF reviewed gold
-    and processes exactly all 94 eligible HWP manifest rows.
+    ``corpus-provenance`` processes every eligible HWP row to recover exact
+    source/place links and deterministic page crops without requiring reviewed
+    visual gold. It does not run OCR/captioning or activate a retrieval index.
+    ``corpus`` keeps the reviewed-gold gate for retrieval-quality promotion.
     """
 
-    if mode not in {"representative", "corpus"}:
+    if mode not in {"representative", "corpus-provenance", "corpus"}:
         _fail("hwp_visual_runner_mode_invalid")
     if (
         isinstance(timeout_seconds, bool)
@@ -1171,6 +1177,10 @@ def run_hwp_visual_v2_from_manifest(
         )
         if len(eligible) != 94:
             _fail("hwp_visual_runner_corpus_count_mismatch")
+        selected_rows = eligible
+    elif mode == "corpus-provenance":
+        if visual_gold_path is not None:
+            _fail("hwp_visual_runner_gold_not_allowed_in_provenance_mode")
         selected_rows = eligible
     else:
         if visual_gold_path is not None:
@@ -1299,13 +1309,21 @@ def run_hwp_visual_v2_from_manifest(
                     "--page-render-dir",
                     str(render_dir),
                 ]
-                stdout, _ = _bounded_subprocess(
-                    command,
-                    timeout_seconds=float(timeout_seconds),
-                    stdout_limit=limits.max_subprocess_stdout_bytes,
-                    stderr_limit=limits.max_subprocess_stderr_bytes,
-                    cwd=helper.parent,
-                )
+                try:
+                    stdout, _ = _bounded_subprocess(
+                        command,
+                        timeout_seconds=float(timeout_seconds),
+                        stdout_limit=limits.max_subprocess_stdout_bytes,
+                        stderr_limit=limits.max_subprocess_stderr_bytes,
+                        cwd=helper.parent,
+                    )
+                except HwpVisualRunnerError as error:
+                    if mode != "corpus-provenance" or str(error) != "hwp_visual_runner_helper_failed":
+                        raise
+                    helper_output.unlink(missing_ok=True)
+                    shutil.rmtree(asset_dir, ignore_errors=True)
+                    shutil.rmtree(render_dir, ignore_errors=True)
+                    continue
                 helper_bytes = _bounded_bytes(
                     helper_output,
                     limits.max_helper_output_bytes,

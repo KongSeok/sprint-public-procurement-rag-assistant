@@ -388,6 +388,24 @@ class HwpVisualRunnerTests(unittest.TestCase):
                 self._run(fixture, "bad-helper")
             self.assertFalse((private_root / "bad-helper").exists())
 
+    def test_corpus_provenance_mode_processes_all_eligible_without_gold(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            fixture = self._fixture(Path(directory))
+            result, output = self._run(fixture, "provenance", mode="corpus-provenance")
+            self.assertEqual(result["document_count"], 1)
+            self.assertEqual(result["ocr_count"], 0)
+            self.assertEqual(result["chunk_count"], 0)
+            self.assertTrue((output / "occurrences-v2.jsonl").is_file())
+            with self.assertRaisesRegex(
+                HwpVisualRunnerError, "^hwp_visual_runner_gold_not_allowed_in_provenance_mode$"
+            ):
+                self._run(
+                    fixture,
+                    "provenance-with-gold",
+                    mode="corpus-provenance",
+                    visual_gold_path=fixture["selection_path"],
+                )
+
     def test_corpus_mode_is_closed_until_reviewed_full_gold_exists(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             fixture = self._fixture(Path(directory))
