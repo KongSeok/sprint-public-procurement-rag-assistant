@@ -27,6 +27,19 @@ def _present(text:str,key:str,value:Any)->bool:
         return bool(_digits(value)) and _digits(value) in _digits(text)
     return bool(_norm(value)) and _norm(value) in _norm(text)
 
+def _query(case:Mapping[str,Any],target:Mapping[str,Any],episode,doc_id:str)->str:
+    title=next((row.get("title") for row in episode.catalog if row.get("doc_id")==doc_id),None)
+    if not isinstance(title,str) or not title:raise ValueError("teacher_catalog_title_missing")
+    facts=target.get("facts") if isinstance(target.get("facts"),Mapping) else {}
+    question=str(case.get("question",""))
+    if any(k.endswith("amount") or k.endswith("amount_value") for k in facts) or "금액" in question:
+        field="사업금액"
+    elif any("agency" in k for k in facts) or "발주기관" in question:
+        field="발주기관"
+    else:
+        field="사업명"
+    return re.sub(r"\s+"," ",title.replace("·"," ")).strip()+" "+field
+
 
 class TeacherBackend:
     """Use the pinned backend only for exact chat-template token counts."""
@@ -101,7 +114,7 @@ def run_teacher_case(case:Mapping[str,Any],target:Mapping[str,Any],*,tools,count
     required_docs=scope if case["task_type"] in {"compare","follow_up"} else scope
     handles=[]
     for narrowed in search_scopes:
-        search={"tool":"search","arguments":{"query":case["question"],"doc_ids":narrowed,"limit":3 if len(scope)>1 else 5}}
+        search={"tool":"search","arguments":{"query":_query(case,target,episode,narrowed[0]),"doc_ids":narrowed,"limit":3 if len(scope)>1 else 5}}
         _,obs=_action(policy,backend,episode,tools,budget,experience,events,search,remaining)
         candidates=list((obs or {}).get("candidates",[]))
         for candidate in candidates[:2 if len(scope)>1 else 4]:
