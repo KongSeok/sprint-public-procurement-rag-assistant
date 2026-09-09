@@ -287,6 +287,9 @@ class EvoVisualToolsTests(unittest.TestCase):
         self.assertEqual(result["response"]["citation_sources"][0]["locator"], self.chunks[0]["citation"])
         source = json.loads(backend.calls[-1][1]["content"])["sources"][0]
         self.assertEqual(source["source_kind"], "visual_inference")
+        answer_system = backend.calls[-1][0]["content"]
+        self.assertIn("admissible for an explicitly qualified image-reading answer", answer_system)
+        self.assertIn("do not abstain solely because human review is still required", answer_system)
 
     def test_mixed_text_and_image_use_one_episode_and_shared_budgets(self):
         request = deepcopy(self.request)
