@@ -14,6 +14,7 @@ from pathlib import Path
 from PIL import Image
 
 from midprojectrag.ingest.common import read_jsonl, write_json, write_jsonl
+import midprojectrag.ingest.hwp_visual_runner as hwp_visual_runner
 from midprojectrag.ingest.hwp_visual_runner import (
     HELPER_MANIFEST_ARTIFACT,
     METADATA_ARTIFACT,
@@ -405,6 +406,23 @@ class HwpVisualRunnerTests(unittest.TestCase):
                     mode="corpus-provenance",
                     visual_gold_path=fixture["selection_path"],
                 )
+
+    def test_corpus_provenance_withholds_out_of_page_crop_without_dropping_occurrence(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            fixture = self._fixture(Path(directory))
+            original = hwp_visual_runner.crop_page_region
+            try:
+                hwp_visual_runner.crop_page_region = lambda *args, **kwargs: (_ for _ in ()).throw(
+                    ValueError("visual_crop_bbox_outside_page")
+                )
+                _, output = self._run(fixture, "provenance-bbox", mode="corpus-provenance")
+            finally:
+                hwp_visual_runner.crop_page_region = original
+            occurrence = read_jsonl(output / OCCURRENCE_ARTIFACT)[0]
+            self.assertEqual(occurrence["placement_status"], "page_bbox_verified")
+            self.assertEqual(occurrence["retrieval_status"], "withheld")
+            self.assertIsNone(occurrence["crop_sha256"])
+            self.assertIn("crop_bbox_outside_page", occurrence["warnings"])
 
     def test_corpus_mode_is_closed_until_reviewed_full_gold_exists(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

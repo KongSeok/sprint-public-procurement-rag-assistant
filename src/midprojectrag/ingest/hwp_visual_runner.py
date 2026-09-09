@@ -1385,7 +1385,18 @@ def run_hwp_visual_v2_from_manifest(
                                 coordinate_page_bbox=render["coordinate_page_bbox"],
                                 render_profile=render["render_profile"],
                             )
-                        except ValueError:
+                        except ValueError as error:
+                            if (
+                                mode == "corpus-provenance"
+                                and str(error) == "visual_crop_bbox_outside_page"
+                            ):
+                                occurrence = dict(occurrence)
+                                occurrence["retrieval_status"] = "withheld"
+                                occurrence["warnings"] = sorted(
+                                    set(occurrence["warnings"]) | {"crop_bbox_outside_page"}
+                                )
+                                promoted.append(occurrence)
+                                continue
                             _fail("hwp_visual_runner_crop_failed")
                     promoted.append(occurrence)
                 promoted.sort(
