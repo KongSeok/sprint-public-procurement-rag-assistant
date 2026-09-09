@@ -236,3 +236,9 @@
 - Final352 unique impact tests PASS, same-process visual/text and4CLI smoke, new synthetic HTML browser checks. No OCR/VLM live rerun or private asset copy.
 - Source VLM branch/worktree preserved; future scope/deadline-aware visual policy routing and known follow-up failure are not silently marked complete.
 - Publication acknowledgement and exact merge parents are saved after Git operations. Report: 2026-09-09-hotline-vlm-integration.md.
+
+## 2026-09-09 - HOTLINE.VISUAL.2 actual integration
+- User asked to attach and try the imported visual functions; explicit solo mode, no delegation. D-028 and concrete tool/scope/budget contract written first.
+- Existing artifacts reused, image inference shares the policy model. Three bounded live attempts: child environment failure; clarification-only; final answered with one citation and0 invalid actions.
+- Added26 tests; combined378 unique tests pass. Actual index unchanged. Model-recognition correctness and broad retrieval quality remain unproven.
+- Publication is source/tests/redacted notes only; actual Git acknowledgement recorded separately. No training/default UI rollout or automatic fixed-control change.

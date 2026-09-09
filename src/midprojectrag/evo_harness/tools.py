@@ -31,6 +31,9 @@ class HotlineTools:
                              for doc_id in sorted(self.universe))
         self.profile_key = (str(store.bundle_sha256), identity, str(window_chars), str(lane_k))
 
+    def _document_of(self, evidence_id):
+        return self.store.get(evidence_id).doc_id
+
     def begin(self, raw: dict, *, follow_up: bool = False) -> Episode:
         request = RuntimeRequest.from_dict(raw).to_dict()
         if request["metadata_filters"]:
@@ -56,7 +59,7 @@ class HotlineTools:
             if not prior_ids or not prior_docs or not prior_docs <= self.universe:
                 raise Unsupported("followup_citations_required")
             try:
-                actual_docs = frozenset(self.store.get(eid).doc_id for eid in prior_ids)
+                actual_docs = frozenset(self._document_of(eid) for eid in prior_ids)
             except (KeyError, ValueError) as exc:
                 raise Unsupported("followup_citations_invalid") from exc
             if actual_docs != prior_docs:
@@ -221,7 +224,8 @@ class HotlineTools:
         packet, seen = [], {}
         for eid in canonical:
             window = deepcopy(episode.windows[eid])
-            key = (window["parent_id"], tuple(window["locator"]["char_range"]))
+            key = (("visual_inference", eid) if window["source_kind"] == "visual_inference"
+                   else (window["parent_id"], tuple(window["locator"]["char_range"])))
             if key in seen:
                 # All seed IDs remain explicitly mapped to the same actual window.
                 packet[seen[key]]["evidence_ids"].append(eid)

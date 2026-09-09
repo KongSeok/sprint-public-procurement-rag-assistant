@@ -217,6 +217,25 @@ PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src /usr/bin/sandbox-exec \
   --vlm-python "$MLX_PYTHON" --vlm-model "$VLM_MODEL_DIR" --vlm-manifest "$VLM_MANIFEST"
 ```
 
-기존 인덱스를 사용할 때 OCR/임베딩을 다시 만들 필요는 없습니다. 원본·crop·모델·벡터는 Git에서 제외하며 병합 과정에서 복사하지 않습니다. 이 명시적 시각 경로는 아직 Evo의 자동 도구 선택이나 기본 Streamlit 검색에 연결하지 않았습니다. VLM 결과는 `visual_inference`, `human_review_required=true`, `factual_evidence_promoted=false`로 유지합니다. 시각 작업을 정책에 붙일 때는 문서 범위와120초 예산을 별도로 전달해야 합니다.
+기존 인덱스를 사용할 때 OCR/임베딩을 다시 만들 필요는 없습니다. 원본·crop·모델·벡터는 Git에서 제외하며 병합 과정에서 복사하지 않습니다. D-027 병합 당시에는 이 시각 경로를 Evo 정책이나 기본 Streamlit에 연결하지 않았습니다. 후속 D-028의 명시적 정책 도구 연결은 아래 절을 따르며, 기본 Streamlit은 그대로입니다. VLM 결과는 `visual_inference`, `human_review_required=true`, `factual_evidence_promoted=false`로 유지합니다. 시각 작업을 정책에 붙일 때는 문서 범위와120초 예산을 별도로 전달해야 합니다.
 
 검증: 병합 후보352개 영향 테스트 통과, 같은 프로세스의 시각/텍스트 동시 사용과4개 CLI 및 합성 HTML 미리보기 확인. 실제 RFP·OCR/VLM 정확도를 새로 측정한 결과는 아닙니다. 상세: `fivecircles/work/2026-09-09-hotline-vlm-integration.md`; 시각 계약: `fivecircles/architecture/specs/visual-ocr-index.md`.
+
+## Evo policy visual tools (HOTLINE.VISUAL.2 / D-028)
+
+시각 기능을 명시적으로 켜면 정책이 `visual_search`와 `inspect_image`를 직접 선택합니다. OCR/layout 검색은 현재 문서 범위를 적용하고, 이미지 판독은 정책이 이미 로드한 Qwen3.5-9B 모델을 재사용합니다. 기존 텍스트 핫라인 기본 동작은 바뀌지 않습니다.
+
+다음은 기존 로컬 환경·아티팩트를 지정하는 예시입니다. `--visual-only`를 빼고 `--artifacts`를 지정하면 같은 정책에 텍스트 검색도 제공합니다. 원본 이미지·벡터·모델을 재생성하거나 다운로드하지 않습니다.
+
+```bash
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src "$MLX_PYTHON" -m midprojectrag.evo_harness.cli \
+  --data-dir "$DATA_DIR" --request "$PRIVATE_REQUEST" --output-dir "$NEW_PRIVATE_OUTPUT" \
+  --model-dir "$QWEN35_MODEL" --model-manifest "$QWEN35_MANIFEST" \
+  --visual-only --visual-index "$OCR_INDEX_DIR" --visual-private-root "$VISUAL_PRIVATE_ROOT" \
+  --visual-crop-root "$CROP_ROOT" --visual-python "$KURE_VENV_PYTHON" \
+  --visual-hf-cache "$HF_CACHE" --record-trajectory --timeout-seconds 120
+```
+
+Mac의 OS 네트워크 차단과 소유 프로세스120초 감독이 적용됩니다. KURE용 Python은 가상환경 경로 그대로 전달합니다. 시각 결과는 검수 전 `visual_inference`로 인용하며, 불확실한 판독은 답변 근거로 사용하지 않습니다. 최종 JSON의 사람 검수 표시를 UI에서도 유지해야 합니다.
+
+최종378개 테스트와 실제 기존 그림1건의 전체 실행(18.680초, 인용1개)을 확인했습니다. 단일 그림의 연결 시험이며 OCR/VLM 정답률이나 전체 검색 품질을 보장하지 않습니다. 상세 및 처음 두 시도의 실패·수리: `fivecircles/work/2026-09-09-evo-visual-tools.md`.

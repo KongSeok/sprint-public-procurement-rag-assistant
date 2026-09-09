@@ -79,6 +79,9 @@ def main(argv=None):
     parser.add_argument("--model-dir", required=True, type=Path)
     parser.add_argument("--model-manifest", required=True, type=Path)
     parser.add_argument("--artifacts", type=Path)
+    for name in ("visual-index", "visual-private-root", "visual-crop-root", "visual-python", "visual-hf-cache"):
+        parser.add_argument("--"+name, type=Path)
+    parser.add_argument("--visual-only", action="store_true", help="explicit visual tools only; no text artifacts")
     parser.add_argument("--experience", type=Path)
     parser.add_argument("--mode", choices=("policy","fixed"),default="policy")
     parser.add_argument("--follow-up", action="store_true")
@@ -88,6 +91,12 @@ def main(argv=None):
     parser.add_argument("--timeout-seconds",type=_seconds,default=120.0)
     parser.add_argument("--worker-deadline",type=_deadline,default=None,help=argparse.SUPPRESS)
     args=parser.parse_args(argv)
+    visual_names = ("visual_index", "visual_private_root", "visual_crop_root", "visual_python", "visual_hf_cache")
+    supplied = [getattr(args, name) is not None for name in visual_names]
+    if any(supplied) and not all(supplied):
+        parser.error("visual capability requires all five --visual-* path options")
+    if args.visual_only and (not all(supplied) or args.synthetic_corpus or args.mode != "policy"):
+        parser.error("--visual-only requires visual paths and policy mode, without --synthetic-corpus")
     os.umask(0o077)
     profile, configured_budget = load_profile(args.config)
     args.timeout_seconds = min(args.timeout_seconds, configured_budget.seconds)
@@ -103,10 +112,15 @@ def main(argv=None):
     if args.experience:
         _private(args.experience,args.data_dir)
     artifacts=args.artifacts or args.data_dir/"private/evidence-harness/v1-rc0-20260903-01"
-    if not args.synthetic_corpus:
+    if not args.synthetic_corpus and not args.visual_only:
         artifact_path=_private(artifacts,args.data_dir)
         if target==artifact_path or target.is_relative_to(artifact_path) or artifact_path.is_relative_to(target):
             raise ValueError("artifact_output_overlap")
+    if args.visual_index is not None:
+        for path in (args.visual_index, args.visual_crop_root, args.visual_hf_cache, args.model_dir):
+            source = path.resolve(strict=True)
+            if target == source or target.is_relative_to(source) or source.is_relative_to(target):
+                raise ValueError("visual_source_output_overlap")
     if args.worker_deadline is not None:
         if args.worker_deadline<=time.monotonic():
             raise TimeoutError("worker_deadline")
@@ -116,12 +130,19 @@ def main(argv=None):
          "--output-dir",str(target),"--model-dir",str(args.model_dir.resolve()),
          "--model-manifest",str(args.model_manifest.resolve()),"--timeout-seconds",str(args.timeout_seconds),
          "--worker-deadline",str(end),"--mode",args.mode]
-    for name in ("request","artifacts","experience"):
+    for name in ("request","artifacts","experience", *visual_names):
         if getattr(args,name) is not None:
-            cmd += ["--"+name.replace("_","-"),str(getattr(args,name).resolve())]
-    for name in ("follow_up","record_trajectory","synthetic_corpus"):
+            # CPython discovers its virtualenv from the invoked path. Resolving
+            # its symlink would silently select the base Python without Torch.
+            value = getattr(args,name)
+            forwarded = value.absolute() if name == "visual_python" else value.resolve()
+            cmd += ["--"+name.replace("_","-"),str(forwarded)]
+    for name in ("follow_up","record_trajectory","synthetic_corpus","visual_only"):
         if getattr(args,name):
             cmd += ["--"+name.replace("_","-")]
+    if args.visual_index is not None:
+        from .visual_runtime import offline_command
+        cmd = offline_command(cmd)
     receipt=run_supervised(cmd,timeout_seconds=args.timeout_seconds)
     if target.is_dir():
         _write_new(target/"supervisor.json",receipt)
@@ -146,7 +167,16 @@ def _worker(args,target,artifacts):
         backend=MLXBackend(args.model_dir,args.model_manifest,expected_revision=profile["artifact_revision"])
         if time.monotonic()>=deadline:
             raise TimeoutError("initialization_deadline")
-        tools=synthetic_tools() if args.synthetic_corpus else load_hotline_tools(args.data_dir,artifacts)
+        tools=(None if args.visual_only else synthetic_tools() if args.synthetic_corpus
+               else load_hotline_tools(args.data_dir,artifacts))
+        if args.visual_index is not None:
+            from .visual_runtime import compose_visual_tools
+            tools=compose_visual_tools(backend, base=tools, index_dir=args.visual_index,
+                private_root=args.visual_private_root, crop_root=args.visual_crop_root,
+                python=args.visual_python, hf_cache=args.visual_hf_cache,
+                work_dir=target/"visual-search")
+        if time.monotonic() >= deadline:
+            raise TimeoutError("initialization_deadline")
         experience=Experience.from_reviewed(json_object(args.experience.read_text(),maximum=1_048_576)) if args.experience else Experience()
         runner=compose_runtime(backend,tools,budgets=Budgets(**(profile["budgets"]|{"seconds":args.timeout_seconds})),experience=experience)
         setup=time.monotonic()-started
@@ -159,6 +189,10 @@ def _worker(args,target,artifacts):
                       model_manifest_sha256=backend.manifest_sha256,
                       retrieval_kind="synthetic_public_hybrid" if args.synthetic_corpus else "existing_hotline_artifacts",
                       canonical_model_revision=None,converted_artifact_revision=backend.identity.revision)
+        if args.visual_index is not None:
+            result.update(visual_tools_enabled=True, visual_index_identity=tools.visual.identity,
+                          visual_only=args.visual_only, visual_pixel_backend="shared_policy_model",
+                          retrieval_kind="existing_visual_ocr_index" if args.visual_only else "text_plus_visual_ocr_index")
     except TimeoutError:
         result={"status":"timeout","code":"initialization_deadline"}
     except Exception as exc:

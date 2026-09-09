@@ -1178,3 +1178,11 @@ This file summarizes recent updates so other agents can continue without re‑di
 ### Tests
 - Final352 unique tests PASS, skip0; coexistence/4CLI and synthetic browser desktop/mobile PASS. No real inference.
 - Details: 2026-09-09-hotline-vlm-integration.md; initial runner-path failure retained and corrected.
+
+## Addendum (2026-09-09) - Evo policy visual tool connection
+### Backend
+- Opt-in visual_search/inspect_image, scoped KURE query and same loaded Qwen pixels; shared budgets and unreviewed citations.
+- Fixed virtualenv path forwarding and review-label meaning; no guard reduction or source rebuild.
+### Tests
+- Final378 unique tests PASS, skip0; actual route answered with1 citation in18.680s. Recognition quality unverified.
+- Details: 2026-09-09-evo-visual-tools.md; raw first/second attempts retained privately.

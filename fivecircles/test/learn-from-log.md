@@ -541,3 +541,8 @@ Reference:
 - An external test script needs both source and repo root on PYTHONPATH; loader errors are not exercised product tests. Final unique discovery is recorded.
 - Branch integration does not automatically authorize a new policy tool: visual search scope and180-second VLM timeout differ from120-second Evo episodes.
 - Preserve source uncertainty/nonpromotion semantics and historical test/quality limits. refs: errorlogs/backend/2026-09-09-hotline-vlm-merge-runner.md.
+
+## 2026-09-09 - Preserve virtualenv identity and review semantics
+- Do not Path.resolve a Python executable passed to a child: it can lose virtualenv site-packages. Keep the invocation path and test symlink forwarding.
+- A review label qualifies a model interpretation, whereas uncertainty can forbid its use. Keep both semantics visible; neither execution success nor a correct citation proves recognition accuracy.
+- refs: errorlogs/backend/2026-09-09-evo-visual-runtime.md.

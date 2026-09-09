@@ -51,3 +51,8 @@
 - Evidence:352 unique tests PASS, no failure/error/skip; both doc histories kept, target hotline/Evo source unchanged, synthetic preview desktop/mobile PASS.
 - Boundary: explicit visual API/CLI only, no automatic Evo tool/UI route, no real-model rerun or quality claim. Future scoped/budgeted visual-policy integration remains separate.
 - Review: fivecircles/work/review/review-hotline-vlm-integration-2026-09-09.md.
+
+## 2026-09-09 - HOTLINE.VISUAL.2 solo review
+- APPROVE_WITH_LIMITS: explicit visual policy tools, hard scope and shared deadline; same loaded Qwen pixels and unreviewed image citations.
+- Final378 unique tests PASS; actual final episode visual_search/inspect_image/finish, one citation,18.680s. Initial runtime failure and clarification-only result retained.
+- No independent Critic or semantic-quality PASS. Source index unchanged; single occurrence cannot prove retrieval/recognition performance. refs: ../work/review/review-evo-visual-tools-2026-09-09.md.

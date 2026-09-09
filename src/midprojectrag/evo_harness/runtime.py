@@ -73,6 +73,7 @@ class MLXBackend:
             raise Unsupported("metal_required_no_cpu_fallback")
         mx.set_default_device(mx.gpu)
         self.model, self.processor = load(str(Path(model_dir).resolve()), trust_remote_code=False)
+        self.config = json_object((Path(model_dir)/"config.json").read_text(), maximum=1_048_576)
         self.tokenizer = getattr(self.processor, "tokenizer", self.processor)
         template = getattr(self.tokenizer, "chat_template", None)
         encoded = json.dumps(template, ensure_ascii=False, sort_keys=True)
@@ -109,6 +110,16 @@ class MLXBackend:
         # A late result is returned with usage; the runner performs its post-call
         # deadline check before accepting it.
         return Completion(result.text, int(result.prompt_tokens), int(result.generation_tokens), result.finish_reason)
+
+
+    def inspect_image(self, request, *, remaining):
+        from midprojectrag.stacks.local import visual_qa
+        remaining()
+        if (self.identity.artifact_model != visual_qa.MODEL or self.identity.revision != visual_qa.REVISION
+                or self.identity.backend != "mlx-vlm/0.7.0"):
+            raise Unsupported("visual_model_profile_mismatch")
+        self.calls += 1
+        return visual_qa.infer_loaded(request, self.model, self.processor, self.config, remaining=remaining)
 
 
 def load_hotline_tools(data_dir: Path, artifacts: Path, *, device: str = "mps") -> HotlineTools:

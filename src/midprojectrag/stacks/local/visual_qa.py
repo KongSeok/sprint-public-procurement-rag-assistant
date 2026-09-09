@@ -139,6 +139,24 @@ def infer(request, model_dir, manifest_path):
         raise ValueError("visual_metal_required")
     mx.set_default_device(mx.gpu)
     model, processor = load(str(model_dir), trust_remote_code=False, local_files_only=True)
+    return infer_loaded(request, model, processor, config, image=image, started=started)
+
+
+def infer_loaded(request, model, processor, config, *, remaining=None, image=None, started=None):
+    """Reuse a caller-verified local model; keep actual pixel/schema/token checks."""
+    if not isinstance(request.get("query"), str) or not 1 <= len(request["query"].strip()) <= 4000:
+        raise ValueError("invalid_visual_query")
+    if importlib.metadata.version("mlx-vlm") != "0.7.0" or not config.get("vision_config"):
+        raise ValueError("visual_runtime_or_model_mismatch")
+    if remaining is not None:
+        remaining()
+    started = time.perf_counter() if started is None else started
+    image = decode_crop(request) if image is None else image
+    import mlx.core as mx
+    from mlx_vlm import apply_chat_template, generate, prepare_inputs
+    from mlx_vlm.structured import build_json_schema_logits_processor
+    if not mx.metal.is_available() or str(mx.default_device()) != "Device(gpu, 0)":
+        raise ValueError("visual_metal_required")
     formatted = apply_chat_template(processor, config,
         [{"role": "system", "content": SYSTEM}, {"role": "user", "content": request["query"]}],
         num_images=1, enable_thinking=False)
@@ -149,6 +167,8 @@ def infer(request, model_dir, manifest_path):
     grammar = build_json_schema_logits_processor(tokenizer, SCHEMA)
     setup_seconds = time.perf_counter() - started
     mx.random.seed(0)
+    if remaining is not None:
+        remaining()
     start = time.perf_counter()
     result = generate(model, processor, formatted, image=[image], **inputs,
                       max_tokens=MAX_TOKENS, temperature=0.0, enable_thinking=False,

@@ -298,3 +298,11 @@
 - Provenance: OCR/layout evidence and unreviewed visual inference remain separate. No automatic caption indexing, source-fact promotion, model installation, re-embedding, private-data copying or default UI switch.
 - Historical branch instructions in imported docs are preserved as history; D-025/D-026 and this integration decision govern the hotline checkout. Source branch/worktree and ongoing VM/other jobs are not modified.
 - Verification: same-candidate imported/related tests and hotline/Evo regression plus explicit CLI/coexistence smoke. No new real OCR/VLM quality or independent Critic claim. Details: work/2026-09-09-hotline-vlm-integration.md.
+
+## D-028 - Opt-in visual tools selected by the Evo policy
+
+- Date: 2026-09-09. Latest user explicitly asked to attach and test the imported visual route; solo mode continues.
+- Add visual_search/inspect_image with hard scope, current-episode handles and shared search/read/image/120-second budgets. Reuse pinned Qwen3.5 for policy, pixels and final answer; no separate development agent.
+- Keep text defaults and historical follow-up failure unchanged. VLM output remains unreviewed visual_inference with exact image citation, never automatically promoted to verified source evidence.
+- Actual trial may use existing private OCR index/crop locally under OS network denial; no downloads, re-embedding, model server replacement, training or default UI change. Per-episode120-second bound, failed tests and live outcomes preserved.
+- Contract: architecture/specs/evo-visual-tools.md. Implementation and live acceptance require actual evidence, not a branch merge alone.

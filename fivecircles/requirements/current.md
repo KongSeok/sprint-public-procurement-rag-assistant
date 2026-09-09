@@ -162,3 +162,7 @@ New local serving work is hotline-first, not the recursive Controller/E1 path. F
 ## 14. Qwen3.5-9B policy direction - 2026-09-09 / D-026
 
 The user approved the hotline-based EvoHarness plan with Qwen/Qwen3.5-9B as the new policy and answer model. The first delivery is real prompt-time action selection over search/read/finish and BPE tools, not another rule-based Controller. Historical profiles, source data and evaluation runs stay unchanged. The policy-training roadmap is a scoped extension to the earlier fine-tuning exclusion; actual SFT/GRPO needs isolated compatible runtime, frozen non-leaking data and an explicit resource budget before execution. The canonical technical contract is architecture/specs/evo-harness-qwen35-contract.md. Design is recorded; runtime, live-model and training completion require separate evidence.
+
+## Opt-in policy visual tools - 2026-09-09 / D-028
+
+The hotline Evo policy may select persisted OCR/layout search and actual image inspection when visual artifacts/runtime are explicitly configured. Hard user scope and existing episode deadlines apply to these actions as to text retrieval. Successful image reading is an unreviewed interpretation, not automatically verified source truth. Actual current single-image wiring and a returned citation are distinct from corpus-wide recognition/retrieval quality. Existing text control, model/data artifacts and default UI remain preserved.

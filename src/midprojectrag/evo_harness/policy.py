@@ -8,7 +8,7 @@ import re
 from typing import Protocol
 
 from .state import (Budgets, ContextOverflow, Episode, HarnessError, InvalidAction,
-                    TOOL_GUIDE, exact, ids, json_object, text)
+                    TOOL_GUIDE, VISUAL_TOOL_GUIDE, exact, ids, json_object, text)
 
 MODEL_ID = "Qwen/Qwen3.5-9B"
 DERIVATIVE_ID = "mlx-community/Qwen3.5-9B-4bit"
@@ -107,7 +107,12 @@ class LLMPolicy:
 
     def propose(self, episode: Episode, budgets: Budgets, remaining) -> str:
         payload = episode.observation(budgets)
-        messages = [{"role": "system", "content": POLICY_SYSTEM},
+        system = POLICY_SYSTEM
+        if episode.capabilities:
+            system = system.replace(
+                "An answered finish needs READ evidence. Use read before finish even when search excerpts look sufficient.",
+                "An answered finish needs successfully read text or inspected visual evidence.") + VISUAL_TOOL_GUIDE
+        messages = [{"role": "system", "content": system},
                     {"role": "user", "content": json.dumps(payload, ensure_ascii=False, separators=(",", ":"))}]
         count = checked_count(self.backend, messages)
         if count+budgets.policy_output > budgets.policy_context:
@@ -133,9 +138,19 @@ class AnswerComposer:
     def messages(self, episode: Episode, packet: list[dict], unresolved: list[str]) -> list[dict]:
         sources = [{"label": row["label"], "doc_id": row["doc_id"], "text": row["text"],
                     "locator": row["locator"]} for row in packet]
+        visual_present = False
+        for source, row in zip(sources, packet):
+            if row["source_kind"] == "visual_inference":
+                source.update(source_kind="visual_inference", human_review_required=True, factual_evidence_promoted=False)
+                visual_present = True
         payload = {"question": episode.request["question"], "history": episode.request["history"],
                    "sources": sources, "unresolved": unresolved}
-        return [{"role": "system", "content": ANSWER_SYSTEM},
+        system = ANSWER_SYSTEM
+        if visual_present:
+            system += (" A visual_inference source is an unreviewed model interpretation, NOT verified original text. "
+                       "Clearly qualify image-derived statements as an image reading, and do not strengthen, extend, "
+                       "or remove uncertainty from them. Retain the supplied citation labels.")
+        return [{"role": "system", "content": system},
                 {"role": "user", "content": json.dumps(payload, ensure_ascii=False, separators=(",", ":"))}]
 
     def compose(self, episode: Episode, packet: list[dict], unresolved: list[str],
@@ -179,7 +194,10 @@ class AnswerComposer:
                  "cited_evidence_ids": sorted({eid for row in citations for eid in row["retrieval_seed_evidence_ids"]}),
                  "resolved_entities": [], "list_doc_ids": [],
                  "comparison_doc_ids": cited_docs if len(cited_docs)>1 else []}
-        return {**value, "citation_sources": citations, "unresolved": unresolved, "prior_citation_state": prior,
+        response = {**value, "citation_sources": citations, "unresolved": unresolved, "prior_citation_state": prior,
                 "selected_doc_ids": selected_docs, "cited_doc_ids": cited_docs,
                 "uncited_selected_doc_ids": sorted(set(selected_docs)-set(cited_docs)),
                 "partial": bool(unresolved or set(selected_docs)-set(cited_docs)), "semantic_verified": False}
+        if any(row.get("source_kind") == "visual_inference" for row in citations):
+            response.update(visual_inference_used=True, human_review_required=True, factual_evidence_promoted=False)
+        return response

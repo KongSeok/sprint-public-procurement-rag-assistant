@@ -6,7 +6,7 @@ Latest user request: merge the existing VLM/OCR/retrieval branch into hotline. S
 
 - [x] **HOTLINE.VISUAL.1** Source88a9e62 merged into hotline; OCR/runtime, persisted search and local image QA retained. Both docs histories preserved; hotline/Evo source and known follow-up REPLAN unchanged.
 - [x] **HOTLINE.VISUAL.1.QA** Final352 unique tests PASS, errors/failures/skips0; includes212 baseline tests plus visual/coexistence. Four CLI entrypoints and synthetic desktop/mobile preview PASS. No new real-model/quality run.
-- [ ] **HOTLINE.VISUAL.2** Separate future contract: allow the Evo policy to select visual tools with hard scope and total-budget propagation. Importing a branch is not automatic policy/UI routing.
+- [x] **HOTLINE.VISUAL.2** [IMPLEMENTED / LIVE_WIRING_PASS] Policy selects visual_search/inspect_image/finish. Final378 unique tests PASS; actual KURE+pixels+Qwen answered with1 citation in18.680s,0 invalid actions. Shared120-second budget and unreviewed visual flags retained. Recognition accuracy not established. refs: ../work/2026-09-09-evo-visual-tools.md.
 
 Report: `../work/2026-09-09-hotline-vlm-integration.md`. No raw OCR/crops/vectors/models are copied or tracked. No new real inference is claimed by the merge.
 
@@ -970,3 +970,5 @@ HWP blank-crop incident: `fivecircles/test/errorlogs/backend/2026-08-31-visual-c
 - [x] 실제 Qwen3.5-9B-4bit 이미지 QA 4회. 라벨 읽기 응답·불확실성 기권 확인, 계약·검색 회귀 39개 PASS.
 - [x] private 보존·흐름 보고·로그 업데이트. 전체 corpus/Streamlit/사전 caption 인덱싱은 별도 범위.
 - [ ] 후속 별도 검수: 도식 관계 오독과 질문 범위 밖 불확실성의 과기권 평가. 기본 앱 전환·전체 품질 통과로 해석하지 않는다.
+
+- [ ] **HOTLINE.VISUAL.3** Evaluate multiple images and typed visual questions, recognition/relation errors, combined real text+visual episodes, and UI review-state presentation before default rollout. Preserve golden/training separation.

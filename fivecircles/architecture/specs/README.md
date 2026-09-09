@@ -99,3 +99,5 @@ Do not duplicate or reinterpret that order in specification files.
 - `visual-ocr-index.md`: imported persisted OCR/layout search and local image QA; explicit opt-in APIs, not automatic Evo routing.
 - `local-visual-integration.md`, `visual-retrieval-feature-contract.md`: source design/history retained; current branch authority is D-025/D-026/D-027.
 - Current evidence: `../../work/2026-09-09-hotline-vlm-integration.md`.
+
+- `evo-visual-tools.md`: D-028 opt-in policy-selected OCR search and actual image inspection; shared scope/time/model and unreviewed citation contract.

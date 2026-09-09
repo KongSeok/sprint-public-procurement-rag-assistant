@@ -89,6 +89,8 @@ def exact(value: Any, keys: set[str]) -> dict:
 TOOL_ARGUMENTS = {
     "search": {"query", "doc_ids", "limit"},
     "read": {"evidence_ids"},
+    "visual_search": {"query", "doc_ids", "limit"},
+    "inspect_image": {"evidence_id", "question"},
     "track": {"target"},
     "commit": {"goal_id", "summary", "status", "evidence_ids"},
     "recall": {"query", "limit"},
@@ -113,19 +115,40 @@ Answer every requested document/field or explicitly put missing items in unresol
 Output only JSON, without Markdown, explanation, reasoning, or an answer outside finish."""
 
 
+VISUAL_TOOL_GUIDE = """
+VISUAL CAPABILITY (use only names in available_tools):
+visual_search: query(string), doc_ids(null or allowed document IDs), limit(integer 1..5).
+It searches existing OCR/layout text and returns visual candidate handles, not image understanding.
+inspect_image: evidence_id(ONE visual handle from visual_search), question(string <=2000).
+It reads actual pixels using Qwen3.5 and returns an unreviewed interpretation or abstention.
+For a drawing, figure, screenshot or image-label question use visual_search then inspect_image
+on a returned handle before an answered finish. Ordinary read is for text candidates only.
+finish uses the inspected/read handle; never a document ID or a path. Do not fabricate IDs.
+Uncertain image interpretations are not usable answer evidence. Tools absent from available_tools
+cannot be called. Visual interpretations never become verified source facts.
+human_review_required is an output qualification, NOT a request for missing user information.
+When inspect_image reports usable_in_finish=true and no uncertainties, finish(answered) may cite
+that handle as an explicitly unreviewed image reading. Do not request clarification solely because
+the source has a human-review label. Preserve the label in the final answer; never claim verification.
+"""
+
+
 def action_from_json(raw: str) -> dict:
     value = exact(json_object(raw), {"tool", "arguments"})
     tool = value["tool"]
     if type(tool) is not str or tool not in TOOL_ARGUMENTS:
         raise InvalidAction("unknown_tool")
     arg = exact(value["arguments"], TOOL_ARGUMENTS[tool])
-    if tool in {"search", "recall"}:
-        text(arg["query"], 2000 if tool == "search" else 1000, "invalid_query")
-        cap = 10 if tool == "search" else 3
+    if tool in {"search", "recall", "visual_search"}:
+        text(arg["query"], 1000 if tool == "recall" else 2000, "invalid_query")
+        cap = {"search": 10, "recall": 3, "visual_search": 5}[tool]
         if type(arg["limit"]) is not int or not 1 <= arg["limit"] <= cap:
             raise InvalidAction("invalid_limit")
-        if tool == "search" and arg["doc_ids"] is not None:
+        if tool in {"search", "visual_search"} and arg["doc_ids"] is not None:
             ids(arg["doc_ids"], maximum=1000)
+    if tool == "inspect_image":
+        text(arg["evidence_id"], 256, "invalid_id")
+        text(arg["question"], 2000, "invalid_query")
     if tool in {"read", "commit", "finish"}:
         ids(arg["evidence_ids"], minimum=1 if tool == "read" else 0)
     if tool == "track":
@@ -151,6 +174,7 @@ def action_from_json(raw: str) -> dict:
 
 @dataclass(frozen=True)
 class Budgets:
+    image_calls: int = 2
     policy_calls: int = 12
     search_calls: int = 4
     read_calls: int = 4
@@ -162,7 +186,7 @@ class Budgets:
     seconds: float = 120.0
 
     def __post_init__(self):
-        caps = {"policy_calls": 12, "search_calls": 4, "read_calls": 4,
+        caps = {"image_calls": 2, "policy_calls": 12, "search_calls": 4, "read_calls": 4,
                 "invalid_actions": 2, "policy_context": 4096, "policy_output": 256,
                 "answer_context": 8192, "answer_output": 1024}
         for name, cap in caps.items():
@@ -177,6 +201,11 @@ class Budgets:
 
 @dataclass
 class Usage:
+    visual_search_calls: int = 0
+    image_calls: int = 0
+    visual_input_tokens: int = 0
+    visual_output_tokens: int = 0
+    visual_usage_complete: bool = True
     policy_calls: int = 0
     search_calls: int = 0
     read_calls: int = 0
@@ -197,6 +226,8 @@ class Episode:
     profile_key: tuple[str, ...]
     max_citations: int = 6
     candidates: dict[str, dict] = field(default_factory=dict)
+    visual_hits: dict[str, dict] = field(default_factory=dict)
+    capabilities: tuple[str, ...] = ()
     handles: dict[str, str] = field(default_factory=dict)
     windows: dict[str, dict] = field(default_factory=dict)
     goals: dict[str, dict] = field(default_factory=dict)
@@ -224,7 +255,7 @@ class Episode:
     def observation(self, budget: Budgets) -> dict:
         # Keep memory bounded by actual tool budgets. If it still exceeds context,
         # the policy adapter reports overflow; it never silently drops a document.
-        return {"question": self.request["question"], "history": self.request["history"],
+        view = {"question": self.request["question"], "history": self.request["history"],
                 "scope_doc_ids": None if self.scope is None else sorted(self.scope),
                 "catalog": list(self.catalog[:12]) if self.scope is None else list(self.catalog),
                 "catalog_total": len(self.catalog),
@@ -238,3 +269,13 @@ class Episode:
                 "remaining": {"policy": budget.policy_calls-self.usage.policy_calls,
                               "search": budget.search_calls-self.usage.search_calls,
                               "read": budget.read_calls-self.usage.read_calls}}
+        if self.capabilities:
+            view["available_tools"] = list(self.capabilities)
+            view["remaining"]["image"] = budget.image_calls-self.usage.image_calls
+            for item, value in zip(view["known_evidence"], self.candidates.values()):
+                item["kind"] = value.get("kind", "text")
+            for item, value in zip(view["read_evidence"], self.windows.values()):
+                item["source_kind"] = value["source_kind"]
+                if value["source_kind"] == "visual_inference":
+                    item.update(human_review_required=True, factual_evidence_promoted=False)
+        return view

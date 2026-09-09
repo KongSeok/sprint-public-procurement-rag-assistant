@@ -160,16 +160,23 @@ def load(*, index_dir, private_root, crop_root):
     return VisualExactDenseIndex(chunks, vectors), bound, metadata
 
 
-def search(*, index_dir, private_root, crop_root, provider, query, top_k=5):
+def search(*, index_dir, private_root, crop_root, provider, query, top_k=5, allowed_doc_ids=None):
     if not isinstance(query, str) or not query.strip() or len(query) > 4000:
         raise ValueError("invalid_visual_query")
     if type(top_k) is not int or not 1 <= top_k <= 100:
         raise ValueError("invalid_top_k")
+    if allowed_doc_ids is not None and (type(allowed_doc_ids) not in (set, frozenset)
+            or any(type(key) is not str or not key for key in allowed_doc_ids)):
+        raise ValueError("invalid_visual_scope")
     _provider_identity(provider)
     index, bound, metadata = load(index_dir=index_dir, private_root=private_root, crop_root=crop_root)
+    if allowed_doc_ids is not None and not any(c["doc_id"] in allowed_doc_ids for c in index.chunks):
+        return {"schema_version": "visual-ocr-query-v1", "query": query, "hits": [],
+                "seconds": 0.0, "input_tokens": 0, "indexed_chunks": metadata["chunk_count"],
+                "scope_doc_ids": sorted(allowed_doc_ids), "meaning": "No indexed rows in requested scope"}
     started = time.perf_counter()
     batch = provider.embed([query])
-    ranked = index.search(batch.vectors[0], top_k=len(index.chunks))
+    ranked = index.search(batch.vectors[0], top_k=len(index.chunks), allowed_doc_ids=allowed_doc_ids)
     hits, seen = [], set()
     for hit in ranked:
         chunk = hit.chunk

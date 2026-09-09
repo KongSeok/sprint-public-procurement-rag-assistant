@@ -136,3 +136,7 @@ Mode: **solo**, explicitly requested by the user on 2026-09-09. The current assi
 ## 14. Actual model evidence - 2026-09-09
 
 The published prompt-time runtime completed a real-Qwen two-source comparison and the same-model fixed control over synthetic documents. Explicit Korean follow-up failed; two proposed prompt/observation clarifications were tested and rejected, with their edits restored to the original behavior. They are not active contract changes. See `../../work/2026-09-09-evo35-live-report.md`. Actual model load is no longer blocked; reliable follow-up, real RFP quality and learned policy remain unproven. No training or guard relaxation is authorized by these results.
+
+## 15. Opt-in visual tool extension - D-028
+
+The user's follow-up authorizes the imported visual functions as policy-selectable actions. See `evo-visual-tools.md`. The original text-only seven-action runtime remains valid; enabling the capability adds visual_search/inspect_image with hard document scope, shared120-second/search/read budgets, image cap2 and same loaded Qwen reuse. Image-derived windows and final citation outputs retain visual_inference/human_review_required/nonpromotion. This does not assert recognition correctness, fix earlier follow-up failures, train a policy or change the default UI.
