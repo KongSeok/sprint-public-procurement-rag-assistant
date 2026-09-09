@@ -1137,3 +1137,12 @@ This file summarizes recent updates so other agents can continue without re‑di
 - Focused95/shared117 PASS, skip0; browser flow images2/overflow0/errors0 at desktop/mobile. No full-suite claim.
 ### Boundary
 - No external agents or live Qwen calls. EVO35.2 artifact tool preflight blocked; SFT/GRPO and UI not complete.
+
+## Addendum (2026-09-09) - EVO35 actual Qwen smoke
+### Runtime
+- Real Qwen3.5 comparison PASS11.085s; same-model fixed PASS5.918s. Synthetic documents/lanes, not RFP ranking quality.
+- Korean follow-up failed; two repair candidates also failed and were reverted. refs: 2026-09-09-evo35-live-report.md.
+### Tests
+- Restored212 regression PASS/skip0. Five live episodes: policy10/answer2; no training, model download or service changes.
+### Relay
+- Solo; next=follow-up policy REPLAN, not artifact access. Publish factual evidence only; no implementation-complete claim.

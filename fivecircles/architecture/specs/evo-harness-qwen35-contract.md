@@ -3,7 +3,7 @@
 Contract ID: `evo-hotline-qwen35-v1`
 Decision: D-026, explicit user direction on 2026-09-09.
 Target branch: `feat/hotline-runtime`; inspected base: `2be2f4619b67bae89b6e2d522f42e9bb19ec9f95`.
-Status: EVO35.1_IMPLEMENTED_SCOPED_TESTED / EVO35.2_BLOCKED_TOOL_PREFLIGHT. This contract is not live-model or training evidence.
+Status: EVO35.1_IMPLEMENTED_SCOPED_TESTED / EVO35.2_LIVE_COMPARISON_PASS_FOLLOWUP_REPLAN. This contract is not live-model or training evidence.
 
 ## 1. Goal and authority
 
@@ -132,3 +132,7 @@ Mode: **solo**, explicitly requested by the user on 2026-09-09. The current assi
 - Canonical full evidence IDs remain in server state/output; short episode-local handles may be used in model observations/actions and resolved before tools run. They are not authority tokens and have no cross-episode meaning.
 - Unknown metadata filters or runtime options fail as unsupported rather than being silently ignored. Full policy inputs are recounted before every call; overflow is explicit and never hides selected evidence.
 - Real local-model smoke is a separately recorded EVO35.2 cycle with synthetic documents only and the existing <=120-second worker budget. No private corpus inference, downloads or environment upgrades in EVO35.1.
+
+## 14. Actual model evidence - 2026-09-09
+
+The published prompt-time runtime completed a real-Qwen two-source comparison and the same-model fixed control over synthetic documents. Explicit Korean follow-up failed; two proposed prompt/observation clarifications were tested and rejected, with their edits restored to the original behavior. They are not active contract changes. See `../../work/2026-09-09-evo35-live-report.md`. Actual model load is no longer blocked; reliable follow-up, real RFP quality and learned policy remain unproven. No training or guard relaxation is authorized by these results.

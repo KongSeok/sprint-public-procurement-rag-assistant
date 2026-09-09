@@ -7,12 +7,12 @@ The user approved the EvoHarness-on-hotline plan with Qwen3.5-9B. This section o
 - [x] **EVO35.0** Fix the Qwen3.5 model/architecture/tool/budget contract and relay form; explicit latest user instruction selects solo.
 <a id="evo35-1"></a>
 - [x] **EVO35.1 / HOTLINE.3** [IMPLEMENTED_SCOPED_TESTED_SOLO] Public hotline tools, multi-evidence BPE and Qwen3.5 policy/runner/CLI implemented. Focused95 + related117 = 212 PASS, solo review and browser flow QA. Real-model behavior and training are not proven by these tests.
-- [ ] **EVO35.2** [BLOCKED_TOOL_PREFLIGHT] Model-artifact metadata/runtime inspection request was blocked before execution. No application-model calls in the continuation; no bypass, download or shared-service change. Resume with permitted preflight, then <=120-second synthetic-document smoke.
+- [ ] **EVO35.2** [LIVE_COMPARISON_PASS / FOLLOWUP_REPLAN] Actual Qwen comparison and fixed reference succeeded. Korean follow-up failed on the original and two rejected repair candidates. Code restored; 212 regression PASS. See ../work/2026-09-09-evo35-live-report.md.
 - [ ] **EVO35.3** Separate trajectory split and isolated SFT stage; validate actual model/resource compatibility before training.
 - [ ] **EVO35.4** Reduced GRPO and reviewed experience consolidation after a valid SFT/reward/split baseline.
 - [ ] **EVO35.5 / HOTLINE.4** Frozen support-matrix evaluation and application/UI integration; missing specialists remain explicit.
 
-Contract: `specs/evo-harness-qwen35-contract.md`. Active closeout: `../work/2026-09-09-evo35-solo-delivery.md`. Relay: solo / STOP_WITH_REASON at EVO35.2 artifact preflight. Training requires the later data/split/environment/resource gates. Do not resume the retired Controller queue.
+Contract: `specs/evo-harness-qwen35-contract.md`. Active closeout: `../work/2026-09-09-evo35-live-report.md`. Relay: solo / STOP_WITH_REASON at EVO35.2.FOLLOWUP redesign, not model preflight. Training requires the later data/split/environment/resource gates. Do not resume the retired Controller queue.
 
 ## Active queue - HOTLINE.2 (2026-09-09, D-025)
 
@@ -926,3 +926,10 @@ HWP blank-crop incident: `fivecircles/test/errorlogs/backend/2026-08-31-visual-c
 - 통합 승인: 검증된 스킬과 이번 기록만 현재 브랜치에 커밋하고 같은 이름의 원격 브랜치로 푸시한다. 실제 결과는 Git 영수증으로 확인한다.
 - 범위 제외: 제품 코드, 데이터, 기존 미커밋 변경.
 - 근거: `fivecircles/work/2026-09-07-collaboration-skill-sync.md`.
+
+### EVO35.2 live repair - 2026-09-09
+- [ ] **EVO35.2.PRECONDITIONS** [REJECTED_AND_REVERTED] Two generic observation/prompt candidates passed code tests but failed live follow-up. Patches/tests kept only as private diagnostic evidence; active runtime unchanged.
+
+- [x] **EVO35.2.COMPARE** Real Qwen3.5 comparison: correct two-source response, 11.085s total, policy4/answer1. Scoped synthetic proof only.
+- [x] **EVO35.2.FIXED** Same-model fixed reference: same answer, 5.918s total, policy0/answer1. Single-run reference, not a latency distribution.
+- [ ] **EVO35.2.FOLLOWUP** [REPLAN] Reliable episode-local tool use after explicit history. Preserve all three failed runs; do not launch another blind prompt retry or call training complete.

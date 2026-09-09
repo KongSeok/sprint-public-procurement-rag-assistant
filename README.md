@@ -181,7 +181,7 @@ bare `python`은 Miniconda 등 다른 환경을 선택할 수 있습니다. `-t 
 
 `midprojectrag.evo_harness`는 고정 핫라인 위에 **프롬프트 기반 다음 행동 선택**을 추가한 별도 경로입니다. 정책은 `search/read/finish`와 `track/commit/recall/note`를 선택하며, 기존 Controller 실행 이력 검증을 사용하지 않습니다. 여러 실제 본문 window를 `S1..Sn`으로 연결하고 질문별 상태·캐시·예산을 분리합니다.
 
-모델 프로필은 `Qwen/Qwen3.5-9B`이며 Mac 실행 어댑터는 명시적으로 고정한 `mlx-community/Qwen3.5-9B-4bit` 변환본을 사용합니다. 기존 핫라인 모델·VM·골든셋은 변경하지 않습니다. **SFT/GRPO 학습은 아직 수행하지 않았으며 실제 모델 smoke도 도구 사전 확인 차단으로 미검증**입니다. 212개 모델 없는 집중·관련 테스트와 별도 보고서 브라우저 렌더만 통과했습니다.
+모델 프로필은 `Qwen/Qwen3.5-9B`이며 Mac 실행 어댑터는 명시적으로 고정한 `mlx-community/Qwen3.5-9B-4bit` 변환본을 사용합니다. 기존 핫라인 모델·VM·골든셋은 변경하지 않습니다. **SFT/GRPO 학습은 수행하지 않았습니다. 실제 Qwen의 합성 두 문서 비교는 통과했지만 한국어 후속 질문은 실패해 재설계 상태입니다.** 두 수리 후보는 실제 효과를 입증하지 못해 원복했고 기준 코드212개 테스트를 다시 통과했습니다. 상세 결과: `fivecircles/work/2026-09-09-evo35-live-report.md`.
 
 다음은 실행 예시이며 이번 릴레이에서 실제 모델을 실행한 기록이 아닙니다. `MLX_PYTHON`은 이미 준비된 MLX 환경의 Python, `MODEL_DIR`/`MODEL_MANIFEST`는 검증된 로컬 가중치와 파일 manifest, `DATA_DIR`는 private 출력 루트가 있는 데이터 경로입니다. 자동 설치·다운로드는 하지 않습니다.
 

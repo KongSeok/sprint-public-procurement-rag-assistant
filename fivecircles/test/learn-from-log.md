@@ -518,3 +518,7 @@ Reference:
 - Fixed-control and policy paths must reject the same nonfinite deadlines before dispatch; timings and synthetic labels stay explicit.
 - A model-artifact tool denial is not evidence of model/hardware failure. Preserve it; do not report live-model or training PASS.
 - refs: errorlogs/backend/2026-09-09-evo35-solo-delivery.md.
+
+## 2026-09-09 - Live policy tests versus scripted backends
+- A passed scripted follow-up does not prove actual-model tool selection. Historical and current evidence IDs can confuse the policy even with explicit instructions.
+- Keep scope/JSON guards and failed trajectories; reject prompt-only candidates that fail the real target and restore only owned edits. refs: errorlogs/backend/2026-09-09-evo35-live-followup.md.

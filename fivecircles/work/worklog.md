@@ -223,3 +223,9 @@
 - Inspected the interrupted solo draft, added delivery tests and repaired deadline/timing/synthetic-label gaps; final212 selected tests PASS.
 - Current/target Mermaid, PNG, HTML and Chrome/Puppeteer desktop/mobile checks complete. Flow remains GAP/PARTIAL for live model and learning.
 - Next EVO35.2 preflight selected and blocked by tool; no bypass, real-model execution, training or service modification. See solo-delivery report.
+
+## 2026-09-09 - EVO35.2 solo live-model closeout
+- Latest user explicitly authorized solo relay execution. Existing pinned Qwen3.5 actually ran on Metal with a120-second per-worker budget.
+- Original comparison and fixed-reference answers matched both synthetic documents; three Korean follow-up variants failed safely. Actual policy10/answer2 calls; no private corpus inference or training.
+- Two generic prompt/observation repair candidates passed local tests but did not solve live behavior. Rejected edits and tests archived, product sources restored exactly,212 regression tests passed.
+- Updated target/current evidence, queue and errors; overall GAP/PARTIAL. Next follow-up requires REPLAN, later SFT requires frozen data/environment/resource scope. No external agents or background jobs.
