@@ -173,12 +173,21 @@ class SFTAndRewardTests(unittest.TestCase):
 
 
 class TrainingCLITests(unittest.TestCase):
+    def test_sft_preflight_requires_matching_base_identity_receipt(self):
+        root=Path(__file__).resolve().parents[1]
+        receipt=root/"resources/data_refined/private/training/evo35-3e-20260910/base-identity-receipt.json"
+        done=subprocess.run([sys.executable,str(root/"scripts/train_harness_sft.py"),"--config",str(root/"configs/training/evo35-sft-v1.json"),"--base-identity-receipt",str(receipt),"--preflight"],cwd=root,env={**dict(__import__("os").environ),"PYTHONPATH":str(root/"src")},text=True,capture_output=True,timeout=20)
+        self.assertIn(done.returncode,(0,2),done.stderr)
+        payload=json.loads(done.stdout)
+        self.assertNotIn("base_model_revision_unfrozen",payload["blockers"])
+        self.assertNotIn("base_identity_receipt_missing",payload["blockers"])
+
     def test_serving_environment_sft_preflight_does_not_train(self):
         root=Path(__file__).resolve().parents[1]
         done=subprocess.run([sys.executable,str(root/"scripts/train_harness_sft.py"),"--config",str(root/"configs/training/evo35-sft-v1.json"),"--preflight"],cwd=root,env={**dict(__import__("os").environ),"PYTHONPATH":str(root/"src")},text=True,capture_output=True,timeout=20)
         self.assertIn(done.returncode,(0,2),done.stderr)
         payload=json.loads(done.stdout);self.assertFalse(payload["ready"])
-        self.assertIn("base_model_revision_unfrozen",payload["blockers"])
+        self.assertIn("base_identity_receipt_missing",payload["blockers"])
         self.assertNotIn("completed",payload)
 
 

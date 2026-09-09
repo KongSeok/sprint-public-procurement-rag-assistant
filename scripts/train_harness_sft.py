@@ -30,12 +30,18 @@ def main(argv=None):
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config",type=Path,required=True);parser.add_argument("--train-data",type=Path)
     parser.add_argument("--dev-data",type=Path);parser.add_argument("--model-path",type=Path);parser.add_argument("--output-dir",type=Path)
-    parser.add_argument("--backend-receipt",type=Path);parser.add_argument("--preflight",action="store_true")
-    args=parser.parse_args(argv);config=_config(args.config);env=training_environment_preflight(mode=config["mode"]);backend_receipt=None
+    parser.add_argument("--backend-receipt",type=Path);parser.add_argument("--base-identity-receipt",type=Path);parser.add_argument("--preflight",action="store_true")
+    args=parser.parse_args(argv);config=_config(args.config);env=training_environment_preflight(mode=config["mode"]);backend_receipt=None;base_identity=None
     if args.backend_receipt:
         backend_receipt=json.loads(args.backend_receipt.read_text(encoding="utf-8"))
     reasons=_blockers(config,env,backend_receipt)
-    receipt={"schema_version":"evo-sft-preflight-v1","environment":env,"config_sha256":sha256_file(args.config),"backend_receipt_sha256":sha256_file(args.backend_receipt) if args.backend_receipt else None,"blockers":reasons,"ready":not reasons}
+    if args.base_identity_receipt:
+        base_identity=json.loads(args.base_identity_receipt.read_text(encoding="utf-8"))
+        if not isinstance(base_identity,dict) or base_identity.get("schema_version")!="evo-sft-base-identity-v1" or base_identity.get("model_id")!=config["model_id"] or base_identity.get("revision")!=config["base_model_revision"]: reasons.append("sft_base_identity_mismatch")
+    else:
+        reasons.append("base_identity_receipt_missing")
+    reasons=sorted(set(reasons))
+    receipt={"schema_version":"evo-sft-preflight-v1","environment":env,"config_sha256":sha256_file(args.config),"backend_receipt_sha256":sha256_file(args.backend_receipt) if args.backend_receipt else None,"base_identity_receipt_sha256":sha256_file(args.base_identity_receipt) if args.base_identity_receipt else None,"blockers":reasons,"ready":not reasons}
     if args.preflight:
         print(canonical_json(receipt));return 0 if not reasons else 2
     if reasons: raise RuntimeError("isolated_training_environment_required:"+",".join(reasons))
