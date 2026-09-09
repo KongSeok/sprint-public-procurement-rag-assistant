@@ -130,7 +130,7 @@ def run_teacher_case(case:Mapping[str,Any],target:Mapping[str,Any],*,tools,count
             candidates=list((obs or {}).get("candidates",[]))
             ranked=sorted(enumerate(candidates),key=lambda pair:(-_candidate_score(target,pair[1]),pair[0]))
             if ranked:
-                top_score=_candidate_score(target,ranked[0][1]);read_cap=1 if top_score>0 else 2
+                top_score=_candidate_score(target,ranked[0][1]);read_cap=2 if len(scope)>1 else (1 if top_score>0 else 2)
                 for _,candidate in ranked[:min(read_cap,budget.read_calls-episode.usage.read_calls)]:
                     read={"tool":"read","arguments":{"evidence_ids":[candidate["id"]]}}
                     _action(policy,backend,episode,tools,budget,experience,events,read,remaining)

@@ -45,6 +45,6 @@ class TeacherTests(unittest.TestCase):
     def test_abstain_is_direct_valid_finish(self):
         backend=FakeBackend();c=case("a","abstain","Unknown scoped fact?",["alpha"])
         r=run_teacher_case(c,target("a","abstain",{"reason":"out_of_scope"},status="abstained"),tools=synthetic_tools(),count_backend=backend)
-        self.assertEqual(r["status"],"abstained");self.assertEqual([a["tool"] for a in r["actions"]],["finish"])
+        self.assertEqual(r["status"],"abstained");self.assertTrue(r["teacher_validation"]["success"]);self.assertEqual([a["tool"] for a in r["actions"]],["finish"])
 
 if __name__=="__main__":unittest.main()
