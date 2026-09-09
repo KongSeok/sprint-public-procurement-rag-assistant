@@ -1,0 +1,81 @@
+{
+  "schema_version": "1.0",
+  "run_id": "evo35-hotline-20260909",
+  "batch_id": "EVO35.2",
+  "phase": "BLOCKED",
+  "lifecycle_substage": "artifact_preflight",
+  "execution_mode": "solo",
+  "mode_source": "Explicit user: do it yourself instead of calling agents; relay-shot again",
+  "branch": "feat/hotline-runtime",
+  "base_commit": "2be2f4619b67bae89b6e2d522f42e9bb19ec9f95",
+  "application_model": "Qwen/Qwen3.5-9B",
+  "active_directive_id": "evo35-directive-001",
+  "directive_delivery": "SUPERSEDED_BY_SOLO_ACCEPTANCE",
+  "contract_id": "evo-hotline-qwen35-v1",
+  "candidate_id": "evo35-1-solo-212",
+  "test_evidence_id": "evo35-solo-20260909-continue",
+  "last_pass_candidate_id": "evo35-1-solo-212",
+  "roles": {
+    "main": {
+      "model": "GPT-6 Astra Pro",
+      "execution": "solo_design_implementation_tests_self_review",
+      "independent_review": false
+    }
+  },
+  "capability_probe": {
+    "cli_version": "0.142.5",
+    "thread_id": "01a08458-34ff-7552-b617-a1d27a06effe",
+    "sandbox": "read-only",
+    "ephemeral": true,
+    "tools_requested": false,
+    "server_status": 400,
+    "outcome": "turn.failed",
+    "native_exit_code": null,
+    "reason": "The 'gpt-5.6-sol' model requires a newer version of Codex. Please upgrade to the latest app or CLI and try again.",
+    "raw_events_ref": "resources/data_refined/private/diagnostics/evo35-relay-20260909/coder-capability.events.jsonl",
+    "raw_stderr_ref": "resources/data_refined/private/diagnostics/evo35-relay-20260909/coder-capability.stderr"
+  },
+  "waiting_for": "Permitted model-artifact preflight; not Coder delegation",
+  "resume_point": "EVO35.2 existing-model identity preflight then bounded synthetic-document smoke",
+  "continuation": "STOP_WITH_REASON",
+  "closeout_ref": "fivecircles/work/2026-09-09-evo35-solo-delivery.md",
+  "integration_receipt_ref": "resources/data_refined/private/diagnostics/evo35-solo-20260909-continue/publication-receipt.json",
+  "flow_verification": "GAP/PARTIAL",
+  "product_implementation_started": true,
+  "product_tests_run": true,
+  "application_model_calls": 0,
+  "training_runs": 0,
+  "commit_push": "SEE_POST_COMMIT_RECEIPT",
+  "background_work": "NONE",
+  "previous_mode": "philosopher-coder",
+  "solo_started_at": "2026-09-09T13:19:20+09:00",
+  "historical_delegation_roles": {
+    "design": {
+      "agent_id": null,
+      "model": "GPT-6 Astra Pro",
+      "effort": null,
+      "execution": "current_session_design_only"
+    },
+    "coder": {
+      "agent_id": null,
+      "model": null,
+      "effort": null,
+      "requested_model": "gpt-5.6-sol",
+      "requested_effort": "ultra",
+      "execution": "CAPABILITY_PROBE_REJECTED_BEFORE_IMPLEMENTATION"
+    },
+    "critic": {
+      "agent_id": null,
+      "model": null,
+      "effort": null,
+      "requested_model": "gpt-6-astra",
+      "execution": "NOT_DISPATCHED_NO_CANDIDATE"
+    }
+  },
+  "completed_batches": [
+    "EVO35.0",
+    "EVO35.1"
+  ],
+  "tests_passed": 212,
+  "candidate_source_ref": "resources/data_refined/private/diagnostics/evo35-solo-20260909-continue/candidate-source.sha256"
+}

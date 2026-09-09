@@ -1,0 +1,23 @@
+flowchart TD
+  A["Allowlisted request / scope / explicit follow-up"] --> E["Episode: candidates, windows, goals, local cache"]
+  E --> P["LLMPolicy adapter / Qwen3.5-9B profile"]
+  P --> D["12 policy / 4 search / 4 read / 1 answer maximum"]
+  D --> T["Public HybridChildRetriever / EvidenceStore"]
+  D --> B["Seven action types + reviewed Experience / notes buffer"]
+  T --> O["Scoped candidates and actual parent windows"]
+  B --> O
+  O --> P
+  D --> F["Multiple evidence packet / whole-window budget check"]
+  F --> G["AnswerComposer / citation mapping / explicit partial state"]
+  C["Fixed control: same tools/model, no policy calls"] --> T
+  P -.-> L["GAP: real-model artifact preflight blocked by tool"]
+  G --> V["212 model-free tests passed / no retired Controller calls"]
+  V -.-> R["GAP: real Qwen smoke, training data, SFT/GRPO and UI"]
+  classDef green fill:#e8f2ea,stroke:#bdd1c2,color:#1f2933
+  classDef amber fill:#fff4dc,stroke:#e7c88f,color:#1f2933
+  classDef red fill:#fde9e6,stroke:#e8bab5,color:#1f2933
+  classDef gray fill:#eef1ed,stroke:#d8e0da,color:#1f2933
+  class A,E,D,T,B,O,F,G,V green
+  class P amber
+  class L,R red
+  class C gray

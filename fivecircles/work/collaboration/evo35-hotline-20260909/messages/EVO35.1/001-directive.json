@@ -1,0 +1,96 @@
+{
+  "schema_version": "1.0",
+  "run_id": "evo35-hotline-20260909",
+  "batch_id": "EVO35.1",
+  "message_id": "evo35-directive-001",
+  "in_reply_to": null,
+  "sender": "PHILOSOPHER",
+  "kind": "DIRECTIVE",
+  "body": {
+    "mode": "DESIGN",
+    "contract_id": "evo-hotline-qwen35-v1",
+    "objective": "Build the first usable Qwen3.5-9B prompt-time BPE policy over hotline search/read/answer tools, without restoring the retired recursive Controller.",
+    "direction_assessment": {
+      "target": "One Qwen3.5 policy selects search/read/finish and track/commit/recall/note; a small bounded dispatcher executes public hotline functions.",
+      "current": "Published fixed hotline at 2be2f46, fact-only/single-parent and historical generator; no BPE policy implementation.",
+      "gap": "Reusable tool boundary, multi-evidence packet, lightweight BPE and actual policy adapter/loop.",
+      "selection_reason": "Explicit user approval of the proposed plan with only the application model changed to Qwen3.5-9B; highest upstream gap, score 9."
+    },
+    "selected_task_ref": "fivecircles/architecture/todolist.md#evo35-1",
+    "scope": {
+      "allowed_files": [
+        "src/midprojectrag/evo_harness/__init__.py",
+        "src/midprojectrag/evo_harness/state.py",
+        "src/midprojectrag/evo_harness/tools.py",
+        "src/midprojectrag/evo_harness/policy.py",
+        "src/midprojectrag/evo_harness/runner.py",
+        "src/midprojectrag/evo_harness/experience.py",
+        "src/midprojectrag/evo_harness/runtime.py",
+        "src/midprojectrag/hotline.py (additive extraction seams only; historical behavior preserved)",
+        "configs/rag/evo-hotline-qwen35-v1.json",
+        "tests/test_evo_harness_state.py",
+        "tests/test_evo_harness_tools.py",
+        "tests/test_evo_harness_policy.py",
+        "tests/test_evo_harness_runner.py",
+        "tests/test_evo_harness_runtime.py",
+        "scripts/run_evo_hotline.py"
+      ],
+      "prohibited_actions": [
+        "Changing requirements/specifications/TODO or this accepted directive without a QUESTION",
+        "Restoring Controller decision/ledger/claim/retained-transition execution",
+        "Adding a new receipt authority or recursive graph validation framework",
+        "Editing orchestration/execution_contracts.py or shared retrieval algorithms",
+        "Changing historical fixed-control behavior or evaluation assets",
+        "Modifying other worktrees, shared VM services, model servers, credentials or model caches",
+        "Running real models, downloading weights, installing packages or starting SFT/GRPO in this model-free implementation batch",
+        "Transmitting private corpus, questions, answers or source text to external providers",
+        "Silently substituting application or collaboration models",
+        "Committing, pushing, spawning another relay, or updating main-owned state.json"
+      ]
+    },
+    "acceptance_criteria": [
+      "New profile uses canonical Qwen/Qwen3.5-9B for policy and answer, not Qwen3-8B, Qwen3.8-27B or Qwen3.5-9B-Base; real model/tokenizer identity is required before real inference.",
+      "Policy selects a single JSON action from actual observations; do not hard-code the dense/lexical/fusion sequence as policy decisions.",
+      "Public search performs dense+lexical+RRF once; read returns known scoped evidence windows; final composition supports S1..Sn and correct text locators.",
+      "BPE is lightweight episode state. commit does not create semantic truth or permission; note remains quarantined and Experience stays fixed within an episode.",
+      "Observe different next actions for different synthetic tool observations and a comparison that revisits only the missing document field.",
+      "Hard scope never widens, empty explicit scope never becomes all, unknown IDs/read-before-search are rejected, explicit history remains input and gold fields are rejected.",
+      "Call trace through a complete synthetic public-tool episode observes zero retired Controller execution/decision/history-reader calls.",
+      "Use actual-template token counting through an injected backend; full messages/tools count against 4096 policy and 8192 answer windows with output reserves. No fake count or silent whole-document loss.",
+      "Policy attempts <=12, search dispatches <=4, read dispatches <=4, invalid actions <=2, final generation attempts <=1, total worker <=120-second nominal budget. Error and duplicate behavior matches contract.",
+      "No automatic model retry, global PASS cache, background task or fake live/semantic/training PASS. Return a fixed candidate and actual test evidence for fresh review."
+    ],
+    "required_tests": [
+      "New state/tool/policy/runner tests: happy path, state-dependent decisions, missing-field comparison, explicit follow-up, abstention/clarification, scope and gold rejection.",
+      "Strict JSON duplicate/unknown-key/type/NaN validation; known evidence and locator checks; real tokenizer-count adapter contract with a deterministic test double; context overflow and omitted evidence feedback.",
+      "Episode isolation, reviewed Experience immutability, note quarantine, duplicate search/read reuse without cached-error-as-empty behavior.",
+      "Deadline before/after calls, exhausted budget, invalid action limit, policy-vs-answer usage accounting, exactly one final-generation attempt, complete synthetic CLI and no Controller calls.",
+      "Existing tests.test_controller_quick_qa and tests.test_hotline_runtime; inspect/select relevant existing runtime/retrieval/fusion/scope/public-parent regression rather than inventing module names or counts.",
+      "Syntax/import/CLI smoke and scoped git diff check. No network/model download in tests; no claim of full-release or live-quality completion."
+    ],
+    "constraints": [
+      "Work only in the confirmed MidProjectRAG-hotline worktree on feat/hotline-runtime; preserve concurrent changes.",
+      "Application model change does not change collaboration roles: requested Coder gpt-5.6-sol with ultra; fresh Critic gpt-6-astra.",
+      "Use the existing project Python 3.12 interpreter with PYTHONPATH=src and PYTHONDONTWRITEBYTECODE=1; do not upgrade the shared runtime.",
+      "Implement small slices sequentially under this one delivery batch. If a public API mismatch or unavailable backend blocks a concrete action, return a QUESTION with code evidence and options.",
+      "The local Qwen3.5 MLX derivative mentioned in the contract is a separately pinned candidate, not proof that it is loaded in this worktree.",
+      "Read local one-go/batch-sequential-runner/test-runner skills as appropriate. Main coordinates logs, flow report and integration only after valid review.",
+      "This directive is PREPARED_NOT_DISPATCHED while the Codex version blocks the requested Coder. Do not mark work started from file creation alone."
+    ],
+    "source_refs": [
+      "fivecircles/requirements/decisions.md#d-026",
+      "fivecircles/requirements/current.md",
+      "fivecircles/architecture/specs/evo-harness-qwen35-contract.md",
+      "fivecircles/architecture/specs/hotline-runtime.md",
+      "fivecircles/architecture/todolist.md",
+      "fivecircles/work/2026-09-09-evo35-relay.md",
+      "fivecircles/agent/skills/relay-shot/SKILL.md",
+      "fivecircles/agent/skills/collaboration/SKILL.md",
+      "fivecircles/agent/skills/collaboration/references/relay-cycle.md",
+      "src/midprojectrag/hotline.py",
+      "https://arxiv.org/html/2608.05446v1",
+      "https://huggingface.co/Qwen/Qwen3.5-9B"
+    ],
+    "resolution": null
+  }
+}

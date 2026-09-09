@@ -1120,3 +1120,20 @@ This file summarizes recent updates so other agents can continue without re‑di
 - Exact checkout: focused30/shared82/fusion35 PASS, nine import checks and CLI help PASS; no real model or full-suite claim.
 ### Publication
 - Existing phone-pattern hits classified as SHA-256 substrings; scanner/evidence unchanged. Detail: hotline-runtime-migration report.
+
+## Addendum (2026-09-09) - EVO35 contract and relay start
+### Design
+- D-026 fixes Qwen3.5-9B policy/answer and a light BPE loop over hotline tools; old Controller remains retired.
+- Contract, TODO and full EVO35.1 directive saved. Refs: 2026-09-09-evo35-relay.md.
+### Execution
+- Sol Ultra probe rejected by Codex version; implementation not dispatched. STOP_WITH_REASON, no model substitution.
+- No product/live-model tests, training, commit or push. Refs: ../test/errorlogs/backend/2026-09-09-evo35-coder-version.md.
+
+## Addendum (2026-09-09) - EVO35 solo implementation
+### Backend
+- Qwen3.5 prompt-policy/BPE/public hotline tools and multi-evidence CLI implemented; old Controller/control unchanged.
+- Fixed deadline parity, role timings and synthetic reporting. refs: 2026-09-09-evo35-solo-delivery.md.
+### Tests
+- Focused95/shared117 PASS, skip0; browser flow images2/overflow0/errors0 at desktop/mobile. No full-suite claim.
+### Boundary
+- No external agents or live Qwen calls. EVO35.2 artifact tool preflight blocked; SFT/GRPO and UI not complete.

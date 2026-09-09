@@ -19,6 +19,7 @@ Do not duplicate or reinterpret that order in specification files.
 
 ## Spec Inventory
 
+- `evo-harness-qwen35-contract.md`: D-026, Qwen3.5-9B prompt-time BPE policy over hotline tools; SFT/GRPO roadmap and bounded execution contracts.
 - `hotline-runtime.md`: active D-025 local serving direction; Controller/E1 is no longer a serving prerequisite.
 
 - `agent-orchestrator.md`: active agent roles and session management.

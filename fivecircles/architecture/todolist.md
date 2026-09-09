@@ -1,5 +1,19 @@
 # MidProjectRAG Task List
 
+## Active queue - EVO35 (2026-09-09, D-026)
+
+The user approved the EvoHarness-on-hotline plan with Qwen3.5-9B. This section owns the next serving steps; HOTLINE.3/4 below retain their history and are refined here, not duplicated implementation credit.
+
+- [x] **EVO35.0** Fix the Qwen3.5 model/architecture/tool/budget contract and relay form; explicit latest user instruction selects solo.
+<a id="evo35-1"></a>
+- [x] **EVO35.1 / HOTLINE.3** [IMPLEMENTED_SCOPED_TESTED_SOLO] Public hotline tools, multi-evidence BPE and Qwen3.5 policy/runner/CLI implemented. Focused95 + related117 = 212 PASS, solo review and browser flow QA. Real-model behavior and training are not proven by these tests.
+- [ ] **EVO35.2** [BLOCKED_TOOL_PREFLIGHT] Model-artifact metadata/runtime inspection request was blocked before execution. No application-model calls in the continuation; no bypass, download or shared-service change. Resume with permitted preflight, then <=120-second synthetic-document smoke.
+- [ ] **EVO35.3** Separate trajectory split and isolated SFT stage; validate actual model/resource compatibility before training.
+- [ ] **EVO35.4** Reduced GRPO and reviewed experience consolidation after a valid SFT/reward/split baseline.
+- [ ] **EVO35.5 / HOTLINE.4** Frozen support-matrix evaluation and application/UI integration; missing specialists remain explicit.
+
+Contract: `specs/evo-harness-qwen35-contract.md`. Active closeout: `../work/2026-09-09-evo35-solo-delivery.md`. Relay: solo / STOP_WITH_REASON at EVO35.2 artifact preflight. Training requires the later data/split/environment/resource gates. Do not resume the retired Controller queue.
+
 ## Active queue - HOTLINE.2 (2026-09-09, D-025)
 
 This queue takes precedence over the historical queues below for new local serving work.

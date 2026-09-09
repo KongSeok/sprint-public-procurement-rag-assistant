@@ -513,3 +513,8 @@ Reference:
 - Runtime retirement is not historical task completion: remove the Controller CLI path and retain incomplete records. Scope/citation/privacy checks remain.
 - Report focused PASS and repository publication safety separately. Existing pattern hits must not be hidden by rewriting evidence. refs: errorlogs/backend/2026-09-09-hotline-publication-safety.md.
 - Connector execute_command has a 4000-character limit. Stage longer scripts using write_file, then invoke a short path command; rejected schema calls have no side effects.
+
+## 2026-09-09 - EVO35 solo delivery
+- Fixed-control and policy paths must reject the same nonfinite deadlines before dispatch; timings and synthetic labels stay explicit.
+- A model-artifact tool denial is not evidence of model/hardware failure. Preserve it; do not report live-model or training PASS.
+- refs: errorlogs/backend/2026-09-09-evo35-solo-delivery.md.

@@ -268,3 +268,22 @@
 - Supersedes: The requirement to finish EH2.6 Controller/E1 or LATENCY.FIX before building this local serving path. Historical Controller code, tests, logs, baseline artifacts and Mini131 runs remain preserved, not relabelled as completed.
 - Boundary: Hotline promotion is a user-selected architecture direction, not a measured quality winner. Reproducible comparisons, separate semantic-quality judging and immutable prior runs remain required. No claim of EvoHarness-RL training.
 - Delivery: HOTLINE.2 promotes the existing fact-only/single-context path and closes its Controller CLI option. Compare, follow-up, richer context and UI integration remain separately tested increments; existing baseline/UI/VM jobs are not silently switched.
+
+<a id="d-026"></a>
+## D-026 - Qwen3.5-9B EvoHarness on hotline
+
+- Date: 2026-09-09
+- Status: USER_APPROVED_DESIGN_AND_IMPLEMENTATION_DIRECTION
+- Approval: User accepted the hotline-based EvoHarness plan, changed the model to 3.5 9B, and requested a fixed contract and relay-shot execution.
+- Model: Canonical Qwen/Qwen3.5-9B for the new policy and final-answer profile. Keep the historical hotline model unchanged; create a same-model fixed control for policy comparisons. No silent fallback.
+- Architecture: reusable search/read/answer tools plus light Belief/Progress/Experience and an LLM next-action policy. Do not restore Controller decision/ledger/retained-history recursion or add a replacement authority framework.
+- Sequence: prompt-time policy first, then separate trajectories/SFT, reduced GRPO and experience/evaluation stages. Actual training still needs frozen splits, compatible isolated runtime and a bounded resource budget; no shared VM upgrade or unbounded GPU run.
+- Boundary: this is a RAG adaptation, not the paper's ALFWorld result. Source/scope/citation/privacy/budget controls and historical evaluation artifacts remain preserved.
+- Contract: architecture/specs/evo-harness-qwen35-contract.md, ID evo-hotline-qwen35-v1. EVO35.1 is implemented and model-free tested; actual Qwen3.5 behavior and policy training remain separate gates.
+- Collaboration: the initial philosopher-coder delegation failed and is retained as history. The subsequent explicit solo amendment below governs this run; no external Coder/Critic is required or called.
+
+## D-026 execution amendment - explicit solo relay
+
+- Date: 2026-09-09. User explicitly requested proceeding independently instead of invoking Coder/Critic.
+- This run uses `solo` relay-shot: current assistant designs, implements, tests and reviews. No external agents, Codex model calls, or claimed independent review. The former Coder-version blocker is historical, not active.
+- Qwen3.5-9B product contract and privacy/resource limits remain. Proceed with EVO35.1 and available EVO35.2 preflight; no automatic SFT/RL or shared-service changes.

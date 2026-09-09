@@ -202,3 +202,24 @@
 - Exact candidate147 tests PASS and isolated runtime imports PASS; source code matches the selected migration. Other uncommitted work excluded.
 - Publication content review clears only exact SHA-256 false positives; original scanner exit1 is preserved and documented. No raw data/model execution or independent/full-suite claim.
 - Commit and push acknowledgement are checked after creating this feature commit; original integration files/index are checked for preservation.
+
+## 2026-09-09 - EVO35.1 contract and blocked relay start
+
+- Latest user instruction accepts the prior EvoHarness-on-hotline plan and changes the application model to Qwen3.5-9B. D-026 and evo-hotline-qwen35-v1 record that direction; historical Controller and model profiles remain preserved.
+- Mode: philosopher-coder, from the requested relay-shot skill. Main wrote the Design contract, TODO, full directive and flow form; product code belongs to the requested Sol Ultra Coder.
+- Read-only no-tools capability probe via codex-cli 0.142.5 failed: server HTTP400 requires newer Codex for gpt-5.6-sol. Thread01a08458-34ff-7552-b617-a1d27a06effe is only a failed capability probe, not work dispatch.
+- No alternative model, authentication/permission change, package upgrade or solo implementation was used. The prepared directive was not sent as an implementation job. No background process remains.
+- Status: BLOCKED / STOP_WITH_REASON. No product tests, fresh Critic, live Qwen3.5, training, commit or push. Refer to 2026-09-09-evo35-relay.md and the version-error log.
+- Conflict resolution: D-026 narrows the old fine-tuning exclusion for the approved policy-training roadmap; it does not authorize unspecified costly runs or weaken data/egress rules. Other worktrees and existing runs are unchanged.
+
+## 2026-09-09T13:19:20+09:00 - EVO35 explicit solo start
+- User changed collaboration mode to solo. Same product/model contract; no Codex/agent calls.
+- Preserve pre-existing D-026 documents and historical failure; backup outside repository before edits.
+- Reuse public hybrid search and source-aware read; no Controller predecessor graph. Test synthetic data first.
+- A broad read-only inspection was denied with indeterminate safety status; no permissions changed. Continued only narrower active-repository source reads.
+
+## 2026-09-09 - EVO35 solo closeout
+- Explicit solo instruction governs the current run; no Coder/Critic dispatch. Contract matches the accepted plan with Qwen3.5-9B.
+- Inspected the interrupted solo draft, added delivery tests and repaired deadline/timing/synthetic-label gaps; final212 selected tests PASS.
+- Current/target Mermaid, PNG, HTML and Chrome/Puppeteer desktop/mobile checks complete. Flow remains GAP/PARTIAL for live model and learning.
+- Next EVO35.2 preflight selected and blocked by tool; no bypass, real-model execution, training or service modification. See solo-delivery report.

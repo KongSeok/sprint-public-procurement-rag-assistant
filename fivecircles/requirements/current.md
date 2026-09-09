@@ -158,3 +158,7 @@ corpus에 없거나 질문이 모호해 신뢰할 근거를 찾지 못하면 내
 ## 13. Active serving direction - 2026-09-09 / D-025
 
 New local serving work is hotline-first, not the recursive Controller/E1 path. Finish a usable fixed retrieval-to-answer pipeline before optional learned policy or expanded execution-integrity machinery. Existing source/scope/citation, privacy, budget and evaluation controls remain. The initial promoted hotline is fact-only and one-context; FR-02/FR-03 and UI integration are not fulfilled by this migration alone. Historical control baselines remain immutable.
+
+## 14. Qwen3.5-9B policy direction - 2026-09-09 / D-026
+
+The user approved the hotline-based EvoHarness plan with Qwen/Qwen3.5-9B as the new policy and answer model. The first delivery is real prompt-time action selection over search/read/finish and BPE tools, not another rule-based Controller. Historical profiles, source data and evaluation runs stay unchanged. The policy-training roadmap is a scoped extension to the earlier fine-tuning exclusion; actual SFT/GRPO needs isolated compatible runtime, frozen non-leaking data and an explicit resource budget before execution. The canonical technical contract is architecture/specs/evo-harness-qwen35-contract.md. Design is recorded; runtime, live-model and training completion require separate evidence.

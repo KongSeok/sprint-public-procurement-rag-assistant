@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.0",
+  "profile_id": "evo-hotline-qwen35-v1",
+  "canonical_model": "Qwen/Qwen3.5-9B",
+  "artifact_model": "mlx-community/Qwen3.5-9B-4bit",
+  "artifact_revision": "8b2b98c00a6b4d291155e4890773ca8f769aee53",
+  "enable_thinking": false,
+  "training_stage": "prompt_time",
+  "budgets": {
+    "policy_calls": 12,
+    "search_calls": 4,
+    "read_calls": 4,
+    "invalid_actions": 2,
+    "policy_context": 4096,
+    "policy_output": 256,
+    "answer_context": 8192,
+    "answer_output": 1024,
+    "seconds": 120
+  },
+  "retrieval": {
+    "lane_k": 10,
+    "window_chars": 1600
+  }
+}

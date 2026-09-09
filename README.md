@@ -176,3 +176,23 @@ bare `python`은 Miniconda 등 다른 환경을 선택할 수 있습니다. `-t 
 | [Evidence-Harness 2단계 구현 진행 보고서](<박지수 팀원 일지/2026-09-04-evidence-harness-phase2-progress-report.md>) | EH2.1부터 EH2.6.b2까지의 전체 진행 상황 |
 | [EH2.4 비교 근거 누락 방지 보고서](<박지수 팀원 일지/2026-09-04-eh24-compare-doc-field-coverage-report.md>) | 다중 문서 비교의 문서×항목 근거 추적 |
 | [EH2.6.b2 실행 경로 보안 강화 보고서](<박지수 팀원 일지/2026-09-04-eh26-b2-runtime-integrity-security-report.md>) | 실행 설정과 검색기 무결성 검증 |
+
+## Qwen3.5-9B 정책 하네스 — 단독 릴레이
+
+`midprojectrag.evo_harness`는 고정 핫라인 위에 **프롬프트 기반 다음 행동 선택**을 추가한 별도 경로입니다. 정책은 `search/read/finish`와 `track/commit/recall/note`를 선택하며, 기존 Controller 실행 이력 검증을 사용하지 않습니다. 여러 실제 본문 window를 `S1..Sn`으로 연결하고 질문별 상태·캐시·예산을 분리합니다.
+
+모델 프로필은 `Qwen/Qwen3.5-9B`이며 Mac 실행 어댑터는 명시적으로 고정한 `mlx-community/Qwen3.5-9B-4bit` 변환본을 사용합니다. 기존 핫라인 모델·VM·골든셋은 변경하지 않습니다. **SFT/GRPO 학습은 아직 수행하지 않았으며 실제 모델 smoke도 도구 사전 확인 차단으로 미검증**입니다. 212개 모델 없는 집중·관련 테스트와 별도 보고서 브라우저 렌더만 통과했습니다.
+
+다음은 실행 예시이며 이번 릴레이에서 실제 모델을 실행한 기록이 아닙니다. `MLX_PYTHON`은 이미 준비된 MLX 환경의 Python, `MODEL_DIR`/`MODEL_MANIFEST`는 검증된 로컬 가중치와 파일 manifest, `DATA_DIR`는 private 출력 루트가 있는 데이터 경로입니다. 자동 설치·다운로드는 하지 않습니다.
+
+```bash
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src "$MLX_PYTHON" -m midprojectrag.evo_harness.cli \
+  --data-dir "$DATA_DIR" --model-dir "$MODEL_DIR" --model-manifest "$MODEL_MANIFEST" \
+  --output-dir "$DATA_DIR/private/evo35-smoke/run-001" \
+  --synthetic-corpus --timeout-seconds 120
+```
+
+`--synthetic-corpus`는 실제 모델에 **합성 문서와 가짜 검색 lane**을 제공하는 명시적 smoke입니다. 운영 RAG 성능 측정이 아닙니다. 실제 문서 실행은 `--request`와 기존 `--artifacts`를 별도로 지정합니다. `--mode fixed`는 같은 모델·도구를 사용하는 고정 대조군입니다. 모든 출력 디렉터리는 새 이름이어야 합니다. `--record-trajectory`는 private 궤적 저장을 명시적으로 켭니다.
+
+계약: `fivecircles/architecture/specs/evo-harness-qwen35-contract.md`.
+검증·차단·재개 지점: `fivecircles/work/2026-09-09-evo35-solo-delivery.md`와 동명 HTML.

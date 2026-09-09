@@ -61,6 +61,7 @@ ui = [
 ]
 
 [project.scripts]
+midprojectrag-evo = "midprojectrag.evo_harness.cli:main"
 midprojectrag-hotline = "midprojectrag.hotline:main"
 midprojectrag = "midprojectrag.cli:main"
 midprojectrag-eval = "midprojectrag.evaluation:main"
