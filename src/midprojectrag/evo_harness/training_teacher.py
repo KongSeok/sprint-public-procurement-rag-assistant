@@ -27,7 +27,11 @@ def _present(text:str,key:str,value:Any)->bool:
         return bool(_digits(value)) and _digits(value) in _digits(text)
     return bool(_norm(value)) and _norm(value) in _norm(text)
 
-def _query(case:Mapping[str,Any],target:Mapping[str,Any],episode,doc_id:str)->str:
+def _candidate_score(target:Mapping[str,Any],candidate:Mapping[str,Any])->int:
+    text=str(candidate.get("excerpt", ""));facts=target.get("facts") if isinstance(target.get("facts"),Mapping) else {}
+    return sum(int(_present(text,key,value)) for key,value in facts.items() if key!="reason" and not isinstance(value,bool))
+
+def _query_variants(case:Mapping[str,Any],target:Mapping[str,Any],episode,doc_id:str)->list[str]:
     title=next((row.get("title") for row in episode.catalog if row.get("doc_id")==doc_id),None)
     if not isinstance(title,str) or not title:raise ValueError("teacher_catalog_title_missing")
     facts=target.get("facts") if isinstance(target.get("facts"),Mapping) else {}
@@ -38,7 +42,11 @@ def _query(case:Mapping[str,Any],target:Mapping[str,Any],episode,doc_id:str)->st
         field="발주기관"
     else:
         field="사업명"
-    return re.sub(r"\s+"," ",title.replace("·"," ")).strip()+" "+field
+    base=re.sub(r"\s+"," ",title.replace("·"," ")).strip()
+    variants=[base+" "+field]
+    if field=="발주기관":variants.append(base+" 발주처 발주기관 수요기관")
+    elif field=="사업금액":variants.append(base+" 사업비 예산 사업금액")
+    return variants
 
 
 class TeacherBackend:
@@ -108,21 +116,30 @@ def run_teacher_case(case:Mapping[str,Any],target:Mapping[str,Any],*,tools,count
     if target.get("terminal_status")=="abstained":
         finish={"tool":"finish","arguments":{"status":"abstained","evidence_ids":[],"unresolved":[]}}
         _action(policy,backend,episode,tools,budget,experience,events,finish,remaining)
-        return _result(episode,events,"abstained",[])
+        result=_result(episode,events,"abstained",[]);result["teacher_validation"]={"success":True,"target_supported_in_read_windows":True,"required_docs_read":True}
+        result["wall_seconds"]=time.monotonic()-started;return result
     scope=list(case["request"]["document_scope"]["doc_ids"])
     search_scopes=[[doc] for doc in scope] if case["task_type"] in {"compare","follow_up"} else [scope]
     required_docs=scope if case["task_type"] in {"compare","follow_up"} else scope
     handles=[]
     for narrowed in search_scopes:
-        search={"tool":"search","arguments":{"query":_query(case,target,episode,narrowed[0]),"doc_ids":narrowed,"limit":3 if len(scope)>1 else 5}}
-        _,obs=_action(policy,backend,episode,tools,budget,experience,events,search,remaining)
-        candidates=list((obs or {}).get("candidates",[]))
-        for candidate in candidates[:2 if len(scope)>1 else 4]:
-            read={"tool":"read","arguments":{"evidence_ids":[candidate["id"]]}}
-            _action(policy,backend,episode,tools,budget,experience,events,read,remaining)
-            handles=_supporting_handles(target,episode,require_docs=required_docs)
+        variants=_query_variants(case,target,episode,narrowed[0]);variants=variants[:1] if len(scope)>1 else variants[:2]
+        for query in variants:
+            search={"tool":"search","arguments":{"query":query,"doc_ids":narrowed,"limit":10}}
+            _,obs=_action(policy,backend,episode,tools,budget,experience,events,search,remaining)
+            candidates=list((obs or {}).get("candidates",[]))
+            ranked=sorted(enumerate(candidates),key=lambda pair:(-_candidate_score(target,pair[1]),pair[0]))
+            if ranked:
+                top_score=_candidate_score(target,ranked[0][1]);read_cap=1 if top_score>0 else 2
+                for _,candidate in ranked[:min(read_cap,budget.read_calls-episode.usage.read_calls)]:
+                    read={"tool":"read","arguments":{"evidence_ids":[candidate["id"]]}}
+                    _action(policy,backend,episode,tools,budget,experience,events,read,remaining)
+                    handles=_supporting_handles(target,episode,require_docs=required_docs)
+                    if handles and (len(scope)==1 or narrowed==search_scopes[-1]):break
             if handles and (len(scope)==1 or narrowed==search_scopes[-1]):break
+            if episode.usage.read_calls>=budget.read_calls:break
         if handles and (len(scope)==1 or narrowed==search_scopes[-1]):break
+        if episode.usage.read_calls>=budget.read_calls:break
     if handles:
         finish={"tool":"finish","arguments":{"status":"answered","evidence_ids":handles,"unresolved":[]}}
         _action(policy,backend,episode,tools,budget,experience,events,finish,remaining)
