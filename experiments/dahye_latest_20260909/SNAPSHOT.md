@@ -23,4 +23,4 @@ GCP 경로:
 
 노트북은 `myenv` 커널에서 위에서부터 실행한다. 기존 `output/chunks.pkl`,
 `output/chroma_db`, `output/merged_docs.pkl`, `data/golden_set_v3/`,
-`scoring_v3/`는 이동하거나 복사하지 않고 현재 위치에서 재사용한다.
+`src/evaluation/scoring_v3/`는 이동하거나 복사하지 않고 현재 위치에서 재사용한다.

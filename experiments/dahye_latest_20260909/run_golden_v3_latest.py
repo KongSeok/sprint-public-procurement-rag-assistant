@@ -86,8 +86,8 @@ def git_head() -> str | None:
 
 
 def manifest() -> dict[str, Any]:
-    scorer_path = ROOT / "scoring_v3" / "evaluate_golden_testset_v3.py"
-    base_path = ROOT / "scoring_v3" / "_scorer_v2_base.py"
+    scorer_path = ROOT / "src" / "evaluation" / "scoring_v3" / "scorer.py"
+    base_path = ROOT / "src" / "evaluation" / "scoring_v3" / "_base.py"
     generation_path = Path(__file__).with_name("answer_generation.py")
     prompts_path = Path(__file__).with_name("generation_prompts.py")
     golden_dir = ROOT / "data" / "golden_set_v3"
@@ -204,7 +204,7 @@ def main() -> None:
     from src.retrieval.indexing import HybridIndex
 
     scorer = load_module(
-        ROOT / "scoring_v3" / "evaluate_golden_testset_v3.py", "scorer_v3_0_1"
+        ROOT / "src" / "evaluation" / "scoring_v3" / "scorer.py", "scorer_v3_0_1"
     )
     if scorer.SCORER_VERSION != "3.0.1":
         raise RuntimeError(f"채점기 버전이 3.0.1이 아닙니다: {scorer.SCORER_VERSION}")
