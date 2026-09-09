@@ -20,7 +20,7 @@ The user approved the EvoHarness-on-hotline plan with Qwen3.5-9B. This section o
 - [ ] **EVO35.2** [LIVE_COMPARISON_PASS / FOLLOWUP_REPLAN] Actual Qwen comparison and fixed reference succeeded. Korean follow-up failed on the original and two rejected repair candidates. Code restored; 212 regression PASS. See ../work/2026-09-09-evo35-live-report.md.
 - [x] **EVO35.3a** [IMPLEMENTED_SCOPED_TESTED_SOLO] Training/eval skeleton: trajectory schema, Mini131 hash exclusion, train/dev/sealed split freezer, action-only SFT exporter, external reward contract, SFT/GRPO preflight entrypoints. No serving dependency upgrade.
 - [x] **EVO35.3b** [LIVE_QWEN_FOLLOWUP_PASS] Replace ambiguous evidence handles at the policy boundary with `hist:*` / `cand:*` / `ev:*`; preserve canonical IDs server-side; run the exact failed Korean follow-up on real Qwen after regression.
-- [ ] **EVO35.3c** [NEXT_RELAY] Freeze the repaired implementation commit and run Mini131 PRE as a historical benchmark. Do not use per-case PRE failures to choose training data/prompts/rewards.
+- [ ] **EVO35.3c** [IN_PROGRESS_SOLO] Freeze the repaired implementation commit and run Mini131 PRE as a historical benchmark. Do not use per-case PRE failures to choose training data/prompts/rewards.
 - [ ] **EVO35.3d** Build new non-golden train/dev/sealed-holdout groups, prove exclusion/leakage audit, and collect private action trajectories. Seal heldout before tuning.
 - [ ] **EVO35.3e** Train bounded Qwen3.5 next-action SFT adapter in an isolated compatible environment; choose only on non-golden dev.
 - [ ] **EVO35.4** Reduced cost-aware GRPO from accepted SFT; independent rollout state, external success-gated reward, frozen Experience.

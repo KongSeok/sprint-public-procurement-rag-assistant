@@ -102,3 +102,4 @@ Do not duplicate or reinterpret that order in specification files.
 
 - `evo-visual-tools.md`: D-028 opt-in policy-selected OCR search and actual image inspection; shared scope/time/model and unreviewed citation contract.
 - `evo-training-policy.md`: D-029 training/leakage/evaluation contract; typed evidence lifecycle, non-golden splits, action-only SFT, bounded GRPO and PRE/POST discipline.
+- `evo-mini131-pre.md`: EVO35.3c frozen Qwen3.5 EvoHarness PRE benchmark contract, environment isolation, support matrix and no-curriculum boundary.

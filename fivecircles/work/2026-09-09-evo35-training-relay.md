@@ -72,3 +72,14 @@ Run: `evo35-train-20260909`. Date: 2026-09-09. Contract: `evo35-train-eval-v1`.
 - Push: PENDING_ACTUAL_GIT_RECEIPT; do not write a guessed commit SHA here.
 - Flow diagram verification: GAP/PARTIAL for full D-029; EVO35.3a/3b MATCHED.
 - Relay decision after publication: `CONTINUE_WITH_NEXT_FORM` -> EVO35.3c Mini131 PRE.
+
+## EVO35.3c relay re-entry - solo
+- Mode: **solo**, preserved from the user's explicit `릴레이샷 단일모드`; no Coder/Critic delegation.
+- Start commit: `52c2e24`; remote matched and worktree was clean at re-entry.
+- Selected task: EVO35.3c Frozen Mini131 PRE, connection score 9.
+- Target edge: frozen untrained Qwen3.5 policy + real hybrid retrieval -> historical Mini131 PRE receipt.
+- Adapter contract: text page lanes only (`core40`, legacy/rerun supplemental answer). Set, visual-without-bound-index, analytics, and parser lanes remain explicit unsupported entries; never coerce them into text success.
+- Runtime isolation: KURE retrieval stays in the pinned serving Python; Qwen3.5 MLX stays in its existing MLX Python via a local JSON-line worker. No package install/upgrade and no model fallback.
+- Evaluation: structural status, required-document citation recall, invalid/tool/token/time aggregates. Semantic answer quality remains explicitly unmeasured in this PRE adapter; Mini131 is historical and forbidden for training selection.
+- Publication: adapter/tests first -> clean frozen commit -> private PRE run -> redacted aggregate report -> push receipt.
+- State: IMPLEMENTATION_VALIDATION_IN_PROGRESS.
