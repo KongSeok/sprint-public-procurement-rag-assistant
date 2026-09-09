@@ -11,7 +11,8 @@
    - PDF 페이지와 HWP 내장 이미지를 후보화한 뒤 Qwen3-VL이 선택·판독
    - Golden Set의 정답 문서, page, bbox, object hash는 후보 생성과 VLM 호출에 전달하지 않음
 
-GCP JupyterHub에서는 `notebooks/20260909_vlm_blind_v3_1_kongseok.ipynb`를
+GCP JupyterHub에서는 L4 메모리 안정화본인
+`notebooks/20260910_vlm_blind_v3_1_kongseok.ipynb`를
 `myenv` 커널로 열어 위에서부터 실행한다. 결과와 실행 조건은
 `output/vlm_blind_v3_1_runs/<run_id>/`에 저장되며 `output/`은 Git에 올리지 않는다.
 

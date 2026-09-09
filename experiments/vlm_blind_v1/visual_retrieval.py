@@ -292,7 +292,9 @@ def _complete(
 
 
 def _selection_sheet(records: list[dict[str, Any]], path: Path) -> Path:
-    cell_width, cell_height, columns = 720, 540, 2
+    # L4 24GB에서 Qwen3-VL의 이미지 인코딩 여유를 확보하기 위해 후보 시트를
+    # 과도하게 크게 만들지 않는다. 원본 판독은 선택된 후보를 별도로 다시 한다.
+    cell_width, cell_height, columns = 600, 450, 2
     rows = (len(records) + columns - 1) // columns
     sheet = Image.new("RGB", (cell_width * columns, cell_height * rows), "white")
     draw = ImageDraw.Draw(sheet)
@@ -317,7 +319,7 @@ def select_and_read_visual_evidence(
     *,
     base_url: str = "http://127.0.0.1:8003/v1",
     model: str = VISUAL_MODEL,
-    batch_size: int = 8,
+    batch_size: int = 4,
     max_selected: int = 3,
 ) -> dict[str, Any]:
     """VLM이 후보를 선택하고 선택한 이미지에서만 근거를 판독한다."""
