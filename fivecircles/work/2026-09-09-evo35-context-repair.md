@@ -69,3 +69,16 @@ Search/read/image hard budgets, scope validation, canonical evidence provenance,
 ## Relay state
 
 `IMPLEMENTED_TESTED_PENDING_LIVE`. Do not merge into `feat/hotline-runtime` before PRE closeout. Next gate: PRE aggregate seal -> repaired runtime-failure replay -> accept/reject candidate -> merge/push if accepted.
+
+## Local recorded-PRE runtime replay mode
+
+Fresh KURE end-to-end replay remains the canonical final runtime check, but loading the pinned KURE/MPS stack exceeds the synchronous Chatty command execution window. Do not background that job. For the repair gate, use an additional deterministic isolation mode that freezes PRE search outputs and runs only the changed policy/runtime live:
+
+- load the sealed PRE EvidenceStore without KURE inference;
+- remap each PRE search candidate by exact `(doc_id, kind, excerpt)` to canonical evidence;
+- require unique mapping and fail closed otherwise;
+- replay those frozen search batches through real HotlineTools/read windows and the pinned Qwen3.5 policy;
+- use a deterministic final-answer stub, because semantic answer quality is explicitly out of scope;
+- keep all replay records private and publish only aggregate terminal-code deltas.
+
+Private preflight over the 25 runtime-failure records found 380/380 recorded search candidates uniquely remappable. This mode does not claim retrieval quality, fresh KURE equivalence, or answer quality; it isolates whether the policy-context, duplicate-search and read-memory repairs remove their runtime terminal failures.
