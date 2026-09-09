@@ -106,23 +106,33 @@ class LLMPolicy:
         self.backend = backend
 
     def propose(self, episode: Episode, budgets: Budgets, remaining) -> str:
-        payload = episode.observation(budgets)
         system = POLICY_SYSTEM
         if episode.capabilities:
             system = system.replace(
                 "An answered finish needs READ evidence. Use read before finish even when search excerpts look sufficient.",
                 "An answered finish needs successfully read text or inspected visual evidence.") + VISUAL_TOOL_GUIDE
-        messages = [{"role": "system", "content": system},
-                    {"role": "user", "content": json.dumps(payload, ensure_ascii=False, separators=(",", ":"))}]
-        count = checked_count(self.backend, messages)
-        if count+budgets.policy_output > budgets.policy_context:
+        messages = None; count = None; projection = None
+        tiers = ((None, None), (1024, None), (768, None), (512, None), (384, None),
+                 (256, None), (256, 180), (192, 120))
+        for read_chars, excerpt_chars in tiers:
+            payload = episode.observation(budgets, read_preview_chars=read_chars,
+                                          search_excerpt_chars=excerpt_chars)
+            candidate = [{"role": "system", "content": system},
+                         {"role": "user", "content": json.dumps(payload, ensure_ascii=False, separators=(",", ":"))}]
+            candidate_count = checked_count(self.backend, candidate)
+            if candidate_count + budgets.policy_output <= budgets.policy_context:
+                messages, count = candidate, candidate_count
+                projection = {"read_preview_chars": read_chars, "search_excerpt_chars": excerpt_chars}
+                break
+        if messages is None or count is None:
             raise ContextOverflow("policy_context_budget_exceeded")
         if episode.usage.policy_calls >= budgets.policy_calls:
             raise ContextOverflow("policy_attempt_budget_exhausted")
         timeout = remaining()
         episode.usage.policy_calls += 1
         row = {"kind": "policy", "attempt": episode.usage.policy_calls,
-               "messages": messages, "input_tokens": count, "outcome": "attempted"}
+               "messages": messages, "input_tokens": count, "context_projection": projection,
+               "outcome": "attempted"}
         episode.trajectory.append(row)
         schema = action_schema(episode, budgets)
         result = self.backend.complete(messages, max_tokens=budgets.policy_output, timeout=timeout, json_schema=schema)

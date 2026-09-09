@@ -15,7 +15,7 @@ import unittest
 from unittest.mock import patch
 
 from midprojectrag.evo_harness.state import (Budgets, InvalidAction, LimitReached, Unsupported,
-                                             action_from_json, json_object)
+                                             action_from_json, action_schema, json_object)
 from midprojectrag.evo_harness.experience import Experience
 from midprojectrag.evo_harness.policy import (MODEL_ID, DERIVATIVE_ID, POLICY_SYSTEM, ANSWER_SYSTEM,
                                              ModelIdentity, Completion, LLMPolicy, AnswerComposer)
@@ -220,6 +220,15 @@ class EvoToolsTests(unittest.TestCase):
         with self.assertRaises(LimitReached):self.do(search(query="other"))
         with self.assertRaises(LimitReached):self.do(read("e2"))
 
+    def test_duplicate_search_cooldown_breaks_stagnation(self):
+        self.do(search()); duplicate=self.do(search())
+        self.assertTrue(duplicate["duplicate"])
+        self.assertNotIn('"const":"search"',json.dumps(action_schema(self.ep,self.b),separators=(",",":")))
+        with self.assertRaisesRegex(InvalidAction,"stagnant_duplicate_search"):
+            self.do(search())
+        self.do(action("track",target="world"))
+        self.assertTrue(self.do(search())["duplicate"])
+
     def test_tool_result_copy_cannot_mutate_cache(self):
         first=self.do(search());first["candidates"].clear()
         self.assertTrue(self.do(search())["candidates"])
@@ -289,6 +298,23 @@ class EvoRunnerTests(unittest.TestCase):
         backend=FakeBackend([search()]);backend.count_override=4096
         result=self.run_case(backend=backend)
         self.assertEqual(result["code"],"policy_context_budget_exceeded");self.assertFalse(backend.calls)
+
+    def test_policy_compacts_read_previews_before_context_overflow(self):
+        tools=synthetic_tools(); ep=tools.begin(REQUEST); budget=Budgets()
+        found=tools.search(ep,{"query":"budget","doc_ids":None,"limit":10},budget,lambda:100)["candidates"]
+        tools.read(ep,{"evidence_ids":[row["id"] for row in found]},budget,lambda:100)
+        original={key: row["text"] for key,row in ep.windows.items()}
+        for row in ep.windows.values(): row["text"]="K"*1600
+        backend=FakeBackend(callback=lambda state: finish(*[row["id"] for row in state["read_evidence"]]))
+        backend.count_messages=lambda messages: 2300 + len(messages[1]["content"])//2
+        raw=LLMPolicy(backend).propose(ep,budget,lambda:100)
+        self.assertEqual(action_from_json(raw)["tool"],"finish")
+        state=json.loads(backend.calls[-1][1]["content"]); rows=state["read_evidence"]
+        self.assertTrue(all(row.get("text_truncated") for row in rows))
+        self.assertTrue(all(len(row["text"])<1600 for row in rows))
+        self.assertEqual(set(ep.windows),set(original))
+        self.assertTrue(all(len(row["text"])==1600 for row in ep.windows.values()))
+        self.assertLessEqual(backend.count_messages(backend.calls[-1])+budget.policy_output,budget.policy_context)
 
     def test_abstain_and_clarification_do_not_generate(self):
         for status in ["abstained","needs_clarification"]:

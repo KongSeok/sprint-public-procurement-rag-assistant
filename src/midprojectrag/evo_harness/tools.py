@@ -93,6 +93,7 @@ class HotlineTools:
         tool, arg = action["tool"], action["arguments"]
         if tool == "search":
             return self.search(episode, arg, budget, remaining)
+        episode.duplicate_search_cooldown = None
         if tool == "read":
             return self.read(episode, arg, budget, remaining)
         if tool == "track":
@@ -126,6 +127,9 @@ class HotlineTools:
         key = ("search", *episode.profile_key, arg["query"],
                None if scope is None else tuple(sorted(scope)), arg["limit"])
         if key in episode.cache:
+            if episode.duplicate_search_cooldown == key:
+                raise InvalidAction("stagnant_duplicate_search")
+            episode.duplicate_search_cooldown = key
             episode.usage.duplicates += 1
             return {**deepcopy(episode.cache[key]), "duplicate": True}
         remaining()
@@ -135,6 +139,7 @@ class HotlineTools:
             return result
         if episode.usage.search_calls >= budget.search_calls:
             raise LimitReached("search_budget_exhausted")
+        episode.duplicate_search_cooldown = None
         episode.usage.search_calls += 1
         resolved = ResolvedScope.from_allowed(scope, origin="combined" if scope is not None else "all")
         # This is the same public hybrid used by hotline composition; no
