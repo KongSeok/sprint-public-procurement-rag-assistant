@@ -39,6 +39,81 @@ OpenAI API 기반 스택과 GCP L4 기반 로컬 Hugging Face 스택을 동일�
 ./scripts/validate_repo_safety.sh
 ```
 
+## Streamlit small+nano 재현
+
+공개 UI는 기존 refined 98문서 page-only 기준선입니다. 고정 조합은
+`text-embedding-3-small` 1,536차원과 `gpt-5-nano`이며, Langfuse는 꺼져 있습니다.
+GPT-5 mini Mini131 평가 화면, KURE/Qwen, HB, Hotline, Evidence-Harness Controller를
+Streamlit에 연결한 버전은 아닙니다.
+
+Python 3.11 이상에서 저장소 루트 기준으로 설치합니다.
+
+```bash
+python3.11 -m venv .venv
+.venv/bin/python -m pip install -e '.[rag,ui,test]'
+cp .env.example .env
+```
+
+`.env`에는 `OPENAI_API_KEY` 또는 `OPENAI_API_KEY_PRIVATE` 중 하나만 로컬에서 채웁니다.
+이미 export된 `OPENAI_API_KEY`가 우선하며, `.env`의 키는 사용자가 전송에 동의한 첫 질문에서
+provider를 만들 때 로드됩니다. 설정·데이터 경로를 바꿀 때는 앱을 시작하기 전에
+`MIDPROJECTRAG_STREAMLIT_CONFIG`와 `MIDPROJECTRAG_DATA_DIR`을 shell 환경변수로 export합니다.
+기본값은 각각 아래 공개 config와 `resources/data_refined`입니다.
+
+### 별도 private bundle
+
+원문, 청크, 벡터, cache와 API 키는 Git에 포함하지 않습니다. 데이터 소유자가 승인한 비공개
+팀 채널로 bundle을 별도 전달받아 `resources/data_refined/` 아래에 놓습니다. 이 저장소에는
+검증된 다운로드 URL이 없으므로 임의 공유 링크를 사용하지 않습니다. 기본 config가 요구하는
+상대 경로와 SHA-256 binding은 다음과 같습니다.
+
+| 상대 경로 | SHA-256 검증 위치 또는 값 |
+| --- | --- |
+| `private/manifest.extracted.jsonl` | config: `6c91d30a4c01b12f1aae8924c88a2e5055446c841f5eabfbf687546fdc1fe1cb` |
+| `private/chunks.page-v1.jsonl` | config: `bb82b593153a93f9373f0bdf7f5be7531e651fdab9c5df36b69d53df0a35b9a2` |
+| `private/catalog/refined-direct-v2.jsonl` | config: `ba62b7f5b7cb441ca22768fbc0e6114784fa85e0c34986ce5d9ca66bb47f1224` |
+| `private/indexes/api/personal_experimental/text-embedding-3-small-1536/metadata.json` | config: `57849491470f389a581656ed32ac21fc1be2693ca101a523f3126cdb5af23e94` |
+| `private/indexes/api/personal_experimental/text-embedding-3-small-1536/index-config.json` | config: `cedb53499e3d3b7dc5df0150019f27999dcfc02379e0d476b845a4117743beb7` |
+| `private/indexes/api/personal_experimental/text-embedding-3-small-1536/rows.jsonl` | `metadata.json`: `da403a8dc1bd28c18354e9cedaa45df5e0dcc2dc10eb370aaaa921e787d18738` |
+| `private/indexes/api/personal_experimental/text-embedding-3-small-1536/vectors.npy` | `metadata.json`: `2825aaf641d07ef8490fdf2e74e23d4c8275d255afcda55e107a39032e937807` |
+| `private/tiktoken-cache/9b5ad71b2ce5302211f9c61530b329a4922fc6a4` | `223921b76ee99bde995b7ff738513eef100fb51d18c93597a113bcffe865b2a7` |
+| `private/tiktoken-cache/fb374d419588a4632f3f557e76b4b70aebbca790` | `446a9538cb6c348e3516120d7c08b09f57c36495e2acfffe59a5bf8b0cfb1a2d` |
+
+`metadata.json`은 9,331개 row와 vector의 hash를 다시 묶습니다. query cache와 USD 5 budget
+ledger는 config의 private 경로에 런타임이 생성하므로 Git에 올리지 않습니다. 다음 opt-in 검사는
+bundle이 없으면 skip하며 provider나 API 키 없이 startup hash와 98문서 shape만 확인합니다.
+
+```bash
+PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m unittest -v \
+  tests.application.test_refined_real_bundle
+```
+
+bundle 없이 실행하는 application/catalog 단위 테스트와 Streamlit AppTest는 합성 fixture와 mock
+service만 사용합니다. AppTest의 답변·인용·기권 성공은 실제 OpenAI E2E나 정답 품질 성공이 아닙니다.
+
+```bash
+PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m unittest -v \
+  tests.application.test_config \
+  tests.application.test_composition \
+  tests.application.test_service \
+  tests.catalog.test_materialize \
+  tests.catalog.test_catalog \
+  tests.catalog.test_contracts \
+  tests.ui.test_streamlit_app
+```
+
+앱은 저장소 루트에서 시작합니다. 질문을 보내면 OpenAI query embedding과 generation이 실행되어
+비용과 corpus egress가 발생하므로, private bundle·키·승인을 준비한 live 검증에서만 사이드바의
+전송 동의를 켭니다.
+
+```bash
+PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m streamlit run \
+  --server.headless true \
+  --server.address 127.0.0.1 \
+  --server.port 8501 \
+  apps/streamlit_app.py
+```
+
 ## 현재 구현된 로컬 수집 CLI
 
 Batch 1은 private 데이터 디렉터리 안에서만 manifest와 추출 산출물을 만들며,

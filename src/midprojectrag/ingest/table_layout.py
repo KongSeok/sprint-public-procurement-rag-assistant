@@ -14,6 +14,11 @@ from midprojectrag.ingest.rhwp_adapter import _run_bounded
 
 LAYOUT_OVERLAY_SCHEMA_VERSION = "1.0"
 COORDINATE_SPACE = "rhwp_css_px_96dpi"
+TABLE_LAYOUT_RESOLUTION_BY_STATUS = {
+    "verified_render": "exact_render_match",
+    "nonbody_unlinked": "nonbody_excluded",
+    "paragraph_anchor_candidate": "render_match_missing",
+}
 MAX_PAGES = 10_000
 MAX_RENDER_NODES = 1_000_000
 MAX_RENDER_DEPTH = 256
@@ -28,6 +33,12 @@ _RENDER_TREE_FILENAME_PATTERN = re.compile(r"^render_tree_([0-9]{3,})\.json$")
 _BBOX_FIELDS = ("x", "y", "w", "h")
 
 RenderKey = tuple[int, int, int]
+
+
+def table_layout_resolution_reason(status: Any) -> str | None:
+    """Return the bounded terminal reason for a table-layout status."""
+
+    return TABLE_LAYOUT_RESOLUTION_BY_STATUS.get(status)
 
 
 def _is_integer(value: Any, *, minimum: int = 0) -> bool:
@@ -554,7 +565,9 @@ def load_rhwp_layout_inputs(
 __all__ = [
     "COORDINATE_SPACE",
     "LAYOUT_OVERLAY_SCHEMA_VERSION",
+    "TABLE_LAYOUT_RESOLUTION_BY_STATUS",
     "build_table_layout_overlay",
     "load_rhwp_layout_inputs",
     "load_render_tree_directory",
+    "table_layout_resolution_reason",
 ]

@@ -24,8 +24,8 @@ build/
 # Restricted source data and derived text
 data/
 private/
-resources/data_midP.zip
-resources/data_refined/
+# Project policy: all local resources, including team shares, stay out of Git.
+/resources/
 golden-set-final/
 **/data_list.csv
 **/refined_data_list.csv

@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0",
+  "runtime_id": "api-small-nano-streamlit-refined98-page-v2",
+  "stack_id": "api",
+  "api_profile": "personal_experimental",
+  "embedding": {
+    "model": "text-embedding-3-small",
+    "dimensions": 1536
+  },
+  "generation": {
+    "model": "gpt-5-nano",
+    "max_output_tokens": 2000
+  },
+  "retrieval": {
+    "top_k": 10,
+    "context_top_k": 5,
+    "max_citations": 3
+  },
+  "artifacts": {
+    "retrieval_manifest": {
+      "path": "private/manifest.extracted.jsonl",
+      "sha256": "6c91d30a4c01b12f1aae8924c88a2e5055446c841f5eabfbf687546fdc1fe1cb"
+    },
+    "chunks": {
+      "path": "private/chunks.page-v1.jsonl",
+      "sha256": "bb82b593153a93f9373f0bdf7f5be7531e651fdab9c5df36b69d53df0a35b9a2"
+    },
+    "catalog_manifest": {
+      "path": "private/catalog/refined-direct-v2.jsonl",
+      "sha256": "ba62b7f5b7cb441ca22768fbc0e6114784fa85e0c34986ce5d9ca66bb47f1224",
+      "snapshot_id": "snapshot_45e1ff2d00b233fe70dc02f9"
+    },
+    "index": {
+      "path": "private/indexes/api/personal_experimental/text-embedding-3-small-1536",
+      "metadata_sha256": "57849491470f389a581656ed32ac21fc1be2693ca101a523f3126cdb5af23e94",
+      "config_file_sha256": "cedb53499e3d3b7dc5df0150019f27999dcfc02379e0d476b845a4117743beb7"
+    },
+    "query_cache_path": "private/caches/api/personal_experimental/text-embedding-3-small-1536",
+    "tokenizer_cache_path": "private/tiktoken-cache",
+    "budget_ledger_path": "private/api-budget.streamlit-refined98-page-v2.json"
+  },
+  "budget": {
+    "limit_usd": "5.00"
+  },
+  "observability": {
+    "backend": "disabled"
+  }
+}
