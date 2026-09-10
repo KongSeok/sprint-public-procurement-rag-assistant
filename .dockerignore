@@ -1,0 +1,23 @@
+# 빌드 컨텍스트에서 제외 - 이걸 안 하면 docker build가 data/·output/(수 GB)를
+# 통째로 데몬에 전송하느라 빌드가 몇 분씩 걸린다. 둘 다 볼륨으로 마운트하므로
+# 이미지에 넣을 이유가 없다.
+data/
+output/
+results/
+docs/
+
+# 시크릿은 절대 이미지에 굽지 않는다 - compose가 환경변수로 넘긴다.
+.env
+
+.git/
+.gitignore
+.idea/
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.pkl
+chroma_db/
+notebooks/
+tests/
+README.md

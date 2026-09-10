@@ -32,3 +32,14 @@ scikit-learn
 
 # Generation baseline (step6) - gpt-5-mini 호출용
 openai
+
+# 서빙 화면 (step26) - 스트림릿 프로토타입
+streamlit
+
+# 서빙 앱 (app/) - FastAPI + 웹 UI. 도커로 GCP VM에 상시 띄우는 쪽이 본 배포용이고,
+# 위 스트림릿은 화면 흐름을 빠르게 확인하는 프로토타입으로 남겨둔다.
+fastapi
+uvicorn[standard]
+
+# .env 파일에서 OPENAI_API_KEY를 자동으로 읽어오기 위함 (step26, app/)
+python-dotenv

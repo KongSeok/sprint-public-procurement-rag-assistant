@@ -1,0 +1,33 @@
+# GCP VM에서 서빙 컨테이너를 띄우는 설정.
+#   docker compose up -d --build     # 빌드 + 백그라운드 실행
+#   docker compose logs -f           # 로그 보기
+#   docker compose down              # 정지
+#
+# OPENAI_API_KEY는 이미지에 굽지 않고, 레포 루트의 .env에서 읽어 환경변수로만
+# 넘긴다(compose가 프로젝트 폴더의 .env를 자동으로 읽어 ${...}를 치환한다).
+# .env가 없어도 컨테이너는 뜨고, 그 경우 버튼 패널은 정상 동작하되 AI 요약/
+# 자유 질문만 "API 키 없음"으로 안내된다.
+services:
+  bidfit:
+    build: .
+    image: bidfit-serving:latest
+    container_name: bidfit
+    ports:
+      # 외부에 그대로 열고 싶지 않으면 "127.0.0.1:8000:8000"으로 바꾸고
+      # SSH 터널이나 리버스 프록시로 접근한다(docs/deployment-gcp-vm.md 참고).
+      - "8000:8000"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      # 화면 상단 드롭다운에 띄울 생성 모델 목록(쉼표 구분). 비워두면 앱 기본값
+      # (gpt-5-mini, gpt-5-nano)을 쓴다. .env에 한 줄 적어두면 그대로 반영됨.
+      - BIDFIT_MODELS=${BIDFIT_MODELS:-}
+    volumes:
+      # 원본 데이터/오버라이드 CSV - 서버는 읽기만 한다
+      - ./data:/app/data:ro
+      # 전처리 캐시(merged_docs.pkl, chunks.pkl). 서버가 직접 쓰지는 않지만,
+      # 같은 VM에서 배치(step2/step3)를 돌려 갱신하는 경우가 있어 rw로 둔다.
+      - ./output:/app/output
+      # KURE-v1(약 2.2GB) 다운로드 캐시. 이걸 마운트해야 컨테이너를 다시 만들어도
+      # 모델을 다시 받지 않는다.
+      - ${HF_CACHE_DIR:-${HOME}/.cache/huggingface}:/root/.cache/huggingface
+    restart: unless-stopped
