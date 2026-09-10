@@ -1201,3 +1201,9 @@ This file summarizes recent updates so other agents can continue without re‑di
 - Base blocker cleared; SFT still blocked on isolated deps/backend plus explicit wall/storage caps. No training started.
 ### Tests
 - HOTLINE merge impact 45/45 PASS on project Python 3.12; semantic/training scripts py_compile PASS.
+
+## Addendum (2026-09-10) - EVO35 isolated SFT backend ready
+### Training
+- Isolated Py3.12 stack passes dependency preflight and pip check; MPS NF4 Linear4bit forward PASS, receipt `30ffb6c7...`.
+### Gate
+- SFT preflight now has only `wall_budget_unfrozen` and `storage_budget_unfrozen`; no training or sealed execution started.
