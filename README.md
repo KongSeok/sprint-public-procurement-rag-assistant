@@ -294,5 +294,10 @@ git diff --staged
       등 11종), 정규식 후보 + parent chunk 확장 LLM 요약(🤖 AI 요약, 선택적 호출), 문서 스코프
       RAG 자유 질문 채팅(기존 `src/retrieval/indexing.py`의 HybridIndex 재사용)까지 구현. `.env`로
       `OPENAI_API_KEY` 로드 지원)
+- [x] 서빙 앱(FastAPI + 웹 UI) + Docker 구성 (`feat/rag-pipeline-and-eval`, `app/main.py` +
+      `app/static/index.html` + `Dockerfile`/`docker-compose.yml` — 위 스트림릿 프로토타입과 같은
+      기능을 상시 서빙 가능한 형태로 옮긴 것. 코퍼스·임베딩 모델·문서별 인덱스는 지연 로드 +
+      프로세스 내 캐시, 데이터/모델 캐시는 VM 호스트 볼륨 마운트. GCP VM 배포 절차는
+      `docs/deployment-gcp-vm.md`)
 - [ ] API 모델과 GCP 로컬 모델 비교 (시나리오 A는 아직 미착수)
 - [ ] 데모 및 최종 보고서 완성
