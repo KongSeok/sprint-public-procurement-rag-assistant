@@ -109,13 +109,19 @@ def build_llm_context(doc_id: str, doc_chunks: list[Chunk], candidate_texts: lis
     return build_context(hits), False
 
 
-def generate_quick_answer(client, doc_id: str, question: str, candidate_texts: list[str]) -> tuple[str | None, bool]:
+def generate_quick_answer(
+    client, doc_id: str, question: str, candidate_texts: list[str], model: str | None = None
+) -> tuple[str | None, bool]:
     """quick-reply 질문 하나에 대해 LLM 요약 답변을 생성한다.
     반환값: (답변 또는 None(생성 실패), chunk 매칭 성공 여부 - UI에 "더 넓은
-    근거로 답함" 여부를 표시하는 데 씀)."""
+    근거로 답함" 여부를 표시하는 데 씀).
+
+    [2026-09-10] model 인자 추가 - 서빙 화면에서 gpt-5-nano/mini를 바꿔가며
+    비교할 수 있게 하기 위함. 안 넘기면 예전처럼 generation.py의 기본 모델을
+    그대로 쓴다(기존 호출부는 수정 불필요)."""
     if not candidate_texts:
         return None, False
     doc_chunks = get_doc_chunks(doc_id)
     context, matched = build_llm_context(doc_id, doc_chunks, candidate_texts)
-    answer = generate_answer(client, question, context)
+    answer = generate_answer(client, question, context, **({"model": model} if model else {}))
     return answer, matched

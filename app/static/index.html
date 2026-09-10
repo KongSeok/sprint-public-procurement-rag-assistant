@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>입찰메이트 (BidFit)</title>
+<style>
+  /* 외부 CDN을 쓰지 않는다 - GCP VM 안에서 인터넷이 막혀 있어도 화면이 그대로
+     떠야 하고, 폰트/JS 라이브러리 하나 때문에 데모가 깨지는 걸 피하려는 것.
+     마크다운 렌더러도 안 쓴다(서버가 구조화된 JSON을 주고 이 파일이 DOM을 직접 그림).
+
+     [2026-09-10 디자인 개편] SDC 슬라이드 톤으로 맞췄다. 규칙은 네 가지:
+       1. 무채색만 쓴다(파란 강조색 제거). 강조는 색이 아니라 "검정 반전"으로 한다.
+       2. 각진 패널 + 완전히 둥근 pill의 대비를 유지한다(중간 곡률을 쓰지 않음).
+       3. 얇은 대문자 라벨(자간 넓게) + 굵은 제목 + 회색 본문의 무게 차이로 위계를 만든다.
+       4. 여백을 넉넉히 준다.
+     본문 한글은 Pretendard가 설치돼 있으면 그걸 쓰고, 없으면 시스템 폰트로 떨어진다
+     (웹폰트를 CDN에서 받아오지 않는 원칙 유지). */
+  :root {
+    --paper: #fafafa;
+    --surface: #ffffff;
+    --panel: #f1f1f1;
+    --panel-soft: #f6f6f6;
+    --ink: #101010;
+    --ink-body: #3f3f3f;
+    --muted: #8e8e8e;
+    --line: #e7e7e7;
+    --dark: #131313;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
+                 "Apple SD Gothic Neo", "Malgun Gothic", "Segoe UI", Roboto, sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    font-size: 14px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+  [hidden] { display: none !important; }
+
+  /* 얇은 대문자 라벨 - 레퍼런스의 "SDC TIP / WHAT CHANGED" 자리 */
+  .eyebrow {
+    font-size: 10.5px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  header {
+    height: 62px;
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 0 28px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  header h1 { font-size: 16px; margin: 0; font-weight: 800; letter-spacing: -.01em; }
+  .spacer { flex: 1; }
+
+  .pill {
+    font-size: 11px;
+    letter-spacing: .02em;
+    padding: 5px 13px;
+    border-radius: 999px;
+    background: var(--panel);
+    color: #6f6f6f;
+    white-space: nowrap;
+  }
+  .pill.ok { background: var(--ink); color: #fff; }
+  .pill.warn { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+
+  .model-pick { font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 8px;
+                letter-spacing: .12em; text-transform: uppercase; }
+  .model-pick select {
+    font-family: inherit; font-size: 12.5px; letter-spacing: 0; text-transform: none;
+    padding: 6px 10px; border-radius: 999px; border: 0; background: var(--panel);
+    color: var(--ink); font-weight: 600;
+  }
+
+  .layout { display: flex; height: calc(100vh - 62px); }
+
+  /* ---- 사이드바 ---- */
+  aside {
+    width: 320px;
+    flex: none;
+    background: var(--paper);
+    border-right: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+  }
+  .side-head { padding: 24px 22px 16px; }
+  .side-head h2 { font-size: 10.5px; margin: 0 0 14px; letter-spacing: .18em;
+                  text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  input[type="text"], input[type="search"] {
+    width: 100%;
+    padding: 11px 13px;
+    border: 0;
+    background: var(--panel);
+    border-radius: 2px;
+    font: inherit;
+    color: var(--ink);
+  }
+  input::placeholder, textarea::placeholder { color: #a8a8a8; }
+  input:focus, textarea:focus, select:focus { outline: 0; box-shadow: inset 0 0 0 1.5px var(--ink); }
+  .doc-count { font-size: 11.5px; color: var(--muted); margin-top: 10px; }
+  .doc-list { overflow-y: auto; flex: 1; padding: 0 22px 22px; }
+  .doc-item {
+    padding: 12px 0 12px 14px;
+    cursor: pointer;
+    border-top: 1px solid var(--line);
+    border-left: 2px solid transparent;
+    transition: border-color .12s, background .12s;
+  }
+  .doc-item:hover { background: var(--panel-soft); }
+  .doc-item.active { border-left-color: var(--ink); background: var(--panel-soft); }
+  .doc-item .name {
+    font-size: 12.5px; font-weight: 700; letter-spacing: -.005em; line-height: 1.5;
+    word-break: break-all;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .doc-item .meta { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+  /* ---- 본문 ---- */
+  main { flex: 1; display: flex; flex-direction: column; min-width: 0; background: var(--surface); }
+  .doc-header { padding: 26px 34px 20px; }
+  .doc-header .title {
+    font-size: 21px; font-weight: 800; line-height: 1.35; letter-spacing: -.02em;
+    margin-top: 10px; word-break: break-all;
+  }
+  .doc-header .meta { font-size: 12px; color: var(--muted); margin-top: 8px; letter-spacing: .01em; }
+
+  .quick-panel { padding: 0 34px 22px; }
+  .quick-panel .hint { font-size: 12px; color: var(--muted); margin: 12px 0 14px; }
+  .quick-panel .hint b { color: var(--ink); font-weight: 700; }
+  .quick-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+
+  button {
+    font: inherit;
+    cursor: pointer;
+    border: 0;
+    border-radius: 999px;
+    background: var(--panel);
+    padding: 9px 16px;
+    color: var(--ink);
+    font-weight: 600;
+    font-size: 13px;
+    transition: background .12s, color .12s;
+  }
+  button:hover:not(:disabled) { background: var(--ink); color: #fff; }
+  button:disabled { opacity: .35; cursor: not-allowed; }
+  button.primary { background: var(--ink); color: #fff; padding: 9px 22px; }
+  button.primary:hover:not(:disabled) { background: #333; }
+  button.small { padding: 6px 13px; font-size: 12px; }
+  button.ghost { background: transparent; box-shadow: inset 0 0 0 1px var(--line); color: #6f6f6f; }
+  button.ghost:hover:not(:disabled) { background: var(--ink); color: #fff; box-shadow: none; }
+
+  .chat { flex: 1; overflow-y: auto; padding: 4px 34px 8px; border-top: 1px solid var(--line); }
+  .empty-state { color: var(--muted); text-align: center; margin-top: 70px; font-size: 12.5px; }
+
+  .msg { display: flex; margin-bottom: 18px; }
+  .msg.user { justify-content: flex-end; }
+  .msg.user .bubble {
+    background: var(--ink); color: #fff; border-radius: 999px;
+    padding: 9px 20px; font-weight: 600; font-size: 13px; max-width: 70%;
+  }
+  .msg.bot .bubble {
+    max-width: min(880px, 92%);
+    background: var(--surface);
+    padding: 2px 0 0;
+  }
+  .bubble pre {
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12.5px;
+    background: var(--panel);
+    padding: 18px 20px;
+    line-height: 1.9;
+  }
+  .answer-text { white-space: pre-wrap; word-break: break-word; color: var(--ink-body); }
+
+  /* 후보 - 레퍼런스의 번호 목록 + 회색 패널 조합 */
+  .cand {
+    background: var(--panel);
+    padding: 18px 20px 18px 18px;
+    margin-top: 10px;
+    display: grid;
+    grid-template-columns: 26px 1fr;
+    gap: 14px;
+  }
+  .cand .num {
+    width: 26px; height: 26px; border-radius: 999px; background: var(--ink); color: #fff;
+    font-size: 11.5px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+    margin-top: 2px;
+  }
+  .cand .head { font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase;
+                color: var(--muted); margin-bottom: 6px; font-weight: 600; }
+  .cand .body { font-size: 13px; word-break: break-word; white-space: pre-wrap; color: var(--ink-body); }
+  .cand-tools { margin-top: 12px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .cand-footer { font-size: 11.5px; color: var(--muted); margin-top: 10px; }
+  .note {
+    font-size: 12.5px;
+    background: var(--panel);
+    color: var(--ink-body);
+    border-left: 3px solid var(--ink);
+    padding: 14px 18px;
+    margin-bottom: 10px;
+  }
+  .empty-hint { font-size: 13px; color: var(--muted); background: var(--panel); padding: 16px 18px; }
+  ul.forms { margin: 4px 0 0; padding-left: 0; list-style: none; }
+  ul.forms li {
+    font-size: 13px; word-break: break-word; color: var(--ink-body);
+    padding: 11px 0; border-top: 1px solid var(--line);
+  }
+  ul.forms li:first-child { border-top: 0; }
+  ul.forms .label { font-weight: 700; color: var(--ink); }
+  ul.forms .ctx { color: var(--muted); }
+
+  /* AI 요약 - 레퍼런스의 반전(검정) 섹션 자리 */
+  .ai-box { margin-top: 12px; background: var(--dark); color: #f2f2f2; padding: 20px 22px; }
+  .ai-box .head { margin-bottom: 12px; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .ai-box .head .label {
+    font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase;
+    color: #fff; font-weight: 600;
+  }
+  .ai-box .head .sub { font-size: 11.5px; color: #8f8f8f; }
+  .ai-box .answer-text { color: #f2f2f2; }
+  .ai-box .answer-meta { color: #8f8f8f; }
+  .ai-box .answer-meta .tag { background: #262626; color: #e8e8e8; }
+
+  .err {
+    margin-top: 10px;
+    background: var(--panel);
+    border-left: 3px solid var(--ink);
+    padding: 14px 18px;
+    font-size: 12.8px;
+    color: var(--ink-body);
+  }
+  .err::before {
+    content: "ERROR";
+    display: block; font-size: 10px; letter-spacing: .16em; color: var(--ink);
+    font-weight: 700; margin-bottom: 5px;
+  }
+
+  details.sources { margin-top: 14px; }
+  details.sources summary { cursor: pointer; font-size: 12px; color: var(--muted); font-weight: 600; }
+  details.sources .src {
+    margin-top: 10px; padding: 14px 18px; background: var(--panel-soft);
+    font-size: 12.5px; white-space: pre-wrap; word-break: break-word; color: var(--ink-body);
+  }
+  details.sources .src .head {
+    color: var(--muted); font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .answer-meta { margin-top: 12px; font-size: 11px; color: var(--muted); letter-spacing: .02em; }
+  .answer-meta .tag {
+    display: inline-block; padding: 3px 10px; border-radius: 999px;
+    background: var(--panel); color: #5f5f5f; margin-right: 8px; font-weight: 600;
+  }
+
+  .composer { border-top: 1px solid var(--line); background: var(--surface); padding: 18px 34px 22px; }
+  .composer .row { display: flex; gap: 10px; align-items: flex-end; }
+  .composer textarea {
+    flex: 1; resize: none; font: inherit; padding: 13px 16px;
+    border: 0; background: var(--panel); border-radius: 2px; max-height: 150px; color: var(--ink);
+  }
+  .composer .foot { font-size: 11px; color: var(--muted); margin-top: 10px; letter-spacing: .01em; }
+
+  .spin { display: inline-block; width: 11px; height: 11px; border: 2px solid #d5d5d5;
+          border-top-color: var(--ink); border-radius: 50%; animation: sp .7s linear infinite;
+          vertical-align: -1px; margin-right: 8px; }
+  @keyframes sp { to { transform: rotate(360deg); } }
+
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb { background: #dcdcdc; }
+  ::-webkit-scrollbar-track { background: transparent; }
+
+  @media (max-width: 900px) {
+    aside { width: 240px; }
+    .doc-header, .quick-panel, .chat, .composer { padding-left: 20px; padding-right: 20px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>입찰메이트</h1>
+  <span class="eyebrow">BidFit / RFP Assistant</span>
+  <span class="spacer"></span>
+  <label class="model-pick" title="AI 요약과 자유 질문에 쓸 생성 모델. 답변마다 어떤 모델이 몇 초 걸렸는지 같이 표시돼요.">
+    모델
+    <select id="model"><option>불러오는 중…</option></select>
+  </label>
+  <span class="pill" id="pill-corpus">코퍼스 확인 중…</span>
+  <span class="pill" id="pill-key">API 키 확인 중…</span>
+</header>
+
+<div class="layout">
+  <aside>
+    <div class="side-head">
+      <h2>Documents</h2>
+      <input type="search" id="search" placeholder="문서명 검색 (예: 한국철도공사)" autocomplete="off">
+      <div class="doc-count" id="doc-count">불러오는 중…</div>
+    </div>
+    <div class="doc-list" id="doc-list"></div>
+  </aside>
+
+  <main>
+    <div class="doc-header">
+      <div class="eyebrow">Selected document</div>
+      <div class="title" id="doc-title">왼쪽에서 문서를 하나 골라주세요</div>
+      <div class="meta" id="doc-meta"></div>
+    </div>
+
+    <div class="quick-panel">
+      <div class="eyebrow">Quick questions</div>
+      <div class="hint">자주 물어보는 질문이에요. 눌러보면 이 문서에서 찾은 <b>후보</b>를 그대로 보여줍니다 — 자동으로 답 하나를 확정하지 않아요.</div>
+      <div class="quick-grid" id="quick-grid"></div>
+    </div>
+
+    <div class="chat" id="chat">
+      <div class="empty-state" id="empty-state">문서를 고르고 위 버튼을 누르거나, 아래에 자유롭게 질문해보세요.</div>
+    </div>
+
+    <div class="composer">
+      <div class="row">
+        <textarea id="q" rows="1" placeholder="이 문서에 대해 자유롭게 질문해보세요 (예: 제출 서류가 뭐가 필요해?)"></textarea>
+        <button class="primary" id="send" disabled>보내기</button>
+      </div>
+      <div class="foot" id="composer-foot">자유 질문은 이 문서 하나로 범위를 좁혀 벡터+BM25 하이브리드 검색을 한 뒤 선택한 모델이 답합니다. Enter 전송 / Shift+Enter 줄바꿈.</div>
+    </div>
+  </main>
+</div>
+
+<script>
+"use strict";
+
+const state = { docs: [], selected: null, quickReplies: [], busy: false };
+
+const $ = (id) => document.getElementById(id);
+
+async function api(path, options) {
+  const res = await fetch(path, options);
+  let body = null;
+  try { body = await res.json(); } catch (e) { /* 본문이 JSON이 아닐 수 있음 */ }
+  if (!res.ok) {
+    const detail = (body && body.detail) || `요청 실패 (HTTP ${res.status})`;
+    throw new Error(typeof detail === "string" ? detail : JSON.stringify(detail));
+  }
+  return body;
+}
+
+function post(path, payload) {
+  return api(path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+}
+
+function el(tag, className, text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text !== undefined && text !== null) node.textContent = text;   // 항상 textContent - 원문에 <, & 가 섞여 있어도 안전
+  return node;
+}
+
+/* ---------- 생성 모델 선택 ---------- */
+const MODEL_STORAGE_KEY = "bidfit.model";
+
+function currentModel() {
+  const sel = $("model");
+  return sel && sel.value ? sel.value : null;
+}
+
+// 답변마다 "어떤 모델이 몇 초 걸렸는지"를 붙인다 - 모델을 바꿔가며 비교하는 게
+// 이 드롭다운의 목적이라, 답변만 보고는 어느 쪽이 낸 건지 알 수 없으면 의미가 없다.
+function modelBadge(data) {
+  if (!data || !data.model) return null;
+  const box = el("div", "answer-meta");
+  box.appendChild(el("span", "tag", data.model));
+  if (typeof data.elapsed_ms === "number") {
+    box.appendChild(document.createTextNode(`${(data.elapsed_ms / 1000).toFixed(1)}초`));
+  }
+  return box;
+}
+
+function updateComposerFoot() {
+  const m = currentModel();
+  $("composer-foot").textContent =
+    `자유 질문은 이 문서 하나로 범위를 좁혀 벡터+BM25 하이브리드 검색을 한 뒤 ${m || "선택한 모델"}가 답합니다. Enter 전송 / Shift+Enter 줄바꿈.`;
+}
+
+async function loadModels() {
+  const sel = $("model");
+  try {
+    const data = await api("/api/models");
+    let saved = null;
+    try { saved = localStorage.getItem(MODEL_STORAGE_KEY); } catch (e) { /* 저장소 차단 환경 */ }
+    sel.replaceChildren();
+    for (const m of data.items) {
+      const opt = document.createElement("option");
+      opt.value = m;
+      opt.textContent = m + (m === data.default ? " (기본)" : "");
+      sel.appendChild(opt);
+    }
+    sel.value = (saved && data.items.includes(saved)) ? saved : data.default;
+    updateComposerFoot();
+    sel.onchange = () => {
+      try { localStorage.setItem(MODEL_STORAGE_KEY, sel.value); } catch (e) { /* 무시 */ }
+      updateComposerFoot();
+    };
+  } catch (e) {
+    sel.replaceChildren();
+    const opt = document.createElement("option");
+    opt.textContent = "목록 불러오기 실패";
+    sel.appendChild(opt);
+    sel.disabled = true;
+  }
+}
+
+/* ---------- 상태 표시 ---------- */
+async function refreshStatus() {
+  try {
+    const s = await api("/api/status");
+    const corpus = $("pill-corpus");
+    if (s.corpus.loaded) {
+      corpus.textContent = `문서 ${s.corpus.n_docs}건`;
+      corpus.className = "pill ok";
+    } else {
+      corpus.textContent = "코퍼스 미로드";
+      corpus.className = "pill";
+    }
+    const key = $("pill-key");
+    if (s.openai.available) {
+      key.textContent = "API 키 OK";
+      key.className = "pill ok";
+    } else {
+      key.textContent = "API 키 없음 (버튼만 사용 가능)";
+      key.className = "pill warn";
+      key.title = s.openai.error || "";
+    }
+    if (s.corpus.note) $("pill-corpus").title = s.corpus.note;
+  } catch (e) {
+    $("pill-corpus").textContent = "상태 확인 실패";
+  }
+}
+
+/* ---------- 문서 목록 ---------- */
+async function loadDocs(q) {
+  $("doc-count").textContent = "불러오는 중…";
+  try {
+    const data = await api("/api/documents?q=" + encodeURIComponent(q || ""));
+    state.docs = data.items;
+    $("doc-count").textContent = `${data.matched}건 표시 / 전체 ${data.total}건`;
+    renderDocs();
+  } catch (e) {
+    $("doc-count").textContent = "불러오기 실패";
+    $("doc-list").replaceChildren(el("div", "err", e.message));
+  }
+}
+
+function renderDocs() {
+  const list = $("doc-list");
+  list.replaceChildren();
+  if (!state.docs.length) {
+    list.appendChild(el("div", "empty-hint", "검색 결과가 없어요."));
+    return;
+  }
+  for (const d of state.docs) {
+    const item = el("div", "doc-item" + (state.selected === d.doc_id ? " active" : ""));
+    item.appendChild(el("div", "name", d.doc_id));
+    const bits = [];
+    if (d.issuer) bits.push(d.issuer);
+    if (d.budget) bits.push(Math.round(d.budget).toLocaleString("ko-KR") + "원");
+    item.appendChild(el("div", "meta", bits.join(" · ") || "메타 정보 없음"));
+    item.onclick = () => selectDoc(d);
+    list.appendChild(item);
+  }
+}
+
+function selectDoc(d) {
+  state.selected = d.doc_id;
+  $("doc-title").textContent = d.doc_id;
+  const bits = [];
+  if (d.issuer) bits.push("발주기관: " + d.issuer);
+  if (d.budget) bits.push("예산: " + Math.round(d.budget).toLocaleString("ko-KR") + "원");
+  if (d.deadline) bits.push("마감: " + d.deadline);
+  $("doc-meta").textContent = bits.join("   ");
+  $("chat").replaceChildren(el("div", "empty-state", "이 문서에 대해 물어보세요. 위 버튼을 누르거나 아래에 직접 질문하면 됩니다."));
+  $("send").disabled = false;
+  renderDocs();
+  renderQuickGrid();
+}
+
+/* ---------- 버튼 패널 ---------- */
+function renderQuickGrid() {
+  const grid = $("quick-grid");
+  grid.replaceChildren();
+  for (const qr of state.quickReplies) {
+    const b = el("button", null, qr.label);
+    b.disabled = !state.selected;
+    b.onclick = () => askQuick(qr);
+    grid.appendChild(b);
+  }
+}
+
+/* ---------- 대화 렌더링 ---------- */
+function addUserMsg(text) {
+  const es = $("empty-state");
+  if (es) es.remove();
+  const wrap = el("div", "msg user");
+  wrap.appendChild(el("div", "bubble", text));
+  $("chat").appendChild(wrap);
+  scrollDown();
+}
+
+function addBotBubble() {
+  const wrap = el("div", "msg bot");
+  const bubble = el("div", "bubble");
+  wrap.appendChild(bubble);
+  $("chat").appendChild(wrap);
+  scrollDown();
+  return bubble;
+}
+
+function scrollDown() {
+  const chat = $("chat");
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function loadingNode(label) {
+  const n = el("div", null);
+  n.appendChild(el("span", "spin"));
+  n.appendChild(document.createTextNode(label));
+  return n;
+}
+
+function renderBlocks(bubble, blocks, key) {
+  for (const block of blocks) {
+    if (block.type === "pre") {
+      bubble.appendChild(el("pre", null, block.text));
+    } else if (block.type === "text") {
+      bubble.appendChild(el("div", "answer-text", block.text));
+    } else if (block.type === "note") {
+      bubble.appendChild(el("div", "note", "⚠️ " + block.text));
+    } else if (block.type === "forms") {
+      if (!block.items.length) {
+        bubble.appendChild(el("div", "empty-hint", `첨부 서식 목록을 찾지 못했어요. (${block.empty_hint})`));
+      } else {
+        const ul = el("ul", "forms");
+        for (const f of block.items) {
+          const li = el("li");
+          li.appendChild(el("span", "label", f.label));
+          li.appendChild(el("span", "ctx", `  …${f.before} [서식] ${f.after}…`));
+          ul.appendChild(li);
+        }
+        bubble.appendChild(ul);
+      }
+    } else if (block.type === "candidates") {
+      if (!block.items.length) {
+        bubble.appendChild(el("div", "empty-hint", `이 문서에서는 후보를 찾지 못했어요. (${block.empty_hint})`));
+      } else {
+        block.items.forEach((c, i) => {
+          const box = el("div", "cand");
+          box.appendChild(el("div", "num", String(i + 1)));
+          const content = el("div");
+          content.appendChild(el("div", "head", c.method));
+          const body = el("div", "body", c.text);
+          content.appendChild(body);
+          box.appendChild(content);
+          // 후보는 원문을 글자 수로 자른 구간이라 문맥이 더 필요할 때가 있다.
+          // 앞뒤를 더 잘라 보여주는 버튼 - 원문이 이미 서버에 있으므로 API 호출도
+          // 추가 비용도 없고, 누를 때마다 더 넓어진다.
+          if (key && c.start !== null && c.start !== undefined) {
+            const tools = el("div", "cand-tools");
+            const more = el("button", "small ghost", "원문 더 보기");
+            const less = el("button", "small ghost", "접기");
+            less.hidden = true;
+            let width = 0;
+            more.onclick = async () => {
+              width += 800;
+              more.disabled = true;
+              const label = more.textContent;
+              more.textContent = "불러오는 중…";
+              try {
+                const d = await post("/api/expand", { doc_id: state.selected, key, index: i, width });
+                body.textContent = d.text;
+                less.hidden = false;
+                const whole = d.at_doc_start && d.at_doc_end;
+                more.textContent = whole ? "문서 전체를 보고 있어요" : "더 넓게 보기";
+                more.disabled = whole;
+              } catch (e) {
+                more.textContent = label;
+                more.disabled = false;
+                tools.appendChild(el("div", "err", e.message));
+              }
+              scrollDown();
+            };
+            less.onclick = () => {
+              body.textContent = c.text;
+              width = 0;
+              less.hidden = true;
+              more.textContent = "원문 더 보기";
+              more.disabled = false;
+            };
+            tools.appendChild(more);
+            tools.appendChild(less);
+            content.appendChild(tools);
+          }
+          bubble.appendChild(box);
+        });
+        bubble.appendChild(el("div", "cand-footer",
+          `후보 ${block.items.length}개 — 자동으로 하나를 확정하지 않으니 직접 확인해서 맞는 답을 골라주세요.`));
+      }
+    }
+  }
+}
+
+/* ---------- 버튼 질문 ---------- */
+async function askQuick(qr) {
+  if (!state.selected) return;
+  addUserMsg(qr.question);
+  const bubble = addBotBubble();
+  bubble.appendChild(loadingNode("후보를 찾는 중…"));
+  try {
+    const data = await post("/api/quick-answer", { doc_id: state.selected, key: qr.key });
+    bubble.replaceChildren();
+    renderBlocks(bubble, data.blocks, qr.key);
+    if (data.can_summarize) addSummaryButton(bubble, qr);
+  } catch (e) {
+    bubble.replaceChildren(el("div", "err", e.message));
+  }
+  scrollDown();
+}
+
+function addSummaryButton(bubble, qr) {
+  const row = el("div", null);
+  row.style.marginTop = "10px";
+  const btn = el("button", "small", "AI 요약 보기");
+  btn.onclick = async () => {
+    btn.disabled = true;
+    const holder = el("div", "ai-box");
+    holder.appendChild(loadingNode(`${currentModel() || "모델"}에게 물어보는 중…`));
+    row.replaceWith(holder);
+    try {
+      const data = await post("/api/ai-summary", { doc_id: state.selected, key: qr.key, model: currentModel() });
+      holder.replaceChildren();
+      const aiHead = el("div", "head");
+      aiHead.appendChild(el("span", "label", "AI Summary"));
+      aiHead.appendChild(el("span", "sub", data.note));
+      holder.appendChild(aiHead);
+      holder.appendChild(el("div", "answer-text", data.answer));
+      const badge = modelBadge(data);
+      if (badge) holder.appendChild(badge);
+    } catch (e) {
+      const errBox = el("div", "err");
+      errBox.appendChild(el("div", null, "AI 요약 실패: " + e.message));
+      const retry = el("button", "small", "다시 시도");
+      retry.style.marginTop = "8px";
+      retry.onclick = () => { errBox.replaceWith(row); btn.disabled = false; };
+      errBox.appendChild(retry);
+      holder.replaceWith(errBox);
+    }
+    scrollDown();
+  };
+  row.appendChild(btn);
+  bubble.appendChild(row);
+}
+
+/* ---------- 자유 질문 ---------- */
+async function sendFree() {
+  const box = $("q");
+  const question = box.value.trim();
+  if (!question || !state.selected || state.busy) return;
+  box.value = "";
+  box.style.height = "auto";
+  addUserMsg(question);
+  const bubble = addBotBubble();
+  bubble.appendChild(loadingNode("문서를 검색하고 답변을 만드는 중… (처음 한 번은 검색 모델 로딩 때문에 몇 분 걸릴 수 있어요)"));
+  state.busy = true;
+  $("send").disabled = true;
+  try {
+    const data = await post("/api/chat", { doc_id: state.selected, question, model: currentModel() });
+    bubble.replaceChildren();
+    bubble.appendChild(el("div", "answer-text", data.answer));
+    const badge = modelBadge(data);
+    if (badge) bubble.appendChild(badge);
+    if (data.sources && data.sources.length) {
+      const det = el("details", "sources");
+      det.appendChild(el("summary", null, `근거 보기 (${data.sources.length}개)`));
+      data.sources.forEach((s, i) => {
+        const box2 = el("div", "src");
+        box2.appendChild(el("div", "head", `근거 ${i + 1} · ${s.matched_by} · score ${s.score}`));
+        box2.appendChild(document.createTextNode(s.text));
+        det.appendChild(box2);
+      });
+      bubble.appendChild(det);
+    }
+  } catch (e) {
+    bubble.replaceChildren(el("div", "err", e.message));
+  }
+  state.busy = false;
+  $("send").disabled = false;
+  scrollDown();
+}
+
+/* ---------- 초기화 ---------- */
+let searchTimer = null;
+$("search").addEventListener("input", (e) => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => loadDocs(e.target.value), 200);
+});
+$("send").addEventListener("click", sendFree);
+$("q").addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendFree(); }
+});
+$("q").addEventListener("input", (e) => {
+  e.target.style.height = "auto";
+  e.target.style.height = Math.min(e.target.scrollHeight, 140) + "px";
+});
+
+(async function init() {
+  loadModels();
+  await loadDocs("");
+  try {
+    const qr = await api("/api/quick-replies");
+    state.quickReplies = qr.items;
+  } catch (e) { /* 버튼 정의를 못 받아도 문서 목록/자유 질문은 동작 */ }
+  renderQuickGrid();
+  refreshStatus();
+})();
+</script>
+</body>
+</html>
