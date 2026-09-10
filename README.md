@@ -6,6 +6,10 @@ Repository: `sprint-public-procurement-rag-assistant`
 
 팀 프로젝트 문서: [입찰메이트 팀 Notion](https://app.notion.com/p/2-3-3c36e864c1d88044aa2afb76c6e24f59?source=copy_link)
 
+협업 일지: [3팀 협업 일지 Notion](https://app.notion.com/p/3c76e864c1d8806c99f4dcc78f9c74dc?source=copy_link)
+
+최종 결과 보고서: [PDF 다운로드](docs/team3_intermediate_project_result_report.pdf)
+
 입찰메이트는 공공입찰 컨설턴트가 고객사에 적합한 제안요청서(RFP)를 찾고, 참가 조건과 위험 요소를 원문 근거와 함께 검토하도록 돕는 RAG(Retrieval-Augmented Generation) 서비스입니다.
 
 단순한 문서 질의응답을 넘어 `RFP 탐색 → 핵심 조건 확인 → 위험 검토 → 문서 비교 → 컨설팅 브리프 작성`으로 이어지는 실제 업무 흐름을 지원하는 것을 목표로 합니다.
@@ -305,29 +309,3 @@ git diff --staged
 | Retrieval | TODO | 임베딩, 벡터 DB, 검색, 필터링, 검색 평가 |
 | Generation·UI | TODO | 프롬프트, 답변 생성, 출처 표시, 데모 UI |
 
-## 13. 진행 상태
-
-- [x] GitHub 저장소 생성
-- [x] GCP VM 및 JupyterHub 환경 구축
-- [x] 프로젝트 기획 및 MVP 범위 정리
-- [x] README와 Git 협업 규칙 작성
-- [x] 팀원 역할 확정
-- [x] 데이터 구조 분석 및 전처리 (`feat/rag-pipeline-and-eval`, `src/data_processing`)
-- [x] 공통 RAG 베이스라인 구현 (`feat/rag-pipeline-and-eval`, `src/retrieval` + `src/generation`,
-      시나리오 B: API 임베딩 비교 + KURE-v1/BM25 hybrid + gpt-5-mini)
-- [x] Golden Set 구축 (`feat/rag-pipeline-and-eval`, 공식 111건 + golden-set-v3-share 공유 lane 연동)
-- [x] 검색 및 생성 성능 개선 실험 (`feat/rag-pipeline-and-eval`, Parent-Child·임베딩 A/B·리랭커·
-      가중치 튜닝·프롬프트 개선 — 상세는 `docs/rag-pipeline-and-eval-summary.md`)
-- [x] 서빙 화면 프로토타입 구현 (`feat/rag-pipeline-and-eval`, `scripts/step24_prefilled_qa_prototype.py`
-      + `scripts/step26_streamlit_serving_prototype.py` + `scripts/step27_quick_answer_llm_polish.py` —
-      Streamlit 채팅형 UI. 문서 선택 후 자주 묻는 질문 버튼 패널(예산/일정/신청서식/하도급/평가배점
-      등 11종), 정규식 후보 + parent chunk 확장 LLM 요약(🤖 AI 요약, 선택적 호출), 문서 스코프
-      RAG 자유 질문 채팅(기존 `src/retrieval/indexing.py`의 HybridIndex 재사용)까지 구현. `.env`로
-      `OPENAI_API_KEY` 로드 지원)
-- [x] 서빙 앱(FastAPI + 웹 UI) + Docker 구성 (`feat/rag-pipeline-and-eval`, `app/main.py` +
-      `app/static/index.html` + `Dockerfile`/`docker-compose.yml` — 위 스트림릿 프로토타입과 같은
-      기능을 상시 서빙 가능한 형태로 옮긴 것. 코퍼스·임베딩 모델·문서별 인덱스는 지연 로드 +
-      프로세스 내 캐시, 데이터/모델 캐시는 VM 호스트 볼륨 마운트. GCP VM 배포 절차는
-      `docs/deployment-gcp-vm.md`)
-- [ ] API 모델과 GCP 로컬 모델 비교 (시나리오 A는 아직 미착수)
-- [ ] 데모 및 최종 보고서 완성
