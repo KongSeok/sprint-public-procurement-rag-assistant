@@ -248,3 +248,12 @@
 - First typed live run safely rejected invented cand:e0. First structured run exposed llguidance `uniqueItems` incompatibility; grammar-only keyword removed, duplicate validation retained server-side.
 - Rerun with same Qwen3.5 and preserved synthetic follow-up succeeded with scoped search/read/finish. 380 impact +13 training tests PASS.
 - Flow report/review recorded. Next relay: publish freeze, then Mini131 PRE; no training run yet.
+
+## 2026-09-10 10:16 KST - Hotline TODO / 진행사항 정리
+
+- Conflict: 예전 Git/Test 문서의 절대 저장소 경로 및 과거 Controller 재개 큐와 최신 사용자 지정 위치가 다르다.
+- Competing sources: 과거 문서의 `/Users/pio/Documents/AIENGINEERCOURSE/MidProjectRAG` 대 현재 사용자의 `/Users/pio/vibe-workspace/vibe-workspace` 요청.
+- Winner: authority level2 최신 사용자 지시. 실제 Git 루트는 지정 폴더 아래 `sprint-public-procurement-rag-assistant`이며 이미 feat/hotline-runtime@414d9a7이다.
+- Resolution: 이 저장소에서 문서만 정리하고 과거 경로/Controller 계약은 덮어쓰지 않았다. 현재 실행 원천은 D-025/D-026/D-029와 상단 EVO35 큐다.
+- Follow-up: 최신 TODO의 SFT 환경·자원 gate, 별도 PRE 의미 채점, 후속 최종 평가/UI. 이번 작업은 실행 재개·실측 승인이나 커밋·푸시 요청이 아니다.
+- Evidence: 2026-09-10-hotline-progress-summary.md. 기존 미커밋3파일 보존, 원격 조회 뒤 local ahead9/behind0 확인.

@@ -1,8 +1,25 @@
 # MidProjectRAG Task List
 
-## Active integration - HOTLINE.VISUAL.1 (2026-09-09)
+## 최신 현황과 실행 순서 — 2026-09-10
 
-Latest user request: merge the existing VLM/OCR/retrieval branch into hotline. Source88a9e62, targetc91f099; source history is preserved by an actual merge. The imported older LOCAL-VISUAL queue below is historical, not a new instruction to switch branches or restore Controller.
+- 확인 위치: `/Users/pio/vibe-workspace/vibe-workspace/sprint-public-procurement-rag-assistant`, `feat/hotline-runtime@414d9a7`. 이미 해당 브랜치이며 기존 미커밋 수정은 보존했다.
+- 현재 위치: **핫라인·Evo 정책·그림 도구 연결 및 학습 데이터 수집 완료 → 실제 SFT 학습 전 환경·자원 확인 단계**. 새 학습·실측을 시작하라는 지시가 아니다.
+- 기존 PRE 실행 결과 분류는 129/129 완료지만 의미 정답 채점은 별도다. 최신 미커밋 checkpoint는 채점 14/129이며 이번 정리에서 원시 채점·모델 파일·VM 상태를 재검증하지 않았다.
+- 아래 표는 기존 TODO의 다음 순서 참조다. 과거 Controller 큐와 중복 별칭을 새 실행 대상으로 삼지 않는다. [어제~현재 작업 요약](../work/2026-09-10-hotline-progress-summary.md).
+
+| 우선순위 | TODO | 남은 작업 / 조건 |
+| --- | --- | --- |
+| 1 | EVO35.3e.ENV | 서빙 환경과 분리된 학습 의존성·실제 학습 backend 지원 증거 확보 |
+| 2 | EVO35.3e.RESOURCE | 학습 장치·최대 실행시간·디스크 사용 상한 승인 및 동결 |
+| 병행·차단 | EVO35.3c.SEMANTIC | 고정 Sol blind judge로 PRE 채점 완료. 기존 기록상 사용량 제한; 다른 모델로 임의 대체하지 않음 |
+| 선행 완료 후 | EVO35.3e.TRAIN_DEV | SFT adapter 실제 학습 → non-golden DEV에서 도구 사용·성공·효율 비교 |
+| 조건부 | EVO35.4 | SFT가 DEV 기준을 통과한 경우에만 GRPO 검토·실행 |
+| 최종 | EVO35.5 / HOTLINE.4 | 최종 동결 → paired PRE/POST → 신규 SEALED 1회 → 지원 범위·UI 검증 |
+| 별도 잔여 | HOTLINE.VISUAL.3 / VM35 | 그림·혼합 질의 품질/UI 검수, 별도 Qwen3.5 VM 실행 가능 시 검증. 공유 GPU 작업 중단 금지 |
+
+## 완료 이력 - HOTLINE.VISUAL.1/2 (2026-09-09)
+
+Historical integration request: merge the existing VLM/OCR/retrieval branch into hotline. Source88a9e62, targetc91f099; source history is preserved by an actual merge. The imported older LOCAL-VISUAL queue below is historical, not a new instruction to switch branches or restore Controller.
 
 - [x] **HOTLINE.VISUAL.1** Source88a9e62 merged into hotline; OCR/runtime, persisted search and local image QA retained. Both docs histories preserved; hotline/Evo source and known follow-up REPLAN unchanged.
 - [x] **HOTLINE.VISUAL.1.QA** Final352 unique tests PASS, errors/failures/skips0; includes212 baseline tests plus visual/coexistence. Four CLI entrypoints and synthetic desktop/mobile preview PASS. No new real-model/quality run.
@@ -17,25 +34,31 @@ The user approved the EvoHarness-on-hotline plan with Qwen3.5-9B. This section o
 - [x] **EVO35.0** Fix the Qwen3.5 model/architecture/tool/budget contract and relay form; explicit latest user instruction selects solo.
 <a id="evo35-1"></a>
 - [x] **EVO35.1 / HOTLINE.3** [IMPLEMENTED_SCOPED_TESTED_SOLO] Public hotline tools, multi-evidence BPE and Qwen3.5 policy/runner/CLI implemented. Focused95 + related117 = 212 PASS, solo review and browser flow QA. Real-model behavior and training are not proven by these tests.
-- [ ] **EVO35.2** [LIVE_COMPARISON_PASS / FOLLOWUP_REPLAN] Actual Qwen comparison and fixed reference succeeded. Korean follow-up failed on the original and two rejected repair candidates. Code restored; 212 regression PASS. See ../work/2026-09-09-evo35-live-report.md.
+- [x] **EVO35.2** [SCOPED_LIVE_BASELINE_COMPLETE / FOLLOWUP_REPAIRED_BY_3b] Actual Qwen comparison and fixed reference succeeded. The original and two rejected follow-up repairs remain failed historical runs; EVO35.3b later passed the preserved synthetic follow-up. This is not general follow-up quality or trained-policy acceptance. refs: ../work/2026-09-09-evo35-live-report.md; ../work/2026-09-09-evo35-training-report.md.
 - [x] **EVO35.3a** [IMPLEMENTED_SCOPED_TESTED_SOLO] Training/eval skeleton: trajectory schema, Mini131 hash exclusion, train/dev/sealed split freezer, action-only SFT exporter, external reward contract, SFT/GRPO preflight entrypoints. No serving dependency upgrade.
 - [x] **EVO35.3b** [LIVE_QWEN_FOLLOWUP_PASS] Replace ambiguous evidence handles at the policy boundary with `hist:*` / `cand:*` / `ev:*`; preserve canonical IDs server-side; run the exact failed Korean follow-up on real Qwen after regression.
-- [x] **EVO35.3c** [PRE_SEALED_SOLO] Frozen `52c2e24` runtime / `803a30f` runner completed 129/129 RAG classifications. Canonical records SHA256 `4615926e...`; semantic answer quality remains unjudged. Public aggregate closeout: `../work/2026-09-09-evo35-mini131-pre-closeout.md`. Do not use per-case PRE failures to choose training data/prompts/rewards.
+- [x] **EVO35.3c** [PRE_SEALED_SOLO] Frozen `52c2e24` runtime / `803a30f` runner completed 129/129 RAG classifications. Canonical records SHA256 `4615926e...`; semantic judging was unjudged at PRE closeout and remains incomplete under EVO35.3c.SEMANTIC below. Public aggregate closeout: `../work/2026-09-09-evo35-mini131-pre-closeout.md`. Do not use per-case PRE failures to choose training data/prompts/rewards.
+  - [ ] **EVO35.3c.SEMANTIC** [PARTIAL_CHECKPOINT / REVIEWER_QUOTA_BLOCKED] PRE 의미 정답 채점은 별도 미완료. 최신 미커밋 기록은 유효 판정14/129, shard1/9, semantic_score_complete=false. 기록된 Sol 제한 해제 시점은 2026-09-15 10:26 KST이며 이번 작업에서 재조회하지 않았다. 고정 judge/rubric 유지, 실패 shard·미지원33건을 성공으로 처리하거나 분모에서 빼지 않는다. parser2는 별도. refs: specs/evo-training-policy.md §7.8.1; ../work/2026-09-09-evo35-3d-relay.md §12.
 - [x] **EVO35.3c.R1** [ACCEPTED_RECORDED_REPLAY_SOLO] Frozen PRE runtime-failure selection was 25 cases = 20 `policy_context_budget_exceeded` + 5 `policy_attempt_budget_exhausted`. Repaired candidate `24c2bf2` completed 25/25 recorded-PRE-search/live-pinned-Qwen3.5 replay with zero runtime failure codes (`answered` 1, `needs_clarification` 24); semantic answer quality was not evaluated. Focused repair regression 60/60 PASS and direct Evo/hotline/visual/retrieval impact selection 244/244 PASS. This accepts the policy/runtime repair only; no fresh-KURE or answer-quality claim.
 - [ ] **EVO35.3c.R1.VM35** [STAGED_VM_TESTED_LIVE_BLOCKED_NO_QWEN35_RUNTIME] Repair commit `f3e74fc` is cloned at `/home/pio/MidProjectRAG-evo35-context-repair` on `rag-gpu-vm`; isolated `/home/pio/.venvs/evo35-repair` focused regression is 49/49 PASS. No Qwen3.5 service/model runtime exists on the VM, and the shared L4 is currently occupied by other-user Qwen3-8B workloads; do not stop or replace them. Live Qwen3.5 VM replay waits for a separately available Qwen3.5 runtime/GPU slot.
+  - 위 VM 상태는 2026-09-09 staging 기록 기준이며 이번 정리에서 재조회하지 않았다. 재개 전에 실제 런타임·GPU 사용 상태를 확인해야 한다.
 - [ ] **EVO35.3c.R2.VM3** [DEFERRED_USER_PRIORITY] After VM35 is complete, port the same bounded-context/stagnation principles to the older Qwen3-8B Golden131 VM path. Do not assume cherry-pick compatibility; inspect its controller/runtime separately.
 - [x] **EVO35.3d** [COLLECTION_COMPLETE_SOLO] Seed-v2 rejected before tuning by pixel/crop source gate; sealed-v2 was never executed. Active frozen seed-v4: train37 / dev15 / sealed15; bundle `c7ae9be3...`, sealed seal `debe4dfc...`; visual source/index gate 14 selected docs / 47 eligible crops; sealed policy execution remains zero. Active relay: `../work/2026-09-09-evo35-3d-relay.md`.
   - [x] **EVO35.3d.A** Historical-evaluation exclusion + corpus inventory frozen: 233 question / 50 group / 11 conversation / 34 doc-pair fingerprints; 29 fresh current-corpus documents identified.
   - [x] **EVO35.3d.B** Seed-v1 rejected before tuning; support-audited seed-v2 frozen with document-disjoint TRAIN/DEV/SEALED partitions.
   - [x] **EVO35.3d.C.TEXT** Qwen3.5 base text rollouts completed: TRAIN 26/26 and DEV 11/11. Validated deterministic teacher completed TRAIN text 26/26 and exported 96 positive next-action SFT JSON examples; invalid actions 0; sealed execution 0. Teacher candidate `dddeaf8`.
   - [x] **EVO35.3d.C.VISUAL** [BASE_AND_TEACHER_COLLECTED] TRAIN teacher 11/11 -> 46 positive SFT actions. Live candidate `2630df6`: TRAIN 11/11 executed, 3 evaluator-success and 15 positive SFT actions; DEV 4/4 executed, 1 evaluator-success. Failed base rollouts remain diagnostic only. SEALED execution 0.
-- [ ] **EVO35.3e** [PREFLIGHT_HARDENED_DATASET_REPRODUCIBLE_TRAINING_BLOCKED_RESOURCE_ENV_BASE] Train bounded Qwen3.5 next-action SFT adapter in an isolated compatible environment. Frozen TRAIN positive dataset: 157 rows, SHA `b6c7366c...`. HF base revision/tokenizer/chat-template identity is frozen at `c202236...` with receipt `d5ffac1b...`; still freeze compatible isolated dependency/backend receipt and explicit wall-clock/storage budget first; select only on non-golden DEV, never Mini131.
+- [ ] **EVO35.3e** [HF_BASE_DOWNLOADED_VALIDATED / TRAINING_BLOCKED_RESOURCE_ENV] Train bounded Qwen3.5 next-action SFT adapter in an isolated compatible environment. Frozen TRAIN positive dataset: 157 rows, SHA `b6c7366c...`. HF base `Qwen/Qwen3.5-9B@c202236...` is now fully materialized and structurally validated: 4/4 safetensors shards, index 775/775 tensors, missing/extra 0, tensor payload `19,306,216,416` bytes, incomplete temp files 0. Remaining pre-training blockers are compatible isolated dependency/backend receipt and explicit wall-clock/storage budget; select only on non-golden DEV, never Mini131.
+  - 모델 다운로드 완료 수치는 기존 미커밋 §12 checkpoint를 계승한 기록이며 이번 TODO 정리에서 파일·텐서를 다시 검사한 결과가 아니다.
+  - [ ] **EVO35.3e.ENV** 격리된 학습 환경의 의존성·device/backend capability receipt 확보. QLoRA 선택 시 NF4 실제 연산 지원 확인; 서빙 pins 변경·임의 backend 대체 금지.
+  - [ ] **EVO35.3e.RESOURCE** 사용자/프로젝트가 승인한 학습 장치·wall-clock·storage 상한 및 설정 동결. 관측된 여유 자원으로 예산을 임의 생성하지 않음.
+  - [ ] **EVO35.3e.TRAIN_DEV** ENV/RESOURCE gate 이후 adapter 생성과 non-golden DEV 비교. 데이터157행 준비 또는 모델 다운로드를 학습 완료로 세지 않음.
 - [ ] **EVO35.4** [OPTIONAL_AFTER_ACCEPTED_SFT] Run reduced cost-aware GRPO only if SFT passes DEV tool-use/reliability gates; keep external success-gated reward and frozen Experience.
 - [ ] **EVO35.5 / HOTLINE.4** [WAITING_FINAL_FREEZE] After all tuning is frozen: Mini131 POST historical comparison -> one-time new SEALED HOLDOUT -> support-matrix/UI integration.
 
 Contracts: `specs/evo-harness-qwen35-contract.md`, `specs/evo-training-policy.md`. Active training relay: `../work/2026-09-09-evo35-3d-relay.md`; current executable frontier is EVO35.3e dataset/resource preflight. Do not resume the retired Controller queue and do not use Mini131 failures as curriculum.
 
-## Active queue - HOTLINE.2 (2026-09-09, D-025)
+## 완료 이력·후속 참조 - HOTLINE.2 (2026-09-09, D-025)
 
 This queue takes precedence over the historical queues below for new local serving work.
 Controller/E1, PERF-CONTROLLER, LATENCY.FIX and Controller QUICKQA continuation are RETIRED_FROM_SERVING_QUEUE, not completed. Existing branch/VM runs are untouched.
@@ -44,12 +67,14 @@ Controller/E1, PERF-CONTROLLER, LATENCY.FIX and Controller QUICKQA continuation 
 - [x] **HOTLINE.2.b** Promote fixed public pipeline to reusable `midprojectrag.hotline`; hotline-only CLI and legacy-launcher compatibility.
 - [x] **HOTLINE.2.c** Focused30 + related64 PASS (94 total, no skips); synthetic CLI/owned-worker timeout smoke passed. Real-model/UI/full-suite/independent review not run. Publication candidate rechecked separately: 147 PASS; existing SHA-256 pattern false positives classified (raw scanner remains exit1). See migration report.
 - [x] **HOTLINE.2.BRANCH** Separate `feat/hotline-runtime` worktree and selective publication candidate prepared under explicit user push authorization; integration checkout preserved.
-- [ ] **HOTLINE.3** Add and measure multi-evidence packing and compare/follow-up support on the fixed pipeline; do not claim fact-only coverage is full FR coverage.
-- [ ] **HOTLINE.4** Connect the application/UI facade and validate real local answers/latency within an approved run budget. Existing Streamlit baseline stays unchanged until wired and tested.
+- **HOTLINE.3** [통합 참조 → EVO35.1 / EVO35.2 / EVO35.3b] Multi-evidence 및 합성 비교·후속 질문 연결은 위 완료 항목을 따른다. 동일 구현을 다시 할 미완료 TODO가 아니며 전체 FR 품질 완료도 아니다.
+- **HOTLINE.4** [통합 참조 → EVO35.5 / HOTLINE.VISUAL.3] 앱/UI·실사용 품질 검증은 해당 잔여 항목으로 관리한다. 기존 Streamlit baseline은 연결·검증 전 그대로 유지한다.
 
 - [x] **TEST-ENV-20260906** 프로젝트 `.venv` 의존성 동기화·pip check 및 ML lock32 일치. 기존 실패 영역153/153·전체1498/1498 PASS(오류/실패/skip0). 실행 명령·오류 기록 정정.
 
-## 현재 실행 큐 — 검색 비교 우선 (2026-09-05 승인)
+## 과거 실행 큐 — 검색 비교 우선 (2026-09-05 승인)
+
+이 절은 D-025/D-026 이전의 실행 순서 기록이다. Controller 미완료를 완료로 바꾸지 않으며, 핫라인의 현재 다음 작업은 상단 EVO35 큐를 따른다. 평가 누수·동결 규칙은 관련 최신 계약을 유지한다.
 
 목적: baseline을 immutable control로 두고 동일 Mini131의 검색 품질·효율을 측정해 개선 축을 선택한다.
 연구안 전체/Controller 전체 구현이 첫 retrieval-only 비교의 선행 조건은 아니다.
@@ -948,7 +973,7 @@ HWP blank-crop incident: `fivecircles/test/errorlogs/backend/2026-08-31-visual-c
 ## 명시적 제외 범위
 
 - 프로덕션급 인증·다중 사용자·관리자 기능
-- 대규모 배포·모니터링과 파인튜닝
+- 대규모 배포·모니터링과 D-029 승인 범위 밖의 파인튜닝. 제한된 EVO35 action-only SFT/조건부 GRPO는 해당 계약·환경·자원 gate에 따른 예외다.
 - 제공된 100개 밖의 corpus 확장
 - 모든 검색 기법의 무차별 구현
 - 원문·원문 수준 청크·벡터 DB의 공개 배포
@@ -960,12 +985,12 @@ HWP blank-crop incident: `fivecircles/test/errorlogs/backend/2026-08-31-visual-c
 - 범위 제외: 제품 코드, 데이터, 기존 미커밋 변경.
 - 근거: `fivecircles/work/2026-09-07-collaboration-skill-sync.md`.
 
-### EVO35.2 live repair - 2026-09-09
-- [ ] **EVO35.2.PRECONDITIONS** [REJECTED_AND_REVERTED] Two generic observation/prompt candidates passed code tests but failed live follow-up. Patches/tests kept only as private diagnostic evidence; active runtime unchanged.
+### EVO35.2 live repair - 2026-09-09 (실패 이력·후속 연결)
+- **EVO35.2.PRECONDITIONS** [REJECTED_AND_REVERTED / HISTORICAL] Two generic observation/prompt candidates passed code tests but failed live follow-up. Rejected patches remain private diagnostic evidence, not a pending retry; later typed-protocol repair is EVO35.3b.
 
 - [x] **EVO35.2.COMPARE** Real Qwen3.5 comparison: correct two-source response, 11.085s total, policy4/answer1. Scoped synthetic proof only.
 - [x] **EVO35.2.FIXED** Same-model fixed reference: same answer, 5.918s total, policy0/answer1. Single-run reference, not a latency distribution.
-- [ ] **EVO35.2.FOLLOWUP** [REPLAN] Reliable episode-local tool use after explicit history. Preserve all three failed runs; do not launch another blind prompt retry or call training complete.
+- [x] **EVO35.2.FOLLOWUP** [SCOPED_REPAIR_COMPLETE_VIA_EVO35.3b] 과거 REPLAN은 typed handles + executable-action schema 수리 후 보존된 합성 한국어 후속 질문으로 확인했다: search → read → finish, invalid actions0, 10.488s. 기존 실패3회는 보존한다. 일반 후속 질문 품질·학습 완료를 뜻하지 않는다. refs: ../work/2026-09-09-evo35-training-report.md.
 
 ## OCR 그림 샘플 임베딩 — 2026-09-08
 
