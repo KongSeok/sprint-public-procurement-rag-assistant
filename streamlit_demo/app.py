@@ -31,8 +31,11 @@ except ImportError:
 
 from experiments.dahye_latest_20260909.answer_generation import ask_rfp_v9
 from src.data_processing.chunking import load_chunks
+from src.data_processing.merge_text import load_merged
 from src.retrieval.embeddings import SentenceTransformerEmbedding
 from src.retrieval.indexing import HybridIndex
+from scripts.step26_streamlit_serving_prototype import _build_quick_replies
+from scripts.step27_quick_answer_llm_polish import generate_quick_answer
 
 
 DEFAULT_VISUAL_EVIDENCE = (
@@ -82,6 +85,7 @@ def load_runtime() -> dict[str, Any]:
             "output/chunks.pkl이 없습니다. GCP 레포의 output 폴더에 놓아주세요."
         )
 
+    merged = load_merged()
     child_chunks = [chunk for chunk in chunks if getattr(chunk, "strategy", "") != "parent"]
     doc_to_business: dict[str, str] = {}
     doc_metadata: dict[str, dict[str, Any]] = {}
@@ -95,6 +99,7 @@ def load_runtime() -> dict[str, Any]:
     index = HybridIndex(chunks, persist=True, embedding_backend=embedding)
     return {
         "chunks": chunks,
+        "merged": merged,
         "child_chunks": child_chunks,
         "catalog": sorted(doc_to_business.items()),
         "doc_metadata": doc_metadata,
@@ -102,6 +107,23 @@ def load_runtime() -> dict[str, Any]:
         "index": index,
         "embedding_name": embedding.name,
     }
+
+
+def _selected_document(runtime: dict[str, Any], doc_id: str) -> tuple[Any, str]:
+    rows = runtime["merged"][runtime["merged"]["doc_id"] == doc_id]
+    if rows.empty:
+        raise KeyError(f"문서를 찾지 못했습니다: {doc_id}")
+    row = rows.iloc[0]
+    return row, str(row.get("text") or "")
+
+
+def _candidate_excerpt(document_text: str, candidate: str, width: int = 800) -> str:
+    needle = " ".join(candidate.split())[:120]
+    compact = " ".join(document_text.split())
+    position = compact.find(needle)
+    if position < 0:
+        return candidate
+    return compact[max(0, position - width) : position + len(needle) + width]
 
 
 @st.cache_resource(show_spinner=False)
@@ -312,6 +334,87 @@ def main() -> None:
     if not scope_ready:
         st.info("검색할 문서를 한 개 이상 선택해 주세요.")
 
+    scope_signature = (scope_mode, tuple(selected_doc_ids))
+    if st.session_state.get("scope_signature") != scope_signature:
+        st.session_state["scope_signature"] = scope_signature
+        st.session_state["rag_history"] = []
+        st.session_state.pop("quick_result", None)
+    if "rag_history" not in st.session_state:
+        st.session_state["rag_history"] = []
+    with st.sidebar:
+        if st.button("대화 기록 초기화", use_container_width=True):
+            st.session_state["rag_history"] = []
+            st.session_state.pop("quick_result", None)
+            st.rerun()
+
+    if st.session_state["rag_history"]:
+        st.subheader("이전 질문")
+        for history_item in st.session_state["rag_history"]:
+            with st.chat_message("user"):
+                st.write(history_item["question"])
+            with st.chat_message("assistant"):
+                st.write(history_item["answer"])
+                st.caption(history_item["caption"])
+
+    # 한빈님 프로토타입의 11종 빠른 질문은 문서 한 건을 골랐을 때 제공한다.
+    if len(selected_doc_ids) == 1:
+        selected_doc_id = selected_doc_ids[0]
+        if st.session_state.get("quick_doc_id") != selected_doc_id:
+            st.session_state["quick_doc_id"] = selected_doc_id
+            st.session_state.pop("quick_result", None)
+        row, document_text = _selected_document(runtime, selected_doc_id)
+        quick_replies = _build_quick_replies()
+        st.subheader("선택 문서 빠른 질문")
+        st.caption("규칙 기반 후보를 먼저 확인하고, 필요한 경우에만 AI 요약을 실행합니다.")
+        columns = st.columns(4)
+        for index, quick in enumerate(quick_replies):
+            if columns[index % 4].button(quick["label"], key=f"quick_{quick['key']}"):
+                candidates_fn = quick.get("candidates")
+                candidates = candidates_fn(row, document_text) if candidates_fn else []
+                st.session_state["quick_result"] = {
+                    "key": quick["key"],
+                    "question": quick["question"],
+                    "answer": quick["render"](row, document_text),
+                    "candidates": candidates,
+                }
+
+        quick_result = st.session_state.get("quick_result")
+        if quick_result:
+            with st.chat_message("user"):
+                st.write(quick_result["question"])
+            with st.chat_message("assistant"):
+                st.markdown(quick_result["answer"])
+                candidates = quick_result["candidates"]
+                if candidates:
+                    with st.expander("후보 원문 더 보기"):
+                        for number, candidate in enumerate(candidates, start=1):
+                            st.markdown(f"**후보 {number}**")
+                            st.text(_candidate_excerpt(document_text, str(candidate)))
+                    if st.button(
+                        "AI 요약 보기",
+                        key=f"summarize_{quick_result['key']}",
+                        disabled=not model_ready,
+                    ):
+                        started = time.perf_counter()
+                        try:
+                            summary, matched = generate_quick_answer(
+                                client,
+                                selected_doc_id,
+                                quick_result["question"],
+                                candidates,
+                                model=model_name,
+                            )
+                        except Exception as exc:  # noqa: BLE001
+                            st.error(f"AI 요약 실패: {exc}")
+                        else:
+                            st.info(summary or "모델이 답변을 생성하지 못했습니다.")
+                            st.caption(
+                                f"{provider}/{model_name} · {time.perf_counter() - started:.1f}초 · "
+                                + ("확장 문맥 사용" if matched else "후보 문맥 사용")
+                            )
+    elif scope_mode != "all" and selected_doc_ids:
+        st.caption("빠른 질문 버튼은 문서를 한 개만 선택했을 때 표시됩니다.")
+
     example = st.selectbox(
         "예시 질문",
         (
@@ -381,6 +484,16 @@ def main() -> None:
         st.caption(
             f"생성 모델: {provider}/{model_name} · 검색 범위: {scope_mode} · 소요 시간: {elapsed:.1f}초 · "
             f"VLM 근거: {len(selected_visual)}건 사용"
+        )
+        st.session_state["rag_history"].append(
+            {
+                "question": question.strip(),
+                "answer": answer,
+                "caption": (
+                    f"{provider}/{model_name} · {elapsed:.1f}초 · "
+                    f"VLM 근거 {len(selected_visual)}건"
+                ),
+            }
         )
 
         if selected_visual:

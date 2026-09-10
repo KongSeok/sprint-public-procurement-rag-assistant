@@ -14,6 +14,8 @@
 - 전체 98개 문서 / 직접 선택 / 메타데이터 조건 검색 범위
 - GPT-5 mini, GPT-5 nano 실행
 - Qwen3 8B, Qwen3.5 9B 선택 UI(로컬 백엔드 연결 전 비활성)
+- 단일 문서 선택 시 예산·일정, 발주기관, 서식, 참가자격 등 11종 빠른 질문
+- 규칙 기반 후보 표시, 후보 원문 확장, 선택적 AI 요약
 
 VLM 근거는 캐시된 결과만 재사용한다. 새로운 이미지를 실시간으로
 판독하는 blind visual retrieval 서비스가 아니다.
@@ -63,6 +65,10 @@ ssh -i "$env:USERPROFILE\.ssh\id_ed25519_rag_vm" `
 백엔드가 확정되면 `future` provider 처리부만 실제 클라이언트로 교체한다.
 
 선택 자산이 없어도 텍스트 RAG는 정상 실행된다.
+
+빠른 질문은 기존 `scripts/step24_prefilled_qa_prototype.py`의 검증된 후보
+추출기를 재사용하고, AI 요약은 `scripts/step27_quick_answer_llm_polish.py`를
+재사용한다. 기존 FastAPI 앱과 팀원 코드는 수정하지 않는다.
 
 ## 시연 주의사항
 
