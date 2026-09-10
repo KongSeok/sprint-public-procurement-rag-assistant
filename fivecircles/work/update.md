@@ -1194,15 +1194,23 @@ This file summarizes recent updates so other agents can continue without re‑di
 
 ## Addendum (2026-09-10) - EVO35 HF base and semantic checkpoint
 ### Backend
-- Qwen3.5-9B frozen HF base validated: 4/4 shards, 775/775 tensors, no incomplete files; stale downloader stopped.
+- Qwen3.5-9B frozen HF base validated: 4/4 shards, 775/775 tensors, no incomplete files; completed downloader stopped.
 ### Evaluation
 - Golden131 PRE semantic remains 14/129 valid; Sol reviewer blocked until 2026-09-15 10:26 KST, failed shards not admitted.
-### Next
-- EVO35.3e isolated backend/dependency receipt; real SFT still requires explicit wall/storage caps.
+### Preflight
+- Base blocker cleared; SFT still blocked on isolated deps/backend plus explicit wall/storage caps. No training started.
+### Tests
+- HOTLINE merge impact 45/45 PASS on project Python 3.12; semantic/training scripts py_compile PASS.
+
+## Addendum (2026-09-10) - EVO35 isolated SFT backend ready
+### Training
+- Isolated Py3.12 stack passes dependency preflight and pip check; MPS NF4 Linear4bit forward PASS, receipt `30ffb6c7...`.
+### Gate
+- SFT preflight now has only `wall_budget_unfrozen` and `storage_budget_unfrozen`; no training or sealed execution started.
 
 ## Addendum (2026-09-10) - Hotline TODO 정리와 9/9~현재 작업 요약
 ### Documentation
 - 실제 저장소·핫라인 브랜치 확인. 기존 미커밋3파일을 보존하고 TODO의 과거 REPLAN·중복 참조를 정리했다.
 - PRE 실행/의미 채점과 SFT 환경·자원 gate를 구분했다. refs: 2026-09-10-hotline-progress-summary.md.
 ### Checks
-- 문서 내용·상대 링크·diff 확인. 새 모델/학습/채점/VM 실행 및 커밋·푸시는 하지 않았다.
+- 앞선 문서 정리에서는 모델/학습/채점/VM 및 푸시를 하지 않았다. 후속 사용자 승인으로 최신 원격과 문서 충돌을 해소했다.
