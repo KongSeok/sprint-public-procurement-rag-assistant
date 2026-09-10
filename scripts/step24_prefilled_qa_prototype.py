@@ -54,6 +54,88 @@ DEFAULT_DOC_IDS = [
     "한국철도공사 (용역)_[재공고][긴급][협상형]운행정보기록 자동분석시스.hwp",
 ]
 
+# --- 후보 구간 경계 다듬기 -----------------------------------------------
+# [2026-09-10 추가] 지금까지 후보는 전부 "매치 위치에서 N자"처럼 글자 수로 잘라서
+# 만들었다. 그러다 보니 화면에 나오는 후보가 단어 중간에서 시작하거나("...작성
+# 지침을" -> "성지침을") 문장이 끝나기 전에 잘려서("...제안요청서에서") 읽다가
+# 끊기는 문제가 있었다. 우제가 실제 화면에서 발견.
+#
+# 청크 문제가 아니라 이 슬라이싱 문제라서, 원문(row["text"])이 그대로 있는 이상
+# 굳이 LLM한테 "이거 잘린 것 같아?"를 물을 필요가 없다 - 양 끝을 자연스러운
+# 경계까지 밀어주면 결정적으로(추가 비용/지연 없이) 해결된다.
+#
+# 왼쪽: 최대 _SNAP_BACK자까지 거슬러 올라가 줄 시작(없으면 단어 경계)으로 맞춘다.
+# 오른쪽: 최대 _SNAP_FORWARD자까지 내려가며 아래 중 첫 경계에서 끊는다.
+#   - 마침표류 뒤 공백 (앞이 숫자면 제외 - "1. 사업개요"의 번호에서 끊기지 않게)
+#   - 한국어 종결어미(함/음/임/됨/다/요...) 뒤 줄바꿈
+#   - 새 항목이 시작되는 줄바꿈(불릿/번호 앞) - 문장 중간에서 줄만 바뀐 경우
+#     (hwp/pdf 줄바꿈)에는 걸리지 않고 지나가므로 오히려 잘 맞는다
+#   - 빈 줄
+# 경계를 못 찾으면 마지막 공백에서 자르고 "…"를 붙여 잘렸다는 걸 표시한다.
+#
+# 후보의 "개수"나 "찾았는지 여부"는 이 변경과 무관하다(정규식 매치 위치는 그대로).
+# 즉 step25 히트율 수치에는 영향이 없고, 화면에 보이는 텍스트만 읽기 좋아진다.
+_SNAP_BACK = 120
+_SNAP_FORWARD = 300
+_NATURAL_END_PAT = re.compile(
+    r"(?<!\d)[.!?]\s"
+    r"|(?:함|음|임|됨|다|요|권고|준수)\s*\n"
+    r"|\n\s*(?=[-–▢○□※◦·▪◆■]|\d+[.)]|\(\d+\)|[가-힣]\.)"
+    r"|\n\s*\n"
+)
+
+
+def _snap_span(text: str, start: int, end: int, max_forward: int = _SNAP_FORWARD) -> tuple[str, int, int]:
+    """글자 수로 자른 [start, end) 구간의 양 끝을 자연스러운 경계로 민다.
+
+    반환값은 (다듬은 텍스트, 실제 시작 위치, 실제 끝 위치). 위치까지 같이
+    돌려주는 이유는 서빙 화면의 "원문 더 보기"(이 후보 주변을 더 넓게 다시
+    보여주기) 때문이다 - 텍스트만 있으면 원문에서 다시 찾아야 하는데,
+    표준 서식처럼 같은 문구가 여러 번 나오는 문서에서는 엉뚱한 위치를
+    집을 수 있어서 처음부터 위치를 들고 다니는 게 정확하다.
+
+    max_forward를 줄이면 뒤쪽을 덜 확장한다 - 연락처처럼 필요한 정보가 매치
+    지점에서 바로 끝나는 항목은 길게 끌고 오면 오히려 잡음이 섞인다.
+    """
+    start = max(0, start)
+    end = min(len(text), end)
+
+    if start > 0:
+        head_zone_start = max(0, start - _SNAP_BACK)
+        nl = text.rfind("\n", head_zone_start, start)
+        if nl != -1:
+            start = nl + 1
+        else:
+            sp = text.rfind(" ", head_zone_start, start)
+            if sp != -1:
+                start = sp + 1
+
+    if end < len(text):
+        tail_zone = text[end:end + max_forward]
+        m = _NATURAL_END_PAT.search(tail_zone)
+        if m:
+            end += m.end()
+        else:
+            sp = text.rfind(" ", end - 60, end)
+            if sp != -1:
+                end = sp
+            return text[start:end].strip() + "…", start, end
+
+    return text[start:end].strip(), start, end
+
+
+def _snap_bounds(text: str, start: int, end: int, max_forward: int = _SNAP_FORWARD) -> str:
+    """_snap_span()의 텍스트만 필요한 곳을 위한 얇은 래퍼."""
+    return _snap_span(text, start, end, max_forward)[0]
+
+
+def _candidate(method: str, text: str, start: int, end: int, max_forward: int = _SNAP_FORWARD) -> dict:
+    """후보 dict를 만든다. text 외에 원문 위치(start/end)도 같이 담는다 -
+    기존 소비자(step25 히트율, step26 화면)는 method/text만 읽으므로 영향 없음."""
+    snippet, s, e = _snap_span(text, start, end, max_forward)
+    return {"method": method, "text": snippet, "start": s, "end": e}
+
+
 # --- 신청 서식: 첨부 서식 목록 (예: [별지서식 1호], [붙임 1], 【서식 제2호】) ---
 _FORM_HEADER_PAT = re.compile(r"[\[【]\s*(?:별지\s*)?(?:서식|별첨|붙임)\s*(?:제\s*)?\d+\s*(?:호)?\s*[\]】]")
 
@@ -110,20 +192,14 @@ def extract_spec_candidates(text: str, window: int = 400) -> list[dict]:
         tail = text[m.end():m.end() + 180]
         if len(_DASH_NUM_PAT.findall(tail)) >= 2:
             continue
-        candidates.append({
-            "method": "heading",
-            "text": text[m.start():m.start() + window],
-        })
+        candidates.append(_candidate("heading", text, m.start(), m.start() + window))
 
     # 방법 2: 헤딩과 무관하게 "A4 + 분량 단위어" 조합을 본문에서 직접 찾는다
     # (헤딩 문구가 목차에만 있고 본문엔 반복 안 되는 문서에서 더 잘 먹힘).
     m2 = _SPEC_FACT_PAT.search(text)
     if m2:
         start = max(0, m2.start() - 80)
-        candidates.append({
-            "method": "fact_pattern(A4+분량단위어)",
-            "text": text[start:start + window],
-        })
+        candidates.append(_candidate("fact_pattern(A4+분량단위어)", text, start, start + window))
 
     return candidates
 
@@ -160,7 +236,7 @@ def _heading_candidates(
         tail = text[m.end():m.end() + 180]
         if len(_DASH_NUM_PAT.findall(tail)) >= 2:
             continue
-        candidates.append({"method": "heading", "text": text[m.start():m.start() + window]})
+        candidates.append(_candidate("heading", text, m.start(), m.start() + window))
         last_start = m.start()
         if len(candidates) >= max_items:
             break
@@ -199,14 +275,14 @@ def extract_contact_candidates(text: str, window: int = 150, max_items: int = 5)
         if m.start() - last_start < window // 2:
             continue
         start = max(0, m.start() - 40)
-        candidates.append({"method": "phone_pattern", "text": text[start:m.end() + 20]})
+        candidates.append(_candidate("phone_pattern", text, start, m.end() + 20, max_forward=80))
         last_start = m.start()
         if len(candidates) >= max_items:
             return candidates
     if candidates:
         return candidates
     for m in _CONTACT_HEADING_PAT.finditer(text):
-        candidates.append({"method": "heading(문의처/연락처)", "text": text[m.start():m.start() + window]})
+        candidates.append(_candidate("heading(문의처/연락처)", text, m.start(), m.start() + window))
         if len(candidates) >= max_items:
             break
     return candidates
@@ -313,7 +389,7 @@ def extract_bond_candidates(text: str, window: int = 250, max_items: int = 5, mi
         if m.start() - last_start < min_gap:
             continue
         start = max(0, m.start() - 40)
-        candidates.append({"method": "fact_pattern(보증금+비율)", "text": text[start:start + window]})
+        candidates.append(_candidate("fact_pattern(보증금+비율)", text, start, start + window))
         last_start = m.start()
         if len(candidates) >= max_items:
             break
