@@ -1214,3 +1214,23 @@ This file summarizes recent updates so other agents can continue without re‑di
 - PRE 실행/의미 채점과 SFT 환경·자원 gate를 구분했다. refs: 2026-09-10-hotline-progress-summary.md.
 ### Checks
 - 앞선 문서 정리에서는 모델/학습/채점/VM 및 푸시를 하지 않았다. 후속 사용자 승인으로 최신 원격과 문서 충돌을 해소했다.
+
+## Addendum (2026-09-10) - TRAIN 보강240행·폴더 정리
+
+### Training
+
+- 기존157+신규83=240행,60궤적·54고유질문. 실검색6행/재생36행/합성41행을 구분했다.
+- 후보20개 채택·10개 잔여, 원본·활성 설정 불변. refs: 2026-09-10-train-augmentation-closeout.md.
+
+### Documentation
+
+- 실패·폐기3폴더9파일을 archive로 이동, 삭제0. TODO의 완료/잔여와 오류·재발방지 기록을 반영했다.
+
+### Checks
+
+- 이동·release 파일 내용과 경로/Git 제외만 확인. 전체 회귀·재채점·학습·새 푸시는 하지 않았다.
+
+### Publication scope
+
+- 후속 사용자 승인: 보강 내용·경로·관련 TODO/로그만 게시. 데이터·코드·다른 미커밋 작업은 제외한다.
+- 원격 기준 임시 작업공간을 사용하며 메인 브랜치/작업폴더는 유지한다. 실제 push 결과는 원격 tip으로 확인한다.

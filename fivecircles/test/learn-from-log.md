@@ -551,3 +551,9 @@ Reference:
 - Distinguish historical references (`hist:*`), current candidates (`cand:*`) and read/inspected evidence (`ev:*`) at the policy boundary; canonical IDs stay server-side.
 - A correct validator alone does not prevent repeated impossible model actions. Constrain local decoding to executable tools/handles while keeping server validation authoritative.
 - llguidance schema support is narrower than JSON Schema: unsupported grammar keywords such as `uniqueItems` may be omitted only from decoding grammar, never from runtime duplicate validation. See errorlogs/backend/2026-09-09-evo35-structured-followup.md.
+
+## 2026-09-10 - TRAIN 보강은 다음 행동과 원문 근거를 함께 확인한다
+
+- 요청 스키마는 대형 초기화 전에 확인하고, 실검색 수집은 대표1건의 실제 경로·지연부터 본다. 근거: errorlogs/backend/2026-09-10-training-adapter-request.md, 2026-09-10-training-collector-runtime.md.
+- 후속 fixture에는 필요한 부모 근거를 포함한다. 표지만 읽거나 기관명이 등장한 것을 필드·역할 검증으로 대신하지 않는다. 근거: errorlogs/backend/2026-09-10-training-fixture-coverage.md.
+- 실검색/원문 재생/합성 상태 데이터와 학습 완료는 별개다. 실패를 보존하고 최종 파일 경로를 유지한 채 폐기 시범만 archive로 정리한다.

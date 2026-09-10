@@ -12,6 +12,7 @@
 | 1 | EVO35.3e.ENV | 서빙 환경과 분리된 학습 의존성·실제 학습 backend 지원 증거 확보 |
 | 2 | EVO35.3e.RESOURCE | 학습 장치·최대 실행시간·디스크 사용 상한 승인 및 동결 |
 | 병행·차단 | EVO35.3c.SEMANTIC | 고정 Sol blind judge로 PRE 채점 완료. 기존 기록상 사용량 제한; 다른 모델로 임의 대체하지 않음 |
+| 별도 보강 | EVO35.3d.AUGMENT.RUN | 기존157+신규83=240행 후보 보관. 20시나리오 채택·10개 잔여; 원본/활성 설정 불변. 내용·경로만 공유 |
 | 선행 완료 후 | EVO35.3e.TRAIN_DEV | SFT adapter 실제 학습 → non-golden DEV에서 도구 사용·성공·효율 비교 |
 | 조건부 | EVO35.4 | SFT가 DEV 기준을 통과한 경우에만 GRPO 검토·실행 |
 | 최종 | EVO35.5 / HOTLINE.4 | 최종 동결 → paired PRE/POST → 신규 SEALED 1회 → 지원 범위·UI 검증 |
@@ -48,6 +49,12 @@ The user approved the EvoHarness-on-hotline plan with Qwen3.5-9B. This section o
   - [x] **EVO35.3d.B** Seed-v1 rejected before tuning; support-audited seed-v2 frozen with document-disjoint TRAIN/DEV/SEALED partitions.
   - [x] **EVO35.3d.C.TEXT** Qwen3.5 base text rollouts completed: TRAIN 26/26 and DEV 11/11. Validated deterministic teacher completed TRAIN text 26/26 and exported 96 positive next-action SFT JSON examples; invalid actions 0; sealed execution 0. Teacher candidate `dddeaf8`.
   - [x] **EVO35.3d.C.VISUAL** [BASE_AND_TEACHER_COLLECTED] TRAIN teacher 11/11 -> 46 positive SFT actions. Live candidate `2630df6`: TRAIN 11/11 executed, 3 evaluator-success and 15 positive SFT actions; DEV 4/4 executed, 1 evaluator-success. Failed base rollouts remain diagnostic only. SEALED execution 0.
+  - [ ] **EVO35.3d.AUGMENT.RUN** [PARTIAL / 240_ROW_CANDIDATE_PACKAGED] 후보30개 중20시나리오의 다음 행동83행을 보강해 기존157+83=240행,60궤적,54고유질문을 별도 저장. 실검색2건/6행·TRAIN 근거 재생36행·합성 상태41행이며 실모델 rollout10건 완료로 세지 않는다. 원본·활성 학습 설정 불변, 학습0. 보고: `../work/2026-09-10-train-augmentation-closeout.md`.
+    - [x] **EVO35.3d.AUGMENT.RUN.PACKAGE** 원문/문서/현재 핸들·상태 검토 후 기관 역할 불충분1시나리오와 내용중복3행 제외. 신규83행 템플릿 prefix/길이 검사 완료(최대3358토큰). 독립 사람 검수·최종 답변 평가·학습 준비 완료는 아님.
+    - [x] **EVO35.3d.AUGMENT.RUN.ORGANIZE_LOG** [COMPLETED 2026-09-10] 최종 release 경로 유지. 초기 실패2폴더·폐기 시범1폴더(9파일)를 archive로 이동, 삭제0·내용 불변 확인. 보고/오류/재발방지/update 기록 완료; 메인 채점 항목은 보존.
+    - [ ] **EVO35.3d.AUGMENT.RUN.REMAINING** 잔여10개: 기관 역할 근거1, 부분 근거 판정1, 현 런타임 미지원 복구/빈 기억조회2, 그림 내용·픽셀 검수6. 지원하지 않는 행동은 임의 양성 예제로 만들지 않는다.
+    - [ ] **EVO35.3d.AUGMENT.RUN.INPUT** 학습 실행 시 기존157행 설정과 별개로 새240행 입력·SHA를 선택/동결하고 실제 trainer loss mask·자원 조건 확인. 후보 수로 충분성을 선언하지 않는다.
+    - [ ] **EVO35.3d.AUGMENT.RUN.COLLECTOR_PATH** 다음 실검색 수집 전 반복 전체 store 검증의 소요를 줄일 기존 경로/설정 점검. 이번 side-v3의2건은92.34/93.92초이며 병목 수리 완료나 서빙 속도로 보고하지 않는다.
 - [ ] **EVO35.3e** [ENV_BACKEND_READY / TRAINING_BLOCKED_RESOURCE_CAPS] Train bounded Qwen3.5 next-action SFT adapter in an isolated compatible environment. Frozen TRAIN positive dataset: 157 rows, SHA `b6c7366c...`. HF base `Qwen/Qwen3.5-9B@c202236...` is fully materialized and structurally validated: 4/4 safetensors shards, index 775/775 tensors, missing/extra 0, tensor payload `19,306,216,416` bytes. Isolated Python 3.12 env now passes dependency preflight (`transformers 5.17.0`, `trl 1.13.0`, `peft 0.20.0`, `datasets 5.0.1`, `accelerate 1.15.0`, `torch 2.14.0`, `bitsandbytes 0.50.2`) and actual MPS NF4 `Linear4bit` forward; backend receipt SHA `30ffb6c7...`. Remaining blockers are only explicit `max_wall_seconds` and `max_output_gb`; select only on non-golden DEV, never Mini131.
   - [x] **EVO35.3e.ENV** 격리 의존성·MPS NF4 실제 연산 receipt 확보. 원격 `5cd26e5`와 3d relay §13의 기록을 계승하며 이번 병합에서 재실행한 결과는 아니다.
   - [ ] **EVO35.3e.RESOURCE** 사용자/프로젝트가 승인한 학습 장치·wall-clock·storage 상한 및 설정 동결. 관측된 여유 자원으로 예산을 임의 생성하지 않음.
