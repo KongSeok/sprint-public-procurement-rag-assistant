@@ -4,6 +4,8 @@ Review this file before implementation and test execution.
 
 ## Active Preventive Rules
 
+- 2026-09-11: 검색 capture 결속은 empty_scope뿐 아니라 duplicate 캐시 반환도 제외한다. 원본 행동은 보존. refs: errorlogs/backend/2026-09-11-evo-paired10-capture.md.
+
 - Use synthetic data in public tests; private corpus tests are opt-in.
 - Never print document text or PII while diagnosing an extractor failure.
 - Record failed extraction rows in the manifest instead of dropping them.

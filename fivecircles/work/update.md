@@ -1234,3 +1234,20 @@ This file summarizes recent updates so other agents can continue without re‑di
 
 - 후속 사용자 승인: 보강 내용·경로·관련 TODO/로그만 게시. 데이터·코드·다른 미커밋 작업은 제외한다.
 - 원격 기준 임시 작업공간을 사용하며 메인 브랜치/작업폴더는 유지한다. 실제 push 결과는 원격 tip으로 확인한다.
+
+## Addendum (2026-09-11) - 완료 학습본·같은 골든10 비교 기록
+
+### Training
+
+- 399행 실험111스텝·3에폭 완료. 내부 monitor12 최적점108과 best-adapter 가중치 hash 일치. 전체 검증·서빙 승인 아님.
+- 완료 근거·경로·131 실행 잔여: 2026-09-11-evoTrained1-training-complete-handoff.md.
+
+### Tests
+
+- 기존 같은10개20회 새 실행: 답변2→3, 예비통과2→2, 실패4→1, 평균42.03→47.34초. checkpoint38 결과이며 완료본108 결과가 아님.
+- report/가중치 hash·Git 제외 확인. VM 보고서 복사는 후속 승인으로 완료. 재학습·재생성·전체 회귀·131 실행0.
+
+### Publication scope
+
+- logall로 보고·실패/해결·TODO 기록. 원격 기준 임시 폴더에서 이 문서만 게시하며 메인 코드·원문·가중치는 제외한다.
+- 푸시 성공은 사후 원격 tip으로 확인한다. 완료본108 연결 및 전체131 실행은 기록·푸시 다음 단계다.

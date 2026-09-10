@@ -1,5 +1,14 @@
 # MidProjectRAG Task List
 
+## 사이드 학습·VM 비교 최신 상태 — 2026-09-11
+
+아래9/10 학습 전 기록에 대한 이 작업 범위의 갱신이다. 메인 평가·구현 TODO를 대체하지 않는다.
+
+- [x] **CUDA.GOLDEN10.PAIRED38** 같은10문항 OFF/ON20회 새 실행·예비 채점 완료. 답변2→3, 예비통과2→2, 실패4→1. [비교 보고](../work/2026-09-11-evoTrained1-paired10-comparison.md).
+- [x] **EVO35.3e.TRAIN_RUN.SIDE.COMPLETE** 399행 실험111스텝·3에폭 완료. 내부 monitor12 최적 checkpoint108와 best-adapter 가중치 hash 일치. 전체 검증·품질 승인 아님.
+- [ ] **CUDA.MINI131.BEST108** [승인/미시작] 기록·푸시 후 완료본108 snapshot 연결, 질답129+파서2 새 실행·기존 기준 채점. 미지원/실패 보존, 과거 응답 재사용·골드 학습 금지.
+- 상세·private 위치·완료 근거: [완료 학습본 인계](../work/2026-09-11-evoTrained1-training-complete-handoff.md). 데이터·가중치·메인 미커밋 코드는 이번 게시 제외.
+
 ## 최신 현황과 실행 순서 — 2026-09-10
 
 - 확인 위치: `/Users/pio/vibe-workspace/vibe-workspace/sprint-public-procurement-rag-assistant`, `feat/hotline-runtime@414d9a7`. 이미 해당 브랜치이며 기존 미커밋 수정은 보존했다.
