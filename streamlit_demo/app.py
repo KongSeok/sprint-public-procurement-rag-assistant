@@ -36,6 +36,7 @@ from src.retrieval.embeddings import SentenceTransformerEmbedding
 from src.retrieval.indexing import HybridIndex
 from scripts.step26_streamlit_serving_prototype import _build_quick_replies
 from scripts.step27_quick_answer_llm_polish import generate_quick_answer
+from streamlit_demo.compound_queries import answer_period_budget_query
 
 
 DEFAULT_VISUAL_EVIDENCE = (
@@ -457,23 +458,37 @@ def main() -> None:
                         embedding_backend=runtime["index"].embedding_backend,
                     )
                     active_catalog = [item for item in runtime["catalog"] if item[0] in allowed]
+                compound = answer_period_budget_query(
+                    question.strip(),
+                    active_catalog,
+                    runtime["doc_metadata"],
+                    active_chunks,
+                )
                 hits = active_index.hybrid_search(
                     question.strip(), k=10, candidate_k=20, expand_to_parent=True
                 )
-                retrieved_doc_ids = list(dict.fromkeys(str(hit.doc_id) for hit in hits))
-                selected_visual = select_visual_evidence(
-                    question.strip(), retrieved_doc_ids, evidence_rows
-                )
-                generation_client = EvidenceOpenAI(client, selected_visual)
-                answer = ask_rfp_v9(
-                    question.strip(),
-                    generation_client,
-                    active_index,
-                    active_chunks,
-                    active_catalog,
-                    model_name=model_name,
-                )
-                answer = clean_citation(answer, runtime["doc_ids"], selected_visual)
+                if compound is not None:
+                    answer = compound.answer
+                    selected_visual = []
+                    response_path = "복합 조건 필터"
+                else:
+                    retrieved_doc_ids = list(
+                        dict.fromkeys(str(hit.doc_id) for hit in hits)
+                    )
+                    selected_visual = select_visual_evidence(
+                        question.strip(), retrieved_doc_ids, evidence_rows
+                    )
+                    generation_client = EvidenceOpenAI(client, selected_visual)
+                    answer = ask_rfp_v9(
+                        question.strip(),
+                        generation_client,
+                        active_index,
+                        active_chunks,
+                        active_catalog,
+                        model_name=model_name,
+                    )
+                    answer = clean_citation(answer, runtime["doc_ids"], selected_visual)
+                    response_path = "RAG 생성"
             elapsed = time.perf_counter() - started
         except Exception as exc:  # noqa: BLE001
             st.exception(exc)
@@ -482,7 +497,8 @@ def main() -> None:
         st.subheader("답변")
         st.write(answer)
         st.caption(
-            f"생성 모델: {provider}/{model_name} · 검색 범위: {scope_mode} · 소요 시간: {elapsed:.1f}초 · "
+            f"처리 경로: {response_path} · 생성 모델: {provider}/{model_name} · "
+            f"검색 범위: {scope_mode} · 소요 시간: {elapsed:.1f}초 · "
             f"VLM 근거: {len(selected_visual)}건 사용"
         )
         st.session_state["rag_history"].append(
@@ -503,7 +519,7 @@ def main() -> None:
                     st.text(str(row["evidence_text"]))
 
         if show_sources:
-            with st.expander("초기 전체 문서 검색 후보", expanded=True):
+            with st.expander("초기 전체 문서 검색 후보", expanded=False):
                 for number, hit in enumerate(hits, start=1):
                     st.markdown(
                         f"**{number}. {hit.doc_id}**  "
