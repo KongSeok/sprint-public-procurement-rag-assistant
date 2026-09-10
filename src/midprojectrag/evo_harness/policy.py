@@ -159,8 +159,9 @@ class AnswerComposer:
         system = ANSWER_SYSTEM
         if visual_present:
             system += (" A visual_inference source is an unreviewed model interpretation, NOT verified original text. "
-                       "Clearly qualify image-derived statements as an image reading, and do not strengthen, extend, "
-                       "or remove uncertainty from them. Retain the supplied citation labels.")
+                       "It is admissible for an explicitly qualified image-reading answer when it directly addresses the question; "
+                       "do not abstain solely because human review is still required. Clearly qualify image-derived statements as "
+                       "an image reading, and do not strengthen, extend, or remove uncertainty from them. Retain the supplied citation labels.")
         return [{"role": "system", "content": system},
                 {"role": "user", "content": json.dumps(payload, ensure_ascii=False, separators=(",", ":"))}]
 

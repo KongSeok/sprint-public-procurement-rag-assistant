@@ -122,6 +122,9 @@ class VisualHotlineTools(HotlineTools):
         scope = self.visual.doc_ids if requested_scope is None else requested_scope & self.visual.doc_ids
         key = ("visual_search", *episode.profile_key, arg["query"], tuple(sorted(scope)), arg["limit"])
         if key in episode.cache:
+            if episode.duplicate_search_cooldown == key:
+                raise InvalidAction("stagnant_duplicate_search")
+            episode.duplicate_search_cooldown = key
             episode.usage.duplicates += 1
             return {**deepcopy(episode.cache[key]), "duplicate": True}
         if not scope:
