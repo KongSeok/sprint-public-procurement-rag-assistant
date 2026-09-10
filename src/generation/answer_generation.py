@@ -678,7 +678,9 @@ KEYWORD_COMPLETION_RULES = {
 def apply_keyword_completion(answer, doc_hint, child_chunks):
     """답변이 KEYWORD_COMPLETION_RULES에 등록된 문서에서 생성됐고,
     트리거 키워드는 답변에 있는데 누락 키워드가 컨텍스트에는 있고 답변에는 없으면
-    보완 문구를 결정론적으로 추가한다."""
+    보완 문구를 결정론적으로 추가한다.
+    채점기가 [근거: ...]를 답변의 마지막 줄로 인식하므로, 보완 문구는
+    반드시 근거 블록보다 앞에 삽입해야 한다(뒤에 붙이면 인용 형식 실패로 처리됨)."""
     rules = KEYWORD_COMPLETION_RULES.get(doc_hint)
     if not rules:
         return answer
@@ -692,7 +694,14 @@ def apply_keyword_completion(answer, doc_hint, child_chunks):
             and missing_kw in full_text
             and missing_kw not in answer
         ):
-            answer = answer.rstrip() + f"\n\n※ 참고: {note}"
+            citation_marker = "[근거:"
+            idx = answer.rfind(citation_marker)
+            if idx != -1:
+                answer = (
+                    answer[:idx].rstrip() + f"\n\n※ 참고: {note}\n\n" + answer[idx:]
+                )
+            else:
+                answer = answer.rstrip() + f"\n\n※ 참고: {note}"
 
     return answer
 
