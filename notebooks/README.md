@@ -56,6 +56,12 @@ Generation 파이프라인(문서 힌트 매칭 → 청크 선택 → 답변 생
 |---|---|---|
 | `low_score_reanalysis_experiment.ipynb` | 낮은 점수 문항들이 검색 실패인지 생성 실패인지 채점 기준 문제인지 구분 | 7개 케이스 중 실제 검색·청크 선택 문제는 1개뿐이었고, 나머지는 생성 단계에서 우선순위가 밀리거나 채점 함수가 표현 차이를 엄격하게 판정한 경우였음. "여러 사업 중 조건에 맞는 걸 찾아 비교"하는 질문은 벡터 검색으로 원천적으로 불가능하다는 걸 확인하고, 메타데이터에서 직접 계산하는 별도 경로(g25) 신규 구현 |
 
+## 7. 표기 정규화 및 규칙 기반 후처리 확장
+
+| 파일명 | 무엇을 확인하려 했나 | 무엇을 알아냈나 |
+|---|---|---|
+| `keyword_completion_extension_experiment.ipynb` | 채점기 v3.1 재실행에서 드러난 재현성 문제(g16, h20)와 여전히 0점인 문항(g03/g04/g13/g25/visual-pdf-table-003), VLM 근거 ID 혼입이 우리 영역인지 | "100분의N"/"N점" 같은 표기가 LLM 생성마다 "N%"와 오가는 걸 확인해 정규화 함수 신규 구현. 트리거 키워드 리스트·`__FORCE__` 모드로 동의어 케이스까지 규칙 기반 후처리 확장. 표 구조가 파싱 과정에서 소실돼 "보완"이 안 통하는 경우 답변 자체를 교체하는 방식 도입. g04/g13/g25는 이미 정상 작동 확인(조장님 실행 시점 코드가 최신 미반영), VLM 근거 ID 문제는 우리 코드에 관련 로직이 전혀 없음을 확인해 VLM팀 소관으로 정리 |
+
 ---
 
 ## 읽는 순서
@@ -71,6 +77,7 @@ Generation 파이프라인(문서 힌트 매칭 → 청크 선택 → 답변 생
 7. **인용 형식 + 목록형 질문 처리** — `citation_format_experiment.ipynb`
 8. **랭킹·다중비교 질문 확장** — `ranking_and_comparison_experiment.ipynb` → `prompt_phrasing_and_metric_extension_experiment.ipynb`
 9. **낮은 점수 문항 마무리** — `low_score_reanalysis_experiment.ipynb`
+10. **표기 정규화 및 규칙 확장 최종본** — `keyword_completion_extension_experiment.ipynb`
 
 ## 참고
 
