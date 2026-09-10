@@ -96,6 +96,18 @@ def load_runtime() -> dict[str, Any]:
         doc_to_business.setdefault(doc_id, _business_name(metadata))
         doc_metadata.setdefault(doc_id, dict(metadata))
 
+    # 청크 메타데이터에는 검색에 필요한 최소 필드만 있어 공개일이 빠져 있다.
+    # 최근 게시 공고 필터를 위해 병합 데이터의 공개일을 문서 메타데이터에 보강한다.
+    for _index, row in merged.iterrows():
+        doc_id = str(row.get("doc_id") or "")
+        if not doc_id:
+            continue
+        metadata = doc_metadata.setdefault(doc_id, {})
+        for key in ("공개 일자_dt", "공개 일자"):
+            value = row.get(key)
+            if value is not None:
+                metadata[key] = value
+
     embedding = SentenceTransformerEmbedding()
     index = HybridIndex(chunks, persist=True, embedding_backend=embedding)
     return {
@@ -470,7 +482,7 @@ def main() -> None:
                 if compound is not None:
                     answer = compound.answer
                     selected_visual = []
-                    response_path = "복합 조건 필터"
+                    response_path = "복합 조건 필터(공개일/사업기간·예산)"
                 else:
                     retrieved_doc_ids = list(
                         dict.fromkeys(str(hit.doc_id) for hit in hits)
