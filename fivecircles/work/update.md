@@ -1191,3 +1191,13 @@ This file summarizes recent updates so other agents can continue without re‑di
 - Training/eval skeleton added without changing serving pins: Mini131 exclusion/split freezer, action-only SFT export/trainer preflight, external reward contract and GRPO preflight gate.
 - Follow-up evidence lifetime is typed (`hist:*` / `cand:*` / `ev:*`) and Qwen policy decoding is constrained by current executable-action JSON Schema; server validation remains authoritative.
 - Actual preserved Korean Qwen3.5 follow-up PASS: search -> read -> finish, invalid actions0, total worker10.488s. Final impact380 + training13 tests PASS; browser flow report PASS.
+
+## Addendum (2026-09-10) - EVO35 HF base and semantic checkpoint
+### Backend
+- Qwen3.5-9B frozen HF base validated: 4/4 shards, 775/775 tensors, no incomplete files; completed downloader stopped.
+### Evaluation
+- Golden131 PRE semantic remains 14/129 valid; Sol reviewer blocked until 2026-09-15 10:26 KST, failed shards not admitted.
+### Preflight
+- Base blocker cleared; SFT still blocked on isolated deps/backend plus explicit wall/storage caps. No training started.
+### Tests
+- HOTLINE merge impact 45/45 PASS on project Python 3.12; semantic/training scripts py_compile PASS.
