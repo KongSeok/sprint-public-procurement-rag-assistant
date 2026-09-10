@@ -1,7 +1,7 @@
 {
   "schema_version": "evo-sft-config-v1",
   "model_id": "Qwen/Qwen3.5-9B",
-  "base_model_revision": null,
+  "base_model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
   "mode": "qlora4",
   "lora": {
     "r": 16,

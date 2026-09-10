@@ -137,6 +137,10 @@ Group size, max steps, reward weights, generation settings, vLLM mode and GPU/re
 
 Mini131 PRE may be viewed for reporting and regression triage, but its per-case failures must not be used to create/select training questions, rewards, prompts or hyperparameters.
 
+### 7.8.1 Paired Golden131 semantic benchmark
+
+For the SFT experiment, the historical Mini131/Golden131 suite is the paired PRE/POST benchmark, not the model-selection gate. PRE and POST must bind the same 129 RAG case identities, parser-2 separation, source/config hashes, retrieval/runtime identities, semantic rubric and fixed GPT-5.6 Sol blind-judge contract; only the policy/adapter stage may differ. All 129 RAG assets remain in the denominator. A specialist lane that the candidate cannot execute is recorded as an explicit error/unsupported failure and is never dropped or promoted to abstention success. Semantic score, accepted/rejected, deterministic retrieval/citation metrics and runtime error are reported together. No PRE or POST per-case failure, judgment, rationale or gold delta may influence TRAIN/DEV examples, prompt changes, reward weights, hyperparameters or adapter selection; those decisions use non-golden DEV only. Parser regressions remain separate ETL PASS/FAIL and never enter the RAG semantic mean.
+
 ## 8. Contracts
 
 ### 8.1 Dataset / receipt files

@@ -124,6 +124,8 @@ VISUAL_TOOL_GUIDE = """
 VISUAL CAPABILITY (use only names in available_tools):
 visual_search: query(string), doc_ids(null or allowed document IDs), limit(integer 1..5).
 It searches existing OCR/layout text and returns visual candidate handles, not image understanding.
+Each returned visual candidate is already bound to a crop from its scoped document; do not ask inspect_image whether the crop belongs to that document.
+For inserted-image existence questions, ask inspect_image what visual element is actually visible in the crop, not whether its visible title matches the document title.
 inspect_image: evidence_id(ONE visual handle from visual_search), question(string <=2000).
 It reads actual pixels using Qwen3.5 and returns an unreviewed interpretation or abstention.
 For a drawing, figure, screenshot or image-label question use visual_search then inspect_image
@@ -282,7 +284,8 @@ def action_schema(episode: "Episode", budget: Budgets) -> dict:
             "doc_ids": scope_schema,
             "limit": {"type": "integer", "minimum": 1, "maximum": 10},
         })))
-    if "visual_search" in tools and episode.usage.search_calls < budget.search_calls:
+    if ("visual_search" in tools and episode.usage.search_calls < budget.search_calls
+            and episode.duplicate_search_cooldown is None):
         options.append(_schema_action("visual_search", _schema_object({
             "query": {"type": "string", "minLength": 1, "maxLength": 2000},
             "doc_ids": scope_schema,
