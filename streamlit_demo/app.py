@@ -318,6 +318,7 @@ def main() -> None:
     )
 
     selected_doc_ids: list[str] = []
+    quick_doc_options = [""] + [doc_id for doc_id, _name in runtime["catalog"]]
     with st.sidebar:
         if scope_mode == "explicit":
             selected_doc_ids = st.multiselect(
@@ -342,6 +343,15 @@ def main() -> None:
             selected_doc_ids = st.multiselect(
                 "질문에 사용할 문서 (최대 20개)", matched, max_selections=20
             )
+
+        st.divider()
+        st.subheader("문서별 빠른 검토")
+        quick_review_doc_id = st.selectbox(
+            "빠른 질문을 사용할 문서",
+            quick_doc_options,
+            format_func=lambda value: "문서를 선택하세요" if not value else value,
+            help="전체 문서 검색 범위와 별개로 한 문서를 골라 예산·일정·참가자격 등의 빠른 질문을 사용할 수 있습니다.",
+        )
 
     scope_ready = scope_mode == "all" or bool(selected_doc_ids)
     if not scope_ready:
@@ -369,9 +379,12 @@ def main() -> None:
                 st.write(history_item["answer"])
                 st.caption(history_item["caption"])
 
-    # 한빈님 프로토타입의 11종 빠른 질문은 문서 한 건을 골랐을 때 제공한다.
-    if len(selected_doc_ids) == 1:
-        selected_doc_id = selected_doc_ids[0]
+    # 기존 문서별 프로토타입의 11종 빠른 질문을 전체 검색 모드에서도 제공한다.
+    quick_doc_id = quick_review_doc_id or (
+        selected_doc_ids[0] if len(selected_doc_ids) == 1 else ""
+    )
+    if quick_doc_id:
+        selected_doc_id = quick_doc_id
         if st.session_state.get("quick_doc_id") != selected_doc_id:
             st.session_state["quick_doc_id"] = selected_doc_id
             st.session_state.pop("quick_result", None)
@@ -425,8 +438,8 @@ def main() -> None:
                                 f"{provider}/{model_name} · {time.perf_counter() - started:.1f}초 · "
                                 + ("확장 문맥 사용" if matched else "후보 문맥 사용")
                             )
-    elif scope_mode != "all" and selected_doc_ids:
-        st.caption("빠른 질문 버튼은 문서를 한 개만 선택했을 때 표시됩니다.")
+    else:
+        st.caption("문서별 빠른 검토를 사용하려면 왼쪽에서 문서를 선택하세요.")
 
     example = st.selectbox(
         "예시 질문",

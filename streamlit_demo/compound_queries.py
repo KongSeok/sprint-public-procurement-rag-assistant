@@ -28,15 +28,15 @@ class CompoundAnswer:
     applied_conditions: str
 
 
-def _amount_bound(question: str) -> tuple[str, int] | None:
-    match = re.search(
+def _amount_bounds(question: str) -> list[tuple[str, int]]:
+    matches = re.findall(
         r"(\d+(?:\.\d+)?)\s*(억|천만|백만|만|원)\s*(미만|이하|이상|초과)",
         question,
     )
-    if not match:
-        return None
-    amount = int(float(match.group(1)) * _AMOUNT_UNITS[match.group(2)])
-    return match.group(3), amount
+    return [
+        (operator, int(float(number) * _AMOUNT_UNITS[unit]))
+        for number, unit, operator in matches
+    ]
 
 
 def _period_bound(question: str) -> int | None:
@@ -146,6 +146,10 @@ def _passes_budget(amount: int, operator: str, bound: int) -> bool:
     }[operator]
 
 
+def _budget_condition_text(bounds: list[tuple[str, int]]) -> str:
+    return " · ".join(f"예산 {bound:,}원 {operator}" for operator, bound in bounds)
+
+
 def answer_period_budget_query(
     question: str,
     catalog: Iterable[tuple[str, str]],
@@ -153,10 +157,9 @@ def answer_period_budget_query(
     chunks: Iterable[Any],
 ) -> CompoundAnswer | None:
     """사업기간/공개일과 예산을 함께 명시한 목록 질문을 처리한다."""
-    amount_bound = _amount_bound(question)
-    if amount_bound is None:
+    amount_bounds = _amount_bounds(question)
+    if not amount_bounds:
         return None
-    operator, budget_limit = amount_bound
 
     publication_days = _publication_window_days(question)
     if publication_days is not None:
@@ -184,7 +187,7 @@ def answer_period_budget_query(
             if amount is None:
                 unknown_budget += 1
                 continue
-            if _passes_budget(amount, operator, budget_limit):
+            if all(_passes_budget(amount, operator, bound) for operator, bound in amount_bounds):
                 matched_dates.append((doc_id, published, amount))
         matched_dates.sort(key=lambda item: (-item[1].toordinal(), item[2], item[0]))
         anchor_note = (
@@ -194,7 +197,7 @@ def answer_period_budget_query(
         )
         condition = (
             f"{anchor_note} 최근 {publication_days}일({start.isoformat()}~{anchor.isoformat()}) · "
-            f"예산 {budget_limit:,}원 {operator}"
+            f"{_budget_condition_text(amount_bounds)}"
         )
         if not matched_dates:
             return CompoundAnswer(
@@ -237,11 +240,11 @@ def answer_period_budget_query(
         if amount is None:
             unknown_budget += 1
             continue
-        if _passes_budget(amount, operator, budget_limit):
+        if all(_passes_budget(amount, operator, bound) for operator, bound in amount_bounds):
             matched.append((doc_id, days, amount))
 
     matched.sort(key=lambda item: (item[1], item[2], item[0]))
-    condition = f"기간 {period_limit}일 이내 · 예산 {budget_limit:,}원 {operator}"
+    condition = f"기간 {period_limit}일 이내 · {_budget_condition_text(amount_bounds)}"
     if not matched:
         answer = f"두 조건을 모두 만족하는 사업을 찾지 못했습니다.\n\n적용 조건: {condition}"
         return CompoundAnswer(answer, (), condition)

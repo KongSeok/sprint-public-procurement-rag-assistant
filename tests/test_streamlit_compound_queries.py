@@ -51,3 +51,21 @@ def test_recent_publication_and_budget_are_both_applied():
     assert "recent-over.hwp" not in result.answer
     assert "old.hwp" not in result.answer
     assert "교육용 데이터의 최신 공개일 2024-09-01 기준" in result.answer
+
+
+def test_budget_range_applies_lower_and_upper_bounds():
+    result = answer_period_budget_query(
+        "최근 3개월 공개된 공고 중 예산 5억 이상 20억 미만을 찾아줘",
+        [("low.hwp", ""), ("inside.hwp", ""), ("high.hwp", "")],
+        {
+            "low.hwp": {"공개 일자": "2024-09-01", "사업_금액": 400_000_000},
+            "inside.hwp": {"공개 일자": "2024-09-01", "사업_금액": 900_000_000},
+            "high.hwp": {"공개 일자": "2024-09-01", "사업_금액": 2_000_000_000},
+        },
+        [],
+    )
+
+    assert result is not None
+    assert result.doc_ids == ("inside.hwp",)
+    assert "예산 500,000,000원 이상" in result.answer
+    assert "예산 2,000,000,000원 미만" in result.answer
