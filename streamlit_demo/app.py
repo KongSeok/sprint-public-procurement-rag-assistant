@@ -6,6 +6,7 @@ HybridIndex와 ``ask_rfp_v9`` 생성기를 연결한 별도 시연 진입점이�
 """
 from __future__ import annotations
 
+import hmac
 import json
 import os
 import re
@@ -45,14 +46,21 @@ DEFAULT_VISUAL_EVIDENCE = (
 DEFAULT_MODELS = (
     "openai:gpt-5-mini",
     "openai:gpt-5-nano",
-    "future:qwen3-8b",
-    "future:qwen3.5-9b",
+    "qwen3-8b:Qwen/Qwen3-8B",
+    "qwen3.5-9b:Qwen/Qwen3.5-9B",
+    "qwen3.5-27b:Qwen/Qwen3.5-27B",
 )
 MODEL_LABELS = {
     "openai:gpt-5-mini": "GPT-5 mini — 사용 가능",
     "openai:gpt-5-nano": "GPT-5 nano — 사용 가능",
-    "future:qwen3-8b": "Qwen3 8B — 로컬 백엔드 연결 예정",
-    "future:qwen3.5-9b": "Qwen3.5 9B — 로컬 백엔드 연결 예정",
+    "qwen3-8b:Qwen/Qwen3-8B": "Qwen3 8B — GCP 로컬",
+    "qwen3.5-9b:Qwen/Qwen3.5-9B": "Qwen3.5 9B — GCP 로컬",
+    "qwen3.5-27b:Qwen/Qwen3.5-27B": "Qwen3.5 27B — 개인 PC",
+}
+LOCAL_MODEL_ENDPOINTS = {
+    "qwen3-8b": "BIDFIT_QWEN3_8B_URL",
+    "qwen3.5-9b": "BIDFIT_QWEN35_9B_URL",
+    "qwen3.5-27b": "BIDFIT_QWEN35_27B_URL",
 }
 VISUAL_QUERY_WORDS = {
     "그림",
@@ -140,7 +148,7 @@ def _candidate_excerpt(document_text: str, candidate: str, width: int = 800) -> 
 
 
 @st.cache_resource(show_spinner=False)
-def load_generation_client(provider: str):
+def load_generation_client(provider: str, model_name: str):
     from openai import OpenAI
     if provider == "openai":
         key = os.environ.get("OPENAI_API_KEY", "").strip()
@@ -149,8 +157,16 @@ def load_generation_client(provider: str):
                 "OPENAI_API_KEY가 없습니다. 레포 루트의 .env에 추가한 뒤 앱을 재시작하세요."
             )
         return OpenAI(api_key=key)
-    if provider == "future":
-        raise RuntimeError("선택한 로컬 모델은 UI만 준비됐으며 백엔드 연결 전입니다.")
+    endpoint_env = LOCAL_MODEL_ENDPOINTS.get(provider)
+    if endpoint_env:
+        base_url = os.environ.get(endpoint_env, "").strip().rstrip("/")
+        if not base_url:
+            raise RuntimeError(
+                f"{model_name} 서버 주소가 없습니다. "
+                f".env에 {endpoint_env}=http(s)://.../v1을 추가하세요."
+            )
+        api_key = os.environ.get("BIDFIT_LOCAL_MODEL_API_KEY", "local-model")
+        return OpenAI(base_url=base_url, api_key=api_key)
     raise ValueError(f"지원하지 않는 생성 provider: {provider}")
 
 
@@ -158,6 +174,22 @@ def _split_model_choice(choice: str) -> tuple[str, str]:
     if ":" not in choice:
         return "openai", choice
     return tuple(choice.split(":", 1))  # type: ignore[return-value]
+
+
+def require_demo_password() -> None:
+    """공개 포트 시연 시 API 남용을 막는 간단한 화면 암호."""
+    expected = os.environ.get("BIDFIT_DEMO_PASSWORD", "")
+    if not expected or st.session_state.get("demo_authenticated"):
+        return
+    st.title("🔐 입찰메이트 팀 시연")
+    supplied = st.text_input("시연 암호", type="password")
+    if st.button("입장", type="primary"):
+        if hmac.compare_digest(supplied, expected):
+            st.session_state["demo_authenticated"] = True
+            st.rerun()
+        else:
+            st.error("암호가 올바르지 않습니다.")
+    st.stop()
 
 
 @st.cache_data(show_spinner=False)
@@ -561,6 +593,7 @@ def _render_document_review(
 
 def main() -> None:
     st.set_page_config(page_title="입찰메이트 RAG", page_icon="📄", layout="wide")
+    require_demo_password()
     st.title("📄 입찰메이트")
     with st.sidebar:
         st.header("시연 설정")
@@ -569,9 +602,12 @@ def main() -> None:
             "생성 모델", _model_choices(), format_func=lambda value: MODEL_LABELS.get(value, value)
         )
         provider, model_name = _split_model_choice(model_choice)
-        model_ready = provider != "future"
+        endpoint_env = LOCAL_MODEL_ENDPOINTS.get(provider)
+        model_ready = provider == "openai" or bool(
+            os.environ.get(endpoint_env or "", "").strip()
+        )
         if not model_ready:
-            st.warning("로컬 모델은 백엔드 연결 전이라 실행할 수 없습니다.")
+            st.warning(f"선택한 모델의 서버 주소({endpoint_env})가 아직 설정되지 않았습니다.")
         use_visual = st.checkbox("기존 VLM 시각 근거 사용", value=True)
         show_sources = st.checkbox("검색 근거 표시", value=True)
         st.info(
@@ -582,7 +618,7 @@ def main() -> None:
     try:
         with st.spinner("검색 인덱스를 불러오는 중입니다..."):
             runtime = load_runtime()
-        client = load_generation_client(provider) if model_ready else None
+        client = load_generation_client(provider, model_name) if model_ready else None
     except Exception as exc:  # noqa: BLE001
         st.error(str(exc))
         st.stop()

@@ -33,13 +33,31 @@ VLM 근거는 캐시된 결과만 재사용한다. 새로운 이미지를 실시
 
 ```env
 OPENAI_API_KEY=sk-...
-BIDFIT_MODELS=openai:gpt-5-mini,openai:gpt-5-nano,future:qwen3-8b,future:qwen3.5-9b
+BIDFIT_MODELS=openai:gpt-5-mini,openai:gpt-5-nano,qwen3-8b:Qwen/Qwen3-8B,qwen3.5-9b:Qwen/Qwen3.5-9B,qwen3.5-27b:Qwen/Qwen3.5-27B
+BIDFIT_QWEN3_8B_URL=http://127.0.0.1:8002/v1
+BIDFIT_QWEN35_9B_URL=http://127.0.0.1:8003/v1
+BIDFIT_QWEN35_27B_URL=https://PERSONAL-MODEL-ENDPOINT.example/v1
+BIDFIT_LOCAL_MODEL_API_KEY=서버에_설정한_키_또는_local-model
+BIDFIT_DEMO_PASSWORD=팀에서_정한_암호
 ```
 
-`BIDFIT_MODELS`는 `provider:model` 형식의 화면 허용 목록이다. 현재 `openai`
-항목만 실제 실행되고 `future` 항목은 로컬 백엔드 연결 위치를 미리 확보한
-선택지다. 모델명만 OpenAI API에 보내는 잘못된 연결을 방지하기 위해 로컬
-항목을 선택하면 실행 버튼이 비활성화된다.
+`BIDFIT_MODELS`는 `provider:model` 형식의 화면 허용 목록이다. Qwen 항목은
+vLLM 등의 OpenAI 호환 `/v1` 서버 주소를 각 환경변수로 받는다. 서버가 꺼져
+있거나 주소가 없으면 해당 모델은 실행되지 않는다. L4에서 8B와 9B를
+동시에 띄울 수 있다고 가정하지 않으며, 개인 PC의 27B는 해당 PC와 HTTPS
+엔드포인트가 켜져 있을 때만 사용할 수 있다.
+
+## SSH 터널 없는 임시 팀 시연
+
+`.env`에 `BIDFIT_DEMO_PASSWORD`를 설정한 뒤 VM에서 Streamlit을
+기존처럼 `127.0.0.1:8010`에 실행한다. 두 번째 VM 터미널에서 실행한다.
+
+```bash
+bash scripts/share_streamlit_demo.sh
+```
+
+출력된 `https://....trycloudflare.com` 주소를 공유하면 팀원은 SSH 없이
+브라우저로 접속할 수 있다. 이 임시 주소는 터널을 다시 실행하면 바뀐다.
 
 ```bash
 cd ~/sprint-public-procurement-rag-assistant
@@ -71,8 +89,8 @@ ssh -i "$env:USERPROFILE\.ssh\id_ed25519_rag_vm" `
 
 - `output/experiments/b_plan_v3_vlm/visual_evidence.jsonl`
 
-로컬 Qwen 백엔드는 이 앱에서 임의로 구현하지 않는다. 지수님이 제공할 통합
-백엔드가 확정되면 `future` provider 처리부만 실제 클라이언트로 교체한다.
+로컬 Qwen은 Streamlit 프로세스 안에서 모델을 직접 로드하지 않고, 별도의
+OpenAI 호환 추론 서버에 연결한다.
 
 선택 자산이 없어도 텍스트 RAG는 정상 실행된다.
 
@@ -85,4 +103,4 @@ ssh -i "$env:USERPROFILE\.ssh\id_ed25519_rag_vm" `
 - 첫 실행에서는 KURE 모델과 Chroma DB를 불러오느라 시간이 걸릴 수 있다.
 - 서버를 재시작해도 Chroma DB가 일치하면 기존 임베딩을 재사용한다.
 - 시연 전에 예시 질문을 한 번씩 실행해 모델과 인덱스를 미리 로드한다.
-- 외부에 포트를 공개하지 말고 SSH 터널을 사용한다.
+- 링크 공유 시 `.env`의 `BIDFIT_DEMO_PASSWORD`를 반드시 설정한다.
