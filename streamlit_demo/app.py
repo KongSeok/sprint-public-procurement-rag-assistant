@@ -38,6 +38,7 @@ from src.retrieval.indexing import HybridIndex
 from scripts.step26_streamlit_serving_prototype import _build_quick_replies
 from scripts.step27_quick_answer_llm_polish import generate_quick_answer
 from streamlit_demo.compound_queries import answer_period_budget_query
+from streamlit_demo.local_generation import LocalGenerationClient, reset_generation_history
 
 
 DEFAULT_VISUAL_EVIDENCE = (
@@ -54,7 +55,7 @@ MODEL_LABELS = {
     "openai:gpt-5-mini": "GPT-5 mini — 사용 가능",
     "openai:gpt-5-nano": "GPT-5 nano — 사용 가능",
     "qwen3-8b:Qwen/Qwen3-8B": "Qwen3 8B — GCP 로컬",
-    "qwen3.5-9b:Qwen/Qwen3.5-9B": "Qwen3.5 9B — GCP 로컬",
+    "qwen3.5-9b:Qwen/Qwen3.5-9B": "Qwen3.5 9B — VM 로컬 생성",
     "qwen3.5-27b:Qwen/Qwen3.5-27B": "Qwen3.5 27B — 개인 PC",
 }
 LOCAL_MODEL_ENDPOINTS = {
@@ -95,6 +96,11 @@ def load_runtime() -> dict[str, Any]:
         )
 
     merged = load_merged()
+    if merged is None:
+        raise FileNotFoundError(
+            "output/merged_docs.pkl이 없습니다. chunks.pkl과 같은 코퍼스의 "
+            "병합 문서 캐시를 준비해 주세요. 청크로 원문을 임의 복원하지 않습니다."
+        )
     child_chunks = [chunk for chunk in chunks if getattr(chunk, "strategy", "") != "parent"]
     doc_to_business: dict[str, str] = {}
     doc_metadata: dict[str, dict[str, Any]] = {}
@@ -166,7 +172,10 @@ def load_generation_client(provider: str, model_name: str):
                 f".env에 {endpoint_env}=http(s)://.../v1을 추가하세요."
             )
         api_key = os.environ.get("BIDFIT_LOCAL_MODEL_API_KEY", "local-model")
-        return OpenAI(base_url=base_url, api_key=api_key)
+        delegate = OpenAI(base_url=base_url, api_key=api_key, max_retries=0, timeout=130.0)
+        if provider == "qwen3.5-9b":
+            return LocalGenerationClient(delegate, model_name)
+        return delegate
     raise ValueError(f"지원하지 않는 생성 provider: {provider}")
 
 
@@ -602,6 +611,11 @@ def main() -> None:
             "생성 모델", _model_choices(), format_func=lambda value: MODEL_LABELS.get(value, value)
         )
         provider, model_name = _split_model_choice(model_choice)
+        reset_generation_history(st.session_state, model_choice)
+        if provider == "qwen3.5-9b":
+            st.caption("생성: VM Qwen · 검색은 기존 KURE 유지 · 출력 최대 1,024토큰 · 자동 API 대체 없음")
+        elif provider == "openai":
+            st.caption("생성: OpenAI API · 검색은 기존 KURE 유지 · 호출 비용 발생")
         endpoint_env = LOCAL_MODEL_ENDPOINTS.get(provider)
         model_ready = provider == "openai" or bool(
             os.environ.get(endpoint_env or "", "").strip()
@@ -627,6 +641,7 @@ def main() -> None:
         f"문서 {len(runtime['doc_ids'])}개 · 청크 {len(runtime['chunks']):,}개 · "
         f"임베딩 {runtime['embedding_name']} · VLM 캐시 {len(evidence_rows)}건"
     )
+    st.caption(f"검색 임베딩 실행 장치: {runtime['index'].embedding_backend._model.device}")
     if app_mode == "전체 문서 찾기":
         _render_global_search(
             runtime, client, provider, model_name, model_ready, evidence_rows, show_sources

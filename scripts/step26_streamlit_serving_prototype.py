@@ -96,9 +96,9 @@ from src.data_processing.merge_text import load_merged, merge_all, save_merged  
 
 from src.generation.generation import build_context, generate_answer  # noqa: E402
 
-from step27_quick_answer_llm_polish import generate_quick_answer, get_doc_chunks  # noqa: E402
+from scripts.step27_quick_answer_llm_polish import generate_quick_answer, get_doc_chunks  # noqa: E402
 
-from step24_prefilled_qa_prototype import (  # noqa: E402
+from scripts.step24_prefilled_qa_prototype import (  # noqa: E402
     extract_bond_candidates,
     extract_contact_candidates,
     extract_contract_method_candidates,
