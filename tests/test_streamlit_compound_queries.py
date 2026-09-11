@@ -53,6 +53,22 @@ def test_recent_publication_and_budget_are_both_applied():
     assert "교육용 데이터의 최신 공개일 2024-09-01 기준" in result.answer
 
 
+def test_recent_publication_skips_nan_budget():
+    result = answer_period_budget_query(
+        "3개월 이내에 나온 공고 중에 예산 10억 미만인 공고 찾아줘",
+        [("known.hwp", ""), ("missing.hwp", "")],
+        {
+            "known.hwp": {"공개 일자": "2024-09-01", "사업_금액": 900_000_000},
+            "missing.hwp": {"공개 일자": "2024-09-01", "사업_금액": float("nan")},
+        },
+        [],
+    )
+
+    assert result is not None
+    assert result.doc_ids == ("known.hwp",)
+    assert "예산 정보가 없는 기간 내 공고 1건은 결과에서 제외했습니다." in result.answer
+
+
 def test_budget_range_applies_lower_and_upper_bounds():
     result = answer_period_budget_query(
         "최근 3개월 공개된 공고 중 예산 5억 이상 20억 미만을 찾아줘",

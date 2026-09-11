@@ -6,6 +6,7 @@
 """
 from __future__ import annotations
 
+import math
 import re
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
@@ -64,12 +65,15 @@ def _number(value: Any) -> int | None:
     if value is None:
         return None
     if isinstance(value, (int, float)):
+        if not math.isfinite(float(value)):
+            return None
         return int(value)
     cleaned = re.sub(r"[^0-9.]", "", str(value))
     if not cleaned:
         return None
     try:
-        return int(float(cleaned))
+        parsed = float(cleaned)
+        return int(parsed) if math.isfinite(parsed) else None
     except ValueError:
         return None
 
